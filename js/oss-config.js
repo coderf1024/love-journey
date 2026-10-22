@@ -3,6 +3,9 @@ const OSS_CONFIG = {
   bucket: 'love-config',
   ak: 'fG5XUXVnNF1ta1tlb1VZZlRRW1F0VVtSM1lXVkVVSVc=',
   sk: 'N0Q0Z3lFS1A2XEpSe1RYV0ZdWFBHWXBVXHM2VntnWFo0SHBZc2dvZQ==',
+  // legacy monolith — kept as the source for scripts/migrate-storage.js only
   configPath: 'love-journey/config.json',
+  // new document store root
+  dbRoot: 'love-journey/db',
   adminPasscode: '0814'
 };

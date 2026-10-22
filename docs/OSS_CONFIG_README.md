@@ -70,7 +70,10 @@ const OSS_CONFIG = {
   bucket: 'your-bucket-name',
   ak: '加密后的AccessKeyId',
   sk: '加密后的AccessKeySecret',
+  // 旧版单文件备份，仅迁移脚本 scripts/migrate-storage.js 会读取
   configPath: 'love-journey/config.json',
+  // 新版文档存储根目录
+  dbRoot: 'love-journey/db',
   adminPasscode: '0814'
 };
 ```

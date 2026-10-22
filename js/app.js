@@ -1,6 +1,39 @@
+/* ============================================================
+   我们的时光 — front-of-house app
+   index.html only. Data comes from js/store.js (OSS documents).
+   ============================================================ */
+
 let config = {};
-let timerInterval;
-let myChart;
+let massageCouponsData = [];
+let timerInterval = null;
+let myChart = null;
+
+const CDN = {
+    echarts: 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js',
+    qrcode: 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js'
+};
+
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261022-3';
+const MINUTE = 60 * 1000;
+const ORDER_POLL_MS = 20 * 1000;
+const KITCHEN_ACTIVE = ['pending', 'prepping', 'cooking'];
+
+const KITCHEN_COPY = {
+    pending: { title: '已送进厨房，等大厨接单', note: '大厨看到就会开始准备', emoji: '🧾' },
+    prepping: { title: '大厨系上围裙，正在备菜', note: '洗菜、切菜，马上开火', emoji: '🥬' },
+    cooking: { title: '锅里滋滋响，香味出来了', note: '再等一会儿就能开饭', emoji: '🍳' },
+    served: { title: '出餐啦，快来吃饭', note: '今天的饭要趁热吃', emoji: '🍽️' },
+    completed: { title: '这顿饭吃完了', note: '碗我来洗', emoji: '🫧' },
+    cancelled: { title: '这单取消了', note: '恋爱币已经退回钱包', emoji: '🥀' }
+};
+
+const KITCHEN_TOAST = {
+    prepping: '大厨接单啦，开始备菜',
+    cooking: '下锅啦，香味要出来了',
+    served: '出餐啦，快来吃饭',
+    completed: '这顿饭完成啦',
+    cancelled: '这单取消了'
+};
 
 const cityCoordinates = {
     '北京': { value: [116.4074, 39.9042] },
@@ -52,803 +85,1843 @@ const cityCoordinates = {
     '东京': { value: [139.6503, 35.6762] },
     '首尔': { value: [126.9780, 37.5665] },
     '济州岛': { value: [126.5312, 33.3617] },
-    // '曼谷': { value: [100.5018, 13.7563] },
     '新加坡': { value: [103.8198, 1.3521] },
     '吉隆坡': { value: [101.6869, 3.1390] },
     '马累': { value: [73.5, 4.2] },
-    // '马尼拉': { value: [120.9842, 14.5995] },
-    // '河内': { value: [105.8542, 21.0285] },
-    // '胡志明市': { value: [106.6297, 10.8231] },
-    // '雅加达': { value: [106.8456, -6.2088] },
-    // '德里': { value: [77.2090, 28.6139] },
-    // '孟买': { value: [72.8777, 19.0760] },
     '迪拜': { value: [55.2708, 25.2048] }
 };
 
-const extraVisitedCities = [
-    {
-        name: '古北水镇',
-        date: '2026-06-16',
-        description: '猫、扎染、长城'
-    }
+const MOTIFS = [
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.4-7.5-9.6A4.4 4.4 0 0 1 12 8a4.4 4.4 0 0 1 7.5 2.9c0 5.2-7.5 9.6-7.5 9.6Z"/></svg>',
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7"/><circle cx="12" cy="13.5" r="3.2"/></svg>',
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="m3 18 5.5-9 3.5 5.5L15 10l6 8Z"/><circle cx="17.5" cy="6" r="1.8"/></svg>',
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4 3 10.5l6.5 2.5L12 20l3.5-6L21 4Z"/><path d="m9.5 13 2.5-2.5"/></svg>',
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.3l6.1-.7L12 3Z"/></svg>',
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11 12 4l8 7"/><path d="M6 10v9h12v-9"/><path d="M10 19v-5h4v5"/></svg>'
 ];
 
+const state = {
+    page: 'home',
+    filter: 'all',
+    milestones: [],
+    goals: [],
+    cities: [],
+    coupons: [],
+    space: null,
+    wallet: { balance: 0, overdraftLimit: 50, entries: [] },
+    menu: { categories: [], dishes: [] },
+    orders: [],
+    latestOrder: null,
+    menuCategory: 'all',
+    cart: new Set(),
+    orderPollTimer: null,
+    memoryIndex: -1,
+    lastLoadedAt: 0,
+    refreshing: false,
+    mapRoam: false,
+    mapStatus: 'idle', // idle | loading | ready | error
+    openSheets: [],
+    toastTimer: null
+};
+
+/* ---------- tiny helpers ---------- */
+
+function $(id) {
+    return document.getElementById(id);
+}
+
+function escapeHTML(value) {
+    return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function cleanText(value) {
+    return escapeHTML(String(value == null ? '' : value).trim());
+}
+
+function pad2(value) {
+    return String(value).padStart(2, '0');
+}
+
+function parseDate(value) {
+    if (!value) return null;
+    if (value instanceof Date) return value;
+    const text = String(value);
+    const date = text.includes('T') ? new Date(text) : new Date(text.replace(/-/g, '/'));
+    return isNaN(date.getTime()) ? null : date;
+}
+
+function formatDate(value, withTime) {
+    const date = parseDate(value);
+    if (!date) return '';
+    const day = `${date.getFullYear()}.${pad2(date.getMonth() + 1)}.${pad2(date.getDate())}`;
+    if (!withTime) return day;
+    return `${day} ${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+}
+
+function dateYear(value) {
+    const date = parseDate(value);
+    return date ? date.getFullYear() : '';
+}
+
+function toast(message) {
+    const el = $('toast');
+    if (!el) return;
+    el.textContent = message;
+    el.classList.add('is-visible');
+    clearTimeout(state.toastTimer);
+    state.toastTimer = setTimeout(() => el.classList.remove('is-visible'), 1800);
+}
+
+function loadScript(src) {
+    if (loadScript.cache[src]) return loadScript.cache[src];
+    loadScript.cache[src] = new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = resolve;
+        script.onerror = () => {
+            delete loadScript.cache[src];
+            reject(new Error(`加载失败: ${src}`));
+        };
+        document.head.appendChild(script);
+    });
+    return loadScript.cache[src];
+}
+loadScript.cache = {};
+
+function storageGet(key) {
+    try { return localStorage.getItem(key); } catch (error) { return null; }
+}
+
+function storageSet(key, value) {
+    try { localStorage.setItem(key, value); } catch (error) { /* private mode */ }
+}
+
+/* ---------- data ---------- */
+
 async function loadConfig() {
+    return bootstrap();
+}
+
+async function bootstrap() {
+    const errorCard = $('boot-error');
     try {
-        console.log('从 OSS 加载配置...');
-        config = await loadConfigFromOSS();
-        
-        // 立即加载数据
-        if (config.massageCoupons) {
-            massageCouponsData = config.massageCoupons;
-            console.log('数据已加载:', massageCouponsData.length);
-        } else {
-            console.log('配置中没有数据');
+        if (typeof loadAppData !== 'function') {
+            throw new Error('页面脚本版本不一致，请强制刷新一下：电脑按 Ctrl/Cmd + Shift + R，手机请关闭页面重新打开。');
         }
-        
-        initializeApp();
+        if (errorCard) errorCard.hidden = true;
+        const data = await loadAppData();
+        applyAppData(data);
+        state.lastLoadedAt = Date.now();
+        renderAll();
     } catch (error) {
-        console.error('从 OSS 加载配置失败:', error);
-        alert('加载配置失败，请检查 OSS 配置是否正确');
-    }
-}
+        console.error('加载恋爱空间失败:', error);
+        if (errorCard) {
+            errorCard.hidden = false;
+            const message = $('boot-error-message');
+            const title = $('boot-error-title');
+            let text = error && error.message
+                ? error.message
+                : '检查一下网络，然后再试一次吧。';
 
-function initializeApp() {
-    updateLoveTime();
-    renderMilestones();
-    renderGoals();
-    initMap();
-    startTimer();
-    initMusic();
-}
-
-function initMusic() {
-    const music = document.getElementById('bg-music');
-    const musicControl = document.getElementById('music-control');
-    
-    if (!music || !musicControl) return;
-    
-    let hasInteracted = false;
-    
-    const playMusic = () => {
-        if (music.paused) {
-            const playPromise = music.play();
-            if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    musicControl.classList.add('playing');
-                    hasInteracted = true;
-                }).catch(error => {
-                    console.log('自动播放被阻止:', error);
-                });
+            if (/is not defined|版本不一致/.test(text)) {
+                text = '页面脚本版本不一致，点下面的按钮重新加载一次就好（会强制获取最新脚本）。';
+                if (title) title.textContent = '页面需要刷新一次';
             }
+            if (message) message.textContent = text;
         }
-    };
-    
-    const tryAutoPlay = () => {
-        if (!hasInteracted) {
-            playMusic();
-        }
-    };
-    
-    musicControl.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (music.paused) {
-            music.play();
-            musicControl.classList.add('playing');
-        } else {
-            music.pause();
-            musicControl.classList.remove('playing');
-        }
-    });
-    
-    document.addEventListener('click', tryAutoPlay, { once: true });
-    document.addEventListener('touchstart', tryAutoPlay, { once: true });
-    document.addEventListener('touchend', tryAutoPlay, { once: true });
-    document.addEventListener('scroll', tryAutoPlay, { once: true });
-    
-    document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible' && !hasInteracted) {
-            setTimeout(tryAutoPlay, 500);
-        }
-    });
-    
-    window.addEventListener('load', () => {
-        setTimeout(tryAutoPlay, 100);
-    });
-    
-    music.addEventListener('ended', () => {
-        musicControl.classList.remove('playing');
-    });
-    
-    music.volume = 0.5;
-}
-
-function updateLoveTime() {
-    const startDate = new Date(config.loveStory.startDate);
-    const now = new Date();
-    const diff = now - startDate;
-
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-    updateTimeDisplay('days', days);
-    updateTimeDisplay('hours', hours);
-    updateTimeDisplay('minutes', minutes);
-    updateTimeDisplay('seconds', seconds);
-
-    document.getElementById('love-title').textContent = config.loveStory.title;
-}
-
-function updateTimeDisplay(id, value) {
-    const element = document.getElementById(id);
-    if (element.textContent !== value.toString()) {
-        element.textContent = value;
-        element.classList.add('updated');
-        setTimeout(() => {
-            element.classList.remove('updated');
-        }, 500);
     }
+}
+
+function applyAppData(data) {
+    state.space = data.space || null;
+    state.wallet = data.wallet || state.wallet;
+    state.menu = data.menu || state.menu;
+    state.orders = data.orders || [];
+    state.latestOrder = data.latestOrder || null;
+    state.cities = data.cities || [];
+    state.coupons = data.coupons || [];
+
+    config = {
+        space: state.space,
+        loveStory: data.story || {},
+        milestones: data.milestones || [],
+        goals: data.goals || [],
+        visitedCities: state.cities,
+        massageCoupons: state.coupons
+    };
+
+    massageCouponsData = state.coupons;
+    state.milestones = config.milestones.slice();
+    state.goals = config.goals.slice();
+
+    if (state.menuCategory !== 'all' &&
+        !(state.menu.categories || []).some(category => String(category.id) === String(state.menuCategory))) {
+        state.menuCategory = 'all';
+    }
+
+    const orderable = new Set(
+        (state.menu.dishes || []).filter(dish => dish.available).map(dish => String(dish.id))
+    );
+    state.cart.forEach(id => {
+        if (!orderable.has(String(id))) state.cart.delete(id);
+    });
+    if (state.latestOrder && orderingBlocked()) {
+        state.cart.clear();
+    }
+}
+
+function renderAll() {
+    renderDashboard();
+    startTimer();
+    observeMap();
+}
+
+function renderDashboard() {
+    renderLoveStory();
+    tickLoveTime();
+    renderMilestones();
+    renderTimeline();
+    renderGoals();
+    renderCityChips();
+    renderCoupons();
+    renderWalletUI();
+    renderDinnerCard();
+    renderOrderPage();
+    if (state.mapStatus === 'ready') updateMapData();
+    ensureOrderPolling();
+}
+
+async function refreshData(manual) {
+    if (state.refreshing) return;
+    state.refreshing = true;
+    const button = $('refresh-btn');
+    if (button) button.classList.add('is-loading');
+
+    try {
+        const data = await loadAppData();
+        applyAppData(data);
+        state.lastLoadedAt = Date.now();
+        renderDashboard();
+        if (manual) toast('已刷新');
+    } catch (error) {
+        console.error('刷新失败:', error);
+        if (manual) toast('刷新失败，检查一下网络');
+    } finally {
+        state.refreshing = false;
+        if (button) button.classList.remove('is-loading');
+    }
+}
+
+/* ---------- love timer ---------- */
+
+function renderLoveStory() {
+    const story = config.loveStory || {};
+    const start = parseDate(story.startDate);
+    const title = $('love-title');
+    if (title && story.title) title.textContent = String(story.title).trim();
+    if (story.title) document.title = `${String(story.title).trim()} · 我们的时光`;
+
+    if (start) {
+        const since = formatDate(start);
+        const sinceYear = $('since-year');
+        const timerSince = $('timer-since');
+        if (sinceYear) sinceYear.textContent = start.getFullYear();
+        if (timerSince) timerSince.textContent = since;
+    }
+
+    const footerYear = $('footer-year');
+    if (footerYear) footerYear.textContent = new Date().getFullYear();
+}
+
+function tickLoveTime() {
+    const story = config.loveStory || {};
+    const start = parseDate(story.startDate);
+    if (!start) return;
+
+    const diff = Math.max(0, Date.now() - start.getTime());
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
+    const minutes = Math.floor((diff % 3600000) / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+
+    const daysEl = $('days');
+    if (daysEl) daysEl.textContent = days;
+
+    updateTimeDisplay('hours', hours, true);
+    updateTimeDisplay('minutes', minutes, true);
+    updateTimeDisplay('seconds', seconds, false);
+}
+
+function updateTimeDisplay(id, value, animate) {
+    const element = $(id);
+    if (!element) return;
+    const next = String(value);
+    if (element.textContent === next) return;
+    element.textContent = next;
+    if (!animate) return;
+    element.classList.add('updated');
+    setTimeout(() => element.classList.remove('updated'), 600);
 }
 
 function startTimer() {
-    timerInterval = setInterval(() => {
-        updateLoveTime();
-    }, 1000);
+    if (timerInterval) return;
+    timerInterval = setInterval(tickLoveTime, 1000);
+}
+
+/* ---------- milestones ---------- */
+
+function memoryCoverHTML(milestone, index, large) {
+    const year = dateYear(milestone.date);
+    const variant = `v${index % 4}`;
+    const motif = MOTIFS[index % MOTIFS.length];
+    const image = milestone.image
+        ? `<img src="${escapeHTML(milestone.image)}" alt="" loading="lazy" decoding="async">`
+        : '';
+    return {
+        className: `memory-cover ${variant}`,
+        html: `
+            <div class="memory-cover-text">
+                <span class="memory-year">${escapeHTML(year)}</span>
+                <span class="memory-motif" aria-hidden="true">${motif}</span>
+            </div>
+            ${image}
+            ${!large ? `<span class="memory-date-chip">${escapeHTML(formatDate(milestone.date))}</span>` : ''}
+        `
+    };
+}
+
+function memoryCardHTML(milestone, index) {
+    const cover = memoryCoverHTML(milestone, index, false);
+    return `
+        <article class="memory-card" role="button" tabindex="0" data-memory-index="${index}" aria-label="查看回忆：${cleanText(milestone.title)}">
+            <div class="${cover.className}">${cover.html}</div>
+            <div class="memory-body">
+                <h3 class="memory-title">${cleanText(milestone.title)}</h3>
+                <p class="memory-desc">${cleanText(milestone.description)}</p>
+            </div>
+        </article>
+    `;
 }
 
 function renderMilestones() {
-    const container = document.getElementById('milestones-container');
-    container.innerHTML = '';
+    const container = $('milestones-container');
+    if (!container) return;
 
-    config.milestones.forEach((milestone, index) => {
-        const card = document.createElement('div');
-        card.className = 'milestone-card';
-        card.style.animationDelay = `${index * 0.1}s`;
-        
-        const imageUrl = milestone.image || 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=400&h=300&fit=crop';
+    const list = state.milestones;
+    container.innerHTML = list.map(memoryCardHTML).join('');
 
-        // <img src="${imageUrl}" alt="${milestone.title}" class="milestone-image" loading="lazy">
-        card.innerHTML = `
-            <div class="milestone-content">
-                <div class="milestone-date">${formatDate(milestone.date, false)}</div>
-                <h3 class="milestone-title">${milestone.title}</h3>
-                <p class="milestone-description">${milestone.description}</p>
-            </div>
-        `;
-        container.appendChild(card);
+    const total = $('milestone-total');
+    const count = $('milestone-count');
+    const current = $('milestone-current');
+    if (total) total.textContent = list.length;
+    if (count) count.textContent = list.length;
+    if (current) current.textContent = list.length ? '01' : '00';
+
+    container.querySelectorAll('img').forEach(img => {
+        img.addEventListener('error', () => img.remove());
     });
 
-    const prevBtn = document.getElementById('milestone-prev');
-    const nextBtn = document.getElementById('milestone-next');
+    container.scrollLeft = 0;
+    updateCarouselMeta();
+}
 
-    if (prevBtn) {
-        prevBtn.addEventListener('click', () => {
-            container.scrollBy({ left: -320, behavior: 'smooth' });
+function updateCarouselMeta() {
+    const track = $('milestones-container');
+    if (!track) return;
+    const cards = track.querySelectorAll('.memory-card');
+    if (!cards.length) return;
+
+    const cardWidth = cards[0].getBoundingClientRect().width;
+    const styles = window.getComputedStyle(track);
+    const gap = parseFloat(styles.columnGap || styles.gap) || 0;
+    const step = cardWidth + gap;
+    if (!step) return;
+
+    const index = Math.max(0, Math.min(cards.length - 1, Math.round(track.scrollLeft / step)));
+    const max = track.scrollWidth - track.clientWidth;
+    const progress = max > 0 ? (track.scrollLeft / max) * 100 : 0;
+
+    const current = $('milestone-current');
+    const fill = $('milestone-progress');
+    if (current) current.textContent = pad2(index + 1);
+    if (fill) fill.style.width = `${progress}%`;
+}
+
+function initCarousel() {
+    const track = $('milestones-container');
+    if (!track) return;
+
+    let ticking = false;
+    track.addEventListener('scroll', () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+            updateCarouselMeta();
+            ticking = false;
         });
+    }, { passive: true });
+
+    const scrollStep = (direction) => {
+        const card = track.querySelector('.memory-card');
+        if (!card) return;
+        const gap = parseFloat(getComputedStyle(track).columnGap || getComputedStyle(track).gap) || 0;
+        track.scrollBy({ left: direction * (card.getBoundingClientRect().width + gap), behavior: 'smooth' });
+    };
+
+    const prev = $('milestone-prev');
+    const next = $('milestone-next');
+    if (prev) prev.addEventListener('click', () => scrollStep(-1));
+    if (next) next.addEventListener('click', () => scrollStep(1));
+
+    track.addEventListener('click', (event) => {
+        const card = event.target.closest('.memory-card');
+        if (!card) return;
+        openMemory(Number(card.dataset.memoryIndex));
+    });
+
+    track.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        const card = event.target.closest('.memory-card');
+        if (!card) return;
+        event.preventDefault();
+        openMemory(Number(card.dataset.memoryIndex));
+    });
+
+    window.addEventListener('resize', updateCarouselMeta);
+}
+
+/* ---------- memory detail ---------- */
+
+function openMemory(index) {
+    if (!state.milestones[index]) return;
+    state.memoryIndex = index;
+    renderMemoryDetail();
+    openSheet('memory-sheet');
+}
+
+function renderMemoryDetail() {
+    const milestone = state.milestones[state.memoryIndex];
+    if (!milestone) return;
+
+    const cover = $('memory-detail-cover');
+    if (cover) {
+        const data = memoryCoverHTML(milestone, state.memoryIndex, true);
+        cover.className = data.className.replace('memory-cover', 'memory-detail-cover');
+        cover.innerHTML = data.html;
+        const img = cover.querySelector('img');
+        if (img) img.addEventListener('error', () => img.remove());
     }
 
-    if (nextBtn) {
-        nextBtn.addEventListener('click', () => {
-            container.scrollBy({ left: 320, behavior: 'smooth' });
+    const date = $('memory-detail-date');
+    const title = $('memory-detail-title');
+    const desc = $('memory-detail-desc');
+    if (date) date.textContent = formatDate(milestone.date);
+    if (title) title.textContent = String(milestone.title || '').trim();
+    if (desc) desc.textContent = String(milestone.description || '').trim();
+
+    const prev = $('memory-prev');
+    const next = $('memory-next');
+    if (prev) prev.disabled = state.memoryIndex <= 0;
+    if (next) next.disabled = state.memoryIndex >= state.milestones.length - 1;
+}
+
+function stepMemory(direction) {
+    const index = state.memoryIndex + direction;
+    if (!state.milestones[index]) return;
+    state.memoryIndex = index;
+    const scroll = document.querySelector('#memory-sheet .sheet-scroll');
+    if (scroll) scroll.scrollTop = 0;
+    renderMemoryDetail();
+}
+
+function initMemorySheet() {
+    const prev = $('memory-prev');
+    const next = $('memory-next');
+    if (prev) prev.addEventListener('click', () => stepMemory(-1));
+    if (next) next.addEventListener('click', () => stepMemory(1));
+}
+
+/* ---------- timeline sheet ---------- */
+
+function renderTimeline() {
+    const list = $('timeline-list');
+    if (!list) return;
+
+    const items = state.milestones
+        .map((milestone, index) => ({ milestone, index, date: parseDate(milestone.date) }))
+        .sort((a, b) => {
+            if (!a.date || !b.date) return 0;
+            return a.date - b.date;
+        });
+
+    const groups = new Map();
+    items.forEach(item => {
+        const year = item.date ? item.date.getFullYear() : '旧时光';
+        if (!groups.has(year)) groups.set(year, []);
+        groups.get(year).push(item);
+    });
+
+    let html = '';
+    groups.forEach((entries, year) => {
+        html += `<h3 class="timeline-year">${escapeHTML(year)}</h3>`;
+        entries.forEach(({ milestone, index }) => {
+            html += `
+                <button class="timeline-item" type="button" data-memory-index="${index}">
+                    <span class="timeline-item-date">${escapeHTML(formatDate(milestone.date))}</span>
+                    <span class="timeline-item-title">${cleanText(milestone.title)}</span>
+                    <span class="timeline-item-desc">${cleanText(milestone.description)}</span>
+                </button>
+            `;
+        });
+    });
+
+    list.innerHTML = html || '<div class="coupon-empty"><p>还没有回忆</p></div>';
+
+    const count = $('timeline-count');
+    if (count) count.textContent = state.milestones.length;
+}
+
+function initTimelineSheet() {
+    const list = $('timeline-list');
+    const open = $('open-timeline');
+    if (open) open.addEventListener('click', () => openSheet('timeline-sheet'));
+    if (list) {
+        list.addEventListener('click', (event) => {
+            const item = event.target.closest('.timeline-item');
+            if (!item) return;
+            openMemory(Number(item.dataset.memoryIndex));
         });
     }
 }
+
+/* ---------- goals ---------- */
 
 function renderGoals() {
-    const container = document.getElementById('goals-container');
-    container.innerHTML = '';
+    const container = $('goals-container');
+    if (!container) return;
 
-    config.goals.forEach((goal, index) => {
-        const card = document.createElement('div');
-        card.className = 'goal-card';
-        card.style.animationDelay = `${index * 0.1}s`;
-        card.innerHTML = `
-            <span class="goal-icon">${goal.icon}</span>
-            <h3 class="goal-title">${goal.title}</h3>
-        `;
-        container.appendChild(card);
-    });
-
-    const prevBtn = document.getElementById('goal-prev');
-    const nextBtn = document.getElementById('goal-next');
-
-    if (prevBtn) {
-        prevBtn.addEventListener('click', () => {
-            container.scrollBy({ left: -220, behavior: 'smooth' });
-        });
-    }
-
-    if (nextBtn) {
-        nextBtn.addEventListener('click', () => {
-            container.scrollBy({ left: 220, behavior: 'smooth' });
-        });
-    }
-}
-
-async function initMap() {
-    if (typeof echarts === 'undefined') {
-        console.error('ECharts 未加载');
+    if (!state.goals.length) {
+        container.innerHTML = '';
         return;
     }
 
-    const chartDom = document.getElementById('asia-map');
-    myChart = echarts.init(chartDom);
+    container.innerHTML = state.goals.map((goal, index) => `
+        <article class="goal-card v${index % 3}">
+            <span class="goal-emoji" aria-hidden="true">${cleanText(goal.icon || '✶')}</span>
+            <div>
+                <span class="goal-tag">约定</span>
+                <h3 class="goal-title">${cleanText(goal.title)}</h3>
+            </div>
+        </article>
+    `).join('');
+}
+
+/* ---------- cities ---------- */
+
+function visitedCities() {
+    return Array.isArray(state.cities) ? state.cities.slice() : [];
+}
+
+function renderCityChips() {
+    const container = $('city-chips');
+    const count = $('city-count');
+    if (!container) return;
+
+    const cities = visitedCities().slice().sort((a, b) => {
+        const da = parseDate(a.date);
+        const db = parseDate(b.date);
+        if (!da || !db) return 0;
+        return db - da;
+    });
+
+    container.innerHTML = cities.map(city => `
+        <span class="city-chip">
+            <b>${cleanText(city.name)}</b>
+            <span>${cleanText(formatDate(city.date))}</span>
+        </span>
+    `).join('');
+
+    if (count) count.textContent = `${cities.length} 座城市`;
+}
+
+/* ---------- map ---------- */
+
+function observeMap() {
+    const mapEl = $('asia-map');
+    if (!mapEl || state.mapStatus !== 'idle') return;
+
+    if (!('IntersectionObserver' in window)) {
+        initMap();
+        return;
+    }
+
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+            observer.disconnect();
+            initMap();
+        });
+    }, { rootMargin: '500px 0px' });
+
+    observer.observe(mapEl);
+}
+
+async function initMap() {
+    if (state.mapStatus === 'loading' || state.mapStatus === 'ready') return;
+    state.mapStatus = 'loading';
+
+    const loadingText = $('map-loading-text');
+    if (loadingText) loadingText.textContent = '正在展开地图';
 
     try {
+        if (typeof echarts === 'undefined') {
+            await loadScript(CDN.echarts);
+        }
+
         const response = await fetch('assets/data/china-map.json');
+        if (!response.ok) throw new Error('地图数据加载失败');
         const geoJson = await response.json();
-        
         echarts.registerMap('china', geoJson);
 
-        const visitedCities = [...(config.visitedCities || [])];
-        extraVisitedCities.forEach(city => {
-            if (!visitedCities.some(item => item.name === city.name)) {
-                visitedCities.push(city);
-            }
-        });
-        const visitedCityNames = visitedCities.map(city => city.name);
-        const isNarrowMap = window.innerWidth < 600;
+        const chartEl = $('asia-map');
+        if (!chartEl) return;
+        myChart = echarts.init(chartEl, null, { renderer: 'canvas' });
+        myChart.setOption(buildMapOption());
 
-        const scatterData = [];
-        Object.entries(cityCoordinates).forEach(([cityName, coords]) => {
-            const isVisited = visitedCityNames.includes(cityName);
-            scatterData.push({
-                name: cityName,
-                value: [...coords.value, isVisited ? 1 : 0],
-                itemStyle: {
-                    color: isVisited ? '#ef7a95' : '#dfd2bf',
-                    borderColor: isVisited ? '#5bb8b6' : '#b9ad9b',
-                    borderWidth: isVisited ? 3 : 2
-                },
-                label: cityName === '古北水镇' ? {
-                    position: 'top',
-                    distance: 14,
-                    backgroundColor: 'rgba(255, 253, 248, 0.98)',
-                    borderColor: '#ef7a95',
-                    borderWidth: 1,
-                    borderRadius: 4,
-                    padding: [3, 6]
-                } : undefined,
-                visited: isVisited
-            });
-        });
+        state.mapStatus = 'ready';
+        const card = chartEl.closest('.map-card');
+        if (card) card.classList.add('is-ready');
 
-        const option = {
-            tooltip: {
-                trigger: 'item',
-                backgroundColor: 'rgba(255, 253, 248, 0.96)',
-                borderColor: '#ef7a95',
-                borderWidth: 1,
-                textStyle: {
-                    color: '#382a3f'
-                },
-                formatter: function(params) {
-                    if (params.componentSubType === 'effectScatter') {
-                        const cityData = visitedCities.find(c => c.name === params.name);
-                        if (cityData) {
-                            return `
-                                <div style="text-align: center; padding: 5px;">
-                                    <small style="font-size: 12px;">${formatDate(cityData.date, false)}</small><br>
-                                    <span style="font-size: 13px;">${cityData.description}</span>
-                                </div>
-                            `;
-                        }
-                        return '';
-                    }
-                    return '';
-                }
-            },
-            geo: {
-                map: 'china',
-                roam: true,
-                zoom: isNarrowMap ? 0.95 : 1.2,
-                label: {
-                    show: false,
-                    color: '#999',
-                    fontSize: 10
-                },
-                itemStyle: {
-                    areaColor: '#fff4dc',
-                    borderColor: '#cdbfaa',
-                    borderWidth: 1.5
-                },
-                emphasis: {
-                    label: {
-                        show: false
-                    },
-                    itemStyle: {
-                        areaColor: '#ffeaf0',
-                        borderColor: '#5bb8b6',
-                        borderWidth: 2
-                    }
-                }
-            },
-            series: [
-                {
-                    type: 'effectScatter',
-                    coordinateSystem: 'geo',
-                    data: scatterData.filter(d => d.visited),
-                    symbolSize: 15,
-                    showEffectOn: 'render',
-                    rippleEffect: {
-                        brushType: 'stroke',
-                        scale: 5,
-                        period: 4
-                    },
-                    label: {
-                        formatter: '{b}',
-                        position: isNarrowMap ? 'top' : 'right',
-                        show: true,
-                        fontSize: isNarrowMap ? 10 : 14,
-                        color: '#382a3f',
-                        fontWeight: 'bold',
-                        distance: isNarrowMap ? 4 : 8,
-                        backgroundColor: 'rgba(255, 253, 248, 0.94)',
-                        borderColor: '#ef7a95',
-                        borderWidth: 1,
-                        borderRadius: 4,
-                        padding: [3, 6]
-                    },
-                    itemStyle: {
-                        color: '#ef7a95',
-                        shadowBlur: 20,
-                        shadowColor: '#ef7a95',
-                        shadowOffsetX: 0,
-                        shadowOffsetY: 0
-                    },
-                    zlevel: 1
-                },
-                {
-                    type: 'scatter',
-                    coordinateSystem: 'geo',
-                    data: scatterData.filter(d => !d.visited),
-                    symbolSize: isNarrowMap ? 7 : 10,
-                    label: {
-                        formatter: '{b}',
-                        position: 'right',
-                        show: !isNarrowMap,
-                        fontSize: 11,
-                        color: '#8d826e',
-                        distance: 5
-                    },
-                    itemStyle: {
-                        color: '#d0d0d0',
-                        borderColor: '#bbb',
-                        borderWidth: 1,
-                        shadowBlur: 5,
-                        shadowColor: '#d1c5b0'
-                    },
-                    zlevel: 0
-                }
-            ]
-        };
-
-        myChart.setOption(option);
-
-        window.addEventListener('resize', function() {
-            myChart.resize();
-        });
-
+        if ('ResizeObserver' in window) {
+            new ResizeObserver(() => myChart && myChart.resize()).observe(chartEl);
+        } else {
+            window.addEventListener('resize', () => myChart && myChart.resize());
+        }
     } catch (error) {
-        console.error('加载地图数据失败:', error);
+        console.error('地图加载失败:', error);
+        state.mapStatus = 'error';
+        if (loadingText) loadingText.textContent = '地图暂时打不开';
     }
 }
 
-function formatDate(dateString, showTime = true) {
-    const date = new Date(dateString.replace(/-/g, '/'));
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    
-    if (!showTime) {
-        return `${year}年${month}月${day}日`;
-    }
-    
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
-    
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-}
-
-let massageCouponsData = [];
-
-function initMenu() {
-    const menuControl = document.getElementById('menu-control');
-    const menuOverlay = document.getElementById('menu-overlay');
-    const menuClose = document.getElementById('menu-close');
-    const menuItems = document.querySelectorAll('.menu-item');
-
-    if (menuControl) {
-        menuControl.addEventListener('click', () => {
-            menuOverlay.classList.add('active');
-        });
-    }
-
-    if (menuClose) {
-        menuClose.addEventListener('click', () => {
-            menuOverlay.classList.remove('active');
-        });
-    }
-
-    if (menuOverlay) {
-        menuOverlay.addEventListener('click', (e) => {
-            if (e.target === menuOverlay) {
-                menuOverlay.classList.remove('active');
-            }
-        });
-    }
-
-    menuItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.preventDefault();
-            const page = item.dataset.page;
-            switchPage(page);
-            
-            menuItems.forEach(i => i.classList.remove('active'));
-            item.classList.add('active');
-            
-            menuOverlay.classList.remove('active');
-        });
+function mapCityData() {
+    const cities = visitedCities();
+    const names = cities.map(city => city.name);
+    return Object.entries(cityCoordinates).map(([name, coords]) => {
+        const visited = names.includes(name);
+        return {
+            name,
+            value: [...coords.value, visited ? 1 : 0],
+            visited
+        };
     });
 }
 
-function switchPage(page) {
-    const homePage = document.getElementById('page-home');
-    const couponsPage = document.getElementById('page-coupons');
+function buildMapOption() {
+    const narrow = window.innerWidth < 820;
+    const data = mapCityData();
+    const cities = visitedCities();
 
-    if (page === 'home') {
-        homePage.classList.remove('page-hidden');
-        couponsPage.classList.add('page-hidden');
-    } else if (page === 'coupons') {
-        homePage.classList.add('page-hidden');
-        couponsPage.classList.remove('page-hidden');
-        renderCoupons();
-    }
+    return {
+        tooltip: {
+            trigger: 'item',
+            confine: true,
+            backgroundColor: 'rgba(255, 253, 248, 0.97)',
+            borderColor: '#df5f7e',
+            borderWidth: 1,
+            padding: [8, 11],
+            textStyle: {
+                color: '#2b2231',
+                fontSize: 12,
+                fontFamily: '-apple-system, "PingFang SC", "Microsoft YaHei", sans-serif'
+            },
+            formatter(params) {
+                const city = cities.find(item => item.name === params.name);
+                if (city) {
+                    const date = formatDate(city.date);
+                    const desc = escapeHTML(city.description || '');
+                    return `<div style="font-weight:700;margin-bottom:3px">${escapeHTML(params.name)}</div>` +
+                        (date ? `<div style="color:#8a7c86;font-size:11px">${escapeHTML(date)}</div>` : '') +
+                        (desc ? `<div style="max-width:190px;white-space:normal;line-height:1.5">${desc}</div>` : '');
+                }
+                return `<div style="font-weight:700">${escapeHTML(params.name)}</div><div style="color:#8a7c86;font-size:11px">还没一起去过</div>`;
+            }
+        },
+        geo: {
+            map: 'china',
+            roam: state.mapRoam,
+            zoom: 1.8,
+            center: narrow ? [112, 34] : [110, 34],
+            label: { show: false },
+            itemStyle: {
+                areaColor: '#fbf3e2',
+                borderColor: '#d8c9b2',
+                borderWidth: 1
+            },
+            emphasis: {
+                label: { show: false },
+                itemStyle: {
+                    areaColor: '#ffeaf0',
+                    borderColor: '#df5f7e',
+                    borderWidth: 1.4
+                }
+            },
+            select: { disabled: true }
+        },
+        series: [
+            {
+                type: 'effectScatter',
+                coordinateSystem: 'geo',
+                data: data.filter(item => item.visited),
+                symbolSize: narrow ? 13 : 15,
+                showEffectOn: 'render',
+                rippleEffect: {
+                    brushType: 'stroke',
+                    scale: narrow ? 3.6 : 4.5,
+                    period: 4.5
+                },
+                label: {
+                    formatter: '{b}',
+                    position: narrow ? 'top' : 'right',
+                    show: true,
+                    fontSize: narrow ? 10 : 12,
+                    color: '#2b2231',
+                    fontWeight: 'bold',
+                    distance: narrow ? 4 : 7,
+                    backgroundColor: 'rgba(255, 253, 248, 0.94)',
+                    borderColor: 'rgba(223, 95, 126, 0.55)',
+                    borderWidth: 1,
+                    borderRadius: 5,
+                    padding: [2, 5]
+                },
+                labelLayout: { hideOverlap: true },
+                itemStyle: {
+                    color: '#df5f7e',
+                    shadowBlur: 16,
+                    shadowColor: 'rgba(223, 95, 126, 0.55)'
+                },
+                zlevel: 1
+            },
+            {
+                type: 'scatter',
+                coordinateSystem: 'geo',
+                data: data.filter(item => !item.visited),
+                symbolSize: narrow ? 6 : 9,
+                label: {
+                    formatter: '{b}',
+                    position: 'right',
+                    show: !narrow,
+                    fontSize: 10,
+                    color: '#9a8f7d',
+                    distance: 4
+                },
+                labelLayout: { hideOverlap: true },
+                itemStyle: {
+                    color: '#d9cdbb',
+                    borderColor: '#c8baa4',
+                    borderWidth: 1
+                },
+                zlevel: 0
+            }
+        ]
+    };
 }
 
-let currentFilter = 'all';
-let qrCodeInstance = null;
+function updateMapData() {
+    if (!myChart) return;
+    myChart.setOption(buildMapOption(), { notMerge: true });
+}
 
-function initTabs() {
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    tabBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            tabBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentFilter = btn.dataset.filter;
+function initMapControls() {
+    const card = $('asia-map') && $('asia-map').closest('.map-card');
+    const guard = $('map-guard');
+    const lock = $('map-lock');
+    if (!card || !guard || !lock) return;
+
+    const setRoam = (roam) => {
+        state.mapRoam = roam;
+        card.classList.toggle('is-active', roam);
+        lock.hidden = !roam;
+        if (myChart) myChart.setOption({ geo: { roam } });
+    };
+
+    guard.addEventListener('click', () => setRoam(true));
+    lock.addEventListener('click', () => setRoam(false));
+}
+
+/* ---------- coupons ---------- */
+
+function couponTicketHTML(coupon) {
+    return `
+        <article class="ticket">
+            <div class="ticket-top">
+                <span class="ticket-no">NO.${String(coupon.id).padStart(3, '0')}</span>
+                <span class="ticket-state">未使用</span>
+            </div>
+            <div class="ticket-main">
+                <span class="ticket-icon" aria-hidden="true">${cleanText(coupon.icon || '💆')}</span>
+                <div class="ticket-info">
+                    <h3 class="ticket-title">${cleanText(coupon.title || '恋爱卡')}</h3>
+                    <span class="ticket-duration">${cleanText(coupon.duration)}${cleanText(coupon.durationUnit || '分钟')}</span>
+                </div>
+            </div>
+            <div class="ticket-foot">
+                <span class="ticket-date">获得于 ${escapeHTML(formatDate(coupon.acquiredDate))}</span>
+                <button class="ticket-use" type="button" data-use-id="${escapeHTML(coupon.id)}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1.2"/><rect x="14" y="3.5" width="6.5" height="6.5" rx="1.2"/><rect x="3.5" y="14" width="6.5" height="6.5" rx="1.2"/><path d="M14 14h2.6v2.6H14zM18.2 18.2h2.3v2.3h-2.3z"/></svg>
+                    出示二维码
+                </button>
+            </div>
+        </article>
+    `;
+}
+
+function couponHistoryHTML(coupon) {
+    return `
+        <div class="history-row">
+            <span class="history-icon" aria-hidden="true">${cleanText(coupon.icon || '💆')}</span>
+            <span class="history-main">
+                <b>${cleanText(coupon.title || '恋爱卡')}</b>
+                <small>${cleanText(coupon.duration)}${cleanText(coupon.durationUnit || '分钟')} · ${cleanText(formatDate(coupon.usedDate || coupon.acquiredDate))} 使用</small>
+            </span>
+            <span class="history-stamp">已用</span>
+        </div>
+    `;
+}
+
+function couponGroupHTML(title, count, inner) {
+    return `
+        <section class="coupon-group">
+            <h2 class="coupon-group-title">${title}<span>${count}</span></h2>
+            <div class="coupon-group-items">${inner}</div>
+        </section>
+    `;
+}
+
+function couponEmptyHTML(title, note) {
+    return `
+        <div class="coupon-empty">
+            <span aria-hidden="true">♡</span>
+            <p>${title}</p>
+            <small>${note}</small>
+        </div>
+    `;
+}
+
+function renderCoupons() {
+    const container = $('coupons-container');
+    if (!container) return;
+
+    const all = massageCouponsData || [];
+    const available = all.filter(coupon => coupon.status === 'available').sort((a, b) => {
+        const da = parseDate(a.acquiredDate);
+        const db = parseDate(b.acquiredDate);
+        return (db || 0) - (da || 0);
+    });
+    const used = all.filter(coupon => coupon.status === 'used').sort((a, b) => {
+        const da = parseDate(a.usedDate || a.acquiredDate);
+        const db = parseDate(b.usedDate || b.acquiredDate);
+        return (db || 0) - (da || 0);
+    });
+
+    const statAvailable = $('stat-available');
+    const statUsed = $('stat-used');
+    if (statAvailable) statAvailable.textContent = available.length;
+    if (statUsed) statUsed.textContent = used.length;
+
+    let html = '';
+
+    if (state.filter === 'available') {
+        html = available.length
+            ? available.map(couponTicketHTML).join('')
+            : couponEmptyHTML('暂无可用恋爱卡', '等他再偷偷塞一张给你吧');
+    } else if (state.filter === 'used') {
+        html = used.length
+            ? used.map(couponHistoryHTML).join('')
+            : couponEmptyHTML('还没有用过的卡', '用掉一张，就多一段小回忆');
+    } else {
+        if (available.length) {
+            html += couponGroupHTML('未使用', available.length, available.map(couponTicketHTML).join(''));
+        }
+        if (used.length) {
+            html += couponGroupHTML('已使用', used.length, used.map(couponHistoryHTML).join(''));
+        }
+        if (!available.length && !used.length) {
+            html = couponEmptyHTML('还没有恋爱卡', '等他给你发第一张吧');
+        }
+    }
+
+    container.innerHTML = html;
+}
+
+function initCoupons() {
+    const tabs = document.querySelectorAll('.coupon-tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(item => {
+                item.classList.remove('is-active');
+                item.setAttribute('aria-selected', 'false');
+            });
+            tab.classList.add('is-active');
+            tab.setAttribute('aria-selected', 'true');
+            state.filter = tab.dataset.filter;
             renderCoupons();
         });
     });
 
-    initPullRefresh();
-}
-
-function initPullRefresh() {
-    const container = document.getElementById('page-coupons');
-    const indicator = document.getElementById('pull-refresh-indicator');
-    
-    if (!container || !indicator) return;
-    
-    let startY = 0;
-    let currentY = 0;
-    let isPulling = false;
-    let isRefreshing = false;
-    const threshold = 80; // 下拉阈值
-    
-    container.addEventListener('touchstart', (e) => {
-        // 只有在页面顶部时才启用下拉刷新
-        if (container.scrollTop > 0) return;
-        
-        startY = e.touches[0].clientY;
-        isPulling = true;
-    }, { passive: true });
-    
-    container.addEventListener('touchmove', (e) => {
-        if (!isPulling || isRefreshing) return;
-        
-        currentY = e.touches[0].clientY;
-        const diff = currentY - startY;
-        
-        if (diff > 0 && diff < threshold * 2) {
-            indicator.style.transform = `translateY(${diff * 0.5}px)`;
-            
-            if (diff > threshold) {
-                indicator.classList.add('pulling');
-                indicator.querySelector('.pull-refresh-text').textContent = '释放刷新';
-            } else {
-                indicator.classList.remove('pulling');
-                indicator.querySelector('.pull-refresh-text').textContent = '下拉刷新';
+    const container = $('coupons-container');
+    if (container) {
+        container.addEventListener('click', (event) => {
+            const button = event.target.closest('[data-use-id]');
+            if (!button) return;
+            const coupon = (massageCouponsData || []).find(item => String(item.id) === String(button.dataset.useId));
+            if (!coupon) return;
+            if (coupon.status === 'used') {
+                toast('这张卡已经用掉啦');
+                return;
             }
-        }
-    }, { passive: true });
-    
-    container.addEventListener('touchend', async () => {
-        if (!isPulling || isRefreshing) return;
-        
-        isPulling = false;
-        const diff = currentY - startY;
-        
-        if (diff > threshold) {
-            // 触发刷新
-            isRefreshing = true;
-            indicator.classList.add('refreshing');
-            indicator.classList.remove('pulling');
-            indicator.querySelector('.pull-refresh-text').textContent = '刷新中...';
-            indicator.style.transform = 'translateY(0)';
-            
-            try {
-                await loadConfig();
-                renderCoupons();
-                indicator.querySelector('.pull-refresh-text').textContent = '刷新成功';
-            } catch (error) {
-                console.error('刷新失败:', error);
-                indicator.querySelector('.pull-refresh-text').textContent = '刷新失败';
-            } finally {
-                setTimeout(() => {
-                    indicator.classList.remove('refreshing');
-                    indicator.querySelector('.pull-refresh-text').textContent = '下拉刷新';
-                    isRefreshing = false;
-                }, 1000);
-            }
-        } else {
-            // 未达阈值，回弹
-            indicator.style.transform = 'translateY(0)';
-            indicator.classList.remove('pulling');
-        }
-        
-        startY = 0;
-        currentY = 0;
-    });
-    
-    // 桌面端鼠标事件支持
-    container.addEventListener('mousedown', (e) => {
-        if (container.scrollTop > 0) return;
-        
-        startY = e.clientY;
-        isPulling = true;
-    });
-    
-    container.addEventListener('mousemove', (e) => {
-        if (!isPulling || isRefreshing) return;
-        
-        currentY = e.clientY;
-        const diff = currentY - startY;
-        
-        if (diff > 0 && diff < threshold * 2) {
-            indicator.style.transform = `translateY(${diff * 0.5}px)`;
-            
-            if (diff > threshold) {
-                indicator.classList.add('pulling');
-                indicator.querySelector('.pull-refresh-text').textContent = '释放刷新';
-            } else {
-                indicator.classList.remove('pulling');
-                indicator.querySelector('.pull-refresh-text').textContent = '下拉刷新';
-            }
-        }
-    });
-    
-    container.addEventListener('mouseup', async () => {
-        if (!isPulling || isRefreshing) return;
-        
-        isPulling = false;
-        const diff = currentY - startY;
-        
-        if (diff > threshold) {
-            isRefreshing = true;
-            indicator.classList.add('refreshing');
-            indicator.classList.remove('pulling');
-            indicator.querySelector('.pull-refresh-text').textContent = '刷新中...';
-            indicator.style.transform = 'translateY(0)';
-            
-            try {
-                await loadConfig();
-                renderCoupons();
-                indicator.querySelector('.pull-refresh-text').textContent = '刷新成功';
-            } catch (error) {
-                console.error('刷新失败:', error);
-                indicator.querySelector('.pull-refresh-text').textContent = '刷新失败';
-            } finally {
-                setTimeout(() => {
-                    indicator.classList.remove('refreshing');
-                    indicator.querySelector('.pull-refresh-text').textContent = '下拉刷新';
-                    isRefreshing = false;
-                }, 1000);
-            }
-        } else {
-            indicator.style.transform = 'translateY(0)';
-            indicator.classList.remove('pulling');
-        }
-        
-        startY = 0;
-        currentY = 0;
-    });
-    
-    container.addEventListener('mouseleave', () => {
-        if (isPulling && !isRefreshing) {
-            isPulling = false;
-            indicator.style.transform = 'translateY(0)';
-            indicator.classList.remove('pulling');
-            startY = 0;
-            currentY = 0;
-        }
-    });
-}
-
-function initQRModal() {
-    const qrModal = document.getElementById('qr-modal');
-    const qrModalClose = document.getElementById('qr-modal-close');
-
-    if (qrModalClose) {
-        qrModalClose.addEventListener('click', closeQRModal);
+            openQR(coupon);
+        });
     }
 
-    if (qrModal) {
-        qrModal.addEventListener('click', (e) => {
-            if (e.target === qrModal) {
-                closeQRModal();
-            }
+    const refresh = $('refresh-btn');
+    if (refresh) refresh.addEventListener('click', () => refreshData(true));
+}
+
+/* ---------- kitchen / ordering ---------- */
+
+function formatClock(value) {
+    const date = parseDate(value);
+    if (!date) return '';
+    return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+}
+
+function formatEntryTime(value) {
+    const date = parseDate(value);
+    if (!date) return '';
+    return `${pad2(date.getMonth() + 1)}.${pad2(date.getDate())} ${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+}
+
+function currentActiveOrder() {
+    const order = state.latestOrder;
+    return order && KITCHEN_ACTIVE.includes(order.status) ? order : null;
+}
+
+function orderInProgress() {
+    const order = state.latestOrder;
+    return !!order && ['pending', 'prepping', 'cooking', 'served'].includes(order.status);
+}
+
+function orderingBlocked() {
+    return orderInProgress();
+}
+
+function orderEtaText(order) {
+    if (!order || !order.etaMinutes || !KITCHEN_ACTIVE.includes(order.status)) return '';
+    const placed = parseDate(order.placedAt);
+    if (!placed) return '';
+    const eta = new Date(placed.getTime() + order.etaMinutes * 60000);
+    if (Date.now() > eta.getTime()) return '应该快好了';
+    return `预计 ${formatClock(eta)} 出餐`;
+}
+
+function cartTotal() {
+    const dishes = state.menu.dishes || [];
+    let total = 0;
+    state.cart.forEach(id => {
+        const dish = dishes.find(item => String(item.id) === String(id));
+        if (dish) total += Number(dish.price) || 0;
+    });
+    return total;
+}
+
+function renderWalletUI() {
+    const wallet = state.wallet || { balance: 0, overdraftLimit: 50, entries: [] };
+    const limit = Number(wallet.overdraftLimit) || 0;
+    const negative = wallet.balance < 0;
+
+    ['dinner-balance', 'wallet-balance', 'wallet-sheet-balance'].forEach(id => {
+        const el = $(id);
+        if (el) el.textContent = wallet.balance;
+    });
+
+    const sheetBalance = $('wallet-sheet-balance');
+    if (sheetBalance) sheetBalance.classList.toggle('is-negative', negative);
+
+    const credit = $('wallet-credit');
+    if (credit) credit.textContent = `最多可欠 ${limit} 币`;
+
+    const sheetCredit = $('wallet-sheet-credit');
+    if (sheetCredit) {
+        sheetCredit.textContent = negative
+            ? `现在欠大厨 ${-wallet.balance} 币，最多可欠 ${limit} 币`
+            : `最多可欠 ${limit} 币`;
+    }
+
+    const footnote = $('menu-footnote');
+    if (footnote) {
+        footnote.innerHTML = `恋爱币不够时，可以等大厨发零花钱；本空间最多可欠 <b>${limit}</b> 币。`;
+    }
+
+    const container = $('wallet-entries');
+    if (container) {
+        const entries = (wallet.entries || []).slice(0, 20);
+        if (!entries.length) {
+            container.innerHTML = '<div class="wallet-empty">还没有流水，等大厨发第一笔零花钱吧。</div>';
+        } else {
+            const labels = { grant: '大厨发币', order: '点餐', refund: '退款' };
+            const icons = { grant: '🎁', order: '🍽️', refund: '↩️' };
+            container.innerHTML = entries.map(entry => {
+                const positive = Number(entry.amount) >= 0;
+                const sign = positive ? '+' : '';
+                return `
+                    <div class="wallet-entry">
+                        <span class="wallet-entry-icon" aria-hidden="true">${icons[entry.type] || '♡'}</span>
+                        <span class="wallet-entry-main">
+                            <b>${cleanText(entry.note || labels[entry.type] || '恋爱币变动')}</b>
+                            <small>${labels[entry.type] || '变动'} · ${formatEntryTime(entry.createdAt)} · 余额 ${entry.balanceAfter}</small>
+                        </span>
+                        <span class="wallet-entry-amount ${positive ? 'is-plus' : 'is-minus'}">${sign}${entry.amount}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+    }
+}
+
+function renderDinnerCard() {
+    const order = state.latestOrder;
+    const active = currentActiveOrder();
+    const copy = order ? KITCHEN_COPY[order.status] : null;
+
+    const emoji = $('dinner-emoji');
+    const title = $('dinner-title');
+    const desc = $('dinner-desc');
+    const cta = $('dinner-cta');
+    if (!emoji || !title || !desc || !cta) return;
+
+    if (active) {
+        emoji.textContent = copy.emoji;
+        title.textContent = ORDER_STATUS[order.status];
+        desc.textContent = `${order.items.map(item => item.name).join(' · ')} · ${orderEtaText(order)}`;
+        cta.textContent = '看看进度 →';
+    } else if (order && order.status === 'served') {
+        emoji.textContent = copy.emoji;
+        title.textContent = '出餐啦';
+        desc.textContent = '快去吃饭，趁热。';
+        cta.textContent = '去看看 →';
+    } else if (order && order.status === 'completed') {
+        emoji.textContent = '🍽️';
+        title.textContent = '今晚吃什么';
+        desc.textContent = '上一顿吃完了，再点一单？';
+        cta.textContent = '去点餐 →';
+    } else if (order && order.status === 'cancelled') {
+        emoji.textContent = '🥀';
+        title.textContent = '今晚吃什么';
+        desc.textContent = '上一单取消了，币已经退回。';
+        cta.textContent = '去点餐 →';
+    } else {
+        emoji.textContent = '🍳';
+        title.textContent = '今晚吃什么';
+        desc.textContent = '大厨已经系好围裙，等你点菜。';
+        cta.textContent = '去点餐 →';
+    }
+}
+
+function renderOrderStatus() {
+    const wrap = $('order-status-wrap');
+    if (!wrap) return;
+
+    const order = state.latestOrder;
+    if (!order) {
+        wrap.innerHTML = '';
+        return;
+    }
+
+    const active = KITCHEN_ACTIVE.includes(order.status);
+    const copy = KITCHEN_COPY[order.status] || KITCHEN_COPY.pending;
+    const stepIndex = { pending: 0, prepping: 1, cooking: 2, served: 3, completed: 3 }[order.status];
+    const steps = ['已下单', '备菜', '制作', '出餐'];
+    const lastNudge = order.nudges && order.nudges.length
+        ? parseDate(order.nudges[order.nudges.length - 1].at)
+        : null;
+    const cooling = lastNudge && Date.now() - lastNudge.getTime() < 5 * 60 * 1000;
+
+    const stepper = order.status === 'cancelled' ? '' : `
+        <ol class="order-steps">
+            ${steps.map((label, index) => {
+                const done = index < stepIndex || (!active && index <= stepIndex);
+                const current = active && index === stepIndex;
+                return `<li class="${done ? 'is-done' : ''}${current ? ' is-current' : ''}">
+                    <span class="order-step-dot" aria-hidden="true"></span>
+                    <span>${label}</span>
+                </li>`;
+            }).join('')}
+        </ol>
+    `;
+
+    let actions = '';
+    if (active) {
+        actions += `<button class="order-action" type="button" data-order-action="nudge" ${cooling ? 'disabled' : ''}>${cooling ? '刚催过' : '催一催'}</button>`;
+        if (order.status !== 'cooking') {
+            actions += '<button class="order-action" type="button" data-order-action="cancel">取消订单</button>';
+        }
+    }
+    if (order.status === 'served') {
+        actions += `<button class="order-action" type="button" data-order-action="thanks" ${order.thanks ? 'disabled' : ''}>${order.thanks ? '已谢谢大厨' : '谢谢大厨'}</button>`;
+        actions += '<button class="order-action is-primary" type="button" data-order-action="complete">吃完了</button>';
+    }
+    if (order.status === 'completed' || order.status === 'cancelled') {
+        if (order.status === 'completed' && !order.thanks) {
+            actions += '<button class="order-action" type="button" data-order-action="thanks">谢谢大厨</button>';
+        }
+        actions += '<button class="order-action is-primary" type="button" data-order-action="reorder">再点一单</button>';
+    }
+
+    const eta = orderEtaText(order);
+    const placed = formatClock(order.placedAt);
+    const thanks = order.thanks
+        ? `<p class="order-thanks">♡ ${cleanText(order.thanks.note)}</p>`
+        : '';
+
+    wrap.innerHTML = `
+        <section class="order-card status-${order.status}">
+            <div class="order-card-top">
+                <span class="order-no">NO.${String(order.id).padStart(3, '0')}</span>
+                <span class="order-badge">${ORDER_STATUS[order.status]}</span>
+            </div>
+            <h2 class="order-card-title">${copy.title}</h2>
+            <p class="order-card-sub">${copy.note}</p>
+            ${stepper}
+            <div class="order-card-meta">
+                <span>${placed ? `下单于 ${placed}` : ''}</span>
+                <span>${order.items.length} 道菜 · ${order.total} 币</span>
+            </div>
+            ${eta ? `<p class="order-eta">${eta}</p>` : ''}
+            <div class="order-card-items">
+                ${order.items.map(item => `
+                    <div class="order-item">
+                        <span class="order-item-icon" aria-hidden="true">${cleanText(item.icon || '🍽️')}</span>
+                        <span class="order-item-name">${cleanText(item.name)}</span>
+                        <span class="order-item-price">${item.price}</span>
+                    </div>
+                `).join('')}
+            </div>
+            ${order.note ? `<p class="order-user-note">“${cleanText(order.note)}”</p>` : ''}
+            ${thanks}
+            ${actions ? `<div class="order-card-actions">${actions}</div>` : ''}
+        </section>
+    `;
+}
+
+function renderMenuCategories() {
+    const container = $('menu-categories');
+    if (!container) return;
+
+    const categories = (state.menu.categories || [])
+        .slice()
+        .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+
+    if (!categories.length) {
+        container.innerHTML = '';
+        return;
+    }
+
+    const item = (id, label, icon) => `
+        <button class="menu-cat ${state.menuCategory === id ? 'is-active' : ''}"
+            type="button" role="tab" aria-selected="${state.menuCategory === id}"
+            data-category="${id}">
+            ${icon ? `<span aria-hidden="true">${icon}</span>` : ''}${label}
+        </button>
+    `;
+
+    container.innerHTML = item('all', '全部', '') +
+        categories.map(category => item(category.id, cleanText(category.name), cleanText(category.icon))).join('');
+}
+
+function renderMenu() {
+    const container = $('menu-container');
+    if (!container) return;
+
+    const active = orderingBlocked();
+    const dishes = (state.menu.dishes || []).slice()
+        .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+    const category = state.menuCategory;
+    const visible = category === 'all'
+        ? dishes
+        : dishes.filter(dish => String(dish.categoryId) === String(category));
+
+    const count = $('menu-count');
+    if (count) count.textContent = `${visible.length} 道`;
+
+    if (!dishes.length) {
+        container.innerHTML = '<div class="coupon-empty menu-empty"><span aria-hidden="true">🍽️</span><p>菜单还没上架</p><small>等大厨写几道拿手菜吧</small></div>';
+        return;
+    }
+
+    if (!visible.length) {
+        container.innerHTML = '<div class="coupon-empty menu-empty"><span aria-hidden="true">♡</span><p>这个分类还没有菜</p><small>换个分类看看</small></div>';
+        return;
+    }
+
+    const banner = active
+        ? '<p class="menu-locked">这一单吃完才能再点下一顿，先看看菜单解解馋吧。</p>'
+        : '';
+
+    container.innerHTML = banner + visible.map((dish, index) => {
+        const inCart = state.cart.has(String(dish.id));
+        const disabled = !dish.available || !!active;
+        const tags = (dish.tags || []).slice(0, 2)
+            .map(tag => `<span>${cleanText(tag)}</span>`)
+            .join('');
+        return `
+            <article class="dish-card ${dish.available ? '' : 'is-soldout'}">
+                <div class="dish-cover v${index % 4}">
+                    <span class="dish-emoji" aria-hidden="true">${cleanText(dish.icon || '🍽️')}</span>
+                    ${dish.todaySpecial ? '<em class="dish-special">今日推荐</em>' : ''}
+                </div>
+                <div class="dish-body">
+                    <div class="dish-title-row">
+                        <h3 class="dish-name">${cleanText(dish.name)}</h3>
+                        <span class="dish-price">${dish.price}<i>币</i></span>
+                    </div>
+                    <p class="dish-desc">${cleanText(dish.description)}</p>
+                    <div class="dish-meta">
+                        <span class="dish-time">${dish.prepMinutes} 分钟</span>
+                        ${tags}
+                    </div>
+                </div>
+                <button class="dish-add ${inCart ? 'is-added' : ''}" type="button"
+                    data-dish-add="${cleanText(dish.id)}"
+                    aria-label="${inCart ? '移出' : '加入'}${cleanText(dish.name)}"
+                    ${disabled ? 'disabled' : ''}>${inCart ? '✓' : '+'}</button>
+                ${dish.available ? '' : '<span class="dish-soldout">售罄</span>'}
+            </article>
+        `;
+    }).join('');
+}
+
+function updateCartBar() {
+    const bar = $('cart-bar');
+    if (!bar) return;
+
+    const blocked = orderingBlocked();
+    if (blocked) state.cart.clear();
+
+    const show = state.page === 'order' && state.cart.size > 0 && !blocked;
+    bar.hidden = !show;
+    if (!show) return;
+
+    const count = $('cart-count');
+    const total = $('cart-total');
+    if (count) count.textContent = `${state.cart.size} 道菜`;
+    if (total) total.textContent = cartTotal();
+}
+
+function toggleCart(dishId) {
+    if (orderingBlocked()) {
+        toast('这一单吃完再点下一顿吧');
+        return;
+    }
+
+    const dish = (state.menu.dishes || []).find(item => String(item.id) === String(dishId));
+    if (!dish) return;
+    if (!dish.available) {
+        toast('这道菜今天售罄啦');
+        return;
+    }
+
+    const key = String(dish.id);
+    if (state.cart.has(key)) state.cart.delete(key);
+    else state.cart.add(key);
+
+    renderMenu();
+    updateCartBar();
+
+    const sheet = $('cart-sheet');
+    if (sheet && sheet.classList.contains('is-open')) renderCartSheet();
+}
+
+function renderCartSheet() {
+    const items = $('cart-items');
+    const summaryTotal = $('cart-summary-total');
+    const summaryBalance = $('cart-summary-balance');
+    const summaryAfter = $('cart-summary-after');
+    const creditNote = $('cart-credit-note');
+    const confirm = $('cart-confirm');
+    if (!items || !confirm) return;
+
+    if (!state.cart.size) {
+        closeSheet('cart-sheet');
+        updateCartBar();
+        return;
+    }
+
+    const dishes = state.menu.dishes || [];
+    const lines = [...state.cart].map(id => dishes.find(dish => String(dish.id) === String(id))).filter(Boolean);
+    const total = lines.reduce((sum, dish) => sum + (Number(dish.price) || 0), 0);
+    const wallet = state.wallet;
+    const after = wallet.balance - total;
+    const limit = Number(wallet.overdraftLimit) || 0;
+    const overLimit = after < -limit;
+
+    items.innerHTML = lines.map(dish => `
+        <div class="cart-line">
+            <span class="cart-line-icon" aria-hidden="true">${cleanText(dish.icon || '🍽️')}</span>
+            <span class="cart-line-name">${cleanText(dish.name)}</span>
+            <span class="cart-line-price">${dish.price}</span>
+            <button class="cart-line-remove" type="button" data-cart-remove="${cleanText(dish.id)}" aria-label="移除${cleanText(dish.name)}">✕</button>
+        </div>
+    `).join('');
+
+    if (summaryTotal) summaryTotal.textContent = total;
+    if (summaryBalance) summaryBalance.textContent = wallet.balance;
+    if (summaryAfter) {
+        summaryAfter.textContent = after < 0
+            ? `-${Math.abs(after)} 币（欠大厨 ${Math.abs(after)} 币）`
+            : `${after} 币`;
+        summaryAfter.classList.toggle('is-negative', after < 0);
+    }
+
+    if (creditNote) {
+        if (after < -limit) {
+            creditNote.hidden = false;
+            creditNote.textContent = `还差 ${Math.abs(after + limit)} 币，等大厨发币吧。`;
+        } else if (after < 0) {
+            creditNote.hidden = false;
+            creditNote.textContent = `这一单会先欠大厨 ${Math.abs(after)} 币，最多可欠 ${limit} 币。`;
+        } else {
+            creditNote.hidden = true;
+            creditNote.textContent = '';
+        }
+    }
+
+    confirm.disabled = overLimit;
+    confirm.textContent = overLimit
+        ? `还差 ${Math.abs(after + limit)} 币`
+        : '确认下单';
+}
+
+function openCartSheet() {
+    if (orderingBlocked()) {
+        toast('这一单吃完再点下一顿吧');
+        return;
+    }
+    if (!state.cart.size) {
+        toast('先挑几道菜吧');
+        return;
+    }
+    renderCartSheet();
+    openSheet('cart-sheet');
+}
+
+async function syncOrderState() {
+    const data = await refreshOrderData();
+    state.orders = data.orders;
+    state.latestOrder = data.latestOrder;
+    state.wallet = data.wallet;
+    if (orderingBlocked()) state.cart.clear();
+    renderWalletUI();
+    renderDinnerCard();
+    renderOrderPage();
+    ensureOrderPolling();
+}
+
+async function placeOrderFromCart() {
+    const confirm = $('cart-confirm');
+    if (!state.cart.size) return;
+    if (orderingBlocked()) {
+        toast('这一单吃完再点下一顿吧');
+        return;
+    }
+
+    const note = $('cart-note') ? $('cart-note').value : '';
+    if (confirm) {
+        confirm.disabled = true;
+        confirm.textContent = '下单中...';
+    }
+
+    try {
+        const result = await placeOrder({ dishIds: [...state.cart], note });
+        state.wallet = result.wallet;
+        state.cart.clear();
+        if ($('cart-note')) $('cart-note').value = '';
+        closeSheet('cart-sheet');
+        await syncOrderState();
+        toast('下单成功，等大厨接单');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (error) {
+        console.error('下单失败:', error);
+        if (error.code === 'SOLD_OUT' || error.code === 'MISSING_DISH') {
+            toast(error.message);
+            refreshData(false);
+        } else if (error.code === 'INSUFFICIENT') {
+            toast(`还差 ${error.shortfall} 币，等大厨发币吧`);
+        } else {
+            toast(error.message || '下单失败，再试一次');
+        }
+        renderCartSheet();
+    } finally {
+        if (confirm && !confirm.disabled) confirm.textContent = '确认下单';
+        if (confirm) confirm.disabled = false;
+        renderCartSheet();
+    }
+}
+
+async function handleOrderAction(action) {
+    const order = state.latestOrder;
+    if (!order) return;
+
+    try {
+        if (action === 'nudge') {
+            await nudgeOrder(order.id);
+            await syncOrderState();
+            toast('已经催过大厨啦');
+            return;
+        }
+        if (action === 'cancel') {
+            if (!window.confirm('确定取消这一单吗？恋爱币会全额退回。')) return;
+            await cancelOrder(order.id, { by: 'user', reason: '' });
+            await syncOrderState();
+            toast('已取消，币已经退回钱包');
+            return;
+        }
+        if (action === 'thanks') {
+            await thankChef(order.id);
+            await syncOrderState();
+            toast('已经告诉大厨啦');
+            return;
+        }
+        if (action === 'complete') {
+            await completeOrder(order.id, 'user');
+            await syncOrderState();
+            toast('这顿饭完成啦');
+            return;
+        }
+        if (action === 'reorder') {
+            state.menuCategory = 'all';
+            renderMenuCategories();
+            renderMenu();
+            const menu = $('menu-container');
+            if (menu) menu.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            toast('挑几道想吃的吧');
+        }
+    } catch (error) {
+        console.error('订单操作失败:', error);
+        toast(error.message || '操作失败，再试一次');
+    }
+}
+
+function ensureOrderPolling() {
+    const active = orderInProgress();
+    if (active && !state.orderPollTimer) {
+        state.orderPollTimer = setInterval(pollOrder, ORDER_POLL_MS);
+    }
+    if (!active && state.orderPollTimer) {
+        clearInterval(state.orderPollTimer);
+        state.orderPollTimer = null;
+    }
+}
+
+async function pollOrder() {
+    if (document.visibilityState !== 'visible' || state.refreshing) return;
+
+    const previous = state.latestOrder;
+    const previousBalance = state.wallet.balance;
+
+    try {
+        const data = await refreshOrderData();
+        const next = data.latestOrder;
+        const statusChanged = previous && next && previous.status !== next.status;
+        const orderChanged = !previous && next || previous && next && previous.updatedAt !== next.updatedAt;
+        const walletChanged = previousBalance !== data.wallet.balance;
+
+        state.orders = data.orders;
+        state.latestOrder = next;
+        state.wallet = data.wallet;
+
+        if (statusChanged && KITCHEN_TOAST[next.status]) {
+            toast(KITCHEN_TOAST[next.status]);
+        }
+        if (statusChanged || orderChanged || walletChanged) {
+            renderWalletUI();
+            renderDinnerCard();
+            renderOrderPage();
+        }
+        ensureOrderPolling();
+    } catch (error) {
+        console.warn('订单轮询失败:', error);
+    }
+}
+
+function renderOrderPage() {
+    renderWalletUI();
+    renderOrderStatus();
+    renderMenuCategories();
+    renderMenu();
+    updateCartBar();
+}
+
+function initOrderUI() {
+    const walletPill = $('wallet-pill');
+    if (walletPill) {
+        walletPill.addEventListener('click', () => {
+            renderWalletUI();
+            openSheet('wallet-sheet');
+        });
+    }
+
+    const cartOpen = $('cart-open');
+    if (cartOpen) cartOpen.addEventListener('click', openCartSheet);
+
+    const confirm = $('cart-confirm');
+    if (confirm) confirm.addEventListener('click', placeOrderFromCart);
+
+    const cartItems = $('cart-items');
+    if (cartItems) {
+        cartItems.addEventListener('click', (event) => {
+            const button = event.target.closest('[data-cart-remove]');
+            if (button) toggleCart(button.dataset.cartRemove);
+        });
+    }
+
+    const categories = $('menu-categories');
+    if (categories) {
+        categories.addEventListener('click', (event) => {
+            const button = event.target.closest('[data-category]');
+            if (!button) return;
+            state.menuCategory = button.dataset.category;
+            renderMenuCategories();
+            renderMenu();
+        });
+    }
+
+    const menu = $('menu-container');
+    if (menu) {
+        menu.addEventListener('click', (event) => {
+            const button = event.target.closest('[data-dish-add]');
+            if (!button) return;
+            toggleCart(button.dataset.dishAdd);
+        });
+    }
+
+    const statusWrap = $('order-status-wrap');
+    if (statusWrap) {
+        statusWrap.addEventListener('click', (event) => {
+            const button = event.target.closest('[data-order-action]');
+            if (!button) return;
+            handleOrderAction(button.dataset.orderAction);
         });
     }
 }
 
-function openQRModal(coupon) {
-    const qrModal = document.getElementById('qr-modal');
-    const qrCodeContainer = document.getElementById('qr-code');
 
-    if (!qrModal || !qrCodeContainer) return;
 
-    qrCodeContainer.innerHTML = '';
-
-    // 校验是否已被使用
-    if (coupon.status === 'used') {
-        alert(`该${coupon.title}已被使用，无法重复使用`);
-        return;
-    }
-
-    // 生成核销页面 URL
-    const baseUrl = window.location.origin + window.location.pathname.replace('index.html', '').replace(/\/$/, '');
-    const useUrl = `${baseUrl}/use.html?id=${coupon.id}`;
-    
-    console.log('核销链接:', useUrl);
-
-    try {
-        if (typeof QRCode !== 'undefined') {
-            qrCodeInstance = new QRCode(qrCodeContainer, {
-                text: useUrl,
-                width: 170,
-                height: 170,
-                colorDark: '#382a3f',
-                colorLight: '#ffffff',
-                correctLevel: QRCode.CorrectLevel.M
-            });
-        } else {
-            qrCodeContainer.innerHTML = '<div style="color: #999;">二维码加载失败</div>';
-        }
-    } catch (error) {
-        console.error('二维码生成失败:', error);
-        qrCodeContainer.innerHTML = '<div style="color: #999;">二维码生成失败</div>';
-    }
-
-    qrModal.classList.add('active');
-}
-
-function closeQRModal() {
-    const qrModal = document.getElementById('qr-modal');
-    if (qrModal) {
-        qrModal.classList.remove('active');
-    }
-}
-
-function renderCoupons() {
-    const container = document.getElementById('coupons-container');
+async function openQR(coupon) {
+    const container = $('qr-code');
     if (!container) return;
 
+    const title = $('qr-coupon');
+    const serial = $('qr-serial');
+    if (title) title.textContent = `${String(coupon.title || '恋爱卡').trim()} · ${coupon.duration}${coupon.durationUnit || '分钟'}`;
+    if (serial) serial.textContent = `NO.${String(coupon.id).padStart(3, '0')}`;
+
+    container.innerHTML = '<span style="color:#8a7c86;font-size:13px">生成中…</span>';
+    openSheet('qr-sheet');
+
+    try {
+        if (typeof QRCode === 'undefined') {
+            await loadScript(CDN.qrcode);
+        }
+    } catch (error) {
+        console.error('二维码组件加载失败:', error);
+        container.innerHTML = '<span style="color:#8a7c86;font-size:13px">二维码组件加载失败</span>';
+        return;
+    }
+
+    const base = window.location.origin + window.location.pathname
+        .replace(/index\.html$/, '')
+        .replace(/\/$/, '');
+    const url = `${base}/use.html?id=${encodeURIComponent(coupon.id)}`;
+    const size = Math.min(Math.round(window.innerWidth * 0.62), 236);
+
     container.innerHTML = '';
-
-    if (!massageCouponsData || massageCouponsData.length === 0) {
-        console.log('数据为空，尝试从配置加载');
-        if (config.massageCoupons) {
-            massageCouponsData = config.massageCoupons;
-        }
+    try {
+        new QRCode(container, {
+            text: url,
+            width: size,
+            height: size,
+            colorDark: '#2b2231',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.M
+        });
+    } catch (error) {
+        console.error('二维码生成失败:', error);
+        container.innerHTML = '<span style="color:#8a7c86;font-size:13px">二维码生成失败</span>';
     }
+}
 
-    if (massageCouponsData.length === 0) {
-        container.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">暂无数据</div>';
-        return;
+/* ---------- sheets ---------- */
+
+function openSheet(id) {
+    const sheet = $(id);
+    if (!sheet || sheet.classList.contains('is-open')) return;
+    if (!state.openSheets.length) {
+        state.scrollY = window.scrollY;
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${state.scrollY}px`;
+        document.body.style.left = '0';
+        document.body.style.right = '0';
+        document.body.style.width = '100%';
+        document.documentElement.classList.add('is-locked');
     }
+    sheet.classList.add('is-open');
+    sheet.setAttribute('aria-hidden', 'false');
+    state.openSheets.push(id);
+}
 
-    const filteredCoupons = massageCouponsData.filter(coupon => {
-        if (currentFilter === 'all') return true;
-        return coupon.status === currentFilter;
+function closeSheet(id) {
+    const sheet = $(id);
+    if (!sheet) return;
+    sheet.classList.remove('is-open');
+    sheet.setAttribute('aria-hidden', 'true');
+    state.openSheets = state.openSheets.filter(item => item !== id);
+    if (!state.openSheets.length) {
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        document.body.style.width = '';
+        document.documentElement.classList.remove('is-locked');
+        window.scrollTo(0, state.scrollY || 0);
+    }
+}
+
+function closeTopSheet() {
+    const id = state.openSheets[state.openSheets.length - 1];
+    if (id) closeSheet(id);
+}
+
+function initSheets() {
+    document.querySelectorAll('.sheet').forEach(sheet => {
+        sheet.querySelectorAll('[data-close]').forEach(button => {
+            button.addEventListener('click', () => closeSheet(sheet.id));
+        });
+        sheet.querySelectorAll('.sheet-backdrop').forEach(backdrop => {
+            backdrop.addEventListener('click', () => closeSheet(sheet.id));
+        });
     });
 
-    if (filteredCoupons.length === 0) {
-        container.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">该分类下暂无数据</div>';
-        return;
-    }
-
-    // 按获取时间降序排序（最新的在前面）
-    filteredCoupons.sort((a, b) => {
-        const dateA = new Date(a.acquiredDate.replace(/-/g, '/'));
-        const dateB = new Date(b.acquiredDate.replace(/-/g, '/'));
-        return dateB - dateA;
-    });
-
-    filteredCoupons.forEach((coupon, index) => {
-        const card = document.createElement('div');
-        card.className = `coupon-card ${coupon.status}`;
-        card.style.animationDelay = `${index * 0.1}s`;
-
-        const statusText = coupon.status === 'available' ? '立即使用' : '已使用';
-        const statusClass = coupon.status === 'available' ? 'available' : 'used';
-
-        card.innerHTML = `
-            <div class="coupon-card-header">
-                <span class="coupon-number">NO.${String(coupon.id).padStart(3, '0')}</span>
-                <button class="coupon-status ${statusClass}" data-coupon-id="${coupon.id}">${statusText}</button>
-            </div>
-            <div class="coupon-main">
-                <span class="coupon-icon">${coupon.icon}</span>
-                <div class="coupon-content">
-                    <h3 class="coupon-title">${coupon.title}</h3>
-                    <div class="coupon-meta">
-                        <span class="coupon-duration">${coupon.duration}${coupon.durationUnit}</span>
-                    </div>
-                </div>
-            </div>
-            <div class="coupon-timeline">
-                <div class="timeline-item">
-                    <div class="timeline-dot ${coupon.status === 'available' ? 'active' : ''}"></div>
-                    <div class="timeline-content">
-                        <span class="timeline-label">获取时间</span>
-                        <span class="timeline-time">${formatDate(coupon.acquiredDate)}</span>
-                    </div>
-                </div>
-                ${coupon.usedDate ? `
-                <div class="timeline-item">
-                    <div class="timeline-dot used"></div>
-                    <div class="timeline-content">
-                        <span class="timeline-label">使用时间</span>
-                        <span class="timeline-time">${formatDate(coupon.usedDate)}</span>
-                    </div>
-                </div>
-                ` : `
-                <div class="timeline-item pending">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-content">
-                        <span class="timeline-label">等待使用</span>
-                        <span class="timeline-time">-</span>
-                    </div>
-                </div>
-                `}
-            </div>
-            <div class="coupon-stamp">
-                <span class="coupon-stamp-text">已使用</span>
-            </div>
-        `;
-
-        const statusBtn = card.querySelector('.coupon-status');
-        if (statusBtn && coupon.status === 'available') {
-            statusBtn.addEventListener('click', () => {
-                // 再次检查最新状态，防止并发问题
-                if (coupon.status === 'used') {
-                    alert(`该${coupon.title}已被使用，无法重复使用`);
-                    return;
-                }
-                openQRModal(coupon);
-            });
-        }
-
-        container.appendChild(card);
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeTopSheet();
     });
 }
 
+/* ---------- page navigation ---------- */
+
+function switchPage(page, options = {}) {
+    const valid = ['home', 'order', 'coupons'];
+    const target = valid.includes(page) ? page : 'home';
+    const { push = true, scroll = true } = options;
+    state.page = target;
+
+    document.querySelectorAll('.page').forEach(section => {
+        section.classList.toggle('is-active', section.dataset.page === target);
+    });
+
+    document.querySelectorAll('.top-nav-item, .tab').forEach(button => {
+        const active = button.dataset.page === target;
+        button.classList.toggle('is-active', active);
+        if (active) {
+            button.setAttribute('aria-current', 'page');
+        } else {
+            button.removeAttribute('aria-current');
+        }
+    });
+
+    const refresh = $('refresh-btn');
+    if (refresh) refresh.hidden = target !== 'coupons';
+
+    if (target === 'coupons') {
+        renderCoupons();
+        if (state.lastLoadedAt && Date.now() - state.lastLoadedAt > MINUTE) {
+            refreshData(false);
+        }
+    } else if (target === 'order') {
+        renderOrderPage();
+        if (state.lastLoadedAt && Date.now() - state.lastLoadedAt > 30 * 1000) {
+            refreshData(false);
+        }
+    } else {
+        renderDinnerCard();
+        requestAnimationFrame(updateCarouselMeta);
+    }
+
+    updateCartBar();
+
+    if (scroll) {
+        const root = document.documentElement;
+        const previous = root.style.scrollBehavior;
+        root.style.scrollBehavior = 'auto';
+        window.scrollTo(0, 0);
+        root.style.scrollBehavior = previous;
+    }
+
+    if (push && window.location.hash !== `#${target}`) {
+        history.pushState({ page: target }, '', `#${target}`);
+    }
+}
+
+function initNavigation() {
+    document.querySelectorAll('[data-page]').forEach(button => {
+        button.addEventListener('click', () => switchPage(button.dataset.page));
+    });
+
+    document.querySelectorAll('[data-page-link]').forEach(link => {
+        link.addEventListener('click', (event) => {
+            event.preventDefault();
+            switchPage(link.dataset.pageLink);
+        });
+    });
+
+    window.addEventListener('popstate', () => {
+        if (state.openSheets.length) {
+            [...state.openSheets].reverse().forEach(closeSheet);
+            history.pushState({ page: state.page }, '', `#${state.page}`);
+            return;
+        }
+        const page = (window.location.hash || '#home').replace('#', '');
+        switchPage(page, { push: false });
+    });
+
+    const initial = (window.location.hash || '#home').replace('#', '');
+    switchPage(initial, { push: false, scroll: false });
+    if (!window.location.hash) {
+        history.replaceState({ page: 'home' }, '', '#home');
+    }
+}
+
+/* ---------- music ---------- */
+
+function initMusic() {
+    const music = $('bg-music');
+    const button = $('music-control');
+    if (!music || !button) return;
+
+    const preference = storageGet('lj-music') === 'on';
+
+    const paint = (playing) => {
+        button.classList.toggle('is-playing', playing);
+        button.setAttribute('aria-pressed', playing ? 'true' : 'false');
+        button.setAttribute('aria-label', playing ? '暂停背景音乐' : '播放背景音乐');
+    };
+
+    const play = () => {
+        if (!music.getAttribute('src')) {
+            music.src = MUSIC_SRC;
+            music.load();
+        }
+        const promise = music.play();
+        if (promise && promise.then) {
+            promise.then(() => paint(true)).catch(() => paint(false));
+        } else {
+            paint(true);
+        }
+    };
+
+    const pause = () => {
+        music.pause();
+        paint(false);
+    };
+
+    music.volume = 0.45;
+    paint(false);
+
+    button.addEventListener('click', () => {
+        if (music.paused) {
+            storageSet('lj-music', 'on');
+            play();
+        } else {
+            storageSet('lj-music', 'off');
+            pause();
+        }
+    });
+
+    music.addEventListener('pause', () => paint(false));
+    music.addEventListener('play', () => paint(true));
+
+    if (preference) {
+        const tryPlay = () => {
+            if (music.paused) play();
+            document.removeEventListener('pointerdown', tryPlay);
+            document.removeEventListener('touchstart', tryPlay);
+        };
+        document.addEventListener('pointerdown', tryPlay, { once: true });
+        document.addEventListener('touchstart', tryPlay, { once: true, passive: true });
+    }
+}
+
+/* ---------- chrome ---------- */
+
+function initHeader() {
+    const header = $('app-header');
+    if (!header) return;
+
+    let ticking = false;
+    const update = () => {
+        header.classList.toggle('is-scrolled', window.scrollY > 6);
+        ticking = false;
+    };
+
+    window.addEventListener('scroll', () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(update);
+    }, { passive: true });
+
+    update();
+}
+
+function initVisibilityRefresh() {
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState !== 'visible') return;
+        if (Date.now() - state.lastLoadedAt > 30 * 1000) {
+            refreshData(false);
+        } else if (orderInProgress()) {
+            pollOrder();
+        }
+    });
+}
+
+function initBootError() {
+    const retry = $('boot-retry');
+    if (!retry) return;
+    retry.addEventListener('click', () => {
+        const url = new URL(window.location.href);
+        url.searchParams.set('_r', Date.now().toString(36));
+        window.location.replace(url.toString());
+    });
+}
+
+/* ---------- boot ---------- */
+
 document.addEventListener('DOMContentLoaded', () => {
-    loadConfig();
-    initMenu();
-    initTabs();
-    initQRModal();
+    initHeader();
+    initNavigation();
+    initMusic();
+    initCarousel();
+    initMemorySheet();
+    initTimelineSheet();
+    initSheets();
+    initCoupons();
+    initOrderUI();
+    initMapControls();
+    initVisibilityRefresh();
+    initBootError();
+    bootstrap();
 });

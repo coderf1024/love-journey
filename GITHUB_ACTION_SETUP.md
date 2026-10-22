@@ -2,7 +2,7 @@
 
 ## 功能说明
 
-此 GitHub Action 会在每周日自动赠送一张 5 分钟的按摩卡到 OSS 存储的配置文件中。
+此 GitHub Action 会在每周日自动赠送一张 5 分钟的按摩卡，写入 OSS 文档存储的 `love-journey/db/commerce/coupons/` 下（索引和编号会一起更新）。
 
 ## 配置步骤
 
@@ -16,7 +16,8 @@
 | `OSS_BUCKET` | OSS Bucket 名称 | `my-love-journey` |
 | `OSS_ACCESS_KEY_ID` | 阿里云 AccessKey ID | `LTAI...` |
 | `OSS_ACCESS_KEY_SECRET` | 阿里云 AccessKey Secret | `your-secret-key` |
-| `OSS_CONFIG_PATH` | 配置文件在 OSS 中的路径 | `config.json` |
+
+`OSS_DB_ROOT` 已经在工作流里设置为 `love-journey/db`，不需要额外的 Secret。旧的 `OSS_CONFIG_PATH` Secret 已不再使用，可以删除。
 
 ### 2. 获取阿里云 OSS 配置
 

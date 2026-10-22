@@ -38,7 +38,7 @@ jobs:
           OSS_BUCKET: ${{ secrets.OSS_BUCKET }}
           OSS_ACCESS_KEY_ID: ${{ secrets.OSS_ACCESS_KEY_ID }}
           OSS_ACCESS_KEY_SECRET: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
-          OSS_CONFIG_PATH: ${{ secrets.OSS_CONFIG_PATH }}
+          OSS_DB_ROOT: love-journey/db
           COUPON_DURATION: ${{ github.event.inputs.duration || '5' }}
           COUPON_TITLE: ${{ github.event.inputs.title || '每周按摩卡' }}
         run: node scripts/auto-gift-massage.js

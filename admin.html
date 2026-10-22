@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>恋爱卡管理</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>恋爱空间管理</title>
+    <link rel="stylesheet" href="css/style.css?v=20261022-3">
     <style>
         .admin-container {
             max-width: 600px;
@@ -553,6 +553,340 @@
             height: 9px;
         }
 
+        /* ---------- 小灶 / kitchen ---------- */
+
+        .admin-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            margin-bottom: 22px;
+            padding: 4px;
+            background: var(--paper-soft);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+        }
+
+        .admin-tab {
+            min-height: 42px;
+            color: var(--muted);
+            font-size: 0.9rem;
+            border-radius: 999px;
+        }
+
+        .admin-tab.is-active {
+            color: var(--paper-soft);
+            background: var(--ink);
+        }
+
+        .admin-tab-panel[hidden] {
+            display: none;
+        }
+
+        .kitchen-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .kitchen-stat {
+            padding: 16px 10px;
+            text-align: center;
+            background: var(--paper-soft);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .kitchen-stat b {
+            display: block;
+            color: var(--stamp-deep);
+            font-family: var(--font-ui);
+            font-size: 1.5rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .kitchen-stat span {
+            color: var(--muted);
+            font-size: 0.72rem;
+        }
+
+        .admin-card {
+            margin-bottom: 18px;
+            padding: 22px;
+            background: linear-gradient(135deg, #fff 0%, #fff8f9 100%);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(255, 182, 193, 0.12);
+        }
+
+        .admin-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .admin-card .issue-title {
+            margin-bottom: 14px;
+        }
+
+        .admin-card-head .issue-title {
+            margin-bottom: 0;
+        }
+
+        .admin-hint {
+            color: var(--muted);
+            font-size: 0.72rem;
+        }
+
+        .admin-orders {
+            display: grid;
+            gap: 10px;
+        }
+
+        .admin-order {
+            padding: 14px;
+            background: var(--paper-soft);
+            border: 1px solid var(--line);
+            border-left: 4px solid var(--line-strong);
+            border-radius: 14px;
+        }
+
+        .admin-order.status-pending { border-left-color: var(--lemon); }
+        .admin-order.status-prepping { border-left-color: var(--route); }
+        .admin-order.status-cooking { border-left-color: #e98b57; }
+        .admin-order.status-served { border-left-color: var(--stamp); }
+        .admin-order.status-completed,
+        .admin-order.status-cancelled { opacity: 0.68; }
+
+        .admin-order-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .admin-order-top b {
+            font-family: var(--font-ui);
+            font-size: 0.8rem;
+            letter-spacing: 0.08em;
+        }
+
+        .admin-order-time {
+            color: var(--muted);
+            font-size: 0.7rem;
+        }
+
+        .admin-order-items {
+            margin-top: 8px;
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+
+        .admin-order-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 0.7rem;
+        }
+
+        .admin-order-note {
+            margin-top: 8px;
+            padding: 7px 10px;
+            color: var(--ink-2);
+            font-size: 0.76rem;
+            background: rgba(43, 34, 49, 0.04);
+            border-radius: 8px;
+        }
+
+        .admin-order-extra {
+            margin-top: 6px;
+            color: var(--stamp-deep);
+            font-size: 0.7rem;
+        }
+
+        .admin-order-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .admin-action {
+            min-height: 38px;
+            padding: 0 14px;
+            color: var(--ink);
+            font-size: 0.78rem;
+            background: var(--paper-soft);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+        }
+
+        .admin-action.primary {
+            color: var(--paper-soft);
+            background: var(--ink);
+            border-color: var(--ink);
+        }
+
+        .admin-action.danger {
+            color: var(--stamp-deep);
+        }
+
+        .wallet-admin-row {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        .wallet-admin-row > div > span {
+            display: block;
+            color: var(--muted);
+            font-size: 0.7rem;
+        }
+
+        .wallet-admin-row b {
+            color: var(--stamp-deep);
+            font-family: var(--font-ui);
+            font-size: 1.6rem;
+        }
+
+        .wallet-admin-limit {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .wallet-admin-limit label {
+            color: var(--muted);
+            font-size: 0.72rem;
+        }
+
+        .wallet-admin-limit input {
+            width: 72px;
+            padding: 8px 10px;
+            color: var(--ink);
+            font-size: 0.8rem;
+            background: var(--paper-soft);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+        }
+
+        .admin-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .issue-btn.compact {
+            padding: 12px;
+            font-size: 0.9rem;
+        }
+
+        .admin-wallet-entries {
+            margin-top: 14px;
+        }
+
+        .admin-dish-list {
+            display: grid;
+            gap: 8px;
+        }
+
+        .admin-dish {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: var(--paper-soft);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+        }
+
+        .admin-dish-icon {
+            width: 34px;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+
+        .admin-dish-main {
+            flex: 1;
+            min-width: 0;
+            display: grid;
+            gap: 1px;
+        }
+
+        .admin-dish-main b {
+            font-size: 0.85rem;
+        }
+
+        .admin-dish-main small {
+            color: var(--muted);
+            font-size: 0.68rem;
+        }
+
+        .admin-dish-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 4px;
+        }
+
+        .mini-btn {
+            min-height: 30px;
+            padding: 0 9px;
+            color: var(--muted);
+            font-size: 0.66rem;
+            background: var(--paper-soft);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+        }
+
+        .mini-btn.is-on {
+            color: var(--route);
+            background: rgba(47, 155, 152, 0.08);
+            border-color: rgba(47, 155, 152, 0.3);
+        }
+
+        .mini-btn.danger {
+            color: var(--stamp-deep);
+        }
+
+        .dish-form {
+            display: grid;
+            gap: 8px;
+        }
+
+        .dish-form-checks {
+            display: flex;
+            gap: 16px;
+            color: var(--ink-2);
+            font-size: 0.75rem;
+        }
+
+        .dish-form-checks label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .admin-form-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .admin-form-actions .issue-btn {
+            flex: 1;
+        }
+
         @media (max-width: 620px) {
             .admin-header {
                 align-items: flex-start;
@@ -572,6 +906,24 @@
             .delete-btn {
                 margin-left: 0;
             }
+
+            .kitchen-summary,
+            .admin-form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .kitchen-summary {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .admin-dish {
+                flex-wrap: wrap;
+            }
+
+            .admin-dish-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
         }
     </style>
 </head>
@@ -586,11 +938,18 @@
 
         <div class="admin-panel" id="admin-panel">
             <div class="admin-header">
-                <h1 class="admin-title"><span class="title-flat-icon title-icon-coupon" aria-hidden="true"></span>恋爱卡管理</h1>
+                <h1 class="admin-title"><span class="title-flat-icon title-icon-coupon" aria-hidden="true"></span>恋爱空间管理</h1>
                 <button class="logout-btn" id="logout-btn">退出</button>
             </div>
 
             <div class="message" id="message"></div>
+
+            <div class="admin-tabs" role="tablist" aria-label="管理模块">
+                <button class="admin-tab is-active" type="button" role="tab" aria-selected="true" data-admin-tab="coupons">恋爱卡</button>
+                <button class="admin-tab" type="button" role="tab" aria-selected="false" data-admin-tab="kitchen">小灶</button>
+            </div>
+
+            <div class="admin-tab-panel" id="tab-coupons">
 
             <div class="issue-card">
                 <h2 class="issue-title">赠送恋爱卡</h2>
@@ -633,89 +992,274 @@
                     <div class="empty-list">暂无恋爱卡</div>
                 </div>
             </div>
+
+            </div>
+
+            <div class="admin-tab-panel" id="tab-kitchen" hidden>
+                <div class="kitchen-summary">
+                    <div class="kitchen-stat"><b id="admin-summary-balance">0</b><span>用户余额</span></div>
+                    <div class="kitchen-stat"><b id="admin-active-orders">0</b><span>进行中</span></div>
+                    <div class="kitchen-stat"><b id="admin-today-served">0</b><span>今日出餐</span></div>
+                </div>
+
+                <section class="admin-card">
+                    <div class="admin-card-head">
+                        <h2 class="issue-title">厨房订单</h2>
+                        <button class="mini-btn" type="button" id="admin-refresh-orders">刷新</button>
+                    </div>
+                    <div class="admin-orders" id="admin-orders">
+                        <div class="empty-list">暂无订单</div>
+                    </div>
+                </section>
+
+                <section class="admin-card">
+                    <h2 class="issue-title">钱包</h2>
+                    <div class="wallet-admin-row">
+                        <div>
+                            <span>当前余额</span>
+                            <b id="admin-wallet-balance">0</b>
+                        </div>
+                        <div class="wallet-admin-limit">
+                            <label for="admin-overdraft">最多可欠</label>
+                            <input type="number" id="admin-overdraft" min="0" step="10" inputmode="numeric">
+                            <button class="mini-btn" type="button" id="admin-save-overdraft">保存</button>
+                        </div>
+                    </div>
+                    <div class="admin-form-grid">
+                        <input class="form-input" id="admin-grant-amount" type="number" min="1" step="10" inputmode="numeric" placeholder="发币数量">
+                        <input class="form-input" id="admin-grant-note" type="text" placeholder="备注（默认：大厨发的零花钱）">
+                    </div>
+                    <button class="issue-btn compact" type="button" id="admin-grant-btn">发币</button>
+                    <div class="wallet-entries admin-wallet-entries" id="admin-wallet-entries"></div>
+                </section>
+
+                <section class="admin-card">
+                    <div class="admin-card-head">
+                        <h2 class="issue-title">菜单</h2>
+                        <span class="admin-hint" id="admin-menu-count"></span>
+                    </div>
+                    <div class="admin-dish-list" id="admin-dish-list">
+                        <div class="empty-list">还没有菜品</div>
+                    </div>
+                </section>
+
+                <section class="admin-card">
+                    <h2 class="issue-title" id="dish-form-title">添加菜品</h2>
+                    <form class="dish-form" id="dish-form">
+                        <input type="hidden" id="dish-id">
+                        <div class="admin-form-grid">
+                            <input class="form-input" id="dish-name" type="text" placeholder="菜名" required>
+                            <select class="form-select" id="dish-category"></select>
+                            <input class="form-input" id="dish-price" type="number" min="0" step="1" inputmode="numeric" placeholder="价格（币）" required>
+                            <input class="form-input" id="dish-prep" type="number" min="1" step="1" inputmode="numeric" placeholder="预计分钟" required>
+                            <input class="form-input" id="dish-icon" type="text" maxlength="4" placeholder="图标 emoji" value="🍽️">
+                            <input class="form-input" id="dish-tags" type="text" placeholder="标签，逗号分隔">
+                        </div>
+                        <input class="form-input" id="dish-desc" type="text" placeholder="一句话描述">
+                        <div class="dish-form-checks">
+                            <label><input type="checkbox" id="dish-available" checked> 供应中</label>
+                            <label><input type="checkbox" id="dish-special"> 今日推荐</label>
+                        </div>
+                        <div class="admin-form-actions">
+                            <button class="issue-btn compact" type="submit" id="dish-submit">保存菜品</button>
+                            <button class="mini-btn" type="button" id="dish-cancel" hidden>取消编辑</button>
+                        </div>
+                    </form>
+                </section>
+            </div>
         </div>
     </div>
 
     <script src="https://gosspublic.alicdn.com/aliyun-oss-sdk-6.18.0.min.js"></script>
-    <script src="js/oss-config.js"></script>
-    <script src="js/crypto-utils.js"></script>
-    <script src="js/oss-utils.js"></script>
+    <script src="js/oss-config.js?v=20261022-3"></script>
+    <script src="js/crypto-utils.js?v=20261022-3"></script>
+    <script src="js/oss-utils.js?v=20261022-3"></script>
+    <script src="js/store.js?v=20261022-3"></script>
     <script>
         let isLoggedIn = false;
+        let adminData = null;
+        let adminTab = 'coupons';
+        let adminPollTimer = null;
+
+        const ORDER_LABEL = {
+            pending: '待接单',
+            prepping: '备菜中',
+            cooking: '制作中',
+            served: '已出餐',
+            completed: '已完成',
+            cancelled: '已取消'
+        };
+
+        const $ = id => document.getElementById(id);
+
+        function esc(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function toDate(value) {
+            if (!value) return null;
+            const text = String(value);
+            const date = text.includes('T') ? new Date(text) : new Date(text.replace(/-/g, '/'));
+            return isNaN(date.getTime()) ? null : date;
+        }
+
+        function formatDate(value, withTime = true) {
+            const date = toDate(value);
+            if (!date) return '';
+            const pad = n => String(n).padStart(2, '0');
+            const day = `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())}`;
+            return withTime ? `${day} ${pad(date.getHours())}:${pad(date.getMinutes())}` : day;
+        }
+
+        function clock(value) {
+            const date = toDate(value);
+            if (!date) return '';
+            return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        }
+
+        function todayKey() {
+            const date = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+        }
+
+        /* ---------- boot / auth ---------- */
 
         document.getElementById('login-btn').addEventListener('click', handleLogin);
-        document.getElementById('passcode-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleLogin();
+        document.getElementById('passcode-input').addEventListener('keypress', event => {
+            if (event.key === 'Enter') handleLogin();
         });
         document.getElementById('logout-btn').addEventListener('click', handleLogout);
         document.getElementById('issue-btn').addEventListener('click', handleIssue);
 
-        function handleLogin() {
+        document.querySelectorAll('[data-admin-tab]').forEach(button => {
+            button.addEventListener('click', () => switchAdminTab(button.dataset.adminTab));
+        });
+
+        document.getElementById('admin-orders').addEventListener('click', handleOrderListClick);
+        document.getElementById('admin-refresh-orders').addEventListener('click', refreshAdminOrders);
+        document.getElementById('admin-grant-btn').addEventListener('click', handleGrant);
+        document.getElementById('admin-save-overdraft').addEventListener('click', handleSaveOverdraft);
+        document.getElementById('dish-form').addEventListener('submit', handleDishSubmit);
+        document.getElementById('dish-cancel').addEventListener('click', resetDishForm);
+        document.getElementById('admin-dish-list').addEventListener('click', handleDishListClick);
+
+        async function handleLogin() {
             const passcode = document.getElementById('passcode-input').value;
-            
-            // 如果 OSS 未配置，使用默认口令
-            let isValid = false;
-            if (typeof verifyPasscode === 'function') {
-                isValid = verifyPasscode(passcode);
-            } else {
-                isValid = passcode === '123456';
-            }
-            
-            if (isValid) {
-                isLoggedIn = true;
-                document.getElementById('login-card').style.display = 'none';
-                document.getElementById('admin-panel').classList.add('active');
-                document.getElementById('login-error').style.display = 'none';
-                loadStats();
-            } else {
+
+            if (!verifyPasscode(passcode)) {
                 document.getElementById('login-error').style.display = 'block';
+                return;
             }
+
+            isLoggedIn = true;
+            document.getElementById('login-card').style.display = 'none';
+            document.getElementById('admin-panel').classList.add('active');
+            document.getElementById('login-error').style.display = 'none';
+            await loadAdmin();
+            startAdminPolling();
         }
 
         function handleLogout() {
             isLoggedIn = false;
+            stopAdminPolling();
             document.getElementById('passcode-input').value = '';
             document.getElementById('login-card').style.display = 'block';
             document.getElementById('admin-panel').classList.remove('active');
         }
 
-        async function loadStats() {
-            try {
-                const config = await loadConfigFromOSS();
-                const coupons = config.massageCoupons || [];
-                
-                const total = coupons.length;
-                const available = coupons.filter(c => c.status === 'available').length;
-                const used = coupons.filter(c => c.status === 'used').length;
-                
-                document.getElementById('total-count').textContent = total;
-                document.getElementById('available-count').textContent = available;
-                document.getElementById('used-count').textContent = used;
-                
-                renderCouponList(coupons);
-            } catch (error) {
-                showMessage('加载统计数据失败: ' + error.message, 'error');
+        function startAdminPolling() {
+            stopAdminPolling();
+            adminPollTimer = setInterval(() => {
+                if (isLoggedIn && adminTab === 'kitchen') refreshAdminOrders();
+            }, 15000);
+        }
+
+        function stopAdminPolling() {
+            if (adminPollTimer) {
+                clearInterval(adminPollTimer);
+                adminPollTimer = null;
             }
         }
 
-        function renderCouponList(coupons) {
+        /* ---------- data ---------- */
+
+        async function loadAdmin() {
+            if (typeof loadAdminData !== 'function') {
+                showMessage('页面脚本版本不一致，请强制刷新一下', 'error');
+                return;
+            }
+            try {
+                adminData = await loadAdminData();
+                renderCoupons();
+                renderSummary();
+                renderOrders();
+                renderWallet();
+                renderMenuAdmin();
+            } catch (error) {
+                console.error(error);
+                showMessage('加载失败: ' + error.message, 'error');
+            }
+        }
+
+        async function refreshAdminOrders() {
+            if (!isLoggedIn || document.visibilityState !== 'visible') return;
+            try {
+                const data = await refreshOrderData();
+                if (!adminData) {
+                    await loadAdmin();
+                    return;
+                }
+                adminData.orders = data.orders;
+                adminData.wallet = data.wallet;
+                adminData.latestOrder = data.latestOrder;
+                renderSummary();
+                renderOrders();
+                renderWallet();
+            } catch (error) {
+                console.warn('刷新订单失败:', error);
+            }
+        }
+
+        function switchAdminTab(tab) {
+            adminTab = tab;
+            document.querySelectorAll('[data-admin-tab]').forEach(button => {
+                const active = button.dataset.adminTab === tab;
+                button.classList.toggle('is-active', active);
+                button.setAttribute('aria-selected', String(active));
+            });
+            document.getElementById('tab-coupons').hidden = tab !== 'coupons';
+            document.getElementById('tab-kitchen').hidden = tab !== 'kitchen';
+            if (tab === 'kitchen') refreshAdminOrders();
+        }
+
+        /* ---------- coupons ---------- */
+
+        function renderCoupons() {
+            const coupons = (adminData.coupons || []).slice().sort((a, b) => Number(b.id) - Number(a.id));
+
+            document.getElementById('total-count').textContent = coupons.length;
+            document.getElementById('available-count').textContent = coupons.filter(c => c.status === 'available').length;
+            document.getElementById('used-count').textContent = coupons.filter(c => c.status === 'used').length;
+
             const container = document.getElementById('coupon-list-container');
-            
-            if (coupons.length === 0) {
+            if (!coupons.length) {
                 container.innerHTML = '<div class="empty-list">暂无数据</div>';
                 return;
             }
-            
-            // 按 ID 倒序排列，最新的在前面
-            const sortedCoupons = [...coupons].sort((a, b) => b.id - a.id);
-            
-            container.innerHTML = sortedCoupons.map(coupon => `
+
+            container.innerHTML = coupons.map(coupon => `
                 <div class="coupon-item" data-coupon-id="${coupon.id}">
                     <div class="coupon-item-info">
                         <span class="coupon-item-icon coupon-flat-icon" aria-hidden="true"></span>
                         <div class="coupon-item-details">
-                            <span class="coupon-item-title">${coupon.title} #${coupon.id}</span>
-                            <span class="coupon-item-meta">${coupon.duration}${coupon.durationUnit} · ${coupon.acquiredDate}</span>
+                            <span class="coupon-item-title">${esc(coupon.title)} #${coupon.id}</span>
+                            <span class="coupon-item-meta">${esc(coupon.duration)}${esc(coupon.durationUnit)} · ${esc(coupon.acquiredDate)}</span>
                         </div>
                     </div>
                     <div class="coupon-item-actions">
@@ -727,62 +1271,376 @@
         }
 
         async function handleDelete(couponId) {
-            if (!confirm(`确定要删除 #${couponId} 吗？此操作不可恢复。`)) {
-                return;
+            if (!confirm(`确定要删除 #${couponId} 吗？此操作不可恢复。`)) return;
+
+            const button = document.querySelector(`[data-coupon-id="${couponId}"] .delete-btn`);
+            if (button) {
+                button.disabled = true;
+                button.textContent = '删除中...';
             }
-            
-            const deleteBtn = document.querySelector(`[data-coupon-id="${couponId}"] .delete-btn`);
-            if (deleteBtn) {
-                deleteBtn.disabled = true;
-                deleteBtn.textContent = '删除中...';
-            }
-            
+
             try {
-                await deleteMassageCoupon(couponId);
+                await deleteCoupon(couponId);
                 showMessage('删除成功', 'success');
-                loadStats();
+                await loadAdmin();
             } catch (error) {
                 showMessage('删除失败: ' + error.message, 'error');
-                if (deleteBtn) {
-                    deleteBtn.disabled = false;
-                    deleteBtn.textContent = '删除';
+                if (button) {
+                    button.disabled = false;
+                    button.textContent = '删除';
                 }
             }
         }
 
         async function handleIssue() {
-            const duration = parseInt(document.getElementById('duration-select').value);
+            const duration = parseInt(document.getElementById('duration-select').value, 10);
             const title = document.getElementById('title-input').value || '按摩卡';
-            
-            const issueBtn = document.getElementById('issue-btn');
-            issueBtn.disabled = true;
-            issueBtn.textContent = '赠送中...';
+            const button = document.getElementById('issue-btn');
+
+            button.disabled = true;
+            button.textContent = '赠送中...';
 
             try {
-                const coupon = {
-                    icon: 'coupon',
-                    title: title,
-                    duration: duration,
-                    durationUnit: '分钟'
-                };
-                
-                await addMassageCoupon(coupon);
+                await addCoupon({ icon: '💆', title, duration, durationUnit: '分钟' });
                 showMessage(`${title}赠送成功！时长：${duration}分钟`, 'success');
                 document.getElementById('title-input').value = '';
-                loadStats();
+                await loadAdmin();
             } catch (error) {
                 showMessage('赠送失败: ' + error.message, 'error');
             } finally {
-                issueBtn.disabled = false;
-                issueBtn.textContent = '赠送';
+                button.disabled = false;
+                button.textContent = '赠送';
             }
         }
+
+        /* ---------- kitchen: orders ---------- */
+
+        function renderSummary() {
+            if (!adminData) return;
+            const wallet = adminData.wallet || { balance: 0 };
+            const orders = adminData.orders || [];
+            const active = orders.filter(order => ['pending', 'prepping', 'cooking'].includes(order.status)).length;
+            const today = todayKey();
+            const servedToday = orders.filter(order =>
+                ['served', 'completed'].includes(order.status) &&
+                String(order.placedAt || '').slice(0, 10) === today
+            ).length;
+
+            document.getElementById('admin-summary-balance').textContent = wallet.balance;
+            document.getElementById('admin-active-orders').textContent = active;
+            document.getElementById('admin-today-served').textContent = servedToday;
+        }
+
+        function renderOrders() {
+            if (!adminData) return;
+            const container = document.getElementById('admin-orders');
+            const orders = (adminData.orders || []).slice();
+            if (!orders.length) {
+                container.innerHTML = '<div class="empty-list">还没有订单</div>';
+                return;
+            }
+
+            const rank = { pending: 0, prepping: 1, cooking: 2, served: 3, completed: 4, cancelled: 5 };
+            orders.sort((a, b) => (rank[a.status] - rank[b.status]) || (Number(b.id) - Number(a.id)));
+
+            container.innerHTML = orders.map(order => {
+                const items = (order.items || [])
+                    .map(item => `${esc(item.icon || '🍽️')} ${esc(item.name)}`)
+                    .join(' · ');
+                const extra = [];
+                if (order.lastNudgeAt) extra.push('用户催过单');
+                if (order.thanks) extra.push(`用户说：${esc(order.thanks.note)}`);
+                if (order.cancelled && order.cancelled.reason) extra.push(`取消原因：${esc(order.cancelled.reason)}`);
+
+                const actions = [];
+                if (order.status === 'pending') {
+                    actions.push(`<button class="admin-action primary" type="button" data-admin-next="${order.id}" data-next-status="prepping">接单</button>`);
+                    actions.push(`<button class="admin-action danger" type="button" data-admin-cancel="${order.id}">拒单退款</button>`);
+                } else if (order.status === 'prepping') {
+                    actions.push(`<button class="admin-action primary" type="button" data-admin-next="${order.id}" data-next-status="cooking">开始做菜</button>`);
+                    actions.push(`<button class="admin-action danger" type="button" data-admin-cancel="${order.id}">取消退款</button>`);
+                } else if (order.status === 'cooking') {
+                    actions.push(`<button class="admin-action primary" type="button" data-admin-next="${order.id}" data-next-status="served">出餐啦</button>`);
+                    actions.push(`<button class="admin-action danger" type="button" data-admin-cancel="${order.id}">取消退款</button>`);
+                } else if (order.status === 'served') {
+                    actions.push(`<button class="admin-action primary" type="button" data-admin-next="${order.id}" data-next-status="completed">完成</button>`);
+                }
+
+                return `
+                    <article class="admin-order status-${order.status}">
+                        <div class="admin-order-top">
+                            <div>
+                                <b>NO.${String(order.id).padStart(3, '0')}</b>
+                                <span class="order-badge">${ORDER_LABEL[order.status] || order.status}</span>
+                            </div>
+                            <span class="admin-order-time">${clock(order.placedAt)}</span>
+                        </div>
+                        <p class="admin-order-items">${items || '—'}</p>
+                        <div class="admin-order-meta">
+                            <span>合计 ${order.total} 币</span>
+                            <span>${order.itemCount || (order.items || []).length} 道菜</span>
+                            <span>约 ${order.etaMinutes || 0} 分钟</span>
+                            <span>${formatDate(order.placedAt)}</span>
+                        </div>
+                        ${order.note ? `<p class="admin-order-note">“${esc(order.note)}”</p>` : ''}
+                        ${extra.length ? `<p class="admin-order-extra">${extra.join(' · ')}</p>` : ''}
+                        ${actions.length ? `<div class="admin-order-actions">${actions.join('')}</div>` : ''}
+                    </article>
+                `;
+            }).join('');
+        }
+
+        async function handleOrderListClick(event) {
+            const nextButton = event.target.closest('[data-admin-next]');
+            if (nextButton) {
+                const id = Number(nextButton.dataset.adminNext);
+                const status = nextButton.dataset.nextStatus;
+                nextButton.disabled = true;
+                try {
+                    await setOrderStatus(id, status, { by: 'admin' });
+                    showMessage(`订单 #${id} 已更新为「${ORDER_LABEL[status]}」`, 'success');
+                    await refreshAdminOrders();
+                } catch (error) {
+                    showMessage(error.message, 'error');
+                    nextButton.disabled = false;
+                }
+                return;
+            }
+
+            const cancelButton = event.target.closest('[data-admin-cancel]');
+            if (cancelButton) {
+                const id = Number(cancelButton.dataset.adminCancel);
+                if (!confirm(`取消订单 #${id} 并全额退币？`)) return;
+                cancelButton.disabled = true;
+                try {
+                    await cancelOrder(id, { by: 'admin', reason: '' });
+                    showMessage(`订单 #${id} 已取消，恋爱币已退回`, 'success');
+                    await refreshAdminOrders();
+                } catch (error) {
+                    showMessage(error.message, 'error');
+                    cancelButton.disabled = false;
+                }
+            }
+        }
+
+        /* ---------- kitchen: wallet ---------- */
+
+        function renderWallet() {
+            if (!adminData) return;
+            const wallet = adminData.wallet || { balance: 0, overdraftLimit: 0, entries: [] };
+
+            document.getElementById('admin-wallet-balance').textContent = wallet.balance;
+            document.getElementById('admin-summary-balance').textContent = wallet.balance;
+
+            const limitInput = document.getElementById('admin-overdraft');
+            if (limitInput && document.activeElement !== limitInput) {
+                limitInput.value = wallet.overdraftLimit;
+            }
+
+            const container = document.getElementById('admin-wallet-entries');
+            const entries = (wallet.entries || []).slice(0, 8);
+            const labels = { grant: '发币', order: '点餐', refund: '退款' };
+
+            container.innerHTML = entries.length ? entries.map(entry => `
+                <div class="wallet-entry">
+                    <span class="wallet-entry-main">
+                        <b>${esc(entry.note || labels[entry.type] || '变动')}</b>
+                        <small>${labels[entry.type] || '变动'} · ${formatDate(entry.createdAt)} · 余额 ${entry.balanceAfter}</small>
+                    </span>
+                    <span class="wallet-entry-amount ${Number(entry.amount) >= 0 ? 'is-plus' : 'is-minus'}">${Number(entry.amount) >= 0 ? '+' : ''}${entry.amount}</span>
+                </div>
+            `).join('') : '<div class="wallet-empty">还没有流水</div>';
+        }
+
+        async function handleGrant() {
+            const amount = Number(document.getElementById('admin-grant-amount').value);
+            const note = document.getElementById('admin-grant-note').value;
+            if (!amount || amount <= 0) {
+                showMessage('请输入大于 0 的币数', 'error');
+                return;
+            }
+
+            const button = document.getElementById('admin-grant-btn');
+            button.disabled = true;
+            try {
+                const wallet = await grantCoins(amount, note);
+                adminData.wallet = wallet;
+                document.getElementById('admin-grant-amount').value = '';
+                document.getElementById('admin-grant-note').value = '';
+                renderSummary();
+                renderWallet();
+                showMessage(`已发 ${amount} 恋爱币`, 'success');
+            } catch (error) {
+                showMessage(error.message, 'error');
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        async function handleSaveOverdraft() {
+            const limit = Number(document.getElementById('admin-overdraft').value);
+            try {
+                const wallet = await setOverdraftLimit(limit);
+                adminData.wallet = wallet;
+                renderWallet();
+                showMessage('超额上限已更新', 'success');
+            } catch (error) {
+                showMessage(error.message, 'error');
+            }
+        }
+
+        /* ---------- kitchen: menu ---------- */
+
+        function categoryName(menu, id) {
+            const category = (menu.categories || []).find(item => String(item.id) === String(id));
+            return category ? category.name : '未分类';
+        }
+
+        function renderMenuAdmin() {
+            if (!adminData) return;
+            const menu = adminData.menu || { categories: [], dishes: [] };
+
+            document.getElementById('admin-menu-count').textContent = `${menu.dishes.length} 道菜`;
+
+            const select = document.getElementById('dish-category');
+            const current = select.value;
+            select.innerHTML = (menu.categories || [])
+                .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0))
+                .map(category => `<option value="${esc(category.id)}">${esc(category.icon || '')} ${esc(category.name)}</option>`)
+                .join('');
+            if (current && (menu.categories || []).some(category => String(category.id) === String(current))) {
+                select.value = current;
+            }
+
+            const container = document.getElementById('admin-dish-list');
+            if (!menu.dishes.length) {
+                container.innerHTML = '<div class="empty-list">还没有菜品</div>';
+                return;
+            }
+
+            const dishes = menu.dishes.slice().sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+            container.innerHTML = dishes.map(dish => `
+                <div class="admin-dish" data-dish-id="${esc(dish.id)}">
+                    <span class="admin-dish-icon" aria-hidden="true">${esc(dish.icon || '🍽️')}</span>
+                    <span class="admin-dish-main">
+                        <b>${esc(dish.name)}</b>
+                        <small>${esc(categoryName(menu, dish.categoryId))} · ${dish.price} 币 · ${dish.prepMinutes} 分钟${dish.todaySpecial ? ' · 今日推荐' : ''}</small>
+                    </span>
+                    <span class="admin-dish-actions">
+                        <button class="mini-btn ${dish.available ? 'is-on' : ''}" type="button" data-admin-dish-toggle="available">${dish.available ? '供应中' : '已下架'}</button>
+                        <button class="mini-btn ${dish.todaySpecial ? 'is-on' : ''}" type="button" data-admin-dish-toggle="todaySpecial">推荐</button>
+                        <button class="mini-btn" type="button" data-admin-dish-edit>编辑</button>
+                        <button class="mini-btn danger" type="button" data-admin-dish-delete>删除</button>
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        async function handleDishListClick(event) {
+            const row = event.target.closest('[data-dish-id]');
+            if (!row || !adminData) return;
+            const id = row.dataset.dishId;
+            const dish = (adminData.menu.dishes || []).find(item => String(item.id) === String(id));
+            if (!dish) return;
+
+            if (event.target.closest('[data-admin-dish-edit]')) {
+                fillDishForm(dish);
+                return;
+            }
+
+            if (event.target.closest('[data-admin-dish-delete]')) {
+                if (!confirm(`删除「${dish.name}」？`)) return;
+                try {
+                    await deleteDish(id);
+                    showMessage('菜品已删除', 'success');
+                    await loadAdmin();
+                    resetDishForm();
+                } catch (error) {
+                    showMessage(error.message, 'error');
+                }
+                return;
+            }
+
+            const toggle = event.target.closest('[data-admin-dish-toggle]');
+            if (toggle) {
+                try {
+                    await toggleDish(id, toggle.dataset.adminDishToggle);
+                    await loadAdmin();
+                } catch (error) {
+                    showMessage(error.message, 'error');
+                }
+            }
+        }
+
+        function fillDishForm(dish) {
+            document.getElementById('dish-id').value = dish.id;
+            document.getElementById('dish-name').value = dish.name || '';
+            document.getElementById('dish-category').value = dish.categoryId || '';
+            document.getElementById('dish-price').value = dish.price || '';
+            document.getElementById('dish-prep').value = dish.prepMinutes || '';
+            document.getElementById('dish-icon').value = dish.icon || '🍽️';
+            document.getElementById('dish-tags').value = (dish.tags || []).join('，');
+            document.getElementById('dish-desc').value = dish.description || '';
+            document.getElementById('dish-available').checked = dish.available !== false;
+            document.getElementById('dish-special').checked = !!dish.todaySpecial;
+            document.getElementById('dish-form-title').textContent = '编辑菜品';
+            document.getElementById('dish-submit').textContent = '保存修改';
+            document.getElementById('dish-cancel').hidden = false;
+            document.getElementById('dish-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function resetDishForm() {
+            document.getElementById('dish-id').value = '';
+            document.getElementById('dish-name').value = '';
+            document.getElementById('dish-price').value = '';
+            document.getElementById('dish-prep').value = '';
+            document.getElementById('dish-icon').value = '🍽️';
+            document.getElementById('dish-tags').value = '';
+            document.getElementById('dish-desc').value = '';
+            document.getElementById('dish-available').checked = true;
+            document.getElementById('dish-special').checked = false;
+            document.getElementById('dish-form-title').textContent = '添加菜品';
+            document.getElementById('dish-submit').textContent = '保存菜品';
+            document.getElementById('dish-cancel').hidden = true;
+        }
+
+        async function handleDishSubmit(event) {
+            event.preventDefault();
+            const id = document.getElementById('dish-id').value;
+            const dish = {
+                id: id || undefined,
+                name: document.getElementById('dish-name').value,
+                categoryId: document.getElementById('dish-category').value,
+                price: Number(document.getElementById('dish-price').value),
+                prepMinutes: Number(document.getElementById('dish-prep').value),
+                icon: document.getElementById('dish-icon').value || '🍽️',
+                tags: document.getElementById('dish-tags').value,
+                description: document.getElementById('dish-desc').value,
+                available: document.getElementById('dish-available').checked,
+                todaySpecial: document.getElementById('dish-special').checked
+            };
+
+            const button = document.getElementById('dish-submit');
+            button.disabled = true;
+            try {
+                await upsertDish(dish);
+                showMessage(id ? '菜品已更新' : '菜品已添加', 'success');
+                await loadAdmin();
+                resetDishForm();
+            } catch (error) {
+                showMessage(error.message, 'error');
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        /* ---------- message ---------- */
 
         function showMessage(text, type) {
             const messageEl = document.getElementById('message');
             messageEl.textContent = text;
             messageEl.className = 'message ' + type;
-            
+
             setTimeout(() => {
                 messageEl.className = 'message';
             }, 3000);

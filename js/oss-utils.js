@@ -1,138 +1,170 @@
+/* ============================================================
+   OSS document store
+   The bucket is used as a small document database: each domain
+   lives in its own JSON document, and append-heavy collections
+   (orders, coupons) keep one document per record plus an index.
+   ============================================================ */
+
 let ossClient = null;
 
 function initOSS() {
-  if (typeof OSS === 'undefined') {
-    console.error('OSS SDK 未加载');
-    return false;
-  }
-  
-  if (!ossClient) {
-    const decryptedAccessKeyId = CryptoUtils.decrypt(OSS_CONFIG.ak);
-    const decryptedAccessKeySecret = CryptoUtils.decrypt(OSS_CONFIG.sk);
-    
-    ossClient = new OSS({
-      region: OSS_CONFIG.region,
-      bucket: OSS_CONFIG.bucket,
-      accessKeyId: decryptedAccessKeyId,
-      accessKeySecret: decryptedAccessKeySecret
-    });
-  }
-  
-  return true;
-}
+    if (typeof OSS === 'undefined') {
+        console.error('OSS SDK 未加载');
+        return false;
+    }
 
-async function loadConfigFromOSS() {
-  if (!initOSS()) {
-    throw new Error('OSS 初始化失败');
-  }
-  
-  try {
-    const result = await ossClient.get(OSS_CONFIG.configPath);
-    const content = result.content.toString();
-    return JSON.parse(content);
-  } catch (error) {
-    console.error('从 OSS 读取配置失败:', error);
-    throw error;
-  }
-}
+    if (!ossClient) {
+        ossClient = new OSS({
+            region: OSS_CONFIG.region,
+            bucket: OSS_CONFIG.bucket,
+            accessKeyId: CryptoUtils.decrypt(OSS_CONFIG.ak),
+            accessKeySecret: CryptoUtils.decrypt(OSS_CONFIG.sk)
+        });
+    }
 
-async function saveConfigToOSS(configData) {
-  if (!initOSS()) {
-    throw new Error('OSS 初始化失败');
-  }
-  
-  try {
-    const content = JSON.stringify(configData, null, 2);
-    const blob = new Blob([content], { type: 'application/json' });
-    await ossClient.put(OSS_CONFIG.configPath, blob);
-    console.log('配置已保存到 OSS');
     return true;
-  } catch (error) {
-    console.error('保存配置到 OSS 失败:', error);
-    throw error;
-  }
 }
 
-async function addMassageCoupon(coupon) {
-  const config = await loadConfigFromOSS();
-  
-  if (!config.massageCoupons) {
-    config.massageCoupons = [];
-  }
-  
-  const maxId = config.massageCoupons.reduce((max, c) => Math.max(max, c.id), 0);
-  coupon.id = maxId + 1;
-  
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  const hours = String(now.getHours()).padStart(2, '0');
-  const minutes = String(now.getMinutes()).padStart(2, '0');
-  const seconds = String(now.getSeconds()).padStart(2, '0');
-  coupon.acquiredDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-  
-  coupon.usedDate = null;
-  coupon.status = 'available';
-  
-  config.massageCoupons.push(coupon);
-  
-  await saveConfigToOSS(config);
-  return coupon;
+function dbRoot() {
+    return String(OSS_CONFIG.dbRoot || 'love-journey/db').replace(/\/+$/, '');
 }
 
-async function useMassageCoupon(couponId) {
-  const config = await loadConfigFromOSS();
-  
-  if (!config.massageCoupons) {
-    throw new Error('没有按摩券数据');
-  }
-  
-  const coupon = config.massageCoupons.find(c => c.id === couponId);
-  
-  if (!coupon) {
-    throw new Error('找不到该按摩券');
-  }
-  
-  if (coupon.status === 'used') {
-    throw new Error('该按摩券已被使用');
-  }
-  
-  coupon.status = 'used';
-  
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  const hours = String(now.getHours()).padStart(2, '0');
-  const minutes = String(now.getMinutes()).padStart(2, '0');
-  const seconds = String(now.getSeconds()).padStart(2, '0');
-  coupon.usedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-  
-  await saveConfigToOSS(config);
-  return coupon;
+function dbFullPath(path) {
+    return `${dbRoot()}/${String(path).replace(/^\/+/, '')}`;
 }
 
-async function deleteMassageCoupon(couponId) {
-  const config = await loadConfigFromOSS();
-  
-  if (!config.massageCoupons) {
-    throw new Error('没有按摩券数据');
-  }
-  
-  const index = config.massageCoupons.findIndex(c => c.id === couponId);
-  
-  if (index === -1) {
-    throw new Error('找不到该按摩券');
-  }
-  
-  const deletedCoupon = config.massageCoupons[index];
-  config.massageCoupons.splice(index, 1);
-  
-  await saveConfigToOSS(config);
-  return deletedCoupon;
+function isNotFound(error) {
+    return !!error && (error.code === 'NoSuchKey' || error.status === 404);
+}
+
+async function dbGet(path) {
+    if (!initOSS()) throw new Error('OSS 初始化失败');
+    const result = await ossClient.get(dbFullPath(path));
+    return JSON.parse(result.content.toString());
+}
+
+async function dbGetOrNull(path) {
+    try {
+        return await dbGet(path);
+    } catch (error) {
+        if (isNotFound(error)) return null;
+        throw error;
+    }
+}
+
+async function dbPut(path, data) {
+    if (!initOSS()) throw new Error('OSS 初始化失败');
+    const content = JSON.stringify(data, null, 2);
+    const blob = new Blob([content], { type: 'application/json' });
+    await ossClient.put(dbFullPath(path), blob);
+    return data;
+}
+
+async function dbDelete(path) {
+    if (!initOSS()) throw new Error('OSS 初始化失败');
+    await ossClient.delete(dbFullPath(path));
+}
+
+async function dbList(prefix) {
+    if (!initOSS()) throw new Error('OSS 初始化失败');
+    const keys = [];
+    let marker;
+    do {
+        const result = await ossClient.list({
+            prefix: dbFullPath(prefix),
+            marker,
+            'max-keys': 1000
+        });
+        (result.objects || []).forEach(object => keys.push(object.name));
+        marker = result.isTruncated ? result.nextMarker : null;
+    } while (marker);
+    return keys.map(key => key.slice(dbRoot().length + 1));
+}
+
+/**
+ * A collection keeps:
+ *   <dir>/index.json      — read model, ordered summaries
+ *   <dir>/<id>.json       — source of truth, one document per record
+ *
+ * The index is rebuilt from the documents if it is missing.
+ */
+function dbCollection(dir, summarize, compare) {
+    const base = String(dir).replace(/^\/+|\/+$/g, '');
+    const indexPath = `${base}/index.json`;
+    const itemPath = id => `${base}/${id}.json`;
+
+    return {
+        async list() {
+            const index = await dbGetOrNull(indexPath);
+            if (index && Array.isArray(index.items)) return index.items;
+            return this.rebuild();
+        },
+
+        async get(id) {
+            return dbGet(itemPath(id));
+        },
+
+        async save(id, doc) {
+            await dbPut(itemPath(id), doc);
+
+            const index = (await dbGetOrNull(indexPath)) || { version: 1, items: [] };
+            const items = (index.items || []).filter(item => String(item.id) !== String(id));
+            items.push(summarize(doc));
+            items.sort(compare || ((a, b) => String(a.id).localeCompare(String(b.id))));
+
+            await dbPut(indexPath, {
+                version: 1,
+                updatedAt: nowStamp(),
+                items
+            });
+            return doc;
+        },
+
+        async remove(id) {
+            await dbDelete(itemPath(id));
+            const index = await dbGetOrNull(indexPath);
+            if (!index) return;
+            const items = (index.items || []).filter(item => String(item.id) !== String(id));
+            await dbPut(indexPath, {
+                version: 1,
+                updatedAt: nowStamp(),
+                items
+            });
+        },
+
+        async rebuild() {
+            const keys = (await dbList(base)).filter(key => !key.endsWith('/index.json'));
+            const docs = [];
+            for (const key of keys) {
+                try {
+                    docs.push(await dbGet(key));
+                } catch (error) {
+                    if (!isNotFound(error)) throw error;
+                }
+            }
+            const items = docs.map(summarize);
+            items.sort(compare || ((a, b) => String(a.id).localeCompare(String(b.id))));
+            await dbPut(indexPath, {
+                version: 1,
+                updatedAt: nowStamp(),
+                items
+            });
+            return items;
+        }
+    };
+}
+
+function nowStamp(date) {
+    const value = date instanceof Date ? date : new Date();
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    const hours = String(value.getHours()).padStart(2, '0');
+    const minutes = String(value.getMinutes()).padStart(2, '0');
+    const seconds = String(value.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
 function verifyPasscode(inputPasscode) {
-  return inputPasscode === OSS_CONFIG.adminPasscode;
+    return inputPasscode === OSS_CONFIG.adminPasscode;
 }

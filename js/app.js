@@ -13,13 +13,22 @@ const CDN = {
     qrcode: 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261022-3';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261022-5';
 const MINUTE = 60 * 1000;
 const ORDER_POLL_MS = 20 * 1000;
-const KITCHEN_ACTIVE = ['pending', 'prepping', 'cooking'];
+const KITCHEN_STEPS = ['下单', '接单', '备菜', '制作', '出餐'];
+const KITCHEN_STEP_INDEX = {
+    pending: 0,
+    accepted: 1,
+    prepping: 2,
+    cooking: 3,
+    served: 4,
+    completed: 4
+};
 
 const KITCHEN_COPY = {
-    pending: { title: '已送进厨房，等大厨接单', note: '大厨看到就会开始准备', emoji: '🧾' },
+    pending: { title: '周末的饭，等大厨接单', note: '大厨看到后会先接单', emoji: '📝' },
+    accepted: { title: '大厨接单啦，周末见', note: '到了饭点大厨会开始准备', emoji: '🤝' },
     prepping: { title: '大厨系上围裙，正在备菜', note: '洗菜、切菜，马上开火', emoji: '🥬' },
     cooking: { title: '锅里滋滋响，香味出来了', note: '再等一会儿就能开饭', emoji: '🍳' },
     served: { title: '出餐啦，快来吃饭', note: '今天的饭要趁热吃', emoji: '🍽️' },
@@ -28,7 +37,8 @@ const KITCHEN_COPY = {
 };
 
 const KITCHEN_TOAST = {
-    prepping: '大厨接单啦，开始备菜',
+    accepted: '大厨接单啦',
+    prepping: '大厨开始备菜啦',
     cooking: '下锅啦，香味要出来了',
     served: '出餐啦，快来吃饭',
     completed: '这顿饭完成啦',
@@ -111,10 +121,14 @@ const state = {
     wallet: { balance: 0, overdraftLimit: 50, entries: [] },
     menu: { categories: [], dishes: [] },
     orders: [],
-    latestOrder: null,
+    slots: [],
+    selectedSlotKey: null,
+    selectedOrder: null,
     menuCategory: 'all',
     cart: new Set(),
+    cartSlotKey: null,
     orderPollTimer: null,
+    confirmResolver: null,
     memoryIndex: -1,
     lastLoadedAt: 0,
     refreshing: false,
@@ -216,6 +230,7 @@ async function bootstrap() {
         if (errorCard) errorCard.hidden = true;
         const data = await loadAppData();
         applyAppData(data);
+        await refreshSelectedOrder();
         state.lastLoadedAt = Date.now();
         renderAll();
     } catch (error) {
@@ -242,7 +257,6 @@ function applyAppData(data) {
     state.wallet = data.wallet || state.wallet;
     state.menu = data.menu || state.menu;
     state.orders = data.orders || [];
-    state.latestOrder = data.latestOrder || null;
     state.cities = data.cities || [];
     state.coupons = data.coupons || [];
 
@@ -258,6 +272,7 @@ function applyAppData(data) {
     massageCouponsData = state.coupons;
     state.milestones = config.milestones.slice();
     state.goals = config.goals.slice();
+    state.slots = withPastOrderSlots(upcomingSlots(state.space, new Date()));
 
     if (state.menuCategory !== 'all' &&
         !(state.menu.categories || []).some(category => String(category.id) === String(state.menuCategory))) {
@@ -270,8 +285,22 @@ function applyAppData(data) {
     state.cart.forEach(id => {
         if (!orderable.has(String(id))) state.cart.delete(id);
     });
-    if (state.latestOrder && orderingBlocked()) {
+
+    const current = state.selectedSlotKey
+        ? state.slots.find(slot => slot.key === state.selectedSlotKey)
+        : null;
+
+    if (!current || (!orderForSlot(current.key) && !current.orderable)) {
+        const free = state.slots.find(slot => slot.orderable && !orderForSlot(slot.key));
+        state.selectedSlotKey = (free || state.slots[0] || {}).key || null;
+    }
+
+    if (!state.selectedSlotKey ||
+        state.cartSlotKey !== state.selectedSlotKey ||
+        orderForSlot(state.selectedSlotKey) ||
+        !(state.slots.find(slot => slot.key === state.selectedSlotKey) || {}).orderable) {
         state.cart.clear();
+        state.cartSlotKey = null;
     }
 }
 
@@ -292,6 +321,7 @@ function renderDashboard() {
     renderWalletUI();
     renderDinnerCard();
     renderOrderPage();
+    renderMePage();
     if (state.mapStatus === 'ready') updateMapData();
     ensureOrderPolling();
 }
@@ -305,6 +335,7 @@ async function refreshData(manual) {
     try {
         const data = await loadAppData();
         applyAppData(data);
+        await refreshSelectedOrder();
         state.lastLoadedAt = Date.now();
         renderDashboard();
         if (manual) toast('已刷新');
@@ -1007,37 +1038,116 @@ function formatEntryTime(value) {
     return `${pad2(date.getMonth() + 1)}.${pad2(date.getDate())} ${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
 }
 
-function currentActiveOrder() {
-    const order = state.latestOrder;
-    return order && KITCHEN_ACTIVE.includes(order.status) ? order : null;
+function slotByKey(key) {
+    return (state.slots || []).find(slot => slot.key === key) || null;
 }
 
-function orderInProgress() {
-    const order = state.latestOrder;
-    return !!order && ['pending', 'prepping', 'cooking', 'served'].includes(order.status);
+function orderForSlot(key) {
+    return (state.orders || []).find(order => order.slotKey === key && order.status !== 'cancelled') || null;
 }
 
-function orderingBlocked() {
-    return orderInProgress();
+function selectedSlot() {
+    return slotByKey(state.selectedSlotKey);
 }
 
-function orderEtaText(order) {
-    if (!order || !order.etaMinutes || !KITCHEN_ACTIVE.includes(order.status)) return '';
-    const placed = parseDate(order.placedAt);
-    if (!placed) return '';
-    const eta = new Date(placed.getTime() + order.etaMinutes * 60000);
-    if (Date.now() > eta.getTime()) return '应该快好了';
-    return `预计 ${formatClock(eta)} 出餐`;
+function slotText(slot) {
+    return slot ? `${slot.dateLabel} ${slot.label} · ${slot.time}` : '';
 }
 
-function cartTotal() {
-    const dishes = state.menu.dishes || [];
-    let total = 0;
-    state.cart.forEach(id => {
-        const dish = dishes.find(item => String(item.id) === String(id));
-        if (dish) total += Number(dish.price) || 0;
+function nextUpcomingOrder() {
+    const list = (state.orders || [])
+        .filter(order => !['completed', 'cancelled'].includes(order.status))
+        .sort((a, b) => String(a.scheduledFor || a.placedAt || '')
+            .localeCompare(String(b.scheduledFor || b.placedAt || '')));
+    return list[0] || null;
+}
+
+function nextOrderableSlot() {
+    return (state.slots || []).find(slot => slot.orderable && !orderForSlot(slot.key)) ||
+        (state.slots || []).find(slot => slot.orderable) ||
+        null;
+}
+
+function pollingNeeded() {
+    const now = Date.now();
+    return (state.orders || []).some(order => {
+        if (['prepping', 'cooking', 'served'].includes(order.status)) return true;
+        if (['pending', 'accepted'].includes(order.status)) {
+            const at = parseDate(order.scheduledFor);
+            return at && at.getTime() - now <= 12 * 3600 * 1000;
+        }
+        return false;
     });
-    return total;
+}
+
+function ensureSelectedSlot() {
+    const current = state.selectedSlotKey ? slotByKey(state.selectedSlotKey) : null;
+    if (!current || (!orderForSlot(current.key) && !current.orderable)) {
+        const free = (state.slots || []).find(slot => slot.orderable && !orderForSlot(slot.key));
+        state.selectedSlotKey = (free || (state.slots || [])[0] || {}).key || null;
+    }
+    if (state.cartSlotKey && (
+        state.cartSlotKey !== state.selectedSlotKey ||
+        orderForSlot(state.cartSlotKey) ||
+        !(slotByKey(state.cartSlotKey) || {}).orderable
+    )) {
+        state.cart.clear();
+        state.cartSlotKey = null;
+    }
+}
+
+function withPastOrderSlots(slots) {
+    const known = new Set((slots || []).map(slot => slot.key));
+    const seen = new Set();
+    const extras = (state.orders || [])
+        .filter(order => order.slotKey && order.slot && !known.has(order.slotKey) &&
+            !['completed', 'cancelled'].includes(order.status))
+        .map(order => ({ ...order.slot, orderable: false, past: true }))
+        .filter(slot => {
+            if (seen.has(slot.key)) return false;
+            seen.add(slot.key);
+            return true;
+        })
+        .sort((a, b) => String(a.scheduledFor || '').localeCompare(String(b.scheduledFor || '')));
+    return extras.concat(slots || []);
+}
+
+async function refreshSelectedOrder() {
+    const summary = state.selectedSlotKey ? orderForSlot(state.selectedSlotKey) : null;
+    if (!summary) {
+        state.selectedOrder = null;
+        return null;
+    }
+    try {
+        state.selectedOrder = await getOrder(summary.id);
+        return state.selectedOrder;
+    } catch (error) {
+        console.warn('读取订单失败:', error);
+        state.selectedOrder = null;
+        return null;
+    }
+}
+
+function walletEntryHTML(entry) {
+    const labels = { grant: '大厨发币', order: '点餐', refund: '退款' };
+    const icons = { grant: '🎁', order: '🍽️', refund: '↩️' };
+    const positive = Number(entry.amount) >= 0;
+    return `
+        <div class="wallet-entry">
+            <span class="wallet-entry-icon" aria-hidden="true">${icons[entry.type] || '♡'}</span>
+            <span class="wallet-entry-main">
+                <b>${cleanText(entry.note || labels[entry.type] || '恋爱币变动')}</b>
+                <small>${labels[entry.type] || '变动'} · ${formatEntryTime(entry.createdAt)} · 余额 ${entry.balanceAfter}</small>
+            </span>
+            <span class="wallet-entry-amount ${positive ? 'is-plus' : 'is-minus'}">${positive ? '+' : ''}${entry.amount}</span>
+        </div>
+    `;
+}
+
+function walletEntriesHTML(entries, limit) {
+    const list = (entries || []).slice(0, limit || 20);
+    if (!list.length) return '<div class="wallet-empty">还没有流水，等大厨发第一笔零花钱吧。</div>';
+    return list.map(walletEntryHTML).join('');
 }
 
 function renderWalletUI() {
@@ -1045,16 +1155,20 @@ function renderWalletUI() {
     const limit = Number(wallet.overdraftLimit) || 0;
     const negative = wallet.balance < 0;
 
-    ['dinner-balance', 'wallet-balance', 'wallet-sheet-balance'].forEach(id => {
+    ['dinner-balance', 'wallet-balance', 'wallet-sheet-balance', 'me-balance'].forEach(id => {
         const el = $(id);
         if (el) el.textContent = wallet.balance;
     });
 
     const sheetBalance = $('wallet-sheet-balance');
     if (sheetBalance) sheetBalance.classList.toggle('is-negative', negative);
+    const meBalance = $('me-balance');
+    if (meBalance) meBalance.classList.toggle('is-negative', negative);
 
     const credit = $('wallet-credit');
     if (credit) credit.textContent = `最多可欠 ${limit} 币`;
+    const meCredit = $('me-credit');
+    if (meCredit) meCredit.textContent = `最多可欠 ${limit} 币`;
 
     const sheetCredit = $('wallet-sheet-credit');
     if (sheetCredit) {
@@ -1069,35 +1183,13 @@ function renderWalletUI() {
     }
 
     const container = $('wallet-entries');
-    if (container) {
-        const entries = (wallet.entries || []).slice(0, 20);
-        if (!entries.length) {
-            container.innerHTML = '<div class="wallet-empty">还没有流水，等大厨发第一笔零花钱吧。</div>';
-        } else {
-            const labels = { grant: '大厨发币', order: '点餐', refund: '退款' };
-            const icons = { grant: '🎁', order: '🍽️', refund: '↩️' };
-            container.innerHTML = entries.map(entry => {
-                const positive = Number(entry.amount) >= 0;
-                const sign = positive ? '+' : '';
-                return `
-                    <div class="wallet-entry">
-                        <span class="wallet-entry-icon" aria-hidden="true">${icons[entry.type] || '♡'}</span>
-                        <span class="wallet-entry-main">
-                            <b>${cleanText(entry.note || labels[entry.type] || '恋爱币变动')}</b>
-                            <small>${labels[entry.type] || '变动'} · ${formatEntryTime(entry.createdAt)} · 余额 ${entry.balanceAfter}</small>
-                        </span>
-                        <span class="wallet-entry-amount ${positive ? 'is-plus' : 'is-minus'}">${sign}${entry.amount}</span>
-                    </div>
-                `;
-            }).join('');
-        }
-    }
+    if (container) container.innerHTML = walletEntriesHTML(wallet.entries, 20);
 }
 
 function renderDinnerCard() {
-    const order = state.latestOrder;
-    const active = currentActiveOrder();
-    const copy = order ? KITCHEN_COPY[order.status] : null;
+    const next = nextUpcomingOrder();
+    const slot = next ? slotByKey(next.slotKey) : nextOrderableSlot();
+    const copy = next ? KITCHEN_COPY[next.status] : null;
 
     const emoji = $('dinner-emoji');
     const title = $('dinner-title');
@@ -1105,56 +1197,100 @@ function renderDinnerCard() {
     const cta = $('dinner-cta');
     if (!emoji || !title || !desc || !cta) return;
 
-    if (active) {
-        emoji.textContent = copy.emoji;
-        title.textContent = ORDER_STATUS[order.status];
-        desc.textContent = `${order.items.map(item => item.name).join(' · ')} · ${orderEtaText(order)}`;
+    title.textContent = '周末吃什么';
+    if (next) {
+        emoji.textContent = copy ? copy.emoji : '🍽️';
+        const when = next.slot ? slotText(next.slot) : '已预约';
+        desc.textContent = `${when} · ${ORDER_STATUS[next.status]}`;
         cta.textContent = '看看进度 →';
-    } else if (order && order.status === 'served') {
-        emoji.textContent = copy.emoji;
-        title.textContent = '出餐啦';
-        desc.textContent = '快去吃饭，趁热。';
-        cta.textContent = '去看看 →';
-    } else if (order && order.status === 'completed') {
-        emoji.textContent = '🍽️';
-        title.textContent = '今晚吃什么';
-        desc.textContent = '上一顿吃完了，再点一单？';
-        cta.textContent = '去点餐 →';
-    } else if (order && order.status === 'cancelled') {
-        emoji.textContent = '🥀';
-        title.textContent = '今晚吃什么';
-        desc.textContent = '上一单取消了，币已经退回。';
-        cta.textContent = '去点餐 →';
+    } else if (slot) {
+        emoji.textContent = '🗓️';
+        desc.textContent = `下一顿：${slotText(slot)}`;
+        cta.textContent = '去预约 →';
     } else {
-        emoji.textContent = '🍳';
-        title.textContent = '今晚吃什么';
-        desc.textContent = '大厨已经系好围裙，等你点菜。';
-        cta.textContent = '去点餐 →';
+        emoji.textContent = '🌙';
+        desc.textContent = '这一轮的饭点都截止了，等下次开饭吧。';
+        cta.textContent = '看看菜单 →';
     }
+}
+
+function renderSlotPicker() {
+    const container = $('slot-picker');
+    if (!container) return;
+
+    if (!state.slots.length) {
+        container.innerHTML = '<div class="slot-empty">最近还没有可预约的饭点。</div>';
+        return;
+    }
+
+    container.innerHTML = state.slots.map(slot => {
+        const booked = !!orderForSlot(slot.key);
+        const selected = slot.key === state.selectedSlotKey;
+        const closed = !slot.orderable;
+        const past = !!slot.past;
+        return `
+            <button class="slot-card ${selected ? 'is-active' : ''} ${booked ? 'is-booked' : ''} ${closed ? 'is-closed' : ''} ${past ? 'is-past' : ''}"
+                type="button" role="tab" aria-selected="${selected}" data-slot-key="${slot.key}">
+                <span class="slot-date">${slot.dateLabel}</span>
+                <span class="slot-label">${cleanText(slot.label)}</span>
+                <span class="slot-time">${slot.time}</span>
+                <span class="slot-state">${booked ? (past ? '已过时间' : '已预约') : closed ? '已截止' : '可预约'}</span>
+            </button>
+        `;
+    }).join('');
 }
 
 function renderOrderStatus() {
     const wrap = $('order-status-wrap');
     if (!wrap) return;
 
-    const order = state.latestOrder;
-    if (!order) {
-        wrap.innerHTML = '';
+    const slot = selectedSlot();
+    if (!slot) {
+        wrap.innerHTML = '<div class="order-closed"><h3>最近没有可预约的饭点</h3><p>等大厨公布下一轮开饭时间吧。</p></div>';
         return;
     }
 
-    const active = KITCHEN_ACTIVE.includes(order.status);
-    const copy = KITCHEN_COPY[order.status] || KITCHEN_COPY.pending;
-    const stepIndex = { pending: 0, prepping: 1, cooking: 2, served: 3, completed: 3 }[order.status];
-    const steps = ['已下单', '备菜', '制作', '出餐'];
+    const summary = orderForSlot(slot.key);
+    if (!summary) {
+        if (!slot.orderable) {
+            wrap.innerHTML = `
+                <div class="order-closed">
+                    <h3>这个饭点已截止预约</h3>
+                    <p>开饭前 1 小时关闭预约，看看下一个饭点吧。</p>
+                    <button class="order-closed-btn" type="button" data-slot-action="next">看下一个饭点</button>
+                </div>
+            `;
+        } else {
+            wrap.innerHTML = '';
+        }
+        return;
+    }
+
+    const order = state.selectedOrder && String(state.selectedOrder.id) === String(summary.id)
+        ? state.selectedOrder
+        : null;
+
+    if (!order) {
+        wrap.innerHTML = '<div class="order-loading">正在读取这顿饭的进度…</div>';
+        return;
+    }
+
+    const status = order.status;
+    const copy = KITCHEN_COPY[status] || KITCHEN_COPY.pending;
+    const active = ['pending', 'accepted', 'prepping', 'cooking'].includes(status);
+    const stepIndex = KITCHEN_STEP_INDEX[status] == null ? 0 : KITCHEN_STEP_INDEX[status];
     const lastNudge = order.nudges && order.nudges.length
         ? parseDate(order.nudges[order.nudges.length - 1].at)
         : null;
     const cooling = lastNudge && Date.now() - lastNudge.getTime() < 5 * 60 * 1000;
+    const planned = order.slot ? `${order.slot.dateLabel} ${order.slot.label} · ${order.slot.time}` : '旧订单';
+    const plannedAt = order.slot ? parseDate(order.slot.scheduledFor) : null;
+    const overdue = plannedAt && plannedAt.getTime() < Date.now() &&
+        ['pending', 'accepted'].includes(status);
 
-    const stepper = order.status === 'cancelled' ? '' : `
+    const stepper = status === 'cancelled' ? '' : `
         <ol class="order-steps">
-            ${steps.map((label, index) => {
+            ${KITCHEN_STEPS.map((label, index) => {
                 const done = index < stepIndex || (!active && index <= stepIndex);
                 const current = active && index === stepIndex;
                 return `<li class="${done ? 'is-done' : ''}${current ? ' is-current' : ''}">
@@ -1168,41 +1304,39 @@ function renderOrderStatus() {
     let actions = '';
     if (active) {
         actions += `<button class="order-action" type="button" data-order-action="nudge" ${cooling ? 'disabled' : ''}>${cooling ? '刚催过' : '催一催'}</button>`;
-        if (order.status !== 'cooking') {
+        if (['pending', 'accepted'].includes(status)) {
             actions += '<button class="order-action" type="button" data-order-action="cancel">取消订单</button>';
         }
     }
-    if (order.status === 'served') {
+    if (status === 'served') {
         actions += `<button class="order-action" type="button" data-order-action="thanks" ${order.thanks ? 'disabled' : ''}>${order.thanks ? '已谢谢大厨' : '谢谢大厨'}</button>`;
         actions += '<button class="order-action is-primary" type="button" data-order-action="complete">吃完了</button>';
     }
-    if (order.status === 'completed' || order.status === 'cancelled') {
-        if (order.status === 'completed' && !order.thanks) {
+    if (status === 'completed' || status === 'cancelled') {
+        if (status === 'completed' && !order.thanks) {
             actions += '<button class="order-action" type="button" data-order-action="thanks">谢谢大厨</button>';
         }
-        actions += '<button class="order-action is-primary" type="button" data-order-action="reorder">再点一单</button>';
+        actions += '<button class="order-action is-primary" type="button" data-order-action="reorder">再约一顿</button>';
     }
 
-    const eta = orderEtaText(order);
-    const placed = formatClock(order.placedAt);
-    const thanks = order.thanks
+    const thankyou = order.thanks
         ? `<p class="order-thanks">♡ ${cleanText(order.thanks.note)}</p>`
         : '';
 
     wrap.innerHTML = `
-        <section class="order-card status-${order.status}">
+        <section class="order-card status-${status}">
             <div class="order-card-top">
-                <span class="order-no">NO.${String(order.id).padStart(3, '0')}</span>
-                <span class="order-badge">${ORDER_STATUS[order.status]}</span>
+                <span class="order-no">${cleanText(order.id)}</span>
+                <span class="order-badge">${ORDER_STATUS[status]}</span>
             </div>
+            <p class="order-slot-line">预约 ${planned}</p>
             <h2 class="order-card-title">${copy.title}</h2>
-            <p class="order-card-sub">${copy.note}</p>
+            <p class="order-card-sub">${overdue ? '预约时间已经过了，等大厨处理一下' : copy.note}</p>
             ${stepper}
             <div class="order-card-meta">
-                <span>${placed ? `下单于 ${placed}` : ''}</span>
+                <span>下单于 ${formatClock(order.placedAt) || '-'}</span>
                 <span>${order.items.length} 道菜 · ${order.total} 币</span>
             </div>
-            ${eta ? `<p class="order-eta">${eta}</p>` : ''}
             <div class="order-card-items">
                 ${order.items.map(item => `
                     <div class="order-item">
@@ -1213,7 +1347,7 @@ function renderOrderStatus() {
                 `).join('')}
             </div>
             ${order.note ? `<p class="order-user-note">“${cleanText(order.note)}”</p>` : ''}
-            ${thanks}
+            ${thankyou}
             ${actions ? `<div class="order-card-actions">${actions}</div>` : ''}
         </section>
     `;
@@ -1248,7 +1382,15 @@ function renderMenu() {
     const container = $('menu-container');
     if (!container) return;
 
-    const active = orderingBlocked();
+    const slot = selectedSlot();
+    const summary = slot ? orderForSlot(slot.key) : null;
+    const canOrder = slot && slot.orderable && !summary;
+
+    if (!canOrder) {
+        container.innerHTML = '';
+        return;
+    }
+
     const dishes = (state.menu.dishes || []).slice()
         .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
     const category = state.menuCategory;
@@ -1269,20 +1411,22 @@ function renderMenu() {
         return;
     }
 
-    const banner = active
-        ? '<p class="menu-locked">这一单吃完才能再点下一顿，先看看菜单解解馋吧。</p>'
-        : '';
-
-    container.innerHTML = banner + visible.map((dish, index) => {
+    container.innerHTML = visible.map((dish, index) => {
         const inCart = state.cart.has(String(dish.id));
-        const disabled = !dish.available || !!active;
+        const disabled = !dish.available;
         const tags = (dish.tags || []).slice(0, 2)
             .map(tag => `<span>${cleanText(tag)}</span>`)
             .join('');
+        const image = dish.image
+            ? `<img src="${escapeHTML(dish.image)}" alt="${cleanText(dish.name)}" loading="lazy" decoding="async">`
+            : '';
         return `
-            <article class="dish-card ${dish.available ? '' : 'is-soldout'}">
+            <article class="dish-card ${dish.available ? '' : 'is-soldout'}"
+                role="button" tabindex="0" data-dish-open="${cleanText(dish.id)}"
+                aria-label="查看${cleanText(dish.name)}">
                 <div class="dish-cover v${index % 4}">
                     <span class="dish-emoji" aria-hidden="true">${cleanText(dish.icon || '🍽️')}</span>
+                    ${image}
                     ${dish.todaySpecial ? '<em class="dish-special">今日推荐</em>' : ''}
                 </div>
                 <div class="dish-body">
@@ -1304,16 +1448,33 @@ function renderMenu() {
             </article>
         `;
     }).join('');
+
+    container.querySelectorAll('.dish-cover img').forEach(img => {
+        img.addEventListener('error', () => img.remove());
+    });
+}
+
+function cartTotal() {
+    const dishes = state.menu.dishes || [];
+    let total = 0;
+    state.cart.forEach(id => {
+        const dish = dishes.find(item => String(item.id) === String(id));
+        if (dish) total += Number(dish.price) || 0;
+    });
+    return total;
 }
 
 function updateCartBar() {
     const bar = $('cart-bar');
     if (!bar) return;
 
-    const blocked = orderingBlocked();
-    if (blocked) state.cart.clear();
+    const slot = selectedSlot();
+    const canOrder = slot && slot.orderable && !orderForSlot(slot.key);
+    const show = state.page === 'order' &&
+        state.cart.size > 0 &&
+        state.cartSlotKey === (slot && slot.key) &&
+        canOrder;
 
-    const show = state.page === 'order' && state.cart.size > 0 && !blocked;
     bar.hidden = !show;
     if (!show) return;
 
@@ -1324,8 +1485,13 @@ function updateCartBar() {
 }
 
 function toggleCart(dishId) {
-    if (orderingBlocked()) {
-        toast('这一单吃完再点下一顿吧');
+    const slot = selectedSlot();
+    if (!slot || !slot.orderable) {
+        toast('先选一个还能预约的饭点');
+        return;
+    }
+    if (orderForSlot(slot.key)) {
+        toast('这个饭点已经约过啦');
         return;
     }
 
@@ -1336,6 +1502,11 @@ function toggleCart(dishId) {
         return;
     }
 
+    if (state.cart.size && state.cartSlotKey !== slot.key) {
+        state.cart.clear();
+    }
+    state.cartSlotKey = slot.key;
+
     const key = String(dish.id);
     if (state.cart.has(key)) state.cart.delete(key);
     else state.cart.add(key);
@@ -1343,8 +1514,10 @@ function toggleCart(dishId) {
     renderMenu();
     updateCartBar();
 
-    const sheet = $('cart-sheet');
-    if (sheet && sheet.classList.contains('is-open')) renderCartSheet();
+    const cartSheet = $('cart-sheet');
+    if (cartSheet && cartSheet.classList.contains('is-open')) renderCartSheet();
+    const dishSheet = $('dish-sheet');
+    if (dishSheet && dishSheet.classList.contains('is-open')) renderDishSheet();
 }
 
 function renderCartSheet() {
@@ -1356,14 +1529,20 @@ function renderCartSheet() {
     const confirm = $('cart-confirm');
     if (!items || !confirm) return;
 
-    if (!state.cart.size) {
+    const slot = selectedSlot();
+    if (!slot || !state.cart.size) {
         closeSheet('cart-sheet');
         updateCartBar();
         return;
     }
 
+    const slotLine = $('cart-slot');
+    if (slotLine) slotLine.textContent = `预约：${slotText(slot)}`;
+
     const dishes = state.menu.dishes || [];
-    const lines = [...state.cart].map(id => dishes.find(dish => String(dish.id) === String(id))).filter(Boolean);
+    const lines = [...state.cart]
+        .map(id => dishes.find(dish => String(dish.id) === String(id)))
+        .filter(Boolean);
     const total = lines.reduce((sum, dish) => sum + (Number(dish.price) || 0), 0);
     const wallet = state.wallet;
     const after = wallet.balance - total;
@@ -1408,8 +1587,13 @@ function renderCartSheet() {
 }
 
 function openCartSheet() {
-    if (orderingBlocked()) {
-        toast('这一单吃完再点下一顿吧');
+    const slot = selectedSlot();
+    if (!slot || !slot.orderable) {
+        toast('这个饭点已经截止预约了');
+        return;
+    }
+    if (orderForSlot(slot.key)) {
+        toast('这个饭点已经约过啦');
         return;
     }
     if (!state.cart.size) {
@@ -1423,20 +1607,23 @@ function openCartSheet() {
 async function syncOrderState() {
     const data = await refreshOrderData();
     state.orders = data.orders;
-    state.latestOrder = data.latestOrder;
     state.wallet = data.wallet;
-    if (orderingBlocked()) state.cart.clear();
+    state.slots = withPastOrderSlots(upcomingSlots(state.space, new Date()));
+    ensureSelectedSlot();
+    await refreshSelectedOrder();
     renderWalletUI();
     renderDinnerCard();
     renderOrderPage();
+    renderMePage();
     ensureOrderPolling();
 }
 
 async function placeOrderFromCart() {
     const confirm = $('cart-confirm');
-    if (!state.cart.size) return;
-    if (orderingBlocked()) {
-        toast('这一单吃完再点下一顿吧');
+    const slot = selectedSlot();
+    if (!slot || !state.cart.size) return;
+    if (!slot.orderable || orderForSlot(slot.key)) {
+        toast('这个饭点已经不能下单啦');
         return;
     }
 
@@ -1447,17 +1634,26 @@ async function placeOrderFromCart() {
     }
 
     try {
-        const result = await placeOrder({ dishIds: [...state.cart], note });
+        const result = await placeOrder({
+            slotKey: slot.key,
+            dishIds: [...state.cart],
+            note
+        });
         state.wallet = result.wallet;
         state.cart.clear();
+        state.cartSlotKey = null;
         if ($('cart-note')) $('cart-note').value = '';
         closeSheet('cart-sheet');
+        state.selectedSlotKey = slot.key;
         await syncOrderState();
-        toast('下单成功，等大厨接单');
+        toast('预约成功，等大厨接单');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
         console.error('下单失败:', error);
-        if (error.code === 'SOLD_OUT' || error.code === 'MISSING_DISH') {
+        if (['SLOT_CLOSED', 'SLOT_TAKEN'].includes(error.code)) {
+            toast(error.message);
+            await syncOrderState();
+        } else if (error.code === 'SOLD_OUT' || error.code === 'MISSING_DISH') {
             toast(error.message);
             refreshData(false);
         } else if (error.code === 'INSUFFICIENT') {
@@ -1467,14 +1663,13 @@ async function placeOrderFromCart() {
         }
         renderCartSheet();
     } finally {
-        if (confirm && !confirm.disabled) confirm.textContent = '确认下单';
         if (confirm) confirm.disabled = false;
         renderCartSheet();
     }
 }
 
 async function handleOrderAction(action) {
-    const order = state.latestOrder;
+    const order = state.selectedOrder;
     if (!order) return;
 
     try {
@@ -1485,8 +1680,15 @@ async function handleOrderAction(action) {
             return;
         }
         if (action === 'cancel') {
-            if (!window.confirm('确定取消这一单吗？恋爱币会全额退回。')) return;
-            await cancelOrder(order.id, { by: 'user', reason: '' });
+            const ok = await showConfirm({
+                title: '取消这顿饭？',
+                message: '这一单会取消，恋爱币全额退回钱包。',
+                okText: '取消订单',
+                cancelText: '再想想',
+                danger: true
+            });
+            if (!ok) return;
+            await cancelOrder(order.id, { by: 'user' });
             await syncOrderState();
             toast('已取消，币已经退回钱包');
             return;
@@ -1504,12 +1706,13 @@ async function handleOrderAction(action) {
             return;
         }
         if (action === 'reorder') {
-            state.menuCategory = 'all';
-            renderMenuCategories();
-            renderMenu();
-            const menu = $('menu-container');
-            if (menu) menu.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            toast('挑几道想吃的吧');
+            const next = nextOrderableSlot();
+            if (!next) {
+                toast('这一轮没有可预约的饭点了');
+                return;
+            }
+            await selectSlot(next.key, { force: true });
+            toast(`换到 ${next.dateLabel} ${next.label}，挑几道菜吧`);
         }
     } catch (error) {
         console.error('订单操作失败:', error);
@@ -1518,7 +1721,7 @@ async function handleOrderAction(action) {
 }
 
 function ensureOrderPolling() {
-    const active = orderInProgress();
+    const active = pollingNeeded();
     if (active && !state.orderPollTimer) {
         state.orderPollTimer = setInterval(pollOrder, ORDER_POLL_MS);
     }
@@ -1531,27 +1734,32 @@ function ensureOrderPolling() {
 async function pollOrder() {
     if (document.visibilityState !== 'visible' || state.refreshing) return;
 
-    const previous = state.latestOrder;
+    const previousOrders = state.orders.slice();
     const previousBalance = state.wallet.balance;
 
     try {
         const data = await refreshOrderData();
-        const next = data.latestOrder;
-        const statusChanged = previous && next && previous.status !== next.status;
-        const orderChanged = !previous && next || previous && next && previous.updatedAt !== next.updatedAt;
-        const walletChanged = previousBalance !== data.wallet.balance;
+        const statusChanges = [];
+        data.orders.forEach(order => {
+            const before = previousOrders.find(item => String(item.id) === String(order.id));
+            if (before && before.status !== order.status && KITCHEN_TOAST[order.status]) {
+                statusChanges.push(KITCHEN_TOAST[order.status]);
+            }
+        });
 
         state.orders = data.orders;
-        state.latestOrder = next;
         state.wallet = data.wallet;
+        state.slots = withPastOrderSlots(upcomingSlots(state.space, new Date()));
+        ensureSelectedSlot();
+        await refreshSelectedOrder();
 
-        if (statusChanged && KITCHEN_TOAST[next.status]) {
-            toast(KITCHEN_TOAST[next.status]);
-        }
-        if (statusChanged || orderChanged || walletChanged) {
+        const walletChanged = previousBalance !== state.wallet.balance;
+        if (statusChanges.length || walletChanged) {
+            if (statusChanges.length) toast(statusChanges[statusChanges.length - 1]);
             renderWalletUI();
             renderDinnerCard();
             renderOrderPage();
+            renderMePage();
         }
         ensureOrderPolling();
     } catch (error) {
@@ -1559,32 +1767,314 @@ async function pollOrder() {
     }
 }
 
+async function selectSlot(key, options = {}) {
+    if (!key) return;
+    if (state.cart.size && state.cartSlotKey && state.cartSlotKey !== key) {
+        const ok = await showConfirm({
+            title: '换一个饭点？',
+            message: '这个饭点还没下单的菜会被清空。',
+            okText: '换饭点',
+            cancelText: '留在这里'
+        });
+        if (!ok) return;
+        state.cart.clear();
+        state.cartSlotKey = null;
+    }
+    state.selectedSlotKey = key;
+    await refreshSelectedOrder();
+    renderOrderPage();
+    if (options.scrollToStatus) {
+        const wrap = $('order-status-wrap');
+        if (wrap && wrap.children.length) wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
 function renderOrderPage() {
     renderWalletUI();
+    renderSlotPicker();
+
+    const slot = selectedSlot();
+    const selectedLine = $('selected-slot');
+    const summary = slot ? orderForSlot(slot.key) : null;
+    if (selectedLine) {
+        if (slot) {
+            const label = summary ? (slot.past ? '已过时间' : '已预约') : slot.orderable ? '可预约' : '已截止';
+            selectedLine.innerHTML = `<span>${slot.dateLabel} ${cleanText(slot.label)} · ${slot.time}</span><em>${label}</em>`;
+        } else {
+            selectedLine.textContent = '';
+        }
+    }
+
     renderOrderStatus();
-    renderMenuCategories();
-    renderMenu();
+
+    const menuArea = $('menu-area');
+    const canOrder = slot && slot.orderable && !summary;
+    if (menuArea) menuArea.hidden = !canOrder;
+    if (canOrder) {
+        renderMenuCategories();
+        renderMenu();
+    } else {
+        const container = $('menu-container');
+        if (container) container.innerHTML = '';
+    }
+
     updateCartBar();
 }
 
+function orderRowHTML(order) {
+    const slot = order.slot || (order.slotKey ? slotByKey(order.slotKey) : null);
+    const statusLabel = ORDER_STATUS[order.status] || order.status;
+    return `
+        <button class="me-order" type="button" data-order-open="${cleanText(order.id)}"
+            data-order-slot="${order.slotKey ? cleanText(order.slotKey) : ''}"
+            data-order-status="${order.status}">
+            <span class="me-order-top">
+                <b>${cleanText(order.id)}</b>
+                <span class="me-order-status status-${order.status}">${statusLabel}</span>
+            </span>
+            <span class="me-order-slot">${slot ? cleanText(slotText(slot)) : '旧订单（无预约时间）'}</span>
+            <span class="me-order-meta">${(order.items || []).map(item => cleanText(item.name)).join('、')} · ${order.total} 币</span>
+            <span class="me-order-time">下单于 ${formatEntryTime(order.placedAt)}</span>
+        </button>
+    `;
+}
+
+function renderMePage() {
+    const wallet = state.wallet || { balance: 0, overdraftLimit: 50, entries: [] };
+    const limit = Number(wallet.overdraftLimit) || 0;
+    const meCredit = $('me-credit');
+    if (meCredit) meCredit.textContent = `最多可欠 ${limit} 币`;
+
+    const upcoming = (state.orders || [])
+        .filter(order => !['completed', 'cancelled'].includes(order.status))
+        .sort((a, b) => String(a.scheduledFor || a.placedAt || '')
+            .localeCompare(String(b.scheduledFor || b.placedAt || '')));
+
+    const history = (state.orders || [])
+        .filter(order => ['completed', 'cancelled'].includes(order.status))
+        .sort((a, b) => String(b.scheduledFor || b.placedAt || '')
+            .localeCompare(String(a.scheduledFor || a.placedAt || '')));
+
+    const upcomingEl = $('me-upcoming');
+    if (upcomingEl) {
+        upcomingEl.innerHTML = upcoming.length
+            ? upcoming.map(orderRowHTML).join('')
+            : '<div class="me-empty">还没有预约，去点一份周末的饭吧。</div>';
+    }
+    const historyEl = $('me-history');
+    if (historyEl) {
+        historyEl.innerHTML = history.length
+            ? history.map(orderRowHTML).join('')
+            : '<div class="me-empty">还没有历史订单。</div>';
+    }
+    const upcomingCount = $('me-upcoming-count');
+    if (upcomingCount) upcomingCount.textContent = upcoming.length ? `${upcoming.length} 顿` : '';
+    const historyCount = $('me-history-count');
+    if (historyCount) historyCount.textContent = history.length ? `${history.length} 顿` : '';
+
+    const ledger = $('me-ledger');
+    if (ledger) ledger.innerHTML = walletEntriesHTML(wallet.entries, 200);
+
+    const couponsEl = $('me-coupons');
+    if (couponsEl) {
+        const used = (state.coupons || [])
+            .filter(coupon => coupon.status === 'used')
+            .sort((a, b) => String(b.usedDate || '').localeCompare(String(a.usedDate || '')));
+        couponsEl.innerHTML = used.length
+            ? used.map(coupon => `
+                <div class="me-coupon">
+                    <span class="me-coupon-title">${cleanText(coupon.icon || '💆')} ${cleanText(coupon.title)}</span>
+                    <small>${cleanText(coupon.duration)}${cleanText(coupon.durationUnit || '分钟')} · ${formatEntryTime(coupon.usedDate)} 使用</small>
+                </div>
+            `).join('')
+            : '<div class="me-empty">还没有用过的恋爱卡。</div>';
+    }
+}
+
+async function openOrderDetail(orderId) {
+    const body = $('order-detail-body');
+    if (!body) return;
+    body.innerHTML = '<div class="order-loading">正在读取订单…</div>';
+    openSheet('order-detail-sheet');
+    try {
+        const order = await getOrder(orderId);
+        const slot = order.slot || (order.slotKey ? slotByKey(order.slotKey) : null);
+        const statusLabel = ORDER_STATUS[order.status] || order.status;
+        const history = Array.isArray(order.statusHistory) ? order.statusHistory : [];
+        body.innerHTML = `
+            <div class="order-detail">
+                <div class="order-detail-head">
+                    <span class="order-detail-id">${cleanText(order.id)}</span>
+                    <span class="order-badge">${statusLabel}</span>
+                </div>
+                <p class="order-detail-slot">${slot ? cleanText(slotText(slot)) : '旧订单（无预约时间）'}</p>
+                <div class="order-detail-items">
+                    ${(order.items || []).map(item => `
+                        <div class="order-item">
+                            <span class="order-item-icon">${cleanText(item.icon || '🍽️')}</span>
+                            <span class="order-item-name">${cleanText(item.name)}</span>
+                            <span class="order-item-price">${item.price}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="order-detail-total"><span>合计</span><b>${order.total} 币</b></div>
+                ${order.note ? `<p class="order-user-note">“${cleanText(order.note)}”</p>` : ''}
+                ${order.thanks ? `<p class="order-thanks">♡ ${cleanText(order.thanks.note)}</p>` : ''}
+                <div class="order-detail-payment">
+                    <span>扣币 ${order.payment ? order.payment.amount : order.total} 币</span>
+                    <span>${order.payment && order.payment.refundedAt ? '已退款' : '已支付'}</span>
+                </div>
+                <h3 class="order-detail-history-title">状态记录</h3>
+                <ol class="order-history">
+                    ${history.map(entry => `
+                        <li><span>${ORDER_STATUS[entry.status] || entry.status}</span><small>${formatEntryTime(entry.at)}</small></li>
+                    `).join('')}
+                </ol>
+                ${!['completed', 'cancelled'].includes(order.status) && order.slotKey && slotByKey(order.slotKey) ? `<button class="order-detail-progress" type="button" data-detail-slot="${cleanText(order.slotKey)}">查看进度</button>` : ''}
+            </div>
+        `;
+    } catch (error) {
+        console.error('读取订单详情失败:', error);
+        body.innerHTML = '<div class="order-loading">订单读取失败，稍后再试。</div>';
+    }
+}
+
+function renderDishSheet() {
+    const dish = (state.menu.dishes || []).find(item => String(item.id) === String(state.dishId));
+    if (!dish) return;
+
+    const image = $('dish-detail-image');
+    if (image) {
+        image.innerHTML = dish.image
+            ? `<img src="${escapeHTML(dish.image)}" alt="${cleanText(dish.name)}">`
+            : `<span class="dish-detail-emoji" aria-hidden="true">${cleanText(dish.icon || '🍽️')}</span>`;
+        const img = image.querySelector('img');
+        if (img) {
+            img.addEventListener('error', () => {
+                image.innerHTML = `<span class="dish-detail-emoji" aria-hidden="true">${cleanText(dish.icon || '🍽️')}</span>`;
+            });
+        }
+    }
+
+    const category = (state.menu.categories || []).find(item => String(item.id) === String(dish.categoryId));
+    const categoryEl = $('dish-sheet-category');
+    if (categoryEl) categoryEl.textContent = category ? category.name : '';
+    const name = $('dish-sheet-name');
+    if (name) name.textContent = dish.name;
+    const meta = $('dish-sheet-meta');
+    if (meta) meta.textContent = `${dish.price} 币 · 约 ${dish.prepMinutes} 分钟`;
+    const desc = $('dish-sheet-desc');
+    if (desc) desc.textContent = dish.description || '';
+    const tags = $('dish-sheet-tags');
+    if (tags) tags.innerHTML = (dish.tags || []).map(tag => `<span>${cleanText(tag)}</span>`).join('');
+
+    const add = $('dish-sheet-add');
+    if (add) {
+        const inCart = state.cart.has(String(dish.id));
+        add.textContent = inCart ? '已加入 · 点击移出' : '加入这顿饭';
+        add.classList.toggle('is-added', inCart);
+        add.disabled = !dish.available;
+    }
+}
+
+function openDishSheet(dishId) {
+    const slot = selectedSlot();
+    if (!slot || !slot.orderable || orderForSlot(slot.key)) {
+        toast('先选一个能预约的饭点');
+        return;
+    }
+    state.dishId = dishId;
+    renderDishSheet();
+    openSheet('dish-sheet');
+}
+
+function showConfirm({ title = '确认', message = '', okText = '确认', cancelText = '取消', danger = false }) {
+    return new Promise(resolve => {
+        if (state.confirmResolver) state.confirmResolver(false);
+        state.confirmResolver = resolve;
+
+        const dialog = $('confirm-dialog');
+        const titleEl = $('confirm-title');
+        const messageEl = $('confirm-message');
+        const ok = $('confirm-ok');
+        const cancel = $('confirm-cancel');
+        if (titleEl) titleEl.textContent = title;
+        if (messageEl) messageEl.textContent = message;
+        if (ok) {
+            ok.textContent = okText;
+            ok.classList.toggle('is-danger', !!danger);
+        }
+        if (cancel) cancel.textContent = cancelText;
+        if (dialog) {
+            dialog.classList.add('is-open');
+            dialog.setAttribute('aria-hidden', 'false');
+        }
+        document.documentElement.classList.add('is-locked');
+    });
+}
+
+function resolveConfirm(value) {
+    const dialog = $('confirm-dialog');
+    if (dialog) {
+        dialog.classList.remove('is-open');
+        dialog.setAttribute('aria-hidden', 'true');
+    }
+    if (!state.openSheets.length) {
+        document.documentElement.classList.remove('is-locked');
+    }
+    const resolve = state.confirmResolver;
+    state.confirmResolver = null;
+    if (resolve) resolve(!!value);
+}
+
+function initConfirm() {
+    document.querySelectorAll('[data-confirm]').forEach(element => {
+        element.addEventListener('click', () => resolveConfirm(element.dataset.confirm === 'ok'));
+    });
+}
+
 function initOrderUI() {
-    const walletPill = $('wallet-pill');
-    if (walletPill) {
-        walletPill.addEventListener('click', () => {
-            renderWalletUI();
-            openSheet('wallet-sheet');
+    initConfirm();
+
+    const dinnerCard = $('dinner-card');
+    if (dinnerCard) {
+        dinnerCard.addEventListener('click', async () => {
+            const next = nextUpcomingOrder();
+            const target = next && next.slotKey ? next.slotKey : (nextOrderableSlot() || {}).key;
+            if (target) {
+                state.selectedSlotKey = target;
+                await refreshSelectedOrder();
+            }
+            switchPage('order');
         });
     }
 
+    const slotPicker = $('slot-picker');
+    if (slotPicker) {
+        slotPicker.addEventListener('click', event => {
+            const card = event.target.closest('[data-slot-key]');
+            if (card) selectSlot(card.dataset.slotKey);
+        });
+    }
+
+    ['wallet-pill', 'me-wallet'].forEach(id => {
+        const button = $(id);
+        if (button) {
+            button.addEventListener('click', () => {
+                renderWalletUI();
+                openSheet('wallet-sheet');
+            });
+        }
+    });
+
     const cartOpen = $('cart-open');
     if (cartOpen) cartOpen.addEventListener('click', openCartSheet);
-
     const confirm = $('cart-confirm');
     if (confirm) confirm.addEventListener('click', placeOrderFromCart);
 
     const cartItems = $('cart-items');
     if (cartItems) {
-        cartItems.addEventListener('click', (event) => {
+        cartItems.addEventListener('click', event => {
             const button = event.target.closest('[data-cart-remove]');
             if (button) toggleCart(button.dataset.cartRemove);
         });
@@ -1592,7 +2082,7 @@ function initOrderUI() {
 
     const categories = $('menu-categories');
     if (categories) {
-        categories.addEventListener('click', (event) => {
+        categories.addEventListener('click', event => {
             const button = event.target.closest('[data-category]');
             if (!button) return;
             state.menuCategory = button.dataset.category;
@@ -1603,24 +2093,77 @@ function initOrderUI() {
 
     const menu = $('menu-container');
     if (menu) {
-        menu.addEventListener('click', (event) => {
-            const button = event.target.closest('[data-dish-add]');
-            if (!button) return;
-            toggleCart(button.dataset.dishAdd);
+        menu.addEventListener('click', event => {
+            const add = event.target.closest('[data-dish-add]');
+            if (add) {
+                event.stopPropagation();
+                toggleCart(add.dataset.dishAdd);
+                return;
+            }
+            const card = event.target.closest('[data-dish-open]');
+            if (card) openDishSheet(card.dataset.dishOpen);
+        });
+        menu.addEventListener('keydown', event => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            const card = event.target.closest('[data-dish-open]');
+            if (!card) return;
+            event.preventDefault();
+            openDishSheet(card.dataset.dishOpen);
+        });
+    }
+
+    const dishAdd = $('dish-sheet-add');
+    if (dishAdd) {
+        dishAdd.addEventListener('click', () => {
+            if (state.dishId) toggleCart(state.dishId);
         });
     }
 
     const statusWrap = $('order-status-wrap');
     if (statusWrap) {
-        statusWrap.addEventListener('click', (event) => {
-            const button = event.target.closest('[data-order-action]');
+        statusWrap.addEventListener('click', event => {
+            const action = event.target.closest('[data-order-action]');
+            if (action) {
+                handleOrderAction(action.dataset.orderAction);
+                return;
+            }
+            const next = event.target.closest('[data-slot-action="next"]');
+            if (next) {
+                const slot = nextOrderableSlot();
+                if (slot) selectSlot(slot.key);
+                else toast('这一轮没有可预约的饭点了');
+            }
+        });
+    }
+
+    ['me-upcoming', 'me-history'].forEach(id => {
+        const container = $(id);
+        if (!container) return;
+        container.addEventListener('click', async event => {
+            const row = event.target.closest('[data-order-open]');
+            if (!row) return;
+            const summary = (state.orders || []).find(order => String(order.id) === row.dataset.orderOpen);
+            if (summary && !['completed', 'cancelled'].includes(summary.status) &&
+                summary.slotKey && slotByKey(summary.slotKey)) {
+                await selectSlot(summary.slotKey);
+                switchPage('order');
+                return;
+            }
+            openOrderDetail(row.dataset.orderOpen);
+        });
+    });
+
+    const detailBody = $('order-detail-body');
+    if (detailBody) {
+        detailBody.addEventListener('click', async event => {
+            const button = event.target.closest('[data-detail-slot]');
             if (!button) return;
-            handleOrderAction(button.dataset.orderAction);
+            closeSheet('order-detail-sheet');
+            await selectSlot(button.dataset.detailSlot);
+            switchPage('order');
         });
     }
 }
-
-
 
 async function openQR(coupon) {
     const container = $('qr-code');
@@ -1718,14 +2261,20 @@ function initSheets() {
     });
 
     document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') closeTopSheet();
+        if (event.key !== 'Escape') return;
+        const dialog = $('confirm-dialog');
+        if (dialog && dialog.classList.contains('is-open')) {
+            resolveConfirm(false);
+            return;
+        }
+        closeTopSheet();
     });
 }
 
 /* ---------- page navigation ---------- */
 
 function switchPage(page, options = {}) {
-    const valid = ['home', 'order', 'coupons'];
+    const valid = ['home', 'order', 'coupons', 'me'];
     const target = valid.includes(page) ? page : 'home';
     const { push = true, scroll = true } = options;
     state.page = target;
@@ -1754,6 +2303,17 @@ function switchPage(page, options = {}) {
         }
     } else if (target === 'order') {
         renderOrderPage();
+        const summary = state.selectedSlotKey ? orderForSlot(state.selectedSlotKey) : null;
+        if (summary && (!state.selectedOrder || String(state.selectedOrder.id) !== String(summary.id))) {
+            refreshSelectedOrder().then(() => {
+                if (state.page === 'order') renderOrderPage();
+            });
+        }
+        if (state.lastLoadedAt && Date.now() - state.lastLoadedAt > 30 * 1000) {
+            refreshData(false);
+        }
+    } else if (target === 'me') {
+        renderMePage();
         if (state.lastLoadedAt && Date.now() - state.lastLoadedAt > 30 * 1000) {
             refreshData(false);
         }
@@ -1892,7 +2452,7 @@ function initVisibilityRefresh() {
         if (document.visibilityState !== 'visible') return;
         if (Date.now() - state.lastLoadedAt > 30 * 1000) {
             refreshData(false);
-        } else if (orderInProgress()) {
+        } else if (pollingNeeded()) {
             pollOrder();
         }
     });

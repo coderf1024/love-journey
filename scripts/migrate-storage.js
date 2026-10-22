@@ -45,31 +45,14 @@ function clean(value) {
   return String(value == null ? '' : value).trim();
 }
 
+const menuSeed = require('./menu-seed');
+const servingSeed = require('./serving-seed');
+
 function buildMenu() {
   return {
     updatedAt: nowStamp(),
-    categories: [
-      { id: 'hot', name: '热菜', icon: '🍳', order: 1 },
-      { id: 'staple', name: '主食', icon: '🍚', order: 2 },
-      { id: 'soup', name: '汤', icon: '🥣', order: 3 },
-      { id: 'sweet', name: '甜品', icon: '🍓', order: 4 }
-    ],
-    dishes: [
-      { id: 'dish_tomato_egg', categoryId: 'hot', name: '番茄炒蛋', description: '酸甜下饭，拌米饭一绝', price: 20, prepMinutes: 15, icon: '🍅', tags: ['家常', '酸甜'], available: true, todaySpecial: true, order: 1 },
-      { id: 'dish_cola_wings', categoryId: 'hot', name: '可乐鸡翅', description: '甜甜咸咸，啃到停不下来', price: 35, prepMinutes: 25, icon: '🍗', tags: ['甜口', '下饭'], available: true, todaySpecial: false, order: 2 },
-      { id: 'dish_braised_pork', categoryId: 'hot', name: '红烧肉', description: '慢炖出来的硬菜，配米饭', price: 45, prepMinutes: 45, icon: '🥩', tags: ['硬菜', '慢炖'], available: true, todaySpecial: true, order: 3 },
-      { id: 'dish_potato_shreds', categoryId: 'hot', name: '酸辣土豆丝', description: '酸辣爽脆，开胃', price: 18, prepMinutes: 15, icon: '🥔', tags: ['酸辣', '爽口'], available: true, todaySpecial: false, order: 4 },
-      { id: 'dish_mapo_tofu', categoryId: 'hot', name: '麻婆豆腐', description: '麻辣鲜香，很下饭', price: 22, prepMinutes: 15, icon: '🌶️', tags: ['麻辣', '下饭'], available: true, todaySpecial: false, order: 5 },
-      { id: 'dish_green_veg', categoryId: 'hot', name: '清炒时蔬', description: '当季青菜，清爽解腻', price: 15, prepMinutes: 10, icon: '🥬', tags: ['清淡', '当季'], available: true, todaySpecial: false, order: 6 },
-      { id: 'dish_sweet_sour_ribs', categoryId: 'hot', name: '糖醋排骨', description: '酸甜挂汁，招牌之一', price: 42, prepMinutes: 40, icon: '🍖', tags: ['酸甜', '招牌'], available: true, todaySpecial: false, order: 7 },
-      { id: 'dish_egg_fried_rice', categoryId: 'staple', name: '蛋炒饭', description: '粒粒分明，十分钟搞定', price: 15, prepMinutes: 10, icon: '🍚', tags: ['快手'], available: true, todaySpecial: false, order: 8 },
-      { id: 'dish_scallion_noodles', categoryId: 'staple', name: '葱油拌面', description: '葱香扑鼻，拌一拌就好', price: 18, prepMinutes: 12, icon: '🍜', tags: ['香', '快手'], available: true, todaySpecial: false, order: 9 },
-      { id: 'dish_dumplings', categoryId: 'staple', name: '手工饺子', description: '现包现煮，蘸醋最好吃', price: 28, prepMinutes: 30, icon: '🥟', tags: ['现包'], available: true, todaySpecial: false, order: 10 },
-      { id: 'dish_tomato_egg_soup', categoryId: 'soup', name: '番茄蛋汤', description: '酸酸暖暖，先喝一口', price: 12, prepMinutes: 10, icon: '🍲', tags: ['暖胃'], available: true, todaySpecial: false, order: 11 },
-      { id: 'dish_seaweed_soup', categoryId: 'soup', name: '紫菜蛋花汤', description: '清清淡淡，配饭刚好', price: 10, prepMinutes: 8, icon: '🥣', tags: ['清淡'], available: true, todaySpecial: false, order: 12 },
-      { id: 'dish_pear_soup', categoryId: 'sweet', name: '冰糖雪梨', description: '润润喉咙，甜甜的', price: 12, prepMinutes: 20, icon: '🍐', tags: ['润喉'], available: true, todaySpecial: false, order: 13 },
-      { id: 'dish_yogurt_fruit', categoryId: 'sweet', name: '酸奶水果杯', description: '饭后的小甜头', price: 15, prepMinutes: 5, icon: '🍓', tags: ['清爽'], available: true, todaySpecial: false, order: 14 }
-    ]
+    categories: JSON.parse(JSON.stringify(menuSeed.categories)),
+    dishes: JSON.parse(JSON.stringify(menuSeed.dishes))
   };
 }
 
@@ -138,7 +121,8 @@ function buildDocuments(legacy) {
     settings: {
       currency: '恋爱币',
       kitchenName: `${you}的小灶`,
-      timezone: 'Asia/Shanghai'
+      timezone: 'Asia/Shanghai',
+      serving: JSON.parse(JSON.stringify(servingSeed))
     }
   });
 

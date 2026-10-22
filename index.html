@@ -16,8 +16,8 @@
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="preconnect" href="https://gosspublic.alicdn.com" crossorigin>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261022-3" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/style.css?v=20261022-3">
+    <link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261022-5" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="css/style.css?v=20261022-5">
 </head>
 <body>
     <header class="app-header" id="app-header">
@@ -30,6 +30,7 @@
             <button class="top-nav-item is-active" type="button" data-page="home">首页</button>
             <button class="top-nav-item" type="button" data-page="order">点餐</button>
             <button class="top-nav-item" type="button" data-page="coupons">恋爱卡</button>
+            <button class="top-nav-item" type="button" data-page="me">我的</button>
         </nav>
 
         <div class="header-actions">
@@ -67,16 +68,16 @@
                 </div>
             </div>
 
-            <button class="dinner-card" id="dinner-card" type="button" data-page="order" aria-labelledby="dinner-title">
+            <button class="dinner-card" id="dinner-card" type="button" aria-labelledby="dinner-title">
                 <span class="dinner-emoji" id="dinner-emoji" aria-hidden="true">🍳</span>
                 <span class="dinner-body">
-                    <span class="dinner-kicker">OUR LITTLE KITCHEN</span>
-                    <span class="dinner-title" id="dinner-title">今晚吃什么</span>
-                    <span class="dinner-desc" id="dinner-desc">大厨已经系好围裙，等你点菜。</span>
+                    <span class="dinner-kicker">OUR WEEKEND KITCHEN</span>
+                    <span class="dinner-title" id="dinner-title">周末吃什么</span>
+                    <span class="dinner-desc" id="dinner-desc">只在周末开饭，先约下一顿吧。</span>
                 </span>
                 <span class="dinner-side">
                     <span class="coin-pill"><span class="coin-dot" aria-hidden="true">♥</span><b id="dinner-balance">520</b></span>
-                    <span class="dinner-cta" id="dinner-cta">去点餐 →</span>
+                    <span class="dinner-cta" id="dinner-cta">去预约 →</span>
                 </span>
             </button>
 
@@ -142,11 +143,11 @@
             </footer>
         </section>
 
-        <section class="page" id="page-order" data-page="order">
+                        <section class="page" id="page-order" data-page="order">
             <header class="page-head">
-                <p class="eyebrow">OUR LITTLE KITCHEN</p>
-                <h1 class="page-title">今晚吃什么</h1>
-                <p class="section-note">挑几道想吃的，大厨接单后会在厨房里忙起来。</p>
+                <p class="eyebrow">OUR WEEKEND KITCHEN</p>
+                <h1 class="page-title">周末吃什么</h1>
+                <p class="section-note">只在周末开饭：周六 / 周日 12:00、20:00，开饭前 1 小时截止预约。</p>
                 <div class="order-wallet-row">
                     <button class="wallet-pill" id="wallet-pill" type="button" aria-label="查看恋爱币明细">
                         <span class="coin-dot" aria-hidden="true">♥</span>
@@ -157,15 +158,20 @@
                 </div>
             </header>
 
+            <div class="slot-picker" id="slot-picker" role="tablist" aria-label="选择饭点"></div>
+            <p class="selected-slot" id="selected-slot"></p>
+
             <div class="order-status-wrap" id="order-status-wrap"></div>
 
-            <div class="menu-head">
-                <h2 class="section-title">今日菜单</h2>
-                <span class="menu-count" id="menu-count"></span>
+            <div class="menu-area" id="menu-area">
+                <div class="menu-head">
+                    <h2 class="section-title">菜单</h2>
+                    <span class="menu-count" id="menu-count"></span>
+                </div>
+                <div class="menu-categories" id="menu-categories" role="tablist" aria-label="菜品分类"></div>
+                <div class="menu-list" id="menu-container"></div>
+                <p class="menu-footnote" id="menu-footnote">恋爱币不够时，可以等大厨发零花钱；本空间最多可欠 50 币。</p>
             </div>
-            <div class="menu-categories" id="menu-categories" role="tablist" aria-label="菜品分类"></div>
-            <div class="menu-list" id="menu-container"></div>
-            <p class="menu-footnote" id="menu-footnote">恋爱币不够时，可以等大厨发零花钱；本空间最多可欠 50 币。</p>
         </section>
 
         <section class="page" id="page-coupons" data-page="coupons">
@@ -186,6 +192,40 @@
             </div>
 
             <div class="coupons-body" id="coupons-container"></div>
+        </section>
+
+        <section class="page" id="page-me" data-page="me">
+            <header class="page-head">
+                <p class="eyebrow">OUR SPACE</p>
+                <h1 class="page-title">我的</h1>
+                <p class="section-note">预约、流水，还有吃完的每一顿。</p>
+            </header>
+
+            <button class="me-wallet" id="me-wallet" type="button" aria-label="查看恋爱币明细">
+                <span class="me-wallet-label">恋爱币</span>
+                <span class="me-wallet-value"><b id="me-balance">0</b><i>币</i></span>
+                <span class="me-wallet-credit" id="me-credit">最多可欠 50 币</span>
+            </button>
+
+            <section class="me-section">
+                <header class="me-section-head"><h2>预约中</h2><span id="me-upcoming-count"></span></header>
+                <div class="me-orders" id="me-upcoming"></div>
+            </section>
+
+            <section class="me-section">
+                <header class="me-section-head"><h2>历史订单</h2><span id="me-history-count"></span></header>
+                <div class="me-orders" id="me-history"></div>
+            </section>
+
+            <section class="me-section">
+                <header class="me-section-head"><h2>恋爱币流水</h2></header>
+                <div class="wallet-entries me-ledger" id="me-ledger"></div>
+            </section>
+
+            <section class="me-section">
+                <header class="me-section-head"><h2>恋爱卡使用记录</h2><a href="#coupons" data-page-link="coupons">全部恋爱卡 →</a></header>
+                <div class="me-coupons" id="me-coupons"></div>
+            </section>
         </section>
     </main>
 
@@ -215,6 +255,12 @@
                 <svg viewBox="0 0 24 24"><path d="M3.5 8.2A1.7 1.7 0 0 1 5.2 6.5h13.6a1.7 1.7 0 0 1 1.7 1.7v1.1a2.7 2.7 0 0 0 0 5.4v1.1a1.7 1.7 0 0 1-1.7 1.7H5.2a1.7 1.7 0 0 1-1.7-1.7v-1.1a2.7 2.7 0 0 0 0-5.4Z"/><path d="M14.5 6.8v10.4" stroke-dasharray="1.6 2.6"/></svg>
             </span>
             <span class="tab-label">恋爱卡</span>
+        </button>
+        <button class="tab" type="button" data-page="me">
+            <span class="tab-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.2 20c.7-3.4 3.4-5.4 6.8-5.4s6.1 2 6.8 5.4"/></svg>
+            </span>
+            <span class="tab-label">我的</span>
         </button>
     </nav>
 
@@ -277,6 +323,7 @@
                 <button class="sheet-close is-inline" type="button" data-close aria-label="关闭">✕</button>
             </header>
             <div class="sheet-scroll">
+                <p class="cart-slot" id="cart-slot"></p>
                 <div class="cart-items" id="cart-items"></div>
                 <div class="cart-summary">
                     <div class="cart-summary-row"><span>合计</span><b><span id="cart-summary-total">0</span> 币</b></div>
@@ -313,6 +360,47 @@
         </div>
     </div>
 
+    <div class="sheet" id="dish-sheet" aria-hidden="true">
+        <div class="sheet-backdrop" data-close></div>
+        <div class="sheet-panel sheet-panel-dish" role="dialog" aria-modal="true" aria-labelledby="dish-sheet-name">
+            <div class="sheet-grabber" aria-hidden="true"></div>
+            <button class="sheet-close" type="button" data-close aria-label="关闭">✕</button>
+            <div class="dish-detail-image" id="dish-detail-image"></div>
+            <div class="dish-detail-body">
+                <span class="dish-detail-category" id="dish-sheet-category"></span>
+                <h2 class="dish-detail-name" id="dish-sheet-name"></h2>
+                <p class="dish-detail-meta" id="dish-sheet-meta"></p>
+                <p class="dish-detail-desc" id="dish-sheet-desc"></p>
+                <div class="dish-detail-tags" id="dish-sheet-tags"></div>
+                <button class="dish-detail-add" id="dish-sheet-add" type="button">加入这顿饭</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="sheet" id="order-detail-sheet" aria-hidden="true">
+        <div class="sheet-backdrop" data-close></div>
+        <div class="sheet-panel sheet-panel-tall" role="dialog" aria-modal="true" aria-labelledby="order-detail-title">
+            <div class="sheet-grabber" aria-hidden="true"></div>
+            <header class="sheet-head">
+                <h2 id="order-detail-title">订单详情</h2>
+                <button class="sheet-close is-inline" type="button" data-close aria-label="关闭">✕</button>
+            </header>
+            <div class="sheet-scroll" id="order-detail-body"></div>
+        </div>
+    </div>
+
+    <div class="dialog" id="confirm-dialog" aria-hidden="true">
+        <div class="dialog-backdrop" data-confirm="cancel"></div>
+        <div class="dialog-panel" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+            <h2 id="confirm-title">确认</h2>
+            <p id="confirm-message"></p>
+            <div class="dialog-actions">
+                <button class="dialog-btn" type="button" id="confirm-cancel" data-confirm="cancel">取消</button>
+                <button class="dialog-btn is-primary" type="button" id="confirm-ok" data-confirm="ok">确认</button>
+            </div>
+        </div>
+    </div>
+
     <div class="boot-error" id="boot-error" hidden>
         <div class="boot-error-card">
             <span class="boot-error-icon" aria-hidden="true">!</span>
@@ -327,10 +415,10 @@
     <audio id="bg-music" loop playsinline preload="none"></audio>
 
     <script src="https://gosspublic.alicdn.com/aliyun-oss-sdk-6.18.0.min.js"></script>
-    <script src="js/oss-config.js?v=20261022-3"></script>
-    <script src="js/crypto-utils.js?v=20261022-3"></script>
-    <script src="js/oss-utils.js?v=20261022-3"></script>
-    <script src="js/store.js?v=20261022-3"></script>
-    <script src="js/app.js?v=20261022-3"></script>
+    <script src="js/oss-config.js?v=20261022-5"></script>
+    <script src="js/crypto-utils.js?v=20261022-5"></script>
+    <script src="js/oss-utils.js?v=20261022-5"></script>
+    <script src="js/store.js?v=20261022-5"></script>
+    <script src="js/app.js?v=20261022-5"></script>
 </body>
 </html>

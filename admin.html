@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>恋爱空间管理</title>
-    <link rel="stylesheet" href="css/style.css?v=20261022-3">
+    <link rel="stylesheet" href="css/style.css?v=20261022-5">
     <style>
         .admin-container {
             max-width: 600px;
@@ -655,6 +655,7 @@
         }
 
         .admin-order.status-pending { border-left-color: var(--lemon); }
+        .admin-order.status-accepted { border-left-color: #6aa6c8; }
         .admin-order.status-prepping { border-left-color: var(--route); }
         .admin-order.status-cooking { border-left-color: #e98b57; }
         .admin-order.status-served { border-left-color: var(--stamp); }
@@ -679,8 +680,15 @@
             font-size: 0.7rem;
         }
 
+        .admin-order-slot {
+            margin-top: 6px;
+            color: var(--stamp-deep);
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+
         .admin-order-items {
-            margin-top: 8px;
+            margin-top: 6px;
             font-size: 0.88rem;
             line-height: 1.6;
         }
@@ -811,9 +819,21 @@
         }
 
         .admin-dish-icon {
+            display: grid;
+            place-items: center;
             width: 34px;
+            height: 34px;
+            flex: 0 0 34px;
+            overflow: hidden;
             font-size: 1.2rem;
             text-align: center;
+            border-radius: 9px;
+        }
+
+        .admin-dish-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .admin-dish-main {
@@ -998,8 +1018,8 @@
             <div class="admin-tab-panel" id="tab-kitchen" hidden>
                 <div class="kitchen-summary">
                     <div class="kitchen-stat"><b id="admin-summary-balance">0</b><span>用户余额</span></div>
-                    <div class="kitchen-stat"><b id="admin-active-orders">0</b><span>进行中</span></div>
-                    <div class="kitchen-stat"><b id="admin-today-served">0</b><span>今日出餐</span></div>
+                    <div class="kitchen-stat"><b id="admin-active-orders">0</b><span>待接单</span></div>
+                    <div class="kitchen-stat"><b id="admin-today-served">0</b><span>本周预约</span></div>
                 </div>
 
                 <section class="admin-card">
@@ -1054,6 +1074,7 @@
                             <input class="form-input" id="dish-prep" type="number" min="1" step="1" inputmode="numeric" placeholder="预计分钟" required>
                             <input class="form-input" id="dish-icon" type="text" maxlength="4" placeholder="图标 emoji" value="🍽️">
                             <input class="form-input" id="dish-tags" type="text" placeholder="标签，逗号分隔">
+                            <input class="form-input" id="dish-image" type="text" placeholder="图片 URL（可选，如 assets/media/dishes/...）">
                         </div>
                         <input class="form-input" id="dish-desc" type="text" placeholder="一句话描述">
                         <div class="dish-form-checks">
@@ -1070,11 +1091,23 @@
         </div>
     </div>
 
+    <div class="dialog" id="admin-confirm" aria-hidden="true">
+        <div class="dialog-backdrop" data-admin-confirm="cancel"></div>
+        <div class="dialog-panel" role="dialog" aria-modal="true" aria-labelledby="admin-confirm-title">
+            <h2 id="admin-confirm-title">确认</h2>
+            <p id="admin-confirm-message"></p>
+            <div class="dialog-actions">
+                <button class="dialog-btn" type="button" id="admin-confirm-cancel" data-admin-confirm="cancel">取消</button>
+                <button class="dialog-btn is-primary" type="button" id="admin-confirm-ok" data-admin-confirm="ok">确认</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://gosspublic.alicdn.com/aliyun-oss-sdk-6.18.0.min.js"></script>
-    <script src="js/oss-config.js?v=20261022-3"></script>
-    <script src="js/crypto-utils.js?v=20261022-3"></script>
-    <script src="js/oss-utils.js?v=20261022-3"></script>
-    <script src="js/store.js?v=20261022-3"></script>
+    <script src="js/oss-config.js?v=20261022-5"></script>
+    <script src="js/crypto-utils.js?v=20261022-5"></script>
+    <script src="js/oss-utils.js?v=20261022-5"></script>
+    <script src="js/store.js?v=20261022-5"></script>
     <script>
         let isLoggedIn = false;
         let adminData = null;
@@ -1083,6 +1116,7 @@
 
         const ORDER_LABEL = {
             pending: '待接单',
+            accepted: '已接单',
             prepping: '备菜中',
             cooking: '制作中',
             served: '已出餐',
@@ -1127,6 +1161,50 @@
             const pad = n => String(n).padStart(2, '0');
             return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
         }
+
+        /* ---------- admin confirm dialog ---------- */
+
+        let adminConfirmResolver = null;
+
+        function adminConfirm({ title = '确认', message = '', okText = '确认', cancelText = '取消', danger = false } = {}) {
+            return new Promise(resolve => {
+                if (adminConfirmResolver) adminConfirmResolver(false);
+                adminConfirmResolver = resolve;
+
+                document.getElementById('admin-confirm-title').textContent = title;
+                document.getElementById('admin-confirm-message').textContent = message;
+                const ok = document.getElementById('admin-confirm-ok');
+                const cancel = document.getElementById('admin-confirm-cancel');
+                ok.textContent = okText;
+                cancel.textContent = cancelText;
+                ok.classList.toggle('is-danger', !!danger);
+
+                const dialog = document.getElementById('admin-confirm');
+                dialog.classList.add('is-open');
+                dialog.setAttribute('aria-hidden', 'false');
+                document.documentElement.classList.add('is-locked');
+            });
+        }
+
+        function resolveAdminConfirm(value) {
+            const dialog = document.getElementById('admin-confirm');
+            dialog.classList.remove('is-open');
+            dialog.setAttribute('aria-hidden', 'true');
+            document.documentElement.classList.remove('is-locked');
+            const resolve = adminConfirmResolver;
+            adminConfirmResolver = null;
+            if (resolve) resolve(!!value);
+        }
+
+        document.querySelectorAll('[data-admin-confirm]').forEach(element => {
+            element.addEventListener('click', () => resolveAdminConfirm(element.dataset.adminConfirm === 'ok'));
+        });
+
+        document.addEventListener('keydown', event => {
+            if (event.key !== 'Escape') return;
+            const dialog = document.getElementById('admin-confirm');
+            if (dialog.classList.contains('is-open')) resolveAdminConfirm(false);
+        });
 
         /* ---------- boot / auth ---------- */
 
@@ -1271,7 +1349,13 @@
         }
 
         async function handleDelete(couponId) {
-            if (!confirm(`确定要删除 #${couponId} 吗？此操作不可恢复。`)) return;
+            const ok = await adminConfirm({
+                title: '删除这张恋爱卡？',
+                message: `#${couponId} 会被永久删除。`,
+                okText: '删除',
+                danger: true
+            });
+            if (!ok) return;
 
             const button = document.querySelector(`[data-coupon-id="${couponId}"] .delete-btn`);
             if (button) {
@@ -1319,16 +1403,17 @@
             if (!adminData) return;
             const wallet = adminData.wallet || { balance: 0 };
             const orders = adminData.orders || [];
-            const active = orders.filter(order => ['pending', 'prepping', 'cooking'].includes(order.status)).length;
-            const today = todayKey();
-            const servedToday = orders.filter(order =>
-                ['served', 'completed'].includes(order.status) &&
-                String(order.placedAt || '').slice(0, 10) === today
-            ).length;
+            const pending = orders.filter(order => order.status === 'pending').length;
+            const now = Date.now();
+            const upcoming = orders.filter(order => !['completed', 'cancelled'].includes(order.status))
+                .filter(order => {
+                    const at = toDate(order.scheduledFor);
+                    return at && at.getTime() >= now - 6 * 3600 * 1000 && at.getTime() <= now + 7 * 86400 * 1000;
+                }).length;
 
             document.getElementById('admin-summary-balance').textContent = wallet.balance;
-            document.getElementById('admin-active-orders').textContent = active;
-            document.getElementById('admin-today-served').textContent = servedToday;
+            document.getElementById('admin-active-orders').textContent = pending;
+            document.getElementById('admin-today-served').textContent = upcoming;
         }
 
         function renderOrders() {
@@ -1340,13 +1425,24 @@
                 return;
             }
 
-            const rank = { pending: 0, prepping: 1, cooking: 2, served: 3, completed: 4, cancelled: 5 };
-            orders.sort((a, b) => (rank[a.status] - rank[b.status]) || (Number(b.id) - Number(a.id)));
+            const rank = { pending: 0, accepted: 1, prepping: 2, cooking: 3, served: 4, completed: 5, cancelled: 6 };
+            const activeStatuses = new Set(['pending', 'accepted', 'prepping', 'cooking', 'served']);
+            orders.sort((a, b) => {
+                const ar = rank[a.status] == null ? 9 : rank[a.status];
+                const br = rank[b.status] == null ? 9 : rank[b.status];
+                if (ar !== br) return ar - br;
+                const as = String(a.scheduledFor || a.placedAt || '');
+                const bs = String(b.scheduledFor || b.placedAt || '');
+                return activeStatuses.has(a.status) ? as.localeCompare(bs) : bs.localeCompare(as);
+            });
 
             container.innerHTML = orders.map(order => {
                 const items = (order.items || [])
                     .map(item => `${esc(item.icon || '🍽️')} ${esc(item.name)}`)
                     .join(' · ');
+                const slot = order.slot
+                    ? `${order.slot.dateLabel} ${order.slot.label} · ${order.slot.time}`
+                    : '旧订单（无预约时间）';
                 const extra = [];
                 if (order.lastNudgeAt) extra.push('用户催过单');
                 if (order.thanks) extra.push(`用户说：${esc(order.thanks.note)}`);
@@ -1354,27 +1450,31 @@
 
                 const actions = [];
                 if (order.status === 'pending') {
-                    actions.push(`<button class="admin-action primary" type="button" data-admin-next="${order.id}" data-next-status="prepping">接单</button>`);
-                    actions.push(`<button class="admin-action danger" type="button" data-admin-cancel="${order.id}">拒单退款</button>`);
+                    actions.push(`<button class="admin-action primary" type="button" data-admin-next="${esc(order.id)}" data-next-status="accepted">接单</button>`);
+                    actions.push(`<button class="admin-action danger" type="button" data-admin-cancel="${esc(order.id)}">拒单退款</button>`);
+                } else if (order.status === 'accepted') {
+                    actions.push(`<button class="admin-action primary" type="button" data-admin-next="${esc(order.id)}" data-next-status="prepping">开始备菜</button>`);
+                    actions.push(`<button class="admin-action danger" type="button" data-admin-cancel="${esc(order.id)}">取消退款</button>`);
                 } else if (order.status === 'prepping') {
-                    actions.push(`<button class="admin-action primary" type="button" data-admin-next="${order.id}" data-next-status="cooking">开始做菜</button>`);
-                    actions.push(`<button class="admin-action danger" type="button" data-admin-cancel="${order.id}">取消退款</button>`);
+                    actions.push(`<button class="admin-action primary" type="button" data-admin-next="${esc(order.id)}" data-next-status="cooking">开始制作</button>`);
+                    actions.push(`<button class="admin-action danger" type="button" data-admin-cancel="${esc(order.id)}">取消退款</button>`);
                 } else if (order.status === 'cooking') {
-                    actions.push(`<button class="admin-action primary" type="button" data-admin-next="${order.id}" data-next-status="served">出餐啦</button>`);
-                    actions.push(`<button class="admin-action danger" type="button" data-admin-cancel="${order.id}">取消退款</button>`);
+                    actions.push(`<button class="admin-action primary" type="button" data-admin-next="${esc(order.id)}" data-next-status="served">出餐啦</button>`);
+                    actions.push(`<button class="admin-action danger" type="button" data-admin-cancel="${esc(order.id)}">取消退款</button>`);
                 } else if (order.status === 'served') {
-                    actions.push(`<button class="admin-action primary" type="button" data-admin-next="${order.id}" data-next-status="completed">完成</button>`);
+                    actions.push(`<button class="admin-action primary" type="button" data-admin-next="${esc(order.id)}" data-next-status="completed">完成</button>`);
                 }
 
                 return `
                     <article class="admin-order status-${order.status}">
                         <div class="admin-order-top">
                             <div>
-                                <b>NO.${String(order.id).padStart(3, '0')}</b>
+                                <b>${esc(order.id)}</b>
                                 <span class="order-badge">${ORDER_LABEL[order.status] || order.status}</span>
                             </div>
                             <span class="admin-order-time">${clock(order.placedAt)}</span>
                         </div>
+                        <p class="admin-order-slot">预约 ${esc(slot)}</p>
                         <p class="admin-order-items">${items || '—'}</p>
                         <div class="admin-order-meta">
                             <span>合计 ${order.total} 币</span>
@@ -1393,12 +1493,12 @@
         async function handleOrderListClick(event) {
             const nextButton = event.target.closest('[data-admin-next]');
             if (nextButton) {
-                const id = Number(nextButton.dataset.adminNext);
+                const id = nextButton.dataset.adminNext;
                 const status = nextButton.dataset.nextStatus;
                 nextButton.disabled = true;
                 try {
                     await setOrderStatus(id, status, { by: 'admin' });
-                    showMessage(`订单 #${id} 已更新为「${ORDER_LABEL[status]}」`, 'success');
+                    showMessage(`订单 ${id} 已更新为「${ORDER_LABEL[status]}」`, 'success');
                     await refreshAdminOrders();
                 } catch (error) {
                     showMessage(error.message, 'error');
@@ -1409,12 +1509,18 @@
 
             const cancelButton = event.target.closest('[data-admin-cancel]');
             if (cancelButton) {
-                const id = Number(cancelButton.dataset.adminCancel);
-                if (!confirm(`取消订单 #${id} 并全额退币？`)) return;
+                const id = cancelButton.dataset.adminCancel;
+                const ok = await adminConfirm({
+                    title: '取消这一单？',
+                    message: `订单 ${id} 会取消，恋爱币全额退回。`,
+                    okText: '取消并退款',
+                    danger: true
+                });
+                if (!ok) return;
                 cancelButton.disabled = true;
                 try {
                     await cancelOrder(id, { by: 'admin', reason: '' });
-                    showMessage(`订单 #${id} 已取消，恋爱币已退回`, 'success');
+                    showMessage(`订单 ${id} 已取消，恋爱币已退回`, 'success');
                     await refreshAdminOrders();
                 } catch (error) {
                     showMessage(error.message, 'error');
@@ -1521,7 +1627,7 @@
             const dishes = menu.dishes.slice().sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
             container.innerHTML = dishes.map(dish => `
                 <div class="admin-dish" data-dish-id="${esc(dish.id)}">
-                    <span class="admin-dish-icon" aria-hidden="true">${esc(dish.icon || '🍽️')}</span>
+                    <span class="admin-dish-icon" aria-hidden="true">${dish.image ? `<img src="${esc(dish.image)}" alt="">` : esc(dish.icon || '🍽️')}</span>
                     <span class="admin-dish-main">
                         <b>${esc(dish.name)}</b>
                         <small>${esc(categoryName(menu, dish.categoryId))} · ${dish.price} 币 · ${dish.prepMinutes} 分钟${dish.todaySpecial ? ' · 今日推荐' : ''}</small>
@@ -1549,7 +1655,13 @@
             }
 
             if (event.target.closest('[data-admin-dish-delete]')) {
-                if (!confirm(`删除「${dish.name}」？`)) return;
+                const ok = await adminConfirm({
+                    title: '删除这道菜？',
+                    message: `「${dish.name}」会从菜单里移除。`,
+                    okText: '删除',
+                    danger: true
+                });
+                if (!ok) return;
                 try {
                     await deleteDish(id);
                     showMessage('菜品已删除', 'success');
@@ -1580,6 +1692,7 @@
             document.getElementById('dish-prep').value = dish.prepMinutes || '';
             document.getElementById('dish-icon').value = dish.icon || '🍽️';
             document.getElementById('dish-tags').value = (dish.tags || []).join('，');
+            document.getElementById('dish-image').value = dish.image || '';
             document.getElementById('dish-desc').value = dish.description || '';
             document.getElementById('dish-available').checked = dish.available !== false;
             document.getElementById('dish-special').checked = !!dish.todaySpecial;
@@ -1596,6 +1709,7 @@
             document.getElementById('dish-prep').value = '';
             document.getElementById('dish-icon').value = '🍽️';
             document.getElementById('dish-tags').value = '';
+            document.getElementById('dish-image').value = '';
             document.getElementById('dish-desc').value = '';
             document.getElementById('dish-available').checked = true;
             document.getElementById('dish-special').checked = false;
@@ -1615,6 +1729,7 @@
                 prepMinutes: Number(document.getElementById('dish-prep').value),
                 icon: document.getElementById('dish-icon').value || '🍽️',
                 tags: document.getElementById('dish-tags').value,
+                image: document.getElementById('dish-image').value,
                 description: document.getElementById('dish-desc').value,
                 available: document.getElementById('dish-available').checked,
                 todaySpecial: document.getElementById('dish-special').checked

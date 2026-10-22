@@ -12,10 +12,10 @@ const MENU_PATH = 'commerce/menu.json';
 const WALLET_PATH = 'commerce/wallet.json';
 const COUNTERS_PATH = 'commerce/counters.json';
 
-const ORDER_ACTIVE = ['pending', 'prepping', 'cooking'];
-const ORDER_BLOCKING = ['pending', 'prepping', 'cooking', 'served'];
+const ORDER_ACTIVE = ['pending', 'accepted', 'prepping', 'cooking'];
 const ORDER_STATUS = {
     pending: '待接单',
+    accepted: '已接单',
     prepping: '备菜中',
     cooking: '制作中',
     served: '已出餐',
@@ -23,8 +23,87 @@ const ORDER_STATUS = {
     cancelled: '已取消'
 };
 
+const WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+const DEFAULT_SERVING = {
+    slots: [
+        { id: 'sat-lunch', day: 6, time: '12:00', label: '午餐', emoji: '☀️' },
+        { id: 'sat-dinner', day: 6, time: '20:00', label: '晚餐', emoji: '🌙' },
+        { id: 'sun-lunch', day: 0, time: '12:00', label: '午餐', emoji: '☀️' },
+        { id: 'sun-dinner', day: 0, time: '20:00', label: '晚餐', emoji: '🌙' }
+    ],
+    weeksAhead: 2,
+    cutoffMinutes: 60,
+    timezone: 'Asia/Shanghai'
+};
+
 const DEFAULT_OVERDRAFT = 50;
 const DEFAULT_BALANCE = 520;
+
+function pad2(value) {
+    return String(value).padStart(2, '0');
+}
+
+function servingSettings(space) {
+    const raw = (space && space.settings && space.settings.serving) || {};
+    const slots = Array.isArray(raw.slots) && raw.slots.length ? raw.slots : DEFAULT_SERVING.slots;
+    return {
+        slots,
+        weeksAhead: Number(raw.weeksAhead) || DEFAULT_SERVING.weeksAhead,
+        cutoffMinutes: raw.cutoffMinutes == null ? DEFAULT_SERVING.cutoffMinutes : Number(raw.cutoffMinutes)
+    };
+}
+
+/**
+ * The next `weeksAhead` weekends' meal slots. Slots past their booking
+ * cutoff stay in the list (for tracking) but are marked orderable:false.
+ */
+function upcomingSlots(space, now = new Date()) {
+    const cfg = servingSettings(space);
+    const wanted = Math.max(1, cfg.weeksAhead) * cfg.slots.length;
+    const base = new Date(now);
+    base.setHours(0, 0, 0, 0);
+    const slots = [];
+
+    for (let offset = 0; offset <= Math.max(21, cfg.weeksAhead * 7 + 7); offset++) {
+        const day = new Date(base);
+        day.setDate(base.getDate() + offset);
+
+        cfg.slots.forEach(raw => {
+            if (Number(raw.day) !== day.getDay()) return;
+            const parts = String(raw.time || '12:00').split(':').map(Number);
+            const hour = parts[0] || 12;
+            const minute = parts[1] || 0;
+            const at = new Date(day);
+            at.setHours(hour, minute, 0, 0);
+            if (at <= now) return;
+
+            const date = `${at.getFullYear()}-${pad2(at.getMonth() + 1)}-${pad2(at.getDate())}`;
+            const time = `${pad2(hour)}:${pad2(minute)}`;
+            const key = `${date.replace(/-/g, '')}-${time.replace(':', '')}`;
+
+            slots.push({
+                id: raw.id || key,
+                key,
+                date,
+                time,
+                label: raw.label || `${WEEKDAYS[at.getDay()]} ${time}`,
+                emoji: raw.emoji || '🍽️',
+                weekday: WEEKDAYS[at.getDay()],
+                dateLabel: `${pad2(at.getMonth() + 1)}.${pad2(at.getDate())} ${WEEKDAYS[at.getDay()]}`,
+                scheduledFor: `${date} ${time}`,
+                orderable: at.getTime() - now.getTime() >= cfg.cutoffMinutes * 60000
+            });
+        });
+
+        if (slots.length >= wanted) break;
+    }
+
+    return slots.sort((a, b) => a.scheduledFor.localeCompare(b.scheduledFor)).slice(0, wanted);
+}
+
+function findSlot(space, slotKey, now = new Date()) {
+    return upcomingSlots(space, now).find(slot => slot.key === String(slotKey)) || null;
+}
 
 function makeError(code, message, extra) {
     const error = new Error(message);
@@ -49,6 +128,9 @@ function orderSummary(order) {
         placedAt: order.placedAt,
         updatedAt: order.updatedAt,
         etaMinutes: order.etaMinutes,
+        slotKey: order.slotKey || null,
+        scheduledFor: order.scheduledFor || null,
+        slot: order.slot || null,
         thanks: order.thanks || null,
         lastNudgeAt: order.nudges && order.nudges.length
             ? order.nudges[order.nudges.length - 1].at
@@ -63,7 +145,7 @@ const orderCollection = typeof dbCollection === 'function'
     ? dbCollection(
         'commerce/orders',
         orderSummary,
-        (a, b) => Number(b.id) - Number(a.id)
+        (a, b) => String(b.scheduledFor || b.placedAt || '').localeCompare(String(a.scheduledFor || a.placedAt || ''))
     )
     : null;
 
@@ -141,11 +223,6 @@ async function getCoupon(id) {
     }
 }
 
-function latestOrderSummary(orders) {
-    if (!orders || !orders.length) return null;
-    return orders.find(order => ORDER_ACTIVE.includes(order.status)) || orders[0];
-}
-
 async function loadAppData() {
     ensureStorage();
 
@@ -166,16 +243,6 @@ async function loadAppData() {
         throw new Error('恋爱空间还没有初始化，请先运行 scripts/migrate-storage.js');
     }
 
-    const latest = latestOrderSummary(orders);
-    let latestOrder = null;
-    if (latest) {
-        try {
-            latestOrder = await getOrder(latest.id);
-        } catch (error) {
-            console.warn('读取最新订单失败:', error);
-        }
-    }
-
     return {
         space,
         story: story || {},
@@ -185,23 +252,13 @@ async function loadAppData() {
         menu: normalizeMenu(menu),
         wallet: normalizeWallet(wallet),
         orders,
-        latestOrder,
         coupons
     };
 }
 
 async function refreshOrderData() {
     const [orders, wallet] = await Promise.all([orderCollection.list(), loadWallet()]);
-    const latest = latestOrderSummary(orders);
-    let latestOrder = null;
-    if (latest) {
-        try {
-            latestOrder = await getOrder(latest.id);
-        } catch (error) {
-            console.warn('读取最新订单失败:', error);
-        }
-    }
-    return { orders, latestOrder, wallet };
+    return { orders, wallet };
 }
 
 async function loadAdminData() {
@@ -221,19 +278,29 @@ function snapshotDish(dish) {
     };
 }
 
-async function placeOrder({ dishIds, note }) {
+async function placeOrder({ slotKey, dishIds, note }) {
+    ensureStorage();
     const ids = Array.isArray(dishIds) ? [...new Set(dishIds)] : [];
     if (!ids.length) throw makeError('EMPTY_CART', '还没有选菜');
 
-    const [menu, wallet, orders, counters] = await Promise.all([
+    const [space, menu, wallet, orders] = await Promise.all([
+        loadSpace(),
         loadMenu(),
         loadWallet(),
-        orderCollection.list(),
-        loadCounters()
+        orderCollection.list()
     ]);
 
-    const active = orders.find(order => ORDER_BLOCKING.includes(order.status));
-    if (active) throw makeError('ACTIVE_ORDER', '还有一单在厨房里，等这顿吃完再点吧');
+    if (!space) throw makeError('NO_SPACE', '恋爱空间还没有初始化');
+
+    const slot = findSlot(space, slotKey, new Date());
+    if (!slot) throw makeError('SLOT_CLOSED', '这个饭点已经截止预约了，换一个饭点吧');
+    if (!slot.orderable) throw makeError('SLOT_CLOSED', '这个饭点已经截止预约了（开饭前 1 小时关闭）');
+
+    const taken = orders.find(order =>
+        order.slotKey === slot.key &&
+        ['pending', 'accepted', 'prepping', 'cooking', 'served'].includes(order.status)
+    );
+    if (taken) throw makeError('SLOT_TAKEN', '这个饭点已经约过啦，换一个饭点吧');
 
     const dishes = ids.map(id => menu.dishes.find(dish => String(dish.id) === String(id)));
     if (dishes.some(dish => !dish)) throw makeError('MISSING_DISH', '有菜品已经下架了，刷新一下菜单吧');
@@ -249,8 +316,8 @@ async function placeOrder({ dishIds, note }) {
         });
     }
 
-    const maxOrderId = (orders || []).reduce((max, order) => Math.max(max, Number(order.id) || 0), 0);
-    const orderId = Math.max(Number(counters.order) || 0, maxOrderId) + 1;
+    const sequence = orders.filter(order => order.slotKey === slot.key).length + 1;
+    const orderId = `${slot.key}-${pad2(sequence)}`;
     const now = nowStamp();
     const etaMinutes = Math.min(90, Math.max(10, ...items.map(item => item.prepMinutes)) + 5);
 
@@ -259,6 +326,19 @@ async function placeOrder({ dishIds, note }) {
 
     const order = {
         id: orderId,
+        slotKey: slot.key,
+        scheduledFor: slot.scheduledFor,
+        slot: {
+            id: slot.id,
+            key: slot.key,
+            date: slot.date,
+            time: slot.time,
+            label: slot.label,
+            emoji: slot.emoji,
+            weekday: slot.weekday,
+            dateLabel: slot.dateLabel,
+            scheduledFor: slot.scheduledFor
+        },
         status: 'pending',
         items,
         total,
@@ -285,7 +365,7 @@ async function placeOrder({ dishIds, note }) {
         amount: -total,
         balanceAfter: newBalance,
         orderId,
-        note: `下单 #${String(orderId).padStart(3, '0')}：${items.map(item => item.name).join('、')}`,
+        note: `下单 ${orderId}：${items.map(item => item.name).join('、')}`,
         createdAt: now,
         by: 'user'
     };
@@ -305,12 +385,6 @@ async function placeOrder({ dishIds, note }) {
         throw error;
     }
 
-    try {
-        await dbPut(COUNTERS_PATH, { ...counters, order: orderId });
-    } catch (error) {
-        console.warn('订单号计数保存失败，下次会自动校正:', error);
-    }
-
     return { order, wallet: nextWallet };
 }
 
@@ -320,7 +394,8 @@ async function setOrderStatus(orderId, status, options = {}) {
     const order = await getOrder(orderId);
     const by = options.by || 'admin';
     const allowed = {
-        pending: ['prepping'],
+        pending: ['accepted'],
+        accepted: ['prepping'],
         prepping: ['cooking'],
         cooking: ['served'],
         served: ['completed']
@@ -351,7 +426,7 @@ async function cancelOrder(orderId, options = {}) {
     if (!ORDER_ACTIVE.includes(order.status)) {
         throw makeError('NOT_ACTIVE', '这一单已经结束了');
     }
-    if (by === 'user' && !['pending', 'prepping'].includes(order.status)) {
+    if (by === 'user' && !['pending', 'accepted'].includes(order.status)) {
         throw makeError('COOKING', '大厨已经开始做了，取消要和大厨说一声');
     }
     if (order.payment && order.payment.refundedAt) {
@@ -373,7 +448,7 @@ async function cancelOrder(orderId, options = {}) {
             amount: order.total,
             balanceAfter: newBalance,
             orderId,
-            note: `取消退款 #${String(orderId).padStart(3, '0')}`,
+            note: `取消退款 ${orderId}`,
             createdAt: now,
             by
         }, ...wallet.entries].slice(0, 200)
@@ -495,6 +570,7 @@ async function upsertDish(input) {
         price: Math.max(0, Math.floor(Number(input.price) || 0)),
         prepMinutes: Math.max(1, Math.floor(Number(input.prepMinutes) || 10)),
         icon: String(input.icon || '🍽️').slice(0, 8),
+        image: String(input.image || '').trim(),
         tags: Array.isArray(input.tags)
             ? input.tags.map(tag => String(tag).trim()).filter(Boolean).slice(0, 5)
             : String(input.tags || '').split(/[,，、\s]+/).map(tag => tag.trim()).filter(Boolean).slice(0, 5),

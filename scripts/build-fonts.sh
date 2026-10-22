@@ -54,7 +54,7 @@ try:
 except Exception:
     pass
 
-for name in ['index.html', 'use.html', 'admin.html', 'js/app.js', 'js/store.js', 'js/oss-utils.js', 'css/style.css', 'scripts/migrate-storage.js']:
+for name in ['index.html', 'use.html', 'admin.html', 'js/app.js', 'js/store.js', 'js/oss-utils.js', 'css/style.css', 'scripts/migrate-storage.js', 'scripts/menu-seed.js', 'scripts/serving-seed.js', 'scripts/update-schedule-menu.js']:
     for ch in pathlib.Path(name).read_text():
         if ord(ch) < 128 or '一' <= ch <= '鿿' or ch in '，。！？、；：""''《》…—·（）【】「」『』～':
             chars.add(ch)

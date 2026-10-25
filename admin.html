@@ -2430,6 +2430,24 @@
         return barkVariables(adminData.space, BARK_SAMPLE_ORDER, BARK_SAMPLE_EXTRA);
     }
 
+    function sampleBarkOrder(event) {
+        const order = {
+            ...BARK_SAMPLE_ORDER,
+            items: BARK_SAMPLE_ORDER.items.map(item => ({ ...item }))
+        };
+        if (event === 'served') {
+            const dishes = (adminData && adminData.menu && adminData.menu.dishes) || [];
+            const dish = dishes.find(item => item.image || (Array.isArray(item.images) && item.images.some(Boolean)));
+            const raw = dish ? (dish.image || (dish.images || []).find(Boolean)) : '';
+            const settings = (adminData.space && adminData.space.settings) || {};
+            const base = (settings.links && settings.links.user) || window.location.href;
+            let image = '';
+            try { image = raw ? new URL(raw, base).href : ''; } catch (error) { image = raw; }
+            if (order.items[0]) order.items[0].servedImage = image;
+        }
+        return order;
+    }
+
     function currentBarkTemplateDraft() {
         return {
             title: $('bark-template-title').value,
@@ -2527,9 +2545,11 @@
         const body = renderBarkTemplate(draft.body, vars);
         const url = renderBarkTemplate(draft.url, vars);
         const audience = ['newOrder', 'userCancel', 'nudge'].includes(event) ? 'admin' : 'user';
+        const order = sampleBarkOrder(event);
+        const image = event === 'served' ? firstServedImage(order) : '';
         const ok = await adminConfirm({
             title: `测试预览 · ${BARK_EVENT_LABELS[event]}`,
-            message: `${subtitle ? subtitle + '\n' : ''}${title}\n\n${body}\n\n${url}`,
+            message: `${subtitle ? subtitle + '\n' : ''}${title}\n\n${body}\n\n${url}${image ? '\n\n（会附带一张样例成品图）' : ''}`,
             okText: '确认发送',
             cancelText: '先不发'
         });
@@ -2540,8 +2560,9 @@
             const sent = await sendBark(adminData.space, {
                 audience,
                 template: draft,
-                order: BARK_SAMPLE_ORDER,
-                variables: BARK_SAMPLE_EXTRA
+                order,
+                variables: BARK_SAMPLE_EXTRA,
+                image
             });
             showMessage(sent ? '测试通知已发送' : '发送失败，请检查密钥或 Bark 开关', sent ? 'success' : 'error');
         } catch (error) {

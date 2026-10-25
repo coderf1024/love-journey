@@ -31,6 +31,7 @@
 - `node --check js/store.js`
 - Node + vm 渲染样例：`newOrder` / `userCancel`（有/无备注、有/无原因）/ `nudge` / `cooking` / `served`，换行和空块符合预期。
 - `sendBark()` 端到端 payload：出餐请求含 `image`，空原因不出现「原因：」，空备注不出现「备注：」。
+- 管理端「发送测试」对出餐事件附带当前菜单第一张图作为样例成品图，可在没有真实订单时验证配图。
 - 无头 Chrome 加载 `admin.html`：DOM 正常生成，console 仅有浏览器自身的 password/meta 提示，无 JS 报错。
 - `firstServedImage()` 返回第一张 `servedImage`。
 

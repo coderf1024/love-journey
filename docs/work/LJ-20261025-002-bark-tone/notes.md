@@ -8,6 +8,7 @@
 
 ## 发现
 
+- 2026-10-25 只读检查线上 `space.json`：`bark.templates` 只保存了 `newOrder` 一条，内容与旧默认一致（副标题「管理端」、正文以 `{orderId}` 开头）。其余四个事件未保存，发布后会自动使用新默认；`newOrder` 需要在管理端点「恢复默认」再保存。
 - `sendBark()` 原来调用 `barkVariables(space, order)` 后再展开 `variables`，导致 `barkVariables` 内部拿不到 `reason`。改为把 `variables` 作为 `extra` 传入，输出等价，且块变量可以基于 `reason` 生成。
 - 出餐有两条推送路径：`serveOrder()`（正常流程）和 `setOrderStatus('served')`（兼容路径）。两处都补了配图逻辑。
 - 管理端没有 hash 路由，`{adminUrl}` 落在首页「需要你处理」列表，系统通知的跳转够用。

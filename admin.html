@@ -590,7 +590,7 @@
     }
 
     /* dialog + toast */
-    .admin-dialog { position: fixed; inset: 0; z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .admin-dialog { position: fixed; inset: 0; z-index: 140; display: none; align-items: center; justify-content: center; padding: 20px; }
     .admin-dialog.is-open { display: flex; }
     .admin-dialog-backdrop { position: absolute; inset: 0; background: rgba(24, 18, 27, .42); }
     .admin-dialog-card { position: relative; z-index: 1; width: min(100%, 360px); padding: 20px; background: var(--admin-soft); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 24px 60px -20px rgba(24, 18, 27, .45); }
@@ -1303,6 +1303,10 @@
     });
     document.addEventListener('keydown', event => {
         if (event.key !== 'Escape') return;
+        if ($('admin-confirm').classList.contains('is-open')) {
+            resolveAdminConfirm(false);
+            return;
+        }
         if ($('image-lightbox').classList.contains('is-open')) {
             closeImageLightbox();
             return;
@@ -1317,10 +1321,6 @@
         }
         if ($('dish-modal').classList.contains('is-open')) {
             closeDishModal();
-            return;
-        }
-        if ($('admin-confirm').classList.contains('is-open')) {
-            resolveAdminConfirm(false);
         }
     });
 

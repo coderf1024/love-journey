@@ -2,7 +2,9 @@
 
 ## 核心原则
 
-**一个需求 = 一个任务 ID = 一个 worktree = 一个分支 = 一个 `docs/work/<task-id>/` 文件夹。**
+**一个需求 = 一个任务 ID = 一个分支 = 一个 `docs/work/<task-id>/` 文件夹。**
+
+不使用 git worktree。所有开发都在主工作目录里切换分支完成；一个分支同一时间只承载一个需求。
 
 一个人 + 一个 AI 的模式下，真正的风险不是“代码写不出来”，而是：
 
@@ -25,7 +27,7 @@ LJ-20261026-001-serving-gallery
 LJ-20261026-002-bark-templates
 ```
 
-同一天多个任务递增 `NN`。任务 ID 同时用于分支、worktree 和文档目录。
+同一天多个任务递增 `NN`。任务 ID 同时用于分支和文档目录。
 
 ## 状态
 
@@ -68,15 +70,16 @@ AI 写 `plan.md`：
 
 方案有重大取舍时，补一份 ADR。
 
-### 3. 建 worktree
+### 3. 建分支
+
+从当前工作分支拉出新分支（通常就是当前所在的基线分支）：
 
 ```bash
-git fetch origin
-git worktree add .claude/worktrees/<task-id> -b feat/<task-id> origin/main
-cd .claude/worktrees/<task-id>
+git status                      # 确认工作区干净
+git checkout -b feat/<task-id>
 ```
 
-如果是修复：`fix/<task-id>`；纯工程/文档：`chore/<task-id>`。
+如果是修复：`fix/<task-id>`；纯工程/文档：`chore/<task-id>`。不要新建 worktree。
 
 从 `docs/work/_template/` 复制任务文件夹：
 
@@ -85,13 +88,13 @@ mkdir -p docs/work/<task-id>
 cp docs/work/_template/*.md docs/work/<task-id>/
 ```
 
-更新 `STATUS.md`：状态 `in-progress`、分支、worktree 路径、开始时间。
+更新 `STATUS.md`：状态 `in-progress`、分支、开始时间。
 
 ### 4. 开发
 
 - 每个可验收的小步提交一次，commit message 带任务 ID。
 - 修改线上数据前先只读确认；数据迁移先 dry-run。
-- 不把其他任务的改动带进这个 worktree。
+- 切分支前必须提交当前改动；不要把未提交的改动带到另一个需求的分支上。
 - 不新增构建/测试工具链；按 `QA.md` 手动检查。
 - 每次决定/发现写入 `notes.md`，不要只留在聊天里。
 
@@ -102,7 +105,7 @@ cp docs/work/_template/*.md docs/work/<task-id>/
 1. 更新当前任务 `STATUS.md`：已完成、未完成、关键文件、下一步、阻塞。
 2. 提交/保存当前改动（至少 commit 到功能分支）。
 3. 更新 `docs/work/BOARD.md` 的状态和下一步。
-4. 再进入另一个 worktree。
+4. 再切到另一个分支。
 
 AI 在新会话开始时应先读 `BOARD.md` 和当前任务 `STATUS.md`，不要凭上次记忆直接改。
 
@@ -167,13 +170,14 @@ AI 在新会话开始时应先读 `BOARD.md` 和当前任务 `STATUS.md`，不�
 不要修改其他任务的文件；不要动线上 OSS 数据，除非我明确授权。
 ```
 
-## worktree 清理
+## 分支清理
 
-合并完成后：
+合并回基线分支后：
 
 ```bash
-git worktree remove .claude/worktrees/<task-id>
+git checkout feat/love-space-ordering
+git merge --no-ff feat/<task-id>
 git branch -d feat/<task-id>
 ```
 
-任务文件夹保留在 `docs/work/` 作为历史记录，不随 worktree 删除。
+任务文件夹保留在 `docs/work/` 作为历史记录。不要使用 `git worktree`；本仓库不再创建 worktree。

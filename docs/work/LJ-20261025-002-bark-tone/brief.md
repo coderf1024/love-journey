@@ -3,8 +3,8 @@
 - 状态：in-review
 - 提出人：人
 - 日期：2026-10-25
-- 分支：`feat/LJ-20261025-002-bark-tone`
-- worktree：`.claude/worktrees/LJ-20261025-002-bark-tone`
+- 分支：`feat/LJ-20261025-002-bark-tone`（已合入 `feat/love-space-ordering`，merge `9dcccd6`）
+- worktree：已删除（本任务之后不再使用 worktree）
 
 ## 背景与目标
 

@@ -23,14 +23,13 @@ This repo is developed by **one human + one AI**, with several requirements able
 3. If there is no task ID for the request, create/agree one before editing; copy `docs/work/_template/`.
 4. Report current status, scope, next 1–3 actions, and open questions before code changes.
 
-### One requirement = one worktree + branch
+### One requirement = one branch
 
 - Task IDs: `LJ-YYYYMMDD-NN-short-slug`.
-- Branch: `feat/<task-id>`, `fix/<task-id>`, or `chore/<task-id>`.
-- Worktree: `.claude/worktrees/<task-id>` (ignored by git).
+- Branch: `feat/<task-id>`, `fix/<task-id>`, or `chore/<task-id>`, created from the current working branch.
+- Work directly in the main checkout on that branch. **Do not create git worktrees.**
 - Task docs: `docs/work/<task-id>/`.
 - Update `STATUS.md` and `BOARD.md` before switching requirements or ending a session.
-- The current `feat/love-space-ordering` work is the baseline exception; from the next new requirement onward, use a separate worktree.
 
 ### Quality and release
 

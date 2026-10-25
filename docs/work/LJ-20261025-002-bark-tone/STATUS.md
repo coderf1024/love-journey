@@ -1,9 +1,9 @@
 # LJ-20261025-002-bark-tone · 状态
 
 - 状态：in-review
-- 分支：`feat/LJ-20261025-002-bark-tone`
-- worktree：`.claude/worktrees/LJ-20261025-002-bark-tone`
-- 最后更新：2026-10-25 22:05
+- 分支：`feat/LJ-20261025-002-bark-tone`（已合入 `feat/love-space-ordering`，merge `9dcccd6`）
+- worktree：已删除
+- 最后更新：2026-10-25 22:35
 - 当前负责人：人（验收）
 
 ## 已完成

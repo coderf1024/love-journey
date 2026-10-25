@@ -8,19 +8,19 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="管理端">
 <title>管理端 · 恋爱空间</title>
-<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261023-25" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261023-25" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261025-01" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261025-01" as="font" type="font/woff2" crossorigin>
 <style>
     @font-face {
         font-family: 'Ma Shan Zheng';
-        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261023-25') format('woff2');
+        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261025-01') format('woff2');
         font-weight: 400;
         font-style: normal;
         font-display: swap;
     }
     @font-face {
         font-family: 'Noto Serif SC';
-        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261023-25') format('woff2');
+        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261025-01') format('woff2');
         font-weight: 700;
         font-style: normal;
         font-display: swap;
@@ -86,7 +86,7 @@
         pointer-events: none;
     }
     body.admin-body::before {
-        background: url('assets/texture-noise.png?v=20261023-25') repeat;
+        background: url('assets/texture-noise.png?v=20261025-01') repeat;
         opacity: .06;
         mix-blend-mode: multiply;
     }
@@ -1067,10 +1067,10 @@
 <div class="admin-toast" id="message" role="status" aria-live="polite"></div>
 
 <script src="https://gosspublic.alicdn.com/aliyun-oss-sdk-6.18.0.min.js"></script>
-<script src="js/oss-config.js?v=20261023-25"></script>
-<script src="js/crypto-utils.js?v=20261023-25"></script>
-<script src="js/oss-utils.js?v=20261023-25"></script>
-<script src="js/store.js?v=20261023-25"></script>
+<script src="js/oss-config.js?v=20261025-01"></script>
+<script src="js/crypto-utils.js?v=20261025-01"></script>
+<script src="js/oss-utils.js?v=20261025-01"></script>
+<script src="js/store.js?v=20261025-01"></script>
 <script>
     const ORDER_LABEL = {
         pending: '待接单',
@@ -1134,12 +1134,12 @@
     };
     const BARK_SAMPLE_EXTRA = { refund: 38, reason: '临时有事', minutes: 18, balance: 482 };
     const BARK_TEMPLATE_VARIABLES = [
-        ['siteName', '空间名'], ['userName', '用户名'], ['adminName', '管理员'],
+        ['siteName', '空间名'], ['userName', '用户名'], ['userLabel', '用户名（空则 TA）'], ['adminName', '管理员'],
         ['userUrl', '用户端地址'], ['userOrderUrl', '用户端订单链接'], ['adminUrl', '管理端地址'], ['slotKey', '饭点 key'],
         ['orderId', '订单号'], ['slot', '饭点'], ['date', '日期'], ['time', '时间'],
         ['weekday', '星期'], ['items', '菜品'], ['itemCount', '菜数'], ['total', '合计'],
-        ['note', '备注'], ['status', '状态'], ['placedAt', '下单时间'], ['etaMinutes', '预计分钟'],
-        ['refund', '退款'], ['reason', '取消原因'], ['minutes', '等待分钟'], ['balance', '余额']
+        ['note', '备注'], ['noteBlock', '备注整行（空则隐藏）'], ['status', '状态'], ['placedAt', '下单时间'], ['etaMinutes', '预计分钟'],
+        ['refund', '退款'], ['reason', '取消原因'], ['reasonBlock', '原因整行（空则隐藏）'], ['minutes', '等待分钟'], ['balance', '余额']
     ];
     let barkTemplateEvent = null;
     let lastBarkField = 'bark-template-body';

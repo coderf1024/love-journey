@@ -32,13 +32,42 @@
 
 事件开关在 `space.settings.bark.events`；`false` 时 `sendBark()` 直接跳过。
 
+## 口吻
+
+五个事件按收件人分两套口吻，默认模板就是这个分工；改模板时不要混用。
+
+| | 大厨侧（`newOrder` / `userCancel` / `nudge`） | 用户侧（`cooking` / `served`） |
+|---|---|---|
+| 定位 | 系统通知 | 男朋友发来的消息 |
+| 标题 | 事件名：新预约 / 预约已取消 / 催一催 | 一句他说的话：我开火啦 / 做好啦，快来吃 |
+| 正文 | 人、菜、金额、备注/原因、当前状态，分行可扫读 | 在做什么、还要多久、你来干嘛 |
+| 人称 | 第三人称或无人称 | 第一人称「我」+ 第二人称「你」 |
+| 交易信息 | 合计、退款、原因全部保留 | 不出现金额、订单号、状态枚举 |
+| emoji | 不用 | 最多一个 |
+| 副标题 | 饭点 `{slot}` | 饭点 `{slot}` |
+
+- 大厨侧不放「管理端」、用户侧不放「用户端」这类渠道标签，收件人自己知道是哪个端。
+- 大厨侧默认不放订单号；需要排查时手动插入 `{orderId}`。
+- 用户侧不出现 `{status}`，状态枚举留给管理端。
+- `{minutes}` 目前是距下单时间，长预约会得到几千分钟，默认模板不使用；语义修好前不要写成「已经等了 X 分钟」。
+
 ## 变量
 
-`{siteName}`、`{userName}`、`{adminName}`、`{userUrl}`、`{userOrderUrl}`、`{adminUrl}`、`{slotKey}`、`{orderId}`、`{slot}`、`{date}`、`{time}`、`{weekday}`、`{items}`、`{itemCount}`、`{total}`、`{note}`、`{status}`、`{placedAt}`、`{etaMinutes}`、`{refund}`、`{reason}`、`{minutes}`、`{balance}`。
+`{siteName}`、`{userName}`、`{userLabel}`、`{adminName}`、`{userUrl}`、`{userOrderUrl}`、`{adminUrl}`、`{slotKey}`、`{orderId}`、`{slot}`、`{date}`、`{time}`、`{weekday}`、`{items}`、`{itemCount}`、`{total}`、`{note}`、`{noteBlock}`、`{status}`、`{placedAt}`、`{etaMinutes}`、`{refund}`、`{reason}`、`{reasonBlock}`、`{minutes}`、`{balance}`。
 
 - 未知变量替换为空字符串；不做条件语法。
 - `{items}` 是逗号连接的菜名，不带数量。
+- `{userLabel}` = 用户名，成员名为空时回退为「TA」，避免标题开头多出空格。
+- `{noteBlock}` / `{reasonBlock}` 自带前导换行：有值时渲染成 `\n备注：…` / `\n原因：…`，为空时整块消失。模板里直接接在上一行末尾，不要另起一行，否则会出现空行。
 - `{userOrderUrl}` = 用户端基础地址 + `?slot=<slotKey>#order`，用户打开后直接定位对应饭点。
+
+## 默认值与已保存模板
+
+`barkTemplate()` 返回 `{ ...默认模板, ...space.settings.bark.templates[event] }`。**代码里的默认值只对没有保存过的事件生效。** 如果线上 `space.json` 已保存旧模板，改代码不会改变实际推送；需要在管理端逐个事件点「恢复默认」或按新文案保存。
+
+## 出餐配图
+
+`serveOrder()` 和 `setOrderStatus('served')` 推送出餐通知时，会把订单里第一张非空 `servedImage` 作为 Bark 的 `image` 字段发送。图片 URL 必须能被 Bark 服务端公开访问；没有成品图时不传 `image`，推送照常发送。大厨侧通知不加图。
 
 ## 模板编辑
 

@@ -114,36 +114,41 @@ function makeError(code, message, extra) {
     return error;
 }
 
+/* 两套口吻：
+   大厨侧（newOrder / userCancel / nudge）是系统通知——事件名、人、菜、金额、
+   要做什么，分行可扫读，不用 emoji、不出现订单号；
+   用户侧（cooking / served）是男朋友发来的消息——我在做什么、还要多久、
+   你来看看，不出现金额和状态枚举。改模板时不要混用。 */
 const BARK_TEMPLATE_DEFAULTS = {
     newOrder: {
         title: '新预约',
-        subtitle: '管理端',
-        body: '{orderId} · {slot}\n{items} · 合计 {total} 币\n备注：{note}',
+        subtitle: '{slot}',
+        body: '{userLabel} 点了 {items}\n合计 {total} 币{noteBlock}\n去接单',
         url: '{adminUrl}'
     },
     userCancel: {
-        title: '用户取消',
-        subtitle: '管理端',
-        body: '{orderId} · {slot}\n{items} · 退款 {refund} 币\n原因：{reason}',
+        title: '预约已取消',
+        subtitle: '{slot}',
+        body: '原定：{items}\n已退回 {refund} 币{reasonBlock}',
         url: '{adminUrl}'
-    },
-    cooking: {
-        title: '开始制作',
-        subtitle: '用户端',
-        body: '{orderId} · {slot}\n{items}',
-        url: '{userOrderUrl}'
-    },
-    served: {
-        title: '出餐啦',
-        subtitle: '用户端',
-        body: '{orderId} · {slot}\n{items}',
-        url: '{userOrderUrl}'
     },
     nudge: {
         title: '催一催',
-        subtitle: '管理端',
-        body: '{orderId} · {slot}\n{items} · 当前「{status}」',
+        subtitle: '{slot}',
+        body: '{userLabel} 在等这单\n{items} · 当前「{status}」\n点开看看',
         url: '{adminUrl}'
+    },
+    cooking: {
+        title: '我开火啦 🔥',
+        subtitle: '{slot}',
+        body: '今天给你做 {items}\n大概 {etaMinutes} 分钟就好，等我一会儿',
+        url: '{userOrderUrl}'
+    },
+    served: {
+        title: '做好啦，快来吃 ❤️',
+        subtitle: '{slot}',
+        body: '{items} 刚出锅，趁热\n给你拍了照片，点开看看',
+        url: '{userOrderUrl}'
     }
 };
 
@@ -205,9 +210,13 @@ function barkVariables(space, order, extra = {}) {
     const admin = members.find(member => member.role === 'admin');
     const slot = (order && order.slot) || {};
     const userUrl = links.user || barkPageLink('user');
+    const userName = (user && user.name) || '';
+    const note = (order && order.note) || '';
+    const reason = (extra && extra.reason) || '';
     return {
         siteName: (space && space.name) || '',
-        userName: (user && user.name) || '',
+        userName,
+        userLabel: userName || 'TA',
         adminName: (admin && admin.name) || '',
         userUrl,
         adminUrl: links.admin || barkPageLink('admin'),
@@ -221,10 +230,13 @@ function barkVariables(space, order, extra = {}) {
         items: orderItemsText(order),
         itemCount: (order && order.items && order.items.length) || 0,
         total: order && order.total != null ? order.total : '',
-        note: (order && order.note) || '',
+        note,
+        noteBlock: note ? `\n备注：${note}` : '',
         status: order ? (ORDER_STATUS[order.status] || order.status) : '',
         placedAt: (order && order.placedAt) || '',
         etaMinutes: order && order.etaMinutes != null ? order.etaMinutes : '',
+        reason,
+        reasonBlock: reason ? `\n原因：${reason}` : '',
         ...extra
     };
 }
@@ -247,7 +259,7 @@ async function sendBark(space, options = {}) {
     const bark = (space && space.settings && space.settings.bark) || {};
     if (event && (bark.events || {})[event] === false) return false;
 
-    const vars = { ...barkVariables(space, order), ...variables };
+    const vars = barkVariables(space, order, variables);
     const tpl = template || (event ? barkTemplate(space, event) : null);
     let payloadTitle = title;
     let payloadSubtitle = subtitle;
@@ -300,6 +312,11 @@ function orderSlotText(order) {
 
 function orderItemsText(order) {
     return ((order && order.items) || []).map(item => item.name).join('、');
+}
+
+function firstServedImage(order) {
+    const item = ((order && order.items) || []).find(entry => entry && entry.servedImage);
+    return item ? String(item.servedImage) : '';
 }
 
 function dishImages(dish) {
@@ -628,11 +645,13 @@ async function setOrderStatus(orderId, status, options = {}) {
     await orderCollection.save(orderId, order);
 
     if (status === 'cooking' || status === 'served') {
+        const image = status === 'served' ? firstServedImage(order) : '';
         loadSpace()
             .then(space => sendBark(space, {
                 audience: 'user',
                 event: status === 'cooking' ? 'cooking' : 'served',
-                order
+                order,
+                image
             }))
             .catch(() => {});
     }
@@ -683,7 +702,8 @@ async function serveOrder(orderId, photos, options = {}) {
         .then(space => sendBark(space, {
             audience: 'user',
             event: 'served',
-            order
+            order,
+            image: firstServedImage(order)
         }))
         .catch(() => {});
 

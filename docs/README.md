@@ -24,7 +24,7 @@
 | [Bark 通知](./runbooks/bark.md) | 双密钥、模板变量、事件开关、深链 |
 | [GitHub Action](./runbooks/github-action.md) | 周更恋爱卡任务说明入口 |
 | [参考文档](./reference/README.md) | Bark API、OSS 配置、Action 配置、菜品照片来源 |
-| [需求流程](./work/README.md) | 一需求一 worktree/branch、STATUS、验收和交接 |
+| [需求流程](./work/README.md) | 一需求一分支、STATUS、验收和交接 |
 | [任务看板](./work/BOARD.md) | 当前需求状态和下一步 |
 | [决策记录](./decisions/README.md) | 已确认、会影响后续实现的 ADR |
 | [设计原型](./design/README.md) | 历史线框和视觉方案 |
@@ -40,7 +40,7 @@
 ## 工作约定
 
 - 需求说明、方案、状态、验收记录都写入 `docs/work/`，不依赖聊天记忆。
-- 一个需求一个分支 + 一个 worktree；切换需求前先更新该任务的 `STATUS.md`。
+- 一个需求一个分支，直接在主工作目录切换分支开发；不使用 worktree。切换需求前先更新该任务的 `STATUS.md`。
 - 线上以 `main` 为部署分支，功能分支验收后才合并。
 - 项目不新增构建/测试工具链；质量闸门以手动检查和现有命令为主。具体规则见 [需求流程](./work/README.md)。
 - 文档以中文为主；代码标识、字段名、命令保留英文。

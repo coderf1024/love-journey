@@ -2,7 +2,6 @@
 
 - 状态：draft / ready / in-progress / blocked / in-review / accepted / done / archived
 - 分支：
-- worktree：
 - 最后更新：YYYY-MM-DD HH:mm
 - 当前负责人：AI / 人
 

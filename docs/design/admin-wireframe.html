@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理端 · 管理后台线框 v4</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        color: #232323;
+        background: #e9e7e3;
+        padding: 36px 26px 70px;
+    }
+    a { color: inherit; }
+    .page-head { max-width: 1320px; margin: 0 auto 26px; }
+    .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .2em; color: #8a7b78; }
+    .page-head h1 { margin-top: 6px; font-size: 28px; letter-spacing: .01em; }
+    .page-head p { max-width: 860px; margin-top: 10px; color: #625c59; font-size: 14px; line-height: 1.75; }
+    .legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 14px; color: #777; font-size: 11px; }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .dot { width: 8px; height: 8px; border-radius: 999px; display: inline-block; }
+    .dot.accent { background: #b94a63; }
+    .dot.line { border: 1px solid #999; }
+    .dot.dash { border: 1px dashed #999; }
+
+    .ia { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 1320px; margin: 0 auto 34px; }
+    .ia-card { padding: 13px 15px; background: #f6f3ee; border: 1px solid #d6d3ce; border-radius: 12px; }
+    .ia-card b { display: block; margin-bottom: 5px; font-size: 12px; }
+    .ia-card p { color: #6b6560; font-size: 10.5px; line-height: 1.65; }
+    .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+    .chip { padding: 3px 8px; background: #fff; border: 1px solid #d6d3ce; border-radius: 999px; color: #6b6560; font-size: 9.5px; }
+    .chip.strong { background: #2b2231; border-color: #2b2231; color: #fff; }
+
+    .frames { display: flex; flex-wrap: wrap; gap: 36px 30px; align-items: flex-start; max-width: 1320px; margin: 0 auto; }
+    .frame-wrap { width: 300px; }
+    .frame-wrap h2 { margin-bottom: 9px; font-size: 13px; font-weight: 700; letter-spacing: .02em; }
+    .frame-wrap h2 em { margin-left: 5px; color: #b94a63; font-style: normal; font-size: 10px; font-weight: 600; letter-spacing: .1em; }
+
+    .phone {
+        width: 300px; height: 640px; display: flex; flex-direction: column; overflow: hidden;
+        background: #fdfdfb; border: 2px solid #2a2a2a; border-radius: 28px;
+        box-shadow: 0 18px 34px -24px rgba(0, 0, 0, .45);
+    }
+    .statusbar { flex: 0 0 auto; display: flex; justify-content: space-between; padding: 9px 18px 4px; color: #8d8d8d; font-size: 9px; letter-spacing: .08em; }
+    .screen { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; padding: 8px 14px 12px; overflow: hidden; }
+    .screen.scroll { overflow-y: auto; scrollbar-width: none; }
+    .screen.scroll::-webkit-scrollbar { display: none; }
+
+    .m-topbar { display: flex; align-items: center; gap: 8px; min-height: 30px; }
+    .m-topbar h2 { font-size: 17px; letter-spacing: -.01em; }
+    .m-topbar .right { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+    .m-topbar .sub { display: grid; gap: 1px; }
+    .m-topbar .sub b { font-size: 12px; }
+    .m-topbar .sub small { color: #8d8782; font-size: 9px; }
+    .avatar-sm { width: 30px; height: 30px; flex: 0 0 30px; display: grid; place-items: center; overflow: hidden; background: #f4d9dd; border: 1px solid #d9bcc1; border-radius: 999px; color: #a35163; font-size: 11px; font-weight: 700; }
+    .avatar-sm img { width: 100%; height: 100%; object-fit: cover; }
+    .icon-btn { position: relative; width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid #d6d3ce; border-radius: 999px; color: #625c59; font-size: 12px; }
+    .icon-btn .dot { position: absolute; top: 1px; right: 1px; background: #b94a63; border: 1px solid #fdfdfb; }
+    .back-btn { width: 24px; font-size: 18px; line-height: 1; color: #555; }
+
+    .greet { padding: 3px 1px 0; }
+    .greet h3 { font-size: 20px; letter-spacing: -.02em; }
+    .greet p { margin-top: 2px; color: #8d8782; font-size: 10px; }
+
+    .next-meal { padding: 12px 13px; color: #fff; background: #2b2231; border-radius: 15px; }
+    .next-meal .wf-label { color: rgba(255,255,255,.55); }
+    .next-meal b { display: block; margin-top: 3px; font-size: 15px; }
+    .next-meal p { margin-top: 2px; color: rgba(255,255,255,.68); font-size: 10px; }
+    .next-foot { display: flex; align-items: center; margin-top: 9px; }
+    .next-foot > span:first-child { color: #f0c7ce; font-size: 9.5px; }
+    .next-foot .btn { margin-left: auto; }
+    .btn.light { background: #fff; border-color: #fff; color: #2b2231; }
+
+    .wf-label { color: #9a938e; font-size: 8px; font-weight: 700; letter-spacing: .14em; }
+
+    .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+    .kpi { padding: 9px 10px; background: #f7f5f1; border: 1px solid #d6d3ce; border-radius: 11px; }
+    .kpi b { display: block; color: #b94a63; font-size: 19px; line-height: 1.1; }
+    .kpi span { color: #7b746d; font-size: 9px; }
+    .kpi small { display: block; margin-top: 1px; color: #9a938e; font-size: 8px; }
+
+    .section-head { display: flex; align-items: baseline; margin-top: 1px; }
+    .section-head b { font-size: 12px; }
+    .section-head span { margin-left: auto; color: #9a938e; font-size: 9px; }
+    .todo { display: grid; gap: 6px; }
+    .todo-row { display: flex; align-items: center; gap: 8px; padding: 8px 9px; background: #fff; border: 1px solid #d6d3ce; border-radius: 10px; }
+    .todo-icon { width: 24px; height: 24px; flex: 0 0 24px; display: grid; place-items: center; background: #f4e4e6; border-radius: 7px; color: #b94a63; font-size: 10px; }
+    .todo-icon.calm { background: #ecebe7; color: #7b746d; }
+    .todo-main { flex: 1; min-width: 0; display: grid; gap: 1px; }
+    .todo-main b { font-size: 10px; }
+    .todo-main small { color: #8d8782; font-size: 8.5px; }
+    .todo-row .btn { padding: 4px 8px; font-size: 9px; }
+
+    .quick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .quick button { padding: 9px 4px; background: #f7f5f1; border: 1px dashed #c9c4bd; border-radius: 10px; color: #625c59; font-size: 9.5px; }
+    .quick button b { display: block; margin-bottom: 2px; font-size: 14px; font-weight: 400; }
+
+    .tabbar { flex: 0 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); padding: 7px 8px 9px; border-top: 1px solid #e1ddd7; background: #fbf9f5; }
+    .tab { position: relative; text-align: center; color: #948d87; font-size: 8.5px; }
+    .tab b { display: block; margin-bottom: 1px; font-size: 15px; font-weight: 400; line-height: 1.1; }
+    .tab.active { color: #b94a63; }
+    .tab .badge { position: absolute; top: -2px; right: 20%; min-width: 13px; height: 13px; display: grid; place-items: center; padding: 0 3px; background: #b94a63; border-radius: 999px; color: #fff; font-size: 7px; }
+
+    .filters { display: flex; gap: 5px; overflow: hidden; }
+    .filter { flex: 0 0 auto; padding: 5px 10px; border: 1px solid #d6d3ce; border-radius: 999px; color: #77706a; font-size: 9px; white-space: nowrap; }
+    .filter.active { background: #2b2231; border-color: #2b2231; color: #fff; }
+    .filter .n { opacity: .65; }
+
+    .slot-head { display: flex; align-items: baseline; margin-top: 2px; padding: 0 1px; }
+    .slot-head b { font-size: 10.5px; }
+    .slot-head span { margin-left: auto; color: #9a938e; font-size: 8.5px; }
+    .slot-head.muted { margin-top: 6px; color: #8d8782; }
+
+    .card { padding: 10px 11px; background: #f7f5f1; border: 1px solid #d6d3ce; border-radius: 12px; }
+    .card.white { background: #fff; }
+    .card + .card { margin-top: 7px; }
+    .order-top { display: flex; align-items: center; gap: 6px; }
+    .order-top b { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9.5px; letter-spacing: -.02em; }
+    .order-top .pill { margin-left: auto; }
+    .wait { display: flex; align-items: center; gap: 4px; margin-top: 3px; color: #b94a63; font-size: 8.5px; }
+    .wait::before { content: ""; width: 4px; height: 4px; background: #b94a63; border-radius: 999px; }
+    .item { display: flex; align-items: center; gap: 7px; margin-top: 7px; }
+    .item img { width: 38px; height: 38px; flex: 0 0 38px; object-fit: cover; border-radius: 8px; }
+    .item .item-main { flex: 1; min-width: 0; display: grid; gap: 1px; }
+    .item .item-main b { font-size: 10px; }
+    .item .item-main small { color: #8d8782; font-size: 8px; }
+    .item em { color: #8d8782; font-size: 8.5px; font-style: normal; }
+    .note { margin-top: 7px; padding: 6px 8px; background: #fff; border-left: 2px solid #d9bcc1; color: #77706a; font-size: 9px; line-height: 1.5; }
+    .order-foot { display: flex; align-items: center; margin-top: 8px; padding-top: 7px; border-top: 1px dashed #d6d3ce; }
+    .order-foot > b { font-size: 11px; }
+    .order-foot .actions { display: flex; gap: 5px; margin-left: auto; }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 5px 10px; background: #fff; border: 1px solid #2a2a2a; border-radius: 999px; color: #2a2a2a; font-size: 9.5px; white-space: nowrap; }
+    .btn.dark { background: #2b2231; border-color: #2b2231; color: #fff; }
+    .btn.accent { background: #b94a63; border-color: #b94a63; color: #fff; }
+    .btn.ghost { border-color: #cfc9c1; color: #6b6560; }
+    .btn.block { width: 100%; padding: 8px 10px; }
+    .btn.sm { padding: 3px 8px; font-size: 8.5px; }
+
+    .pill { display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 999px; font-size: 8px; white-space: nowrap; }
+    .pill.accent { background: #f6e2e6; color: #b94a63; }
+    .pill.dark { background: #2b2231; color: #fff; }
+    .pill.green { background: #e3efeb; color: #447a6d; }
+    .status-text { color: #9a938e; font-size: 8px; white-space: nowrap; }
+
+    .slot-hero { padding: 12px 13px; background: #f7f5f1; border: 1px solid #d6d3ce; border-radius: 13px; }
+    .slot-hero .wf-label { display: block; margin-bottom: 3px; }
+    .slot-hero b { display: block; font-size: 16px; }
+    .slot-hero p { margin-top: 2px; color: #8d8782; font-size: 9px; }
+    .slot-hero .countdown { margin-top: 8px; padding-top: 7px; border-top: 1px dashed #d6d3ce; color: #b94a63; font-size: 9.5px; }
+
+    .detail-items { overflow: hidden; background: #fff; border: 1px solid #d6d3ce; border-radius: 11px; }
+    .detail-item { display: flex; align-items: center; gap: 7px; padding: 8px 10px; border-bottom: 1px dashed #e1ddd7; }
+    .detail-item:last-child { border-bottom: 0; }
+    .detail-item img { width: 32px; height: 32px; flex: 0 0 32px; object-fit: cover; border-radius: 7px; }
+    .detail-item span { flex: 1; }
+    .detail-item span b { display: block; margin-bottom: 1px; font-size: 10px; }
+    .detail-item span small { display: block; color: #8d8782; font-size: 8px; }
+    .detail-item > b { font-size: 9.5px; }
+    .pay-row { display: flex; align-items: center; padding: 8px 10px; background: #f7f5f1; border: 1px solid #d6d3ce; border-radius: 10px; font-size: 9.5px; }
+    .pay-row b { margin-left: auto; font-size: 11px; }
+
+    .timeline { padding: 8px 10px 4px; background: #fff; border: 1px solid #d6d3ce; border-radius: 11px; }
+    .timeline-row { position: relative; display: flex; padding: 0 0 9px 13px; font-size: 9px; }
+    .timeline-row::before { content: ""; position: absolute; left: 0; top: 4px; width: 5px; height: 5px; background: #b94a63; border-radius: 999px; }
+    .timeline-row::after { content: ""; position: absolute; left: 2px; top: 10px; bottom: 0; width: 1px; background: #e1ddd7; }
+    .timeline-row:last-child::after { display: none; }
+    .timeline-row span { flex: 1; }
+    .timeline-row small { color: #8d8782; font-size: 8px; font-variant-numeric: tabular-nums; }
+
+    .action-bar { flex: 0 0 auto; display: flex; gap: 7px; padding: 9px 14px 12px; border-top: 1px solid #e1ddd7; background: #fbf9f5; }
+    .action-bar .btn { flex: 1; padding: 8px 10px; }
+
+    .search { display: flex; align-items: center; gap: 6px; padding: 6px 9px; background: #f7f5f1; border: 1px solid #d6d3ce; border-radius: 999px; color: #9a938e; font-size: 9px; }
+    .summary-line { display: flex; align-items: baseline; color: #8d8782; font-size: 9px; }
+    .summary-line b { color: #232323; font-size: 11px; }
+    .summary-line span { margin-left: auto; }
+
+    .dish-row { display: flex; align-items: center; gap: 8px; padding: 8px 9px; background: #fff; border: 1px solid #d6d3ce; border-radius: 11px; }
+    .dish-row img { width: 42px; height: 42px; flex: 0 0 42px; object-fit: cover; border-radius: 8px; }
+    .dish-main { flex: 1; min-width: 0; display: grid; gap: 2px; }
+    .dish-main b { font-size: 10px; }
+    .dish-main small { color: #8d8782; font-size: 8px; }
+    .tags { display: flex; flex-wrap: wrap; gap: 4px; }
+    .tags span { padding: 1px 5px; background: #f4e9dc; border-radius: 999px; color: #8a7351; font-size: 7px; }
+    .dish-main .tags { display: flex; gap: 4px; }
+    .dish-main .tags span { padding: 1px 5px; background: #f4e9dc; border-radius: 999px; color: #8a7351; font-size: 7px; }
+    .dish-row .right { display: grid; justify-items: end; gap: 4px; }
+    .dish-row .right .pill { font-size: 7px; }
+    .dish-row .chev { color: #b3aca5; font-size: 14px; }
+
+    .form-field { display: grid; gap: 4px; }
+    .form-field label { color: #77706a; font-size: 8.5px; }
+    .input { padding: 7px 9px; background: #fff; border: 1px solid #d6d3ce; border-radius: 8px; color: #232323; font-size: 9.5px; }
+    .input.placeholder { color: #aaa39c; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+    .photo-upload { height: 92px; display: grid; place-items: center; background: #f7f5f1; border: 1px dashed #b7b1aa; border-radius: 11px; color: #9a938e; font-size: 9px; text-align: center; }
+    .photo-upload b { display: block; margin-bottom: 2px; font-size: 16px; font-weight: 400; }
+    .switch-row { display: flex; align-items: center; padding: 7px 0; border-bottom: 1px dashed #e1ddd7; font-size: 9.5px; }
+    .switch-row:last-child { border-bottom: 0; }
+    .switch { width: 28px; height: 16px; margin-left: auto; padding: 2px; background: #d6d3ce; border-radius: 999px; }
+    .switch i { display: block; width: 12px; height: 12px; background: #fff; border-radius: 999px; }
+    .switch.on { background: #b94a63; }
+    .switch.on i { margin-left: 12px; }
+
+    .more-profile { display: flex; align-items: center; gap: 10px; padding: 12px; background: #f7f5f1; border: 1px solid #d6d3ce; border-radius: 13px; }
+    .more-profile .avatar-sm { width: 42px; height: 42px; flex-basis: 42px; }
+    .more-profile b { font-size: 13px; }
+    .more-profile small { display: block; margin-top: 2px; color: #8d8782; font-size: 8.5px; }
+    .more-profile span { margin-left: auto; color: #b3aca5; }
+    .group { overflow: hidden; background: #f7f5f1; border: 1px solid #d6d3ce; border-radius: 12px; }
+    .group-row { display: flex; align-items: center; gap: 9px; padding: 11px 12px; border-bottom: 1px dashed #d6d3ce; font-size: 10px; }
+    .group-row:last-child { border-bottom: 0; }
+    .group-icon { width: 24px; height: 24px; flex: 0 0 24px; display: grid; place-items: center; background: #fff; border: 1px solid #d6d3ce; border-radius: 7px; color: #8a837c; font-size: 9px; }
+    .group-row span { flex: 1; }
+    .group-row small { color: #8d8782; font-size: 8.5px; }
+    .group-row .chev { color: #b3aca5; font-size: 13px; }
+
+    .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .stat { padding: 8px 4px; text-align: center; background: #f7f5f1; border: 1px solid #d6d3ce; border-radius: 10px; }
+    .stat b { display: block; color: #232323; font-size: 16px; }
+    .stat span { color: #8d8782; font-size: 8px; }
+    .stat.accent b { color: #b94a63; }
+
+    .coupon-row { display: flex; align-items: center; gap: 8px; padding: 8px 9px; background: #fff; border: 1px solid #d6d3ce; border-radius: 10px; }
+    .coupon-icon { width: 30px; height: 30px; flex: 0 0 30px; display: grid; place-items: center; background: #f4e9dc; border-radius: 8px; font-size: 12px; }
+    .coupon-main { flex: 1; min-width: 0; display: grid; gap: 1px; }
+    .coupon-main b, .coupon-main small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .coupon-main b { font-size: 9.5px; }
+    .coupon-main small { color: #8d8782; font-size: 8px; }
+    .trash { color: #b3aca5; font-size: 11px; }
+
+    .ledger { overflow: hidden; background: #fff; border: 1px solid #d6d3ce; border-radius: 11px; }
+    .ledger-row { display: flex; align-items: center; gap: 7px; padding: 8px 9px; border-bottom: 1px dashed #e1ddd7; }
+    .ledger-row:last-child { border-bottom: 0; }
+    .ledger-icon { width: 24px; height: 24px; flex: 0 0 24px; display: grid; place-items: center; color: #6b6560; font-size: 11px; }
+    .ledger-icon.pink { color: #b94a63; }
+    .ledger-main { flex: 1; display: grid; gap: 1px; }
+    .ledger-main b { font-size: 9px; font-weight: 500; }
+    .ledger-main small { color: #8d8782; font-size: 7.5px; }
+    .amount { font-size: 9.5px; font-variant-numeric: tabular-nums; }
+    .amount.plus { color: #447a6d; }
+    .amount.minus { color: #b94a63; }
+
+    .notice-row { display: flex; gap: 8px; padding: 9px; background: #fff; border: 1px solid #d6d3ce; border-radius: 11px; }
+    .notice-mark { width: 6px; height: 6px; flex: 0 0 6px; margin-top: 5px; background: #b94a63; border-radius: 999px; }
+    .notice-mark.read { background: #d6d3ce; }
+    .notice-main { flex: 1; min-width: 0; display: grid; gap: 2px; }
+    .notice-main b { font-size: 9.5px; }
+    .notice-main p { color: #77706a; font-size: 8.5px; line-height: 1.5; }
+    .notice-meta { display: flex; align-items: center; gap: 5px; margin-top: 3px; }
+    .notice-meta small { color: #9a938e; font-size: 7.5px; }
+    .notice-meta .btn { margin-left: auto; }
+
+    .hint-box { padding: 9px 10px; background: #f4eee8; border: 1px dashed #c9c4bd; border-radius: 9px; color: #77706a; font-size: 8.5px; line-height: 1.55; }
+
+    /* serving photo + dish gallery */
+    .serve-banner { padding: 10px 11px; background: #f4eee8; border: 1px dashed #c9c4bd; border-radius: 10px; color: #77706a; font-size: 9px; line-height: 1.55; }
+    .serve-banner b { color: #232323; }
+    .serve-row { display: flex; align-items: center; gap: 9px; padding: 10px; background: #fff; border: 1px solid #d6d3ce; border-radius: 12px; }
+    .serve-row + .serve-row { margin-top: 7px; }
+    .serve-thumb { width: 48px; height: 48px; flex: 0 0 48px; overflow: hidden; background: #f3eee7; border-radius: 9px; }
+    .serve-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .serve-main { flex: 1; min-width: 0; display: grid; gap: 2px; }
+    .serve-main b { font-size: 10px; }
+    .serve-main small { color: #8d8782; font-size: 8px; }
+    .serve-actions { display: grid; justify-items: end; gap: 4px; }
+    .serve-camera { padding: 5px 9px; background: #2b2231; border-radius: 999px; color: #fff; font-size: 8.5px; }
+    .serve-album { color: #8d8782; font-size: 7.5px; }
+    .serve-state { display: inline-flex; align-items: center; gap: 3px; color: #447a6d; font-size: 7.5px; }
+    .serve-state::before { content: ""; width: 4px; height: 4px; background: #447a6d; border-radius: 999px; }
+    .serve-state.pending { color: #b94a63; }
+    .serve-state.pending::before { background: #b94a63; }
+    .serve-photo { position: relative; width: 48px; height: 48px; flex: 0 0 48px; overflow: hidden; border-radius: 9px; }
+    .serve-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .serve-photo span { position: absolute; right: 2px; bottom: 2px; padding: 1px 4px; background: rgba(43,34,49,.75); border-radius: 999px; color: #fff; font-size: 6px; }
+    .serve-required { display: flex; align-items: center; justify-content: space-between; margin-top: 9px; padding-top: 8px; border-top: 1px dashed #e1ddd7; color: #8d8782; font-size: 8.5px; }
+    .serve-required b { color: #b94a63; }
+    .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .gallery-tile { position: relative; aspect-ratio: 1; overflow: hidden; background: #f3eee7; border: 1px solid #d6d3ce; border-radius: 9px; }
+    .gallery-tile.is-main { border-color: #2b2231; box-shadow: 0 0 0 1px #2b2231 inset; }
+    .gallery-tile img { width: 100%; height: 100%; object-fit: cover; }
+    .gallery-tile .main-tag { position: absolute; left: 4px; top: 4px; padding: 1px 5px; background: #2b2231; border-radius: 999px; color: #fff; font-size: 6px; }
+    .gallery-tile .drag { position: absolute; right: 4px; top: 3px; color: #fff; font-size: 10px; text-shadow: 0 1px 3px rgba(0,0,0,.4); }
+    .gallery-tile .tile-tools { position: absolute; right: 3px; bottom: 3px; display: flex; gap: 3px; }
+    .gallery-tile .tile-tools span { padding: 1px 4px; background: rgba(255,255,255,.9); border-radius: 4px; color: #6b6560; font-size: 5.5px; }
+    .gallery-note { margin-top: 4px; color: #9a938e; font-size: 7.5px; line-height: 1.5; }
+    .gallery-add { aspect-ratio: 1; display: grid; place-items: center; border: 1px dashed #c9c4bd; border-radius: 9px; color: #8d8782; font-size: 8px; text-align: center; }
+    .gallery-add b { display: block; font-size: 16px; font-weight: 400; }
+    .user-carousel { position: relative; margin: 0 -16px; aspect-ratio: 4 / 3; overflow: hidden; background: #f3eee7; }
+    .user-carousel img { width: 100%; height: 100%; object-fit: cover; }
+    .carousel-dots { position: absolute; bottom: 9px; left: 0; right: 0; display: flex; justify-content: center; gap: 4px; }
+    .carousel-dots i { width: 5px; height: 5px; background: rgba(255,255,255,.5); border-radius: 999px; }
+    .carousel-dots i.on { width: 14px; background: #fff; }
+    .carousel-count { position: absolute; top: 9px; right: 9px; padding: 2px 6px; background: rgba(43,34,49,.58); border-radius: 999px; color: #fff; font-size: 7px; }
+
+    /* ---------- web frames ---------- */
+    .browser-wrap { width: 1180px; max-width: 100%; }
+    .browser-wrap h2 { margin-bottom: 9px; font-size: 13px; font-weight: 700; }
+    .browser-wrap h2 em { margin-left: 5px; color: #b94a63; font-style: normal; font-size: 10px; letter-spacing: .1em; }
+    .browser { overflow: hidden; background: #fdfdfb; border: 2px solid #2a2a2a; border-radius: 15px; box-shadow: 0 18px 34px -24px rgba(0, 0, 0, .45); }
+    .browser-bar { display: flex; align-items: center; gap: 5px; height: 30px; padding: 0 11px; background: #f1eee8; border-bottom: 1px solid #d6d3ce; }
+    .browser-bar i { width: 8px; height: 8px; border: 1px solid #b3aca5; border-radius: 999px; }
+    .browser-url { flex: 1; max-width: 330px; margin-left: 7px; padding: 3px 9px; background: #fff; border: 1px solid #d6d3ce; border-radius: 999px; color: #9a938e; font-size: 8.5px; }
+    .web { display: flex; height: 640px; }
+    .sidebar { width: 198px; flex: 0 0 198px; display: flex; flex-direction: column; padding: 14px 10px 10px; background: #f7f5f1; border-right: 1px solid #d6d3ce; }
+    .side-brand { display: flex; align-items: center; gap: 8px; padding: 0 4px 12px; border-bottom: 1px dashed #d6d3ce; }
+    .side-brand .avatar-sm { width: 30px; height: 30px; flex-basis: 30px; }
+    .side-brand b { font-size: 11px; }
+    .side-brand small { display: block; margin-top: 1px; color: #8d8782; font-size: 7.5px; }
+    .side-nav { display: grid; gap: 2px; margin-top: 12px; }
+    .side-item { position: relative; display: flex; align-items: center; gap: 7px; padding: 7px 9px; border-radius: 8px; color: #756e67; font-size: 9.5px; }
+    .side-item b { width: 16px; text-align: center; font-size: 11px; font-weight: 400; }
+    .side-item.active { background: #2b2231; color: #fff; }
+    .side-item .count { margin-left: auto; min-width: 15px; height: 15px; display: grid; place-items: center; padding: 0 3px; background: #b94a63; border-radius: 999px; color: #fff; font-size: 7px; }
+    .side-item.active .count { background: #fff; color: #2b2231; }
+    .side-foot { margin-top: auto; padding-top: 10px; border-top: 1px dashed #d6d3ce; }
+    .web-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .web-topbar { display: flex; align-items: center; gap: 10px; padding: 12px 20px; border-bottom: 1px solid #e1ddd7; }
+    .web-topbar h3 { font-size: 15px; }
+    .web-topbar .crumb { color: #9a938e; font-size: 8.5px; }
+    .web-topbar .right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+    .web-body { flex: 1; min-height: 0; overflow: auto; padding: 15px 20px 20px; }
+    .web-greet { display: flex; align-items: flex-end; gap: 12px; margin-bottom: 12px; }
+    .web-greet h2 { font-size: 19px; }
+    .web-greet p { color: #8d8782; font-size: 9px; }
+    .web-banner { display: flex; align-items: center; gap: 14px; padding: 13px 15px; color: #fff; background: #2b2231; border-radius: 12px; }
+    .web-banner .wf-label { color: rgba(255,255,255,.55); }
+    .web-banner b { display: block; margin-top: 2px; font-size: 14px; }
+    .web-banner p { margin-top: 1px; color: rgba(255,255,255,.65); font-size: 8.5px; }
+    .web-banner .btn { margin-left: auto; }
+    .web-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+    .web-kpi { padding: 10px 11px; background: #fff; border: 1px solid #d6d3ce; border-radius: 10px; }
+    .web-kpi b { display: block; color: #b94a63; font-size: 19px; line-height: 1.1; }
+    .web-kpi span { color: #7b746d; font-size: 8.5px; }
+    .web-cols { display: grid; grid-template-columns: 1.55fr 1fr; gap: 12px; margin-top: 12px; }
+    .web-card { padding: 12px 13px; background: #fff; border: 1px solid #d6d3ce; border-radius: 11px; }
+    .web-card-head { display: flex; align-items: baseline; margin-bottom: 7px; }
+    .web-card-head b { font-size: 11px; }
+    .web-card-head span { margin-left: auto; color: #9a938e; font-size: 8px; }
+    .web-todo-row { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px dashed #e1ddd7; }
+    .web-todo-row:last-child { border-bottom: 0; }
+    .web-todo-main { flex: 1; display: grid; gap: 1px; }
+    .web-todo-main b { font-size: 9.5px; }
+    .web-todo-main small { color: #8d8782; font-size: 8px; }
+    .activity { display: flex; gap: 7px; padding: 6px 0; }
+    .activity .dot { margin-top: 4px; flex: 0 0 8px; background: #d6d3ce; }
+    .activity .dot.pink { background: #b94a63; }
+    .activity div { display: grid; gap: 1px; }
+    .activity b { font-size: 9px; font-weight: 500; }
+    .activity small { color: #9a938e; font-size: 7.5px; }
+    .web-quick { display: flex; gap: 6px; margin-top: 10px; }
+    .web-quick .btn { flex: 1; padding: 7px 8px; }
+
+    .split { display: grid; grid-template-columns: 340px 1fr; gap: 13px; height: 100%; }
+    .order-list { display: grid; align-content: start; gap: 7px; }
+    .order-card-sm { padding: 9px 10px; background: #fff; border: 1px solid #d6d3ce; border-radius: 10px; }
+    .order-card-sm.selected { border-color: #2b2231; box-shadow: 0 0 0 1px #2b2231 inset; }
+    .order-card-sm .order-top b { font-size: 9px; }
+    .order-card-sm .slot-line { margin-top: 3px; color: #77706a; font-size: 8.5px; }
+    .order-card-sm .mini-items { margin-top: 4px; color: #9a938e; font-size: 8px; }
+    .order-detail-panel { display: flex; flex-direction: column; gap: 9px; padding: 13px; background: #fff; border: 1px solid #d6d3ce; border-radius: 11px; overflow: auto; }
+    .detail-head { display: flex; align-items: center; gap: 8px; }
+    .detail-head b { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; }
+    .detail-head .pill { margin-left: auto; }
+    .detail-actions { display: flex; gap: 6px; margin-top: auto; padding-top: 10px; border-top: 1px dashed #e1ddd7; }
+    .detail-actions .btn { flex: 1; }
+
+    .menu-web { display: grid; grid-template-columns: 1fr 300px; gap: 13px; }
+    .wf-table { width: 100%; border-collapse: collapse; font-size: 9px; }
+    .wf-table th { padding: 7px 8px; text-align: left; color: #8d8782; font-size: 8px; font-weight: 500; border-bottom: 1px solid #d6d3ce; }
+    .wf-table td { padding: 7px 8px; border-bottom: 1px dashed #e1ddd7; }
+    .wf-table tr:last-child td { border-bottom: 0; }
+    .table-dish { display: flex; align-items: center; gap: 7px; }
+    .table-dish img { width: 32px; height: 32px; object-fit: cover; border-radius: 7px; }
+    .table-dish b { display: block; font-size: 9px; font-weight: 500; }
+    .table-dish small { color: #9a938e; font-size: 7.5px; }
+    .edit-panel { padding: 12px; background: #fff; border: 1px solid #d6d3ce; border-radius: 11px; display: flex; flex-direction: column; gap: 8px; }
+    .edit-panel h4 { font-size: 11px; }
+    .edit-panel .photo-upload { height: 76px; }
+    .edit-panel .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+    .edit-panel .btn.block { margin-top: auto; }
+
+    .web-notice-row { display: flex; align-items: flex-start; gap: 9px; padding: 9px 0; border-bottom: 1px dashed #e1ddd7; }
+    .web-notice-row:last-child { border-bottom: 0; }
+    .web-notice-body { flex: 1; min-width: 0; display: grid; gap: 2px; }
+    .web-notice-body b { font-size: 9.5px; }
+    .web-notice-body p { color: #77706a; font-size: 8.5px; line-height: 1.5; }
+    .web-notice-body small { color: #9a938e; font-size: 7.5px; }
+    .web-notice-actions { display: flex; align-items: center; gap: 5px; }
+    .rule-row { display: flex; gap: 7px; padding: 7px 0; border-bottom: 1px dashed #e1ddd7; font-size: 8.5px; line-height: 1.55; color: #77706a; }
+    .rule-row:last-child { border-bottom: 0; }
+    .rule-row b { flex: 0 0 46px; color: #232323; font-size: 8.5px; }
+
+    .questions { max-width: 1320px; margin: 40px auto 0; padding: 18px 20px; background: #f6f3ee; border: 1px solid #d6d3ce; border-radius: 14px; }
+    .questions h2 { font-size: 15px; margin-bottom: 8px; }
+    .questions ol { margin-left: 18px; color: #625c59; font-size: 11px; line-height: 1.8; }
+
+    @media (max-width: 760px) {
+        body { padding: 22px 14px 50px; }
+        .ia { grid-template-columns: 1fr; }
+        .frames { justify-content: center; }
+        .page-head h1 { font-size: 23px; }
+        .browser-wrap { width: 100%; overflow-x: auto; }
+        .browser { min-width: 980px; }
+    }
+</style>
+</head>
+<body>
+<style>
+    .quick.two { grid-template-columns: repeat(2, 1fr); }
+    .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 3px; background: #f1eee8; border: 1px solid #d6d3ce; border-radius: 999px; }
+    .seg span { padding: 6px 4px; text-align: center; border-radius: 999px; color: #77706a; font-size: 9.5px; }
+    .seg span.active { background: #2b2231; color: #fff; }
+    .side-group { padding: 12px 9px 4px; color: #9a938e; font-size: 7.5px; font-weight: 700; letter-spacing: .14em; }
+    .tag-picker { display: flex; flex-wrap: wrap; gap: 5px; }
+    .tag-picker span { padding: 4px 8px; background: #fff; border: 1px solid #d6d3ce; border-radius: 999px; color: #77706a; font-size: 8.5px; }
+    .tag-picker span.on { background: #f4e9dc; border-color: #d8c6aa; color: #8a7351; }
+    .textarea { height: 54px; display: flex; align-items: flex-start; padding-top: 7px; color: #77706a; font-size: 9px; line-height: 1.55; }
+    .field-note { margin-top: 2px; color: #9a938e; font-size: 7.5px; line-height: 1.45; }
+    .readonly-row { display: flex; align-items: center; gap: 9px; padding: 11px 12px; border-bottom: 1px dashed #d6d3ce; font-size: 10px; }
+    .readonly-row:last-child { border-bottom: 0; }
+    .readonly-row .group-icon { background: #eef3f0; border-color: #cbd9d4; color: #447a6d; }
+    .readonly-row span { flex: 1; }
+    .readonly-row small { color: #8d8782; font-size: 8.5px; }
+    .web-seg { width: 220px; }
+    .bank-note { padding: 10px 11px; background: #f4eee8; border: 1px dashed #c9c4bd; border-radius: 9px; color: #77706a; font-size: 8.5px; line-height: 1.55; }
+    .ia-card.wide { grid-column: 1 / -1; }
+    .field-list { margin-top: 5px; color: #6b6560; font-size: 10.5px; line-height: 1.75; }
+    .field-list b { display: inline; margin: 0; color: #232323; font-size: inherit; }
+</style>
+
+<div class="page-head">
+    <p class="eyebrow">ADMIN WIREFRAME · V4</p>
+    <h1>管理端 · 管理后台线框</h1>
+    <p>首页仍然是工作台，但只保留一个「需要你处理」操作区；下一餐卡片只做导航，不再重复待接单数量和接单按钮。移动端底部固定为「首页 / 订单 / 恋爱卡 / 系统」，恋爱卡页内切换恋爱币；菜单、空间资料归系统。站外通知用 Bark，网页内不做消息中心。</p>
+    <div class="legend">
+        <span><i class="dot accent"></i>强调 / 主操作</span>
+        <span><i class="dot line"></i>常规卡片</span>
+        <span><i class="dot dash"></i>占位 / 说明</span>
+    </div>
+</div>
+
+<div class="ia">
+    <div class="ia-card">
+        <b>移动端 · 底部 4 tab</b>
+        <p>高频操作：订单处理、发恋爱卡、发恋爱币。详情页隐藏 tab，用返回头。</p>
+        <div class="chips">
+            <span class="chip strong">首页</span><span class="chip">订单</span><span class="chip">恋爱卡</span><span class="chip">系统</span>
+        </div>
+        <p style="margin-top:8px">恋爱币在「恋爱卡」页内切换，首页也保留发币快捷入口；菜单和空间资料收进「系统」。</p>
+    </div>
+    <div class="ia-card">
+        <b>Web 端 · 左侧栏</b>
+        <p>按「经营 / 系统」分组，常用模块在前；订单和菜单使用列表 + 详情 / 编辑面板。</p>
+        <div class="chips">
+            <span class="chip strong">经营</span><span class="chip">首页</span><span class="chip">订单</span><span class="chip">恋爱卡</span><span class="chip">恋爱币</span>
+        </div>
+        <div class="chips">
+            <span class="chip strong">系统</span><span class="chip">菜单</span><span class="chip">空间资料</span>
+        </div>
+    </div>
+    <div class="ia-card">
+        <b>通知策略 · Bark 站外</b>
+        <p>不做站内消息中心。新单、用户取消、开始制作、出餐走 Bark；催一催做成系统开关，目前关闭。网页内只用「需要你处理」承接可执行事项。</p>
+        <div class="chips">
+            <span class="chip">新单</span><span class="chip">用户取消</span><span class="chip">开始制作</span><span class="chip">出餐</span>
+        </div>
+    </div>
+    <div class="ia-card wide">
+        <b>菜品字段（按最新定义）</b>
+        <p class="field-list"><b>菜名</b> · <b>图片 / 图片集</b>（主图 + 出餐成品图，可删除 / 设主图 / 拖动排序，数量不限） · <b>分类</b>（快手菜 / 硬核菜） · <b>价格</b> · <b>标签</b>（下饭 / 香辣 / 酸甜，预置多选，非必选） · <b>描述</b>（非必填） · <b>预计时间</b>（40 / 60 / 90 / 120 分钟枚举） · <b>食材清单</b>（非必填，仅管理端可见，用于备菜） · <b>上架</b>（默认开）。已去掉图标和今日推荐。</p>
+    </div>
+</div>
+
+<main class="frames">
+
+    <!-- 1 home -->
+    <section class="frame-wrap">
+        <h2>01 · 首页 <em>唯一操作区</em></h2>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen scroll">
+                <div class="m-topbar">
+                    <span class="avatar-sm"><img src="../../assets/media/space-avatar.svg" alt=""></span>
+                    <div class="sub"><b>管理端</b><small>我们的时光</small></div>
+                </div>
+                <div class="greet"><h3>下午好，老李</h3><p>10.23 周四 · 今天没有饭点</p></div>
+                <div class="next-meal">
+                    <span class="wf-label">下一餐</span>
+                    <b>10.24 周六 · 晚餐 20:00</b>
+                    <p>距离开饭还有 3 小时 20 分</p>
+                    <div class="next-foot"><span>饭点前 1 小时截止预约</span><span class="btn light">查看订单 →</span></div>
+                </div>
+                <div class="section-head"><b>需要你处理</b><span>1 件</span></div>
+                <div class="todo">
+                    <div class="todo-row"><span class="todo-icon">订</span><span class="todo-main"><b>待接单</b><small>酸辣土豆丝 · 已等 12 分钟</small></span><span class="btn dark sm">接单</span></div>
+                </div>
+                <div class="section-head"><b>本周</b><span>只读概览</span></div>
+                <div class="stat-row">
+                    <div class="stat"><b>1</b><span>预约饭点</span></div>
+                    <div class="stat"><b>2</b><span>已完成</span></div>
+                    <div class="stat"><b>482</b><span>用户余额</span></div>
+                </div>
+                <div class="section-head"><b>快捷操作</b></div>
+                <div class="quick two">
+                    <button><b>币</b>发恋爱币</button>
+                    <button><b>卡</b>发恋爱卡</button>
+                </div>
+            </div>
+            <div class="tabbar">
+                <span class="tab active"><b>▦</b>首页</span>
+                <span class="tab"><b>☰</b>订单<span class="badge">1</span></span>
+                <span class="tab"><b>卡</b>恋爱卡</span>
+                <span class="tab"><b>⋯</b>系统</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2 orders -->
+    <section class="frame-wrap">
+        <h2>02 · 订单队列 <em>默认待接单</em></h2>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen scroll">
+                <div class="m-topbar"><h2>订单</h2></div>
+                <div class="filters">
+                    <span class="filter active">待接单 <span class="n">1</span></span>
+                    <span class="filter">进行中 <span class="n">0</span></span>
+                    <span class="filter">已完成 <span class="n">2</span></span>
+                    <span class="filter">已取消 <span class="n">1</span></span>
+                </div>
+                <div class="slot-head"><b>10.24 周六 · 晚餐 20:00</b><span>1 单</span></div>
+                <div class="card white">
+                    <div class="order-top"><b>20261024-2000-01</b><span class="pill accent">待接单</span></div>
+                    <div class="wait">已等 12 分钟</div>
+                    <div class="item"><img src="../../assets/media/dishes/potato.jpg" alt=""><span class="item-main"><b>酸辣土豆丝</b><small>快手菜 · 约 40 分钟</small></span><em>×1</em></div>
+                    <div class="note">“少辣，多放醋”</div>
+                    <div class="order-foot"><b>18 币</b><span class="actions"><span class="btn ghost">取消</span><span class="btn dark">接单</span></span></div>
+                </div>
+                <div class="slot-head muted"><b>10.25 周日 · 午餐 12:00</b><span>已完成</span></div>
+                <div class="card">
+                    <div class="order-top"><b>20261025-1200-01</b><span class="pill green">已完成</span></div>
+                    <div class="item"><img src="../../assets/media/dishes/tomato-egg.jpg" alt=""><span class="item-main"><b>番茄炒蛋</b><small>快手菜 · 20 币</small></span><em>×1</em></div>
+                    <div class="order-foot"><b>20 币</b><span class="actions"><span class="btn ghost sm">查看详情</span></span></div>
+                </div>
+            </div>
+            <div class="tabbar">
+                <span class="tab"><b>▦</b>首页</span>
+                <span class="tab active"><b>☰</b>订单<span class="badge">1</span></span>
+                <span class="tab"><b>卡</b>恋爱卡</span>
+                <span class="tab"><b>⋯</b>系统</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3 order detail -->
+    <section class="frame-wrap">
+        <h2>03 · 订单详情 <em>状态操作</em></h2>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen scroll">
+                <div class="m-topbar"><span class="back-btn">‹</span><h2>订单详情</h2><div class="right"><span class="pill accent">待接单</span></div></div>
+                <div class="slot-hero">
+                    <span class="wf-label">预约饭点</span>
+                    <b>10.24 周六 · 晚餐 20:00</b>
+                    <p>20261024-2000-01 · 下单于 10.23 10:29:00</p>
+                    <div class="countdown">距离开饭还有 3 小时 20 分 · 已等 12 分钟</div>
+                </div>
+                <div class="detail-items">
+                    <div class="detail-item"><img src="../../assets/media/dishes/potato.jpg" alt=""><span><b>酸辣土豆丝</b><small>快手菜 · 约 40 分钟</small></span><b>18 币</b></div>
+                    <div class="detail-item"><img src="../../assets/media/dishes/fried-rice.jpg" alt=""><span><b>蛋炒饭</b><small>快手菜 · 约 40 分钟</small></span><b>12 币</b></div>
+                </div>
+                <div class="note">“少辣，多放醋；米饭多一点。”</div>
+                <div class="pay-row"><span>合计 · 已支付</span><b>30 币</b></div>
+                <div class="section-head"><b>状态记录</b><span>完整时间</span></div>
+                <div class="timeline">
+                    <div class="timeline-row"><span>下单</span><small>2026-10-23 10:29:00</small></div>
+                    <div class="timeline-row"><span>待接单</span><small>2026-10-23 10:29:00</small></div>
+                </div>
+                <div class="hint-box">状态按钮跟随订单当前状态变化：接单 → 开始备菜 → 开始制作 → 出餐 → 完成。点「出餐」会先进入 03A 拍照页，每道菜必须上传一张成品图；取消 / 退款始终放在次级操作。</div>
+            </div>
+            <div class="action-bar"><span class="btn ghost">取消退款</span><span class="btn dark">接单</span></div>
+        </div>
+    </section>
+
+    <!-- 3A serving photo -->
+    <section class="frame-wrap">
+        <h2>03A · 出餐拍照 <em>新增 · 必传</em></h2>
+        <p class="frame-note">一单多菜时逐道拍，每道菜至少一张；全部就绪才能出餐。照片追加到对应菜品的图片集，不覆盖主图。</p>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen scroll">
+                <div class="m-topbar"><span class="back-btn">‹</span><h2>出餐拍照</h2><div class="right"><span class="pill accent">制作中</span></div></div>
+                <div class="slot-hero">
+                    <span class="wf-label">这一单</span>
+                    <b>10.24 周六 · 晚餐 20:00</b>
+                    <p>20261024-2000-01 · 2 道菜 · 用户备注“少辣，多放醋”</p>
+                    <div class="countdown">为每道菜拍一张成品图后再确认出餐</div>
+                </div>
+                <div class="serve-banner"><b>共 2 道菜</b> · 照片会自动追加到这道菜的图片集；新增菜品时上传的主图不会被替换。</div>
+                <div class="serve-row">
+                    <span class="serve-thumb"><img src="../../assets/media/dishes/potato.jpg" alt=""></span>
+                    <span class="serve-main"><b>酸辣土豆丝</b><small>图片集：1 张主图 + 0 张成品图</small><span class="serve-state pending">待拍</span></span>
+                    <span class="serve-actions"><span class="serve-camera">📷 拍照</span><span class="serve-album">从相册选</span></span>
+                </div>
+                <div class="serve-row">
+                    <span class="serve-photo"><img src="../../assets/media/dishes/fried-rice.jpg" alt=""><span>预览</span></span>
+                    <span class="serve-main"><b>蛋炒饭</b><small>照片已就绪，可以重拍</small><span class="serve-state">已完成</span></span>
+                    <span class="serve-actions"><span class="serve-camera">重拍</span></span>
+                </div>
+                <div class="section-head"><b>图片规则</b></div>
+                <div class="hint-box">点击「拍照」直接打开 iOS 系统相机（<code>capture="environment"</code>），不会先弹照片图库；桌面端会自动退化为文件选择。</div>
+                <div class="hint-box">两道菜都拍完才能点「确认出餐」。上传失败时留在本页重试，不会直接改订单状态。</div>
+                <div class="serve-required"><span>已拍 <b>1 / 2</b></span><span>还差 1 道菜</span></div>
+            </div>
+            <div class="action-bar"><span class="btn ghost">取消</span><span class="btn" style="opacity:.45">确认出餐（1/2）</span></div>
+        </div>
+    </section>
+
+    <!-- 4 coupons -->
+    <section class="frame-wrap">
+        <h2>04 · 恋爱卡 <em>经营 · 页内切换</em></h2>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen scroll">
+                <div class="m-topbar"><h2>恋爱卡</h2></div>
+                <div class="seg"><span class="active">恋爱卡</span><span>恋爱币</span></div>
+                <div class="stat-row">
+                    <div class="stat"><b>71</b><span>总卡数</span></div>
+                    <div class="stat accent"><b>45</b><span>未使用</span></div>
+                    <div class="stat"><b>26</b><span>已使用</span></div>
+                </div>
+                <div class="card white">
+                    <div class="section-head" style="margin:0 0 6px"><b>发放一张</b><span>手动补发</span></div>
+                    <div class="two-col">
+                        <div class="form-field"><label>时长</label><div class="input">5 分钟</div></div>
+                        <div class="form-field"><label>名称</label><div class="input">每周按摩卡</div></div>
+                    </div>
+                    <span class="btn accent block" style="margin-top:7px">发放恋爱卡</span>
+                </div>
+                <div class="filters"><span class="filter active">未使用 45</span><span class="filter">已使用 26</span><span class="filter">全部 71</span></div>
+                <div class="coupon-row"><span class="coupon-icon">💆</span><span class="coupon-main"><b>每周按摩卡 · 5 分钟</b><small>NO.071 · 2026-10-18 08:00:00 获得</small></span><span class="pill green">未使用</span><span class="trash">⌫</span></div>
+                <div class="coupon-row"><span class="coupon-icon">💆</span><span class="coupon-main"><b>每周按摩卡 · 5 分钟</b><small>NO.070 · 2026-10-11 08:00:00 获得</small></span><span class="pill green">未使用</span><span class="trash">⌫</span></div>
+                <div class="coupon-row"><span class="coupon-icon">💆</span><span class="coupon-main"><b>每周按摩卡 · 5 分钟</b><small>NO.069 · 2026-10-04 08:00:00 已使用</small></span><span class="status-text">已使用</span><span class="trash">⌫</span></div>
+                <div class="hint-box">周更 Action 继续自动发卡；这里处理手动补发、查看和删除。Web 端会把「恋爱卡 / 恋爱币」并排展示。</div>
+            </div>
+            <div class="tabbar">
+                <span class="tab"><b>▦</b>首页</span>
+                <span class="tab"><b>☰</b>订单<span class="badge">1</span></span>
+                <span class="tab active"><b>卡</b>恋爱卡</span>
+                <span class="tab"><b>⋯</b>系统</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5 coins -->
+    <section class="frame-wrap">
+        <h2>05 · 恋爱币 <em>高频发币</em></h2>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen scroll">
+                <div class="m-topbar"><h2>恋爱币</h2></div>
+                <div class="seg"><span>恋爱卡</span><span class="active">恋爱币</span></div>
+                <div class="next-meal" style="background:#f7f5f1;color:#232323">
+                    <span class="wf-label">当前余额</span>
+                    <b style="font-size:24px">482 <span style="font-size:10px;font-weight:400;color:#8d8782">币</span></b>
+                    <p style="color:#8d8782">最多可欠 50 币 · 管理端发放</p>
+                    <div class="next-foot"><span style="color:#8d8782">最近变动 10.23 16:11</span></div>
+                </div>
+                <div class="card white">
+                    <div class="two-col">
+                        <div class="form-field"><label>发币数量</label><div class="input">50</div></div>
+                        <div class="form-field"><label>备注</label><div class="input">零花钱</div></div>
+                    </div>
+                    <span class="btn dark block" style="margin-top:7px">发币</span>
+                </div>
+                <div class="pay-row"><span>最多可欠</span><div class="input" style="width:54px;margin-left:auto;text-align:center">50</div><span class="btn ghost sm" style="margin-left:6px">保存</span></div>
+                <div class="section-head"><b>最近流水</b><span>全部 ›</span></div>
+                <div class="ledger">
+                    <div class="ledger-row"><span class="ledger-icon">↩</span><span class="ledger-main"><b>取消退款 20261024-1200-01</b><small>2026-10-23 16:11:00 · 余额 482</small></span><span class="amount plus">+35</span></div>
+                    <div class="ledger-row"><span class="ledger-icon">🍽</span><span class="ledger-main"><b>下单 20261024-2000-01：酸辣土豆丝</b><small>2026-10-23 16:11:00 · 余额 447</small></span><span class="amount minus">-18</span></div>
+                    <div class="ledger-row"><span class="ledger-icon pink">🎁</span><span class="ledger-main"><b>恋爱空间开张礼</b><small>2026-10-22 19:15:00 · 余额 520</small></span><span class="amount plus">+520</span></div>
+                </div>
+            </div>
+            <div class="tabbar">
+                <span class="tab"><b>▦</b>首页</span>
+                <span class="tab"><b>☰</b>订单<span class="badge">1</span></span>
+                <span class="tab active"><b>卡</b>恋爱卡</span>
+                <span class="tab"><b>⋯</b>系统</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6 system -->
+    <section class="frame-wrap">
+        <h2>06 · 系统 <em>低频维护</em></h2>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen scroll">
+                <div class="m-topbar"><h2>系统</h2></div>
+                <div class="more-profile">
+                    <span class="avatar-sm"><img src="../../assets/media/space-avatar.svg" alt=""></span>
+                    <div><b>我们的时光</b><small>福福 &amp; 老李 · 空间资料</small></div>
+                    <span>›</span>
+                </div>
+                <div class="section-head"><b>数据</b></div>
+                <div class="group">
+                    <div class="group-row"><span class="group-icon">菜</span><span>菜单管理</span><small>14 道 · 12 道上架</small><span class="chev">›</span></div>
+                </div>
+                <div class="section-head"><b>通知</b></div>
+                <div class="group">
+                    <div class="readonly-row"><span class="group-icon">铃</span><span>站外推送 · Bark<small style="display:block;margin-top:2px">新单 / 取消 / 制作 / 出餐</small></span><small>已开启</small></div>
+                    <div class="group-row"><span class="group-icon">催</span><span>催一催<small style="display:block;margin-top:2px">用户端按钮 · 默认关闭</small></span><span class="switch" style="display:inline-block;flex:0 0 28px"><i></i></span></div>
+                </div>
+                <div class="section-head"><b>账户</b></div>
+                <div class="group">
+                    <div class="group-row"><span class="group-icon">出</span><span>退出登录</span><span class="chev">›</span></div>
+                </div>
+                <div class="hint-box">菜单和其他系统数据不常改，收进「系统」；日常只处理订单、恋爱卡和恋爱币。Bark 密钥不放在网页里；催一催目前关闭，打开后用户端才显示按钮。</div>
+            </div>
+            <div class="tabbar">
+                <span class="tab"><b>▦</b>首页</span>
+                <span class="tab"><b>☰</b>订单<span class="badge">1</span></span>
+                <span class="tab"><b>卡</b>恋爱卡</span>
+                <span class="tab active"><b>⋯</b>系统</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7 menu -->
+    <section class="frame-wrap">
+        <h2>07 · 菜单管理 <em>系统 · 列表</em></h2>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen scroll">
+                <div class="m-topbar"><span class="back-btn">‹</span><h2>菜单</h2><div class="right"><span class="btn dark sm">＋ 添加</span></div></div>
+                <div class="search">⌕ 搜菜名 / 标签</div>
+                <div class="filters"><span class="filter active">全部 14</span><span class="filter">快手菜 8</span><span class="filter">硬核菜 6</span></div>
+                <div class="summary-line"><span><b>14</b> 道菜 · 12 道上架</span><span>最近更新 10.22</span></div>
+                <div class="dish-row"><img src="../../assets/media/dishes/tomato-egg.jpg" alt=""><span class="dish-main"><b>番茄炒蛋</b><small>快手菜 · 20 币 · 40 分钟</small><span class="tags"><span>下饭</span><span>酸甜</span></span></span><span class="right"><span class="pill green">已上架</span></span><span class="chev">›</span></div>
+                <div class="dish-row"><img src="../../assets/media/dishes/cola-wings.jpg" alt=""><span class="dish-main"><b>可乐鸡翅</b><small>硬核菜 · 35 币 · 60 分钟</small><span class="tags"><span>下饭</span></span></span><span class="right"><span class="pill green">已上架</span></span><span class="chev">›</span></div>
+                <div class="dish-row"><img src="../../assets/media/dishes/mapo-tofu.jpg" alt=""><span class="dish-main"><b>麻婆豆腐</b><small>快手菜 · 22 币 · 40 分钟</small><span class="tags"><span>下饭</span><span>香辣</span></span></span><span class="right"><span class="pill green">已上架</span></span><span class="chev">›</span></div>
+                <div class="dish-row"><img src="../../assets/media/dishes/ribs.jpg" alt=""><span class="dish-main"><b>红烧排骨</b><small>硬核菜 · 48 币 · 120 分钟</small><span class="tags"><span>下饭</span></span></span><span class="right"><span class="status-text">已下架</span></span><span class="chev">›</span></div>
+                <div class="dish-row"><img src="../../assets/media/dishes/greens.jpg" alt=""><span class="dish-main"><b>清炒时蔬</b><small>快手菜 · 16 币 · 40 分钟</small></span><span class="right"><span class="pill green">已上架</span></span><span class="chev">›</span></div>
+                <div class="dish-row"><img src="../../assets/media/dishes/noodles.jpg" alt=""><span class="dish-main"><b>葱油拌面</b><small>快手菜 · 18 币 · 40 分钟</small><span class="tags"><span>下饭</span></span></span><span class="right"><span class="pill green">已上架</span></span><span class="chev">›</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 8 dish edit -->
+    <section class="frame-wrap">
+        <h2>08 · 菜品编辑 <em>弹窗 · 图片集</em></h2>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen scroll">
+                <div class="m-topbar"><span class="back-btn">‹</span><h2>编辑菜品</h2></div>
+                <div class="photo-upload"><span><b>＋</b>上传主图<br>新增菜品时这张作为主图</span></div>
+                <div class="form-field">
+                    <label>图片集 <span style="color:#a9a29b;font-weight:400">主图 + 出餐成品图</span></label>
+                    <div class="gallery-grid">
+                        <div class="gallery-tile is-main"><img src="../../assets/media/dishes/potato.jpg" alt=""><span class="main-tag">主图</span></div>
+                        <div class="gallery-tile"><img src="../../assets/media/dishes/fried-rice.jpg" alt=""><span class="drag">⠿</span><span class="tile-tools"><span>设为主图</span><span>删除</span></span></div>
+                        <div class="gallery-tile"><img src="../../assets/media/dishes/greens.jpg" alt=""><span class="drag">⠿</span><span class="tile-tools"><span>设为主图</span><span>删除</span></span></div>
+                    </div>
+                    <div class="gallery-note">出餐拍的照片会自动追加到这道菜；可拖动排序、删除、设为主图。数量不限。</div>
+                </div>
+                <div class="form-field"><label>菜名</label><div class="input">酸辣土豆丝</div></div>
+                <div class="two-col">
+                    <div class="form-field"><label>分类</label><div class="input">快手菜 ⌄</div></div>
+                    <div class="form-field"><label>价格（币）</label><div class="input">18</div></div>
+                </div>
+                <div class="form-field"><label>预计时间</label><div class="tag-picker"><span class="on">40 分钟</span><span>60 分钟</span><span>90 分钟</span><span>120 分钟</span></div></div>
+                <div class="form-field"><label>标签 <span style="color:#a9a29b;font-weight:400">非必选</span></label><div class="tag-picker"><span class="on">下饭</span><span class="on">香辣</span><span>酸甜</span></div></div>
+                <div class="form-field"><label>描述 <span style="color:#a9a29b;font-weight:400">非必填</span></label><div class="input textarea">土豆丝爽脆，醋香明显，香辣下饭。</div></div>
+                <div class="form-field"><label>食材清单 <span style="color:#a9a29b;font-weight:400">非必填</span></label><div class="input textarea">土豆 2 个、青椒 1 个、干辣椒、醋、蒜。</div><div class="field-note">仅管理端可见，用于备菜，不在用户端展示。</div></div>
+                <div class="switch-row">上架<span class="switch on"><i></i></span></div>
+            </div>
+            <div class="action-bar"><span class="btn ghost">取消</span><span class="btn dark">保存菜品</span></div>
+        </div>
+    </section>
+
+    <!-- 9 space -->
+    <section class="frame-wrap">
+        <h2>09 · 空间资料 <em>系统 · 设置</em></h2>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen scroll">
+                <div class="m-topbar"><span class="back-btn">‹</span><h2>空间资料</h2></div>
+                <div class="card white">
+                    <div style="display:flex;align-items:center;gap:11px">
+                        <span class="avatar-sm" style="width:54px;height:54px;flex-basis:54px"><img src="../../assets/media/space-avatar.svg" alt=""></span>
+                        <div><b style="font-size:11px">空间头像</b><p style="color:#8d8782;font-size:8.5px;margin-top:2px">显示在用户端顶部和「空间」页</p></div>
+                        <span class="btn ghost sm" style="margin-left:auto">更换</span>
+                    </div>
+                </div>
+                <div class="form-field"><label>空间名称</label><div class="input">我们的时光</div></div>
+                <div class="section-head"><b>成员</b><span>只读</span></div>
+                <div class="group">
+                    <div class="group-row"><span class="group-icon">福</span><span>福福</span><small>用户</small></div>
+                    <div class="group-row"><span class="group-icon">李</span><span>老李</span><small>管理端</small></div>
+                </div>
+                <div class="hint-box">空间名称和头像保存到 space.json，用户端刷新后生效。成员和角色暂不支持在后台修改。</div>
+            </div>
+            <div class="action-bar"><span class="btn dark block">保存空间资料</span></div>
+        </div>
+    </section>
+
+    <!-- 10 user dish detail -->
+    <section class="frame-wrap">
+        <h2>10 · 用户端菜品详情 <em>滑动图片集</em></h2>
+        <p class="frame-note">主图固定第一张，出餐成品图按时间追加；移动端左右滑动查看，桌面端可点圆点/箭头切换。</p>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen">
+                <div class="m-topbar"><span class="back-btn">‹</span><h2>菜品详情</h2></div>
+                <div class="user-carousel">
+                    <img src="../../assets/media/dishes/potato.jpg" alt="">
+                    <span class="carousel-count">1 / 4</span>
+                    <div class="carousel-dots"><i class="on"></i><i></i><i></i><i></i></div>
+                </div>
+                <div style="padding-top:12px">
+                    <span class="pill accent">快手菜</span>
+                    <h3 style="margin-top:4px;font-size:20px">酸辣土豆丝</h3>
+                    <p style="margin-top:2px;color:#8d8782;font-size:9px">18 币 · 约 40 分钟</p>
+                    <p style="margin-top:6px;color:#77706a;font-size:10px;line-height:1.6">土豆丝爽脆，醋香明显，香辣下饭。</p>
+                    <div class="tags" style="margin-top:7px"><span>下饭</span><span>香辣</span></div>
+                    <span class="btn dark block" style="margin-top:16px;padding:9px 10px">加入这顿饭</span>
+                </div>
+                <div class="hint-box" style="margin-top:10px">出餐时每道菜至少一张成品图，所以图片集可能有多张；左右滑动查看，主图始终在第一张。</div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<div class="frames" style="margin-top:40px">
+    <section class="browser-wrap">
+        <h2>Web 01 · 首页 <em>待办 + 概览</em></h2>
+        <div class="browser">
+            <div class="browser-bar"><i></i><i></i><i></i><span class="browser-url">admin.html · 管理端</span></div>
+            <div class="web">
+                <aside class="sidebar">
+                    <div class="side-brand"><span class="avatar-sm"><img src="../../assets/media/space-avatar.svg" alt=""></span><div><b>管理端</b><small>我们的时光</small></div></div>
+                    <div class="side-group">经营</div>
+                    <nav class="side-nav">
+                        <div class="side-item active"><b>▦</b>首页</div>
+                        <div class="side-item"><b>☰</b>订单<span class="count">1</span></div>
+                        <div class="side-item"><b>卡</b>恋爱卡</div>
+                        <div class="side-item"><b>币</b>恋爱币</div>
+                    </nav>
+                    <div class="side-group">系统</div>
+                    <nav class="side-nav">
+                        <div class="side-item"><b>✎</b>菜单</div>
+                        <div class="side-item"><b>空</b>空间资料</div>
+                    </nav>
+                    <div class="side-foot"><div class="side-item"><b>出</b>退出登录</div></div>
+                </aside>
+                <div class="web-main">
+                    <div class="web-topbar"><h3>首页</h3><span class="crumb">10.23 周四</span><div class="right"><span class="avatar-sm"><img src="../../assets/media/space-avatar.svg" alt=""></span></div></div>
+                    <div class="web-body">
+                        <div class="web-greet"><h2>下午好，老李</h2><p>今天没有饭点，下一餐是 10.24 周六晚餐。</p></div>
+                        <div class="web-banner">
+                            <div><span class="wf-label">下一餐</span><b>10.24 周六 · 晚餐 20:00</b><p>距离开饭还有 3 小时 20 分 · 饭点前 1 小时截止预约</p></div>
+                            <span class="btn light">查看订单 →</span>
+                        </div>
+                        <div class="web-kpis">
+                            <div class="web-kpi"><b>1</b><span>预约饭点</span></div>
+                            <div class="web-kpi"><b>2</b><span>已完成</span></div>
+                            <div class="web-kpi"><b>482</b><span>用户余额</span></div>
+                        </div>
+                        <div class="web-cols">
+                            <div class="web-card">
+                                <div class="web-card-head"><b>需要你处理</b><span>1 件</span></div>
+                                <div class="web-todo-row"><span class="todo-icon">订</span><span class="web-todo-main"><b>待接单</b><small>酸辣土豆丝 · 已等 12 分钟</small></span><span class="btn dark sm">接单</span></div>
+                                <div class="hint-box" style="margin-top:8px">只在这里接单；下一餐卡和概览数字都不再重复操作按钮。</div>
+                            </div>
+                            <div class="web-card">
+                                <div class="web-card-head"><b>快捷操作</b><span>高频</span></div>
+                                <div class="quick two" style="margin-top:2px"><button><b>币</b>发恋爱币</button><button><b>卡</b>发恋爱卡</button></div>
+                                <div class="web-card-head" style="margin-top:12px"><b>最近动态</b><span>只读</span></div>
+                                <div class="activity"><i class="dot pink"></i><div><b>用户下单了酸辣土豆丝</b><small>10:29 · 18 币</small></div></div>
+                                <div class="activity"><i class="dot pink"></i><div><b>用户取消了可乐鸡翅</b><small>16:11 · 已退款 35 币</small></div></div>
+                                <div class="activity"><i class="dot"></i><div><b>恋爱卡定时发放成功</b><small>05:00 · 每周按摩卡</small></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="browser-wrap">
+        <h2>Web 02 · 订单 <em>列表 + 详情面板</em></h2>
+        <div class="browser">
+            <div class="browser-bar"><i></i><i></i><i></i><span class="browser-url">admin.html · 订单</span></div>
+            <div class="web">
+                <aside class="sidebar">
+                    <div class="side-brand"><span class="avatar-sm"><img src="../../assets/media/space-avatar.svg" alt=""></span><div><b>管理端</b><small>我们的时光</small></div></div>
+                    <div class="side-group">经营</div>
+                    <nav class="side-nav">
+                        <div class="side-item"><b>▦</b>首页</div>
+                        <div class="side-item active"><b>☰</b>订单<span class="count">1</span></div>
+                        <div class="side-item"><b>卡</b>恋爱卡</div>
+                        <div class="side-item"><b>币</b>恋爱币</div>
+                    </nav>
+                    <div class="side-group">系统</div>
+                    <nav class="side-nav">
+                        <div class="side-item"><b>✎</b>菜单</div>
+                        <div class="side-item"><b>空</b>空间资料</div>
+                    </nav>
+                    <div class="side-foot"><div class="side-item"><b>出</b>退出登录</div></div>
+                </aside>
+                <div class="web-main">
+                    <div class="web-topbar"><h3>订单</h3><span class="crumb">按饭点分组</span><div class="right"><span class="btn ghost sm">刷新</span></div></div>
+                    <div class="web-body">
+                        <div class="filters" style="margin-bottom:10px">
+                            <span class="filter active">待接单 1</span><span class="filter">进行中 0</span><span class="filter">已完成 2</span><span class="filter">已取消 1</span><span class="filter">全部 4</span>
+                        </div>
+                        <div class="split">
+                            <div class="order-list">
+                                <div class="slot-head"><b>10.24 周六 · 晚餐 20:00</b><span>1 单</span></div>
+                                <div class="order-card-sm selected">
+                                    <div class="order-top"><b>20261024-2000-01</b><span class="pill accent">待接单</span></div>
+                                    <div class="slot-line">酸辣土豆丝 ×1 · 蛋炒饭 ×1</div>
+                                    <div class="mini-items">合计 30 币 · 已等 12 分钟</div>
+                                </div>
+                                <div class="slot-head muted"><b>10.24 周六 · 午餐 12:00</b><span>已取消</span></div>
+                                <div class="order-card-sm">
+                                    <div class="order-top"><b>20261024-1200-01</b><span class="status-text">已取消</span></div>
+                                    <div class="slot-line">可乐鸡翅 ×1</div>
+                                    <div class="mini-items">退款 35 币 · 16:11</div>
+                                </div>
+                                <div class="slot-head muted"><b>10.25 周日 · 午餐 12:00</b><span>已完成</span></div>
+                                <div class="order-card-sm">
+                                    <div class="order-top"><b>20261025-1200-01</b><span class="pill green">已完成</span></div>
+                                    <div class="slot-line">番茄炒蛋 ×1</div>
+                                    <div class="mini-items">20 币 · 10.23 10:23</div>
+                                </div>
+                            </div>
+                            <div class="order-detail-panel">
+                                <div class="detail-head"><b>20261024-2000-01</b><span class="pill accent">待接单</span></div>
+                                <div class="slot-hero" style="padding:10px 11px"><span class="wf-label">预约饭点</span><b style="font-size:14px">10.24 周六 · 晚餐 20:00</b><p>距离开饭还有 3 小时 20 分</p></div>
+                                <div class="detail-items">
+                                    <div class="detail-item"><img src="../../assets/media/dishes/potato.jpg" alt=""><span><b>酸辣土豆丝</b><small>快手菜 · 40 分钟</small></span><b>18 币</b></div>
+                                    <div class="detail-item"><img src="../../assets/media/dishes/fried-rice.jpg" alt=""><span><b>蛋炒饭</b><small>快手菜 · 40 分钟</small></span><b>12 币</b></div>
+                                </div>
+                                <div class="note">“少辣，多放醋；米饭多一点。”</div>
+                                <div class="pay-row"><span>合计 · 已支付</span><b>30 币</b></div>
+                                <div class="section-head"><b>状态记录</b></div>
+                                <div class="timeline">
+                                    <div class="timeline-row"><span>下单</span><small>2026-10-23 10:29:00</small></div>
+                                    <div class="timeline-row"><span>待接单</span><small>2026-10-23 10:29:00</small></div>
+                                </div>
+                                <div class="hint-box" style="margin-top:7px">到「出餐」时不会直接改状态，会先打开逐道菜的拍照弹窗；每道菜必须有一张成品图。</div>
+                                <div class="detail-actions"><span class="btn ghost">取消退款</span><span class="btn dark">接单</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="browser-wrap">
+        <h2>Web 03 · 菜单 <em>表格 + 编辑面板</em></h2>
+        <div class="browser">
+            <div class="browser-bar"><i></i><i></i><i></i><span class="browser-url">admin.html · 菜单</span></div>
+            <div class="web">
+                <aside class="sidebar">
+                    <div class="side-brand"><span class="avatar-sm"><img src="../../assets/media/space-avatar.svg" alt=""></span><div><b>管理端</b><small>我们的时光</small></div></div>
+                    <div class="side-group">经营</div>
+                    <nav class="side-nav">
+                        <div class="side-item"><b>▦</b>首页</div>
+                        <div class="side-item"><b>☰</b>订单<span class="count">1</span></div>
+                        <div class="side-item"><b>卡</b>恋爱卡</div>
+                        <div class="side-item"><b>币</b>恋爱币</div>
+                    </nav>
+                    <div class="side-group">系统</div>
+                    <nav class="side-nav">
+                        <div class="side-item active"><b>✎</b>菜单</div>
+                        <div class="side-item"><b>空</b>空间资料</div>
+                    </nav>
+                    <div class="side-foot"><div class="side-item"><b>出</b>退出登录</div></div>
+                </aside>
+                <div class="web-main">
+                    <div class="web-topbar"><h3>菜单</h3><span class="crumb">14 道 · 12 道上架</span><div class="right"><span class="btn dark sm">＋ 添加菜品</span></div></div>
+                    <div class="web-body">
+                        <div style="display:flex;gap:8px;margin-bottom:10px">
+                            <div class="search" style="width:220px">⌕ 搜菜名 / 标签</div>
+                            <span class="filter active">全部 14</span><span class="filter">快手菜 8</span><span class="filter">硬核菜 6</span>
+                        </div>
+                        <div class="menu-web">
+                            <div class="web-card" style="padding:0 10px">
+                                <table class="wf-table">
+                                    <thead><tr><th>菜品</th><th>分类</th><th>价格</th><th>时长</th><th>状态</th><th></th></tr></thead>
+                                    <tbody>
+                                        <tr><td><div class="table-dish"><img src="../../assets/media/dishes/potato.jpg" alt=""><div><b>酸辣土豆丝</b><small>下饭 · 香辣</small></div></div></td><td>快手菜</td><td>18 币</td><td>40 分钟</td><td><span class="pill green">已上架</span></td><td>›</td></tr>
+                                        <tr><td><div class="table-dish"><img src="../../assets/media/dishes/tomato-egg.jpg" alt=""><div><b>番茄炒蛋</b><small>下饭 · 酸甜</small></div></div></td><td>快手菜</td><td>20 币</td><td>40 分钟</td><td><span class="pill green">已上架</span></td><td>›</td></tr>
+                                        <tr><td><div class="table-dish"><img src="../../assets/media/dishes/cola-wings.jpg" alt=""><div><b>可乐鸡翅</b><small>下饭</small></div></div></td><td>硬核菜</td><td>35 币</td><td>60 分钟</td><td><span class="pill green">已上架</span></td><td>›</td></tr>
+                                        <tr><td><div class="table-dish"><img src="../../assets/media/dishes/ribs.jpg" alt=""><div><b>红烧排骨</b><small>下饭</small></div></div></td><td>硬核菜</td><td>48 币</td><td>120 分钟</td><td><span class="status-text">已下架</span></td><td>›</td></tr>
+                                        <tr><td><div class="table-dish"><img src="../../assets/media/dishes/greens.jpg" alt=""><div><b>清炒时蔬</b><small>—</small></div></div></td><td>快手菜</td><td>16 币</td><td>40 分钟</td><td><span class="pill green">已上架</span></td><td>›</td></tr>
+                                        <tr><td><div class="table-dish"><img src="../../assets/media/dishes/noodles.jpg" alt=""><div><b>葱油拌面</b><small>下饭</small></div></div></td><td>快手菜</td><td>18 币</td><td>40 分钟</td><td><span class="pill green">已上架</span></td><td>›</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="edit-panel">
+                                <h4>编辑菜品</h4>
+                                <div class="photo-upload"><span><b>＋</b>更换主图</span></div>
+                                <div class="form-field"><label>图片集</label><div class="gallery-grid"><div class="gallery-tile is-main"><img src="../../assets/media/dishes/potato.jpg" alt=""><span class="main-tag">主图</span></div><div class="gallery-tile"><img src="../../assets/media/dishes/fried-rice.jpg" alt=""><span class="drag">⠿</span><span class="tile-tools"><span>设为主图</span><span>删除</span></span></div><div class="gallery-tile"><img src="../../assets/media/dishes/greens.jpg" alt=""><span class="drag">⠿</span><span class="tile-tools"><span>设为主图</span><span>删除</span></span></div></div><div class="gallery-note">拖动排序 · 删除 · 设为主图</div></div>
+                                <div class="form-field"><label>菜名</label><div class="input">酸辣土豆丝</div></div>
+                                <div class="two-col">
+                                    <div class="form-field"><label>分类</label><div class="input">快手菜 ⌄</div></div>
+                                    <div class="form-field"><label>价格</label><div class="input">18</div></div>
+                                </div>
+                                <div class="form-field"><label>预计时间</label><div class="tag-picker"><span class="on">40 分钟</span><span>60 分钟</span><span>90 分钟</span><span>120 分钟</span></div></div>
+                                <div class="form-field"><label>标签</label><div class="tag-picker"><span class="on">下饭</span><span class="on">香辣</span><span>酸甜</span></div></div>
+                                <div class="form-field"><label>描述</label><div class="input textarea">土豆丝爽脆，醋香明显，香辣下饭。</div></div>
+                                <div class="form-field"><label>食材清单</label><div class="input textarea">土豆 2 个、青椒 1 个、干辣椒、醋、蒜。</div><div class="field-note">仅管理端可见。</div></div>
+                                <div class="switch-row">上架<span class="switch on"><i></i></span></div>
+                                <span class="btn dark block">保存菜品</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="browser-wrap">
+        <h2>Web 04 · 经营 <em>恋爱卡 + 恋爱币并排</em></h2>
+        <div class="browser">
+            <div class="browser-bar"><i></i><i></i><i></i><span class="browser-url">admin.html · 恋爱卡</span></div>
+            <div class="web">
+                <aside class="sidebar">
+                    <div class="side-brand"><span class="avatar-sm"><img src="../../assets/media/space-avatar.svg" alt=""></span><div><b>管理端</b><small>我们的时光</small></div></div>
+                    <div class="side-group">经营</div>
+                    <nav class="side-nav">
+                        <div class="side-item"><b>▦</b>首页</div>
+                        <div class="side-item"><b>☰</b>订单<span class="count">1</span></div>
+                        <div class="side-item active"><b>卡</b>恋爱卡</div>
+                        <div class="side-item"><b>币</b>恋爱币</div>
+                    </nav>
+                    <div class="side-group">系统</div>
+                    <nav class="side-nav">
+                        <div class="side-item"><b>✎</b>菜单</div>
+                        <div class="side-item"><b>空</b>空间资料</div>
+                    </nav>
+                    <div class="side-foot"><div class="side-item"><b>出</b>退出登录</div></div>
+                </aside>
+                <div class="web-main">
+                    <div class="web-topbar"><h3>恋爱卡</h3><div class="seg web-seg" style="margin-left:16px"><span class="active">恋爱卡</span><span>恋爱币</span></div><span class="crumb" style="margin-left:10px">桌面端可并排看</span></div>
+                    <div class="web-body">
+                        <div class="web-cols" style="grid-template-columns:1.1fr 1fr;margin-top:0">
+                            <div class="web-card">
+                                <div class="web-card-head"><b>恋爱卡</b><span>未使用 45 / 共 71</span></div>
+                                <div class="stat-row">
+                                    <div class="stat"><b>71</b><span>总卡数</span></div>
+                                    <div class="stat accent"><b>45</b><span>未使用</span></div>
+                                    <div class="stat"><b>26</b><span>已使用</span></div>
+                                </div>
+                                <div class="two-col" style="margin-top:10px">
+                                    <div class="form-field"><label>时长</label><div class="input">5 分钟</div></div>
+                                    <div class="form-field"><label>名称</label><div class="input">每周按摩卡</div></div>
+                                </div>
+                                <span class="btn accent block" style="margin-top:8px">发放恋爱卡</span>
+                                <div class="filters" style="margin-top:10px"><span class="filter active">未使用 45</span><span class="filter">已使用 26</span><span class="filter">全部 71</span></div>
+                                <div class="coupon-row" style="margin-top:7px"><span class="coupon-icon">💆</span><span class="coupon-main"><b>每周按摩卡 · 5 分钟</b><small>NO.071 · 2026-10-18 08:00:00 获得</small></span><span class="pill green">未使用</span><span class="trash">⌫</span></div>
+                                <div class="coupon-row" style="margin-top:6px"><span class="coupon-icon">💆</span><span class="coupon-main"><b>每周按摩卡 · 5 分钟</b><small>NO.070 · 2026-10-11 08:00:00 获得</small></span><span class="pill green">未使用</span><span class="trash">⌫</span></div>
+                            </div>
+                            <div class="web-card">
+                                <div class="web-card-head"><b>恋爱币</b><span>余额 482 · 可欠 50</span></div>
+                                <div class="next-meal" style="background:#f7f5f1;color:#232323;padding:11px 12px">
+                                    <span class="wf-label">当前余额</span>
+                                    <b style="font-size:22px">482 <span style="font-size:9px;font-weight:400;color:#8d8782">币</span></b>
+                                    <p style="color:#8d8782;margin-top:1px">最近变动 10.23 16:11</p>
+                                </div>
+                                <div class="two-col" style="margin-top:9px">
+                                    <div class="form-field"><label>发币数量</label><div class="input">50</div></div>
+                                    <div class="form-field"><label>备注</label><div class="input">零花钱</div></div>
+                                </div>
+                                <span class="btn dark block" style="margin-top:7px">发币</span>
+                                <div class="pay-row" style="margin-top:8px"><span>最多可欠</span><div class="input" style="width:54px;margin-left:auto;text-align:center">50</div><span class="btn ghost sm" style="margin-left:6px">保存</span></div>
+                                <div class="section-head" style="margin-top:10px"><b>最近流水</b><span>全部 ›</span></div>
+                                <div class="ledger">
+                                    <div class="ledger-row"><span class="ledger-icon">↩</span><span class="ledger-main"><b>取消退款 20261024-1200-01</b><small>2026-10-23 16:11:00 · 余额 482</small></span><span class="amount plus">+35</span></div>
+                                    <div class="ledger-row"><span class="ledger-icon">🍽</span><span class="ledger-main"><b>下单 20261024-2000-01：酸辣土豆丝</b><small>2026-10-23 16:11:00 · 余额 447</small></span><span class="amount minus">-18</span></div>
+                                    <div class="ledger-row"><span class="ledger-icon pink">🎁</span><span class="ledger-main"><b>恋爱空间开张礼</b><small>2026-10-22 19:15:00 · 余额 520</small></span><span class="amount plus">+520</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<div class="questions">
+    <h2>评审时想确认的几点</h2>
+    <ol>
+        <li>出餐时按菜逐道拍，一单有 2 道菜就要求 2 张成品图；每道菜未拍完不能出餐。确认这个强约束？</li>
+        <li>出餐弹窗里除了「拍照」直接调系统相机，是否保留「从相册选」作为备用入口？线框里先保留了。</li>
+        <li>图片集按顺序保存，第一张即主图：设为主图等于移到第一张，拖动排序可改变顺序，拖到第一位自动成为主图；删除主图时下一张自动补位。这样处理？</li>
+        <li>出餐成品图只出现在菜品详情页的图片集，还是也要在订单详情/历史里展示？线框里只放在菜品详情。</li>
+        <li>图片数量不限；单张仍走现有压缩（最大 1600px、JPEG）。这样是否可以？</li>
+    </ol>
+</div>
+
+</body>
+</html>

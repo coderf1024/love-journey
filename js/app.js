@@ -1,5 +1,5 @@
 /* ============================================================
-   我们的时光 — front-of-house app
+   恋爱空间 — front-of-house app
    index.html only. Data comes from js/store.js (OSS documents).
    ============================================================ */
 
@@ -13,7 +13,7 @@ const CDN = {
     qrcode: 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261022-5';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261023-25';
 const MINUTE = 60 * 1000;
 const ORDER_POLL_MS = 20 * 1000;
 const KITCHEN_STEPS = ['下单', '接单', '备菜', '制作', '出餐'];
@@ -32,7 +32,7 @@ const KITCHEN_COPY = {
     prepping: { title: '大厨系上围裙，正在备菜', note: '洗菜、切菜，马上开火', emoji: '🥬' },
     cooking: { title: '锅里滋滋响，香味出来了', note: '再等一会儿就能开饭', emoji: '🍳' },
     served: { title: '出餐啦，快来吃饭', note: '今天的饭要趁热吃', emoji: '🍽️' },
-    completed: { title: '这顿饭吃完了', note: '碗我来洗', emoji: '🫧' },
+    completed: { title: '一餐圆满', note: '碗我来洗', emoji: '🫧' },
     cancelled: { title: '这单取消了', note: '恋爱币已经退回钱包', emoji: '🥀' }
 };
 
@@ -41,7 +41,7 @@ const KITCHEN_TOAST = {
     prepping: '大厨开始备菜啦',
     cooking: '下锅啦，香味要出来了',
     served: '出餐啦，快来吃饭',
-    completed: '这顿饭完成啦',
+    completed: '一餐圆满',
     cancelled: '这单取消了'
 };
 
@@ -125,6 +125,10 @@ const state = {
     selectedSlotKey: null,
     selectedOrder: null,
     menuCategory: 'all',
+    meView: 'menu',
+    meOrderFilter: 'all',
+    meCardFilter: 'all',
+    meOrderId: null,
     cart: new Set(),
     cartSlotKey: null,
     orderPollTimer: null,
@@ -230,6 +234,7 @@ async function bootstrap() {
         if (errorCard) errorCard.hidden = true;
         const data = await loadAppData();
         applyAppData(data);
+        applyOrderDeepLink();
         await refreshSelectedOrder();
         state.lastLoadedAt = Date.now();
         renderAll();
@@ -280,7 +285,7 @@ function applyAppData(data) {
     }
 
     const orderable = new Set(
-        (state.menu.dishes || []).filter(dish => dish.available).map(dish => String(dish.id))
+        (state.menu.dishes || []).filter(dish => dish.available !== false).map(dish => String(dish.id))
     );
     state.cart.forEach(id => {
         if (!orderable.has(String(id))) state.cart.delete(id);
@@ -304,6 +309,28 @@ function applyAppData(data) {
     }
 }
 
+function applyOrderDeepLink() {
+    const url = new URL(window.location.href);
+    const slotKey = url.searchParams.get('slot');
+    if (!slotKey) return;
+
+    let slot = (state.slots || []).find(item => item.key === slotKey);
+    const order = (state.orders || []).find(item => item.slotKey === slotKey);
+    if (!slot && order && order.slot) {
+        slot = { ...order.slot, orderable: false, past: true };
+        state.slots.unshift(slot);
+    }
+    if (slot) {
+        state.selectedSlotKey = slotKey;
+        if (state.page !== 'order') switchPage('order', { push: false });
+        url.searchParams.delete('slot');
+        history.replaceState({ page: 'order' }, '', `${url.pathname}${url.search}#order`);
+    } else {
+        url.searchParams.delete('slot');
+        history.replaceState({ page: state.page }, '', `${url.pathname}${url.search}#${state.page}`);
+    }
+}
+
 function renderAll() {
     renderDashboard();
     startTimer();
@@ -311,6 +338,7 @@ function renderAll() {
 }
 
 function renderDashboard() {
+    renderSpaceChrome();
     renderLoveStory();
     tickLoveTime();
     renderMilestones();
@@ -355,7 +383,6 @@ function renderLoveStory() {
     const start = parseDate(story.startDate);
     const title = $('love-title');
     if (title && story.title) title.textContent = String(story.title).trim();
-    if (story.title) document.title = `${String(story.title).trim()} · 我们的时光`;
 
     if (start) {
         const since = formatDate(start);
@@ -367,6 +394,33 @@ function renderLoveStory() {
 
     const footerYear = $('footer-year');
     if (footerYear) footerYear.textContent = new Date().getFullYear();
+}
+
+const DEFAULT_SPACE_NAME = '我们的时光';
+const DEFAULT_SPACE_AVATAR = 'assets/media/space-avatar.svg';
+
+function spaceName() {
+    const name = state.space && state.space.name;
+    return String(name || DEFAULT_SPACE_NAME).trim() || DEFAULT_SPACE_NAME;
+}
+
+function renderSpaceChrome() {
+    const name = spaceName();
+    const storyTitle = String((config.loveStory || {}).title || '').trim();
+    const brand = $('brand-title');
+    if (brand) brand.textContent = name;
+    document.title = storyTitle ? `${name} · ${storyTitle}` : name;
+    const appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+    if (appleTitle) appleTitle.setAttribute('content', name);
+
+    const avatar = $('me-avatar-img');
+    if (avatar) {
+        const src = String((state.space && state.space.avatar) || '').trim() || DEFAULT_SPACE_AVATAR;
+        avatar.onerror = () => {
+            if (!avatar.src.endsWith(DEFAULT_SPACE_AVATAR)) avatar.src = DEFAULT_SPACE_AVATAR;
+        };
+        if (avatar.getAttribute('src') !== src) avatar.setAttribute('src', src);
+    }
 }
 
 function tickLoveTime() {
@@ -1038,6 +1092,13 @@ function formatEntryTime(value) {
     return `${pad2(date.getMonth() + 1)}.${pad2(date.getDate())} ${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
 }
 
+function formatFullTime(value) {
+    const date = parseDate(value);
+    if (!date) return String(value || '');
+    return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())} ` +
+        `${pad2(date.getHours())}:${pad2(date.getMinutes())}:${pad2(date.getSeconds())}`;
+}
+
 function slotByKey(key) {
     return (state.slots || []).find(slot => slot.key === key) || null;
 }
@@ -1052,6 +1113,43 @@ function selectedSlot() {
 
 function slotText(slot) {
     return slot ? `${slot.dateLabel} ${slot.label} · ${slot.time}` : '';
+}
+
+function dishImageFor(item) {
+    if (item && item.image) return item.image;
+    const dish = (state.menu.dishes || []).find(d => String(d.id) === String(item.dishId));
+    return dish && dish.image ? dish.image : '';
+}
+
+function dishPhotoHTML(item) {
+    const image = dishImageFor(item);
+    if (image) {
+        return `<span class="order-item-photo"><img src="${escapeHTML(image)}" alt="${cleanText(item.name)}" loading="lazy"></span>`;
+    }
+    return `<span class="order-item-photo"><span class="order-item-emoji" aria-hidden="true">${cleanText(item.icon || '🍽️')}</span></span>`;
+}
+
+function servedPhotosHTML(order) {
+    const photos = ((order && order.items) || [])
+        .filter(item => item && item.servedImage)
+        .map(item => ({ name: item.name, url: item.servedImage }));
+    if (!photos.length) return '';
+    return `
+        <section class="order-served">
+            <div class="order-served-head">
+                <h3>本次出餐</h3>
+                <span>${photos.length} 张成品图 · 大厨拍的</span>
+            </div>
+            <div class="order-served-list">
+                ${photos.map(photo => `
+                    <figure class="order-served-photo">
+                        <img src="${escapeHTML(photo.url)}" alt="${cleanText(photo.name)} 出餐图" loading="lazy">
+                        <figcaption>${cleanText(photo.name)}</figcaption>
+                    </figure>
+                `).join('')}
+            </div>
+        </section>
+    `;
 }
 
 function nextUpcomingOrder() {
@@ -1128,13 +1226,20 @@ async function refreshSelectedOrder() {
     }
 }
 
+const WALLET_ENTRY_ICONS = {
+    grant: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="8" width="17" height="12" rx="2.5"/><path d="M3.5 12h17M12 8v12M8 8c-1.8-2.4 1.4-4.6 4-1.5 2.6-3.1 5.8-.9 4 1.5"/></svg>',
+    order: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5h16a8 8 0 0 1-16 0Z"/><path d="M8 7.3c0-1.4 1-1.9 1-3M12 7.3c0-1.4 1-1.9 1-3M16 7.3c0-1.4 1-1.9 1-3"/><path d="M5 19h14"/></svg>',
+    refund: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h11a4.5 4.5 0 0 1 0 9H8"/><path d="m8 5-4 5 4 5"/></svg>',
+    other: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.4-7.5-9.6A4.4 4.4 0 0 1 12 8a4.4 4.4 0 0 1 7.5 2.9c0 5.2-7.5 9.6-7.5 9.6Z"/></svg>'
+};
+
 function walletEntryHTML(entry) {
     const labels = { grant: '大厨发币', order: '点餐', refund: '退款' };
-    const icons = { grant: '🎁', order: '🍽️', refund: '↩️' };
+    const type = WALLET_ENTRY_ICONS[entry.type] ? entry.type : 'other';
     const positive = Number(entry.amount) >= 0;
     return `
         <div class="wallet-entry">
-            <span class="wallet-entry-icon" aria-hidden="true">${icons[entry.type] || '♡'}</span>
+            <span class="wallet-entry-icon ${type}" aria-hidden="true">${WALLET_ENTRY_ICONS[type]}</span>
             <span class="wallet-entry-main">
                 <b>${cleanText(entry.note || labels[entry.type] || '恋爱币变动')}</b>
                 <small>${labels[entry.type] || '变动'} · ${formatEntryTime(entry.createdAt)} · 余额 ${entry.balanceAfter}</small>
@@ -1303,14 +1408,16 @@ function renderOrderStatus() {
 
     let actions = '';
     if (active) {
-        actions += `<button class="order-action" type="button" data-order-action="nudge" ${cooling ? 'disabled' : ''}>${cooling ? '刚催过' : '催一催'}</button>`;
+        if (state.space && state.space.settings && state.space.settings.nudgeEnabled === true) {
+            actions += `<button class="order-action" type="button" data-order-action="nudge" ${cooling ? 'disabled' : ''}>${cooling ? '刚催过' : '催一催'}</button>`;
+        }
         if (['pending', 'accepted'].includes(status)) {
             actions += '<button class="order-action" type="button" data-order-action="cancel">取消订单</button>';
         }
     }
     if (status === 'served') {
         actions += `<button class="order-action" type="button" data-order-action="thanks" ${order.thanks ? 'disabled' : ''}>${order.thanks ? '已谢谢大厨' : '谢谢大厨'}</button>`;
-        actions += '<button class="order-action is-primary" type="button" data-order-action="complete">吃完了</button>';
+        actions += '<button class="order-action is-primary" type="button" data-order-action="complete">吃好啦</button>';
     }
     if (status === 'completed' || status === 'cancelled') {
         if (status === 'completed' && !order.thanks) {
@@ -1335,17 +1442,18 @@ function renderOrderStatus() {
             ${stepper}
             <div class="order-card-meta">
                 <span>下单于 ${formatClock(order.placedAt) || '-'}</span>
-                <span>${order.items.length} 道菜 · ${order.total} 币</span>
+                <span>合计 ${order.total} 币</span>
             </div>
             <div class="order-card-items">
                 ${order.items.map(item => `
                     <div class="order-item">
-                        <span class="order-item-icon" aria-hidden="true">${cleanText(item.icon || '🍽️')}</span>
-                        <span class="order-item-name">${cleanText(item.name)}</span>
+                        ${dishPhotoHTML(item)}
+                        <span class="order-item-name">${cleanText(item.name)}<i class="order-item-qty">×1</i></span>
                         <span class="order-item-price">${item.price}</span>
                     </div>
                 `).join('')}
             </div>
+            ${servedPhotosHTML(order)}
             ${order.note ? `<p class="order-user-note">“${cleanText(order.note)}”</p>` : ''}
             ${thankyou}
             ${actions ? `<div class="order-card-actions">${actions}</div>` : ''}
@@ -1391,7 +1499,9 @@ function renderMenu() {
         return;
     }
 
-    const dishes = (state.menu.dishes || []).slice()
+    const dishes = (state.menu.dishes || [])
+        .filter(dish => dish.available !== false)
+        .slice()
         .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
     const category = state.menuCategory;
     const visible = category === 'all'
@@ -1413,7 +1523,6 @@ function renderMenu() {
 
     container.innerHTML = visible.map((dish, index) => {
         const inCart = state.cart.has(String(dish.id));
-        const disabled = !dish.available;
         const tags = (dish.tags || []).slice(0, 2)
             .map(tag => `<span>${cleanText(tag)}</span>`)
             .join('');
@@ -1421,13 +1530,12 @@ function renderMenu() {
             ? `<img src="${escapeHTML(dish.image)}" alt="${cleanText(dish.name)}" loading="lazy" decoding="async">`
             : '';
         return `
-            <article class="dish-card ${dish.available ? '' : 'is-soldout'}"
+            <article class="dish-card"
                 role="button" tabindex="0" data-dish-open="${cleanText(dish.id)}"
                 aria-label="查看${cleanText(dish.name)}">
                 <div class="dish-cover v${index % 4}">
                     <span class="dish-emoji" aria-hidden="true">${cleanText(dish.icon || '🍽️')}</span>
                     ${image}
-                    ${dish.todaySpecial ? '<em class="dish-special">今日推荐</em>' : ''}
                 </div>
                 <div class="dish-body">
                     <div class="dish-title-row">
@@ -1443,8 +1551,7 @@ function renderMenu() {
                 <button class="dish-add ${inCart ? 'is-added' : ''}" type="button"
                     data-dish-add="${cleanText(dish.id)}"
                     aria-label="${inCart ? '移出' : '加入'}${cleanText(dish.name)}"
-                    ${disabled ? 'disabled' : ''}>${inCart ? '✓' : '+'}</button>
-                ${dish.available ? '' : '<span class="dish-soldout">售罄</span>'}
+                    >${inCart ? '✓' : '+'}</button>
             </article>
         `;
     }).join('');
@@ -1551,10 +1658,12 @@ function renderCartSheet() {
 
     items.innerHTML = lines.map(dish => `
         <div class="cart-line">
-            <span class="cart-line-icon" aria-hidden="true">${cleanText(dish.icon || '🍽️')}</span>
+            <span class="cart-line-icon" aria-hidden="true">${dish.image
+                ? `<img src="${escapeHTML(dish.image)}" alt="">`
+                : cleanText(dish.icon || '🍽️')}</span>
             <span class="cart-line-name">${cleanText(dish.name)}</span>
             <span class="cart-line-price">${dish.price}</span>
-            <button class="cart-line-remove" type="button" data-cart-remove="${cleanText(dish.id)}" aria-label="移除${cleanText(dish.name)}">✕</button>
+            <button class="cart-line-remove" type="button" data-cart-remove="${cleanText(dish.id)}" aria-label="移除${cleanText(dish.name)}">移除</button>
         </div>
     `).join('');
 
@@ -1702,7 +1811,7 @@ async function handleOrderAction(action) {
         if (action === 'complete') {
             await completeOrder(order.id, 'user');
             await syncOrderState();
-            toast('这顿饭完成啦');
+            toast('一餐圆满');
             return;
         }
         if (action === 'reorder') {
@@ -1824,6 +1933,16 @@ function renderOrderPage() {
 function orderRowHTML(order) {
     const slot = order.slot || (order.slotKey ? slotByKey(order.slotKey) : null);
     const statusLabel = ORDER_STATUS[order.status] || order.status;
+    const items = order.items || [];
+    const active = !['completed', 'cancelled'].includes(order.status);
+    const action = active && order.slotKey && slotByKey(order.slotKey) ? '查看进度 ›' : '查看详情 ›';
+    const itemRows = items.map(item => `
+        <span class="me-order-item">
+            ${dishPhotoHTML(item)}
+            <span class="me-order-item-name">${cleanText(item.name)}<i>×1</i></span>
+            <b class="me-order-item-price">${item.price}</b>
+        </span>
+    `).join('');
     return `
         <button class="me-order" type="button" data-order-open="${cleanText(order.id)}"
             data-order-slot="${order.slotKey ? cleanText(order.slotKey) : ''}"
@@ -1833,62 +1952,332 @@ function orderRowHTML(order) {
                 <span class="me-order-status status-${order.status}">${statusLabel}</span>
             </span>
             <span class="me-order-slot">${slot ? cleanText(slotText(slot)) : '旧订单（无预约时间）'}</span>
-            <span class="me-order-meta">${(order.items || []).map(item => cleanText(item.name)).join('、')} · ${order.total} 币</span>
-            <span class="me-order-time">下单于 ${formatEntryTime(order.placedAt)}</span>
+            <span class="me-order-items">${itemRows}</span>
+            <span class="me-order-foot"><span>下单于 ${formatEntryTime(order.placedAt)} · 合计 ${order.total} 币</span><b class="me-order-action">${action}</b></span>
         </button>
     `;
 }
 
-function renderMePage() {
+const ME_ORDER_RANK = {
+    pending: 0,
+    accepted: 1,
+    prepping: 2,
+    cooking: 3,
+    served: 4,
+    completed: 5,
+    cancelled: 6
+};
+const ME_ORDER_ACTIVE = new Set(['accepted', 'prepping', 'cooking', 'served']);
+const ME_ORDER_FILTERS = [
+    { id: 'all', label: '全部' },
+    { id: 'pending', label: '待接单' },
+    { id: 'active', label: '进行中' },
+    { id: 'completed', label: '已完成' },
+    { id: 'cancelled', label: '已取消' }
+];
+const ME_CARD_FILTERS = [
+    { id: 'all', label: '全部' },
+    { id: 'acquired', label: '获得' },
+    { id: 'used', label: '使用' }
+];
+
+function resetMeView() {
+    if (state.meView === 'menu') return;
+    state.meView = 'menu';
+    state.meOrderId = null;
+    document.body.classList.remove('me-subpage');
+}
+
+function scrollAppTop() {
+    const root = document.documentElement;
+    const previous = root.style.scrollBehavior;
+    root.style.scrollBehavior = 'auto';
+    window.scrollTo(0, 0);
+    root.style.scrollBehavior = previous;
+}
+
+function openMeView(view) {
+    if (!['orders', 'wallet', 'cards'].includes(view)) return;
+    state.meView = view;
+    state.meOrderId = null;
+    document.body.classList.add('me-subpage');
+    renderMePage();
+    scrollAppTop();
+}
+
+function closeMeView() {
+    if (state.meView === 'order-detail') {
+        state.meView = 'orders';
+        state.meOrderId = null;
+        renderMePage();
+        scrollAppTop();
+        return;
+    }
+    state.meView = 'menu';
+    state.meOrderId = null;
+    document.body.classList.remove('me-subpage');
+    renderMePage();
+    scrollAppTop();
+}
+
+function meOrderCounts() {
+    const orders = state.orders || [];
+    return {
+        all: orders.length,
+        pending: orders.filter(order => order.status === 'pending').length,
+        active: orders.filter(order => ME_ORDER_ACTIVE.has(order.status)).length,
+        completed: orders.filter(order => order.status === 'completed').length,
+        cancelled: orders.filter(order => order.status === 'cancelled').length
+    };
+}
+
+function meOrderComparator(a, b) {
+    const ar = ME_ORDER_RANK[a.status] == null ? 9 : ME_ORDER_RANK[a.status];
+    const br = ME_ORDER_RANK[b.status] == null ? 9 : ME_ORDER_RANK[b.status];
+    if (ar !== br) return ar - br;
+    const as = String(a.scheduledFor || a.placedAt || '');
+    const bs = String(b.scheduledFor || b.placedAt || '');
+    const aActive = a.status === 'pending' || ME_ORDER_ACTIVE.has(a.status);
+    const bActive = b.status === 'pending' || ME_ORDER_ACTIVE.has(b.status);
+    if (aActive !== bActive) return aActive ? -1 : 1;
+    return aActive ? as.localeCompare(bs) : bs.localeCompare(as);
+}
+
+function meOrderMatchesFilter(order, filter) {
+    if (filter === 'all') return true;
+    if (filter === 'pending') return order.status === 'pending';
+    if (filter === 'active') return ME_ORDER_ACTIVE.has(order.status);
+    return order.status === filter;
+}
+
+function renderMeMenu() {
     const wallet = state.wallet || { balance: 0, overdraftLimit: 50, entries: [] };
     const limit = Number(wallet.overdraftLimit) || 0;
-    const meCredit = $('me-credit');
-    if (meCredit) meCredit.textContent = `最多可欠 ${limit} 币`;
+    const counts = meOrderCounts();
+    const story = config.loveStory || {};
+    const start = parseDate(story.startDate);
+    const days = start ? Math.max(0, Math.floor((Date.now() - start.getTime()) / 86400000)) : null;
+    const members = String(story.title || '').trim();
+    const name = spaceName();
 
-    const upcoming = (state.orders || [])
-        .filter(order => !['completed', 'cancelled'].includes(order.status))
-        .sort((a, b) => String(a.scheduledFor || a.placedAt || '')
-            .localeCompare(String(b.scheduledFor || b.placedAt || '')));
-
-    const history = (state.orders || [])
-        .filter(order => ['completed', 'cancelled'].includes(order.status))
-        .sort((a, b) => String(b.scheduledFor || b.placedAt || '')
-            .localeCompare(String(a.scheduledFor || a.placedAt || '')));
-
-    const upcomingEl = $('me-upcoming');
-    if (upcomingEl) {
-        upcomingEl.innerHTML = upcoming.length
-            ? upcoming.map(orderRowHTML).join('')
-            : '<div class="me-empty">还没有预约，去点一份周末的饭吧。</div>';
+    const title = $('me-space-title');
+    if (title) title.textContent = name;
+    const sub = $('me-space-sub');
+    if (sub) {
+        sub.textContent = [members, days == null ? '' : `相爱 ${days} 天`]
+            .filter(Boolean)
+            .join(' · ');
     }
-    const historyEl = $('me-history');
-    if (historyEl) {
-        historyEl.innerHTML = history.length
-            ? history.map(orderRowHTML).join('')
-            : '<div class="me-empty">还没有历史订单。</div>';
-    }
-    const upcomingCount = $('me-upcoming-count');
-    if (upcomingCount) upcomingCount.textContent = upcoming.length ? `${upcoming.length} 顿` : '';
-    const historyCount = $('me-history-count');
-    if (historyCount) historyCount.textContent = history.length ? `${history.length} 顿` : '';
 
-    const ledger = $('me-ledger');
-    if (ledger) ledger.innerHTML = walletEntriesHTML(wallet.entries, 200);
+    const balance = $('me-menu-balance');
+    if (balance) balance.textContent = `${wallet.balance} 币`;
+    const walletSub = $('me-menu-wallet-sub');
+    if (walletSub) walletSub.textContent = `最多可欠 ${limit} 币`;
 
-    const couponsEl = $('me-coupons');
-    if (couponsEl) {
-        const used = (state.coupons || [])
-            .filter(coupon => coupon.status === 'used')
-            .sort((a, b) => String(b.usedDate || '').localeCompare(String(a.usedDate || '')));
-        couponsEl.innerHTML = used.length
-            ? used.map(coupon => `
-                <div class="me-coupon">
-                    <span class="me-coupon-title">${cleanText(coupon.icon || '💆')} ${cleanText(coupon.title)}</span>
-                    <small>${cleanText(coupon.duration)}${cleanText(coupon.durationUnit || '分钟')} · ${formatEntryTime(coupon.usedDate)} 使用</small>
-                </div>
-            `).join('')
-            : '<div class="me-empty">还没有用过的恋爱卡。</div>';
+    const orderSub = $('me-menu-orders-sub');
+    if (orderSub) orderSub.textContent = `待接单 ${counts.pending} · 进行中 ${counts.active} · 全部 ${counts.all}`;
+    const badge = $('me-menu-orders-badge');
+    if (badge) {
+        badge.textContent = counts.pending;
+        badge.hidden = counts.pending <= 0;
     }
+
+    const acquired = (state.coupons || []).length;
+    const used = (state.coupons || []).filter(coupon => coupon.status === 'used').length;
+    const cardsSub = $('me-menu-cards-sub');
+    if (cardsSub) cardsSub.textContent = `获得 ${acquired} 次 · 使用 ${used} 次`;
+}
+
+function renderMePage() {
+    const menuView = $('me-menu-view');
+    const subView = $('me-sub-view');
+    if (!menuView || !subView) return;
+
+    if (state.meView === 'menu') {
+        document.body.classList.remove('me-subpage');
+        menuView.hidden = false;
+        subView.hidden = true;
+        renderMeMenu();
+        return;
+    }
+
+    document.body.classList.add('me-subpage');
+    menuView.hidden = true;
+    subView.hidden = false;
+
+    const meta = {
+        orders: '我的订单',
+        wallet: '恋爱币',
+        cards: '恋爱卡流水',
+        'order-detail': '订单详情'
+    }[state.meView] || '空间';
+
+    const title = $('me-sub-title');
+    if (title) title.textContent = meta;
+
+    if (state.meView === 'orders') renderMeOrders();
+    else if (state.meView === 'wallet') renderMeWallet();
+    else if (state.meView === 'cards') renderMeCards();
+    else if (state.meView === 'order-detail') renderMeOrderDetail(state.meOrderId);
+}
+
+function renderMeOrders() {
+    const body = $('me-sub-body');
+    if (!body) return;
+
+    const filter = state.meOrderFilter || 'all';
+    const counts = meOrderCounts();
+    const orders = (state.orders || [])
+        .filter(order => meOrderMatchesFilter(order, filter))
+        .sort(meOrderComparator);
+
+    const filterLabel = (ME_ORDER_FILTERS.find(item => item.id === filter) || {}).label || '全部';
+    const filterCount = filter === 'all' ? counts.all : (counts[filter] || 0);
+
+    body.innerHTML = `
+        <div class="me-list-summary">
+            <span>共 <b>${orders.length}</b> 单</span>
+            <span>${filter === 'all' ? `待接单 ${counts.pending} · 进行中 ${counts.active}` : `${filterLabel} ${filterCount}`}</span>
+        </div>
+        <div class="me-filters" role="tablist" aria-label="订单状态">
+            ${ME_ORDER_FILTERS.map(item => `
+                <button class="me-filter ${filter === item.id ? 'is-active' : ''}" type="button"
+                    role="tab" aria-selected="${filter === item.id}" data-me-filter="${item.id}">${item.label}</button>
+            `).join('')}
+        </div>
+        <div class="me-orders">
+            ${orders.length
+                ? orders.map(orderRowHTML).join('')
+                : '<div class="me-empty">这个状态下还没有订单。</div>'}
+        </div>
+    `;
+}
+
+function renderMeWallet() {
+    const body = $('me-sub-body');
+    if (!body) return;
+    const wallet = state.wallet || { balance: 0, overdraftLimit: 50, entries: [] };
+    const limit = Number(wallet.overdraftLimit) || 0;
+    const negative = wallet.balance < 0;
+
+    body.innerHTML = `
+        <div class="wallet-hero">
+            <span class="wallet-hero-label">当前余额</span>
+            <div class="wallet-hero-value"><b class="${negative ? 'is-negative' : ''}">${wallet.balance}</b><span>币</span></div>
+            <p class="wallet-hero-credit">最多可欠 ${limit} 币 · 由大厨发放</p>
+        </div>
+        <div class="me-section-head"><h2>最近流水</h2><span>共 ${(wallet.entries || []).length} 笔</span></div>
+        <div class="wallet-entries me-ledger">${walletEntriesHTML(wallet.entries, 200)}</div>
+    `;
+}
+
+function couponEvents() {
+    const events = [];
+    (state.coupons || []).forEach(coupon => {
+        if (coupon.acquiredDate) events.push({ type: 'acquired', at: coupon.acquiredDate, coupon });
+        if (coupon.usedDate) events.push({ type: 'used', at: coupon.usedDate, coupon });
+    });
+    return events.sort((a, b) => String(b.at || '').localeCompare(String(a.at || '')));
+}
+
+function couponEventHTML(event) {
+    const coupon = event.coupon;
+    const used = event.type === 'used';
+    return `
+        <div class="me-coupon-event">
+            <span class="me-coupon-icon" aria-hidden="true">${cleanText(coupon.icon || '💆')}</span>
+            <span class="me-coupon-main">
+                <b>${cleanText(coupon.title)}</b>
+                <small>${cleanText(coupon.duration)}${cleanText(coupon.durationUnit || '分钟')} · ${formatFullTime(event.at)} ${used ? '使用' : '获得'}</small>
+            </span>
+            <span class="me-coupon-type ${used ? 'used' : 'acquired'}">${used ? '使用' : '获得'}</span>
+        </div>
+    `;
+}
+
+function renderMeCards() {
+    const body = $('me-sub-body');
+    if (!body) return;
+    const filter = state.meCardFilter || 'all';
+    const events = couponEvents();
+    const filtered = events.filter(event => filter === 'all' || event.type === filter);
+
+    body.innerHTML = `
+        <div class="me-list-summary">
+            <span>共 <b>${events.length}</b> 条</span>
+            <button class="me-link" type="button" data-me-link="coupons">全部恋爱卡 ›</button>
+        </div>
+        <div class="me-filters three" role="tablist" aria-label="恋爱卡流水类型">
+            ${ME_CARD_FILTERS.map(item => `
+                <button class="me-filter ${filter === item.id ? 'is-active' : ''}" type="button"
+                    role="tab" aria-selected="${filter === item.id}" data-me-card-filter="${item.id}">${item.label}</button>
+            `).join('')}
+        </div>
+        <div class="me-coupons">
+            ${filtered.length
+                ? filtered.map(couponEventHTML).join('')
+                : '<div class="me-empty">这个分类还没有记录。</div>'}
+        </div>
+        <p class="me-note">获得和使用都记在这条流水里；未使用的卡去「恋爱卡」查看和出示二维码。</p>
+    `;
+}
+
+async function renderMeOrderDetail(orderId) {
+    const body = $('me-sub-body');
+    if (!body) return;
+    if (!orderId) {
+        body.innerHTML = '<div class="order-loading">找不到这条订单。</div>';
+        return;
+    }
+    body.innerHTML = '<div class="order-loading">正在读取订单…</div>';
+    try {
+        const order = await getOrder(orderId);
+        if (state.meView !== 'order-detail' || String(state.meOrderId) !== String(orderId)) return;
+        body.innerHTML = orderDetailHTML(order);
+    } catch (error) {
+        console.error('读取订单详情失败:', error);
+        body.innerHTML = '<div class="order-loading">订单读取失败，稍后再试。</div>';
+    }
+}
+
+function orderDetailHTML(order) {
+    const slot = order.slot || (order.slotKey ? slotByKey(order.slotKey) : null);
+    const statusLabel = ORDER_STATUS[order.status] || order.status;
+    const history = Array.isArray(order.statusHistory) ? order.statusHistory : [];
+
+    return `
+        <div class="order-detail">
+            <div class="order-detail-head">
+                <span class="order-detail-id">${cleanText(order.id)}</span>
+                <span class="order-badge">${statusLabel}</span>
+            </div>
+            <p class="order-detail-slot">${slot ? cleanText(slotText(slot)) : '旧订单（无预约时间）'}</p>
+            <div class="order-detail-items">
+                ${(order.items || []).map(item => `
+                    <div class="order-item">
+                        ${dishPhotoHTML(item)}
+                        <span class="order-item-name">${cleanText(item.name)}<i class="order-item-qty">×1</i></span>
+                        <span class="order-item-price">${item.price}</span>
+                    </div>
+                `).join('')}
+            </div>
+            ${servedPhotosHTML(order)}
+            <div class="order-detail-total"><span>合计</span><b>${order.total} 币</b></div>
+            ${order.note ? `<p class="order-user-note">“${cleanText(order.note)}”</p>` : ''}
+            ${order.thanks ? `<p class="order-thanks">♡ ${cleanText(order.thanks.note)}</p>` : ''}
+            <div class="order-detail-payment">
+                <span>扣币 ${order.payment ? order.payment.amount : order.total} 币</span>
+                <span>${order.payment && order.payment.refundedAt ? '已退款' : '已支付'}</span>
+            </div>
+            <h3 class="order-detail-history-title">状态记录</h3>
+            <ol class="order-history">
+                ${history.map(entry => `
+                    <li><span>${ORDER_STATUS[entry.status] || entry.status}</span><small>${formatFullTime(entry.at)}</small></li>
+                `).join('')}
+            </ol>
+            ${!['completed', 'cancelled'].includes(order.status) && order.slotKey && slotByKey(order.slotKey) ? `<button class="order-detail-progress" type="button" data-detail-slot="${cleanText(order.slotKey)}">查看进度</button>` : ''}
+        </div>
+    `;
 }
 
 async function openOrderDetail(orderId) {
@@ -1898,41 +2287,7 @@ async function openOrderDetail(orderId) {
     openSheet('order-detail-sheet');
     try {
         const order = await getOrder(orderId);
-        const slot = order.slot || (order.slotKey ? slotByKey(order.slotKey) : null);
-        const statusLabel = ORDER_STATUS[order.status] || order.status;
-        const history = Array.isArray(order.statusHistory) ? order.statusHistory : [];
-        body.innerHTML = `
-            <div class="order-detail">
-                <div class="order-detail-head">
-                    <span class="order-detail-id">${cleanText(order.id)}</span>
-                    <span class="order-badge">${statusLabel}</span>
-                </div>
-                <p class="order-detail-slot">${slot ? cleanText(slotText(slot)) : '旧订单（无预约时间）'}</p>
-                <div class="order-detail-items">
-                    ${(order.items || []).map(item => `
-                        <div class="order-item">
-                            <span class="order-item-icon">${cleanText(item.icon || '🍽️')}</span>
-                            <span class="order-item-name">${cleanText(item.name)}</span>
-                            <span class="order-item-price">${item.price}</span>
-                        </div>
-                    `).join('')}
-                </div>
-                <div class="order-detail-total"><span>合计</span><b>${order.total} 币</b></div>
-                ${order.note ? `<p class="order-user-note">“${cleanText(order.note)}”</p>` : ''}
-                ${order.thanks ? `<p class="order-thanks">♡ ${cleanText(order.thanks.note)}</p>` : ''}
-                <div class="order-detail-payment">
-                    <span>扣币 ${order.payment ? order.payment.amount : order.total} 币</span>
-                    <span>${order.payment && order.payment.refundedAt ? '已退款' : '已支付'}</span>
-                </div>
-                <h3 class="order-detail-history-title">状态记录</h3>
-                <ol class="order-history">
-                    ${history.map(entry => `
-                        <li><span>${ORDER_STATUS[entry.status] || entry.status}</span><small>${formatEntryTime(entry.at)}</small></li>
-                    `).join('')}
-                </ol>
-                ${!['completed', 'cancelled'].includes(order.status) && order.slotKey && slotByKey(order.slotKey) ? `<button class="order-detail-progress" type="button" data-detail-slot="${cleanText(order.slotKey)}">查看进度</button>` : ''}
-            </div>
-        `;
+        body.innerHTML = orderDetailHTML(order);
     } catch (error) {
         console.error('读取订单详情失败:', error);
         body.innerHTML = '<div class="order-loading">订单读取失败，稍后再试。</div>';
@@ -1945,14 +2300,41 @@ function renderDishSheet() {
 
     const image = $('dish-detail-image');
     if (image) {
-        image.innerHTML = dish.image
-            ? `<img src="${escapeHTML(dish.image)}" alt="${cleanText(dish.name)}">`
-            : `<span class="dish-detail-emoji" aria-hidden="true">${cleanText(dish.icon || '🍽️')}</span>`;
-        const img = image.querySelector('img');
-        if (img) {
-            img.addEventListener('error', () => {
-                image.innerHTML = `<span class="dish-detail-emoji" aria-hidden="true">${cleanText(dish.icon || '🍽️')}</span>`;
+        const images = typeof dishImages === 'function' ? dishImages(dish) : (dish.image ? [dish.image] : []);
+        if (images.length) {
+            image.innerHTML = `
+                <div class="dish-gallery-track" id="dish-gallery-track">
+                    ${images.map((url, index) => `<div class="dish-gallery-slide"><img src="${escapeHTML(url)}" alt="${cleanText(dish.name)} ${index + 1}" loading="lazy"></div>`).join('')}
+                </div>
+                ${images.length > 1 ? `<span class="dish-gallery-count" id="dish-gallery-count">1 / ${images.length}</span><div class="dish-gallery-dots" id="dish-gallery-dots">${images.map((_, index) => `<button type="button" class="dish-gallery-dot ${index === 0 ? 'is-active' : ''}" data-dish-image-index="${index}" aria-label="查看第 ${index + 1} 张图片"></button>`).join('')}</div>` : ''}`;
+            const track = $('dish-gallery-track');
+            const count = $('dish-gallery-count');
+            const dots = $('dish-gallery-dots');
+            image.querySelectorAll('img').forEach(img => {
+                img.addEventListener('error', () => img.closest('.dish-gallery-slide')?.remove());
             });
+            if (track && images.length > 1) {
+                let frame = null;
+                const updateGallery = () => {
+                    frame = null;
+                    const index = Math.min(images.length - 1, Math.round(track.scrollLeft / Math.max(1, track.clientWidth)));
+                    if (count) count.textContent = `${index + 1} / ${images.length}`;
+                    if (dots) [...dots.children].forEach((dot, i) => dot.classList.toggle('is-active', i === index));
+                };
+                track.addEventListener('scroll', () => {
+                    if (!frame) frame = requestAnimationFrame(updateGallery);
+                }, { passive: true });
+                if (dots) {
+                    dots.addEventListener('click', event => {
+                        const dot = event.target.closest('[data-dish-image-index]');
+                        if (!dot) return;
+                        const index = Number(dot.dataset.dishImageIndex);
+                        track.scrollTo({ left: track.clientWidth * index, behavior: 'smooth' });
+                    });
+                }
+            }
+        } else {
+            image.innerHTML = `<span class="dish-detail-emoji" aria-hidden="true">${cleanText(dish.icon || '🍽️')}</span>`;
         }
     }
 
@@ -2031,6 +2413,45 @@ function initConfirm() {
     document.querySelectorAll('[data-confirm]').forEach(element => {
         element.addEventListener('click', () => resolveConfirm(element.dataset.confirm === 'ok'));
     });
+}
+
+async function handleMeSubClick(event) {
+    const filter = event.target.closest('[data-me-filter]');
+    if (filter) {
+        state.meOrderFilter = filter.dataset.meFilter;
+        renderMeOrders();
+        return;
+    }
+
+    const cardFilter = event.target.closest('[data-me-card-filter]');
+    if (cardFilter) {
+        state.meCardFilter = cardFilter.dataset.meCardFilter;
+        renderMeCards();
+        return;
+    }
+
+    if (event.target.closest('[data-me-link="coupons"]')) {
+        switchPage('coupons');
+        return;
+    }
+
+    const row = event.target.closest('[data-order-open]');
+    if (!row) return;
+    const summary = (state.orders || []).find(order => String(order.id) === row.dataset.orderOpen);
+    if (!summary) return;
+
+    if (!['completed', 'cancelled'].includes(summary.status) &&
+        summary.slotKey && slotByKey(summary.slotKey)) {
+        await selectSlot(summary.slotKey);
+        switchPage('order');
+        return;
+    }
+
+    state.meView = 'order-detail';
+    state.meOrderId = summary.id;
+    document.body.classList.add('me-subpage');
+    renderMePage();
+    scrollAppTop();
 }
 
 function initOrderUI() {
@@ -2136,22 +2557,15 @@ function initOrderUI() {
         });
     }
 
-    ['me-upcoming', 'me-history'].forEach(id => {
-        const container = $(id);
-        if (!container) return;
-        container.addEventListener('click', async event => {
-            const row = event.target.closest('[data-order-open]');
-            if (!row) return;
-            const summary = (state.orders || []).find(order => String(order.id) === row.dataset.orderOpen);
-            if (summary && !['completed', 'cancelled'].includes(summary.status) &&
-                summary.slotKey && slotByKey(summary.slotKey)) {
-                await selectSlot(summary.slotKey);
-                switchPage('order');
-                return;
-            }
-            openOrderDetail(row.dataset.orderOpen);
-        });
+    const meBack = $('me-back');
+    if (meBack) meBack.addEventListener('click', closeMeView);
+
+    document.querySelectorAll('[data-me-view]').forEach(button => {
+        button.addEventListener('click', () => openMeView(button.dataset.meView));
     });
+
+    const meSubBody = $('me-sub-body');
+    if (meSubBody) meSubBody.addEventListener('click', handleMeSubClick);
 
     const detailBody = $('order-detail-body');
     if (detailBody) {
@@ -2241,7 +2655,10 @@ function closeSheet(id) {
         document.body.style.right = '';
         document.body.style.width = '';
         document.documentElement.classList.remove('is-locked');
+        const previousBehavior = document.documentElement.style.scrollBehavior;
+        document.documentElement.style.scrollBehavior = 'auto';
         window.scrollTo(0, state.scrollY || 0);
+        document.documentElement.style.scrollBehavior = previousBehavior;
     }
 }
 
@@ -2278,6 +2695,7 @@ function switchPage(page, options = {}) {
     const target = valid.includes(page) ? page : 'home';
     const { push = true, scroll = true } = options;
     state.page = target;
+    resetMeView();
 
     document.querySelectorAll('.page').forEach(section => {
         section.classList.toggle('is-active', section.dataset.page === target);
@@ -2292,9 +2710,6 @@ function switchPage(page, options = {}) {
             button.removeAttribute('aria-current');
         }
     });
-
-    const refresh = $('refresh-btn');
-    if (refresh) refresh.hidden = target !== 'coupons';
 
     if (target === 'coupons') {
         renderCoupons();
@@ -2338,7 +2753,9 @@ function switchPage(page, options = {}) {
 }
 
 function initNavigation() {
-    document.querySelectorAll('[data-page]').forEach(button => {
+    // Only navigation controls; the page <section> elements also carry
+    // data-page, and binding them would re-switch the page on every click.
+    document.querySelectorAll('.top-nav-item[data-page], .tab[data-page]').forEach(button => {
         button.addEventListener('click', () => switchPage(button.dataset.page));
     });
 
@@ -2373,8 +2790,6 @@ function initMusic() {
     const button = $('music-control');
     if (!music || !button) return;
 
-    const preference = storageGet('lj-music') === 'on';
-
     const paint = (playing) => {
         button.classList.toggle('is-playing', playing);
         button.setAttribute('aria-pressed', playing ? 'true' : 'false');
@@ -2403,27 +2818,13 @@ function initMusic() {
     paint(false);
 
     button.addEventListener('click', () => {
-        if (music.paused) {
-            storageSet('lj-music', 'on');
-            play();
-        } else {
-            storageSet('lj-music', 'off');
-            pause();
-        }
+        if (music.paused) play();
+        else pause();
     });
 
     music.addEventListener('pause', () => paint(false));
     music.addEventListener('play', () => paint(true));
 
-    if (preference) {
-        const tryPlay = () => {
-            if (music.paused) play();
-            document.removeEventListener('pointerdown', tryPlay);
-            document.removeEventListener('touchstart', tryPlay);
-        };
-        document.addEventListener('pointerdown', tryPlay, { once: true });
-        document.addEventListener('touchstart', tryPlay, { once: true, passive: true });
-    }
 }
 
 /* ---------- chrome ---------- */

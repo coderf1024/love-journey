@@ -8,9 +8,54 @@ A static, no-build vanilla-JS site (Chinese-language, personal project) deployed
 
 The product is a **恋爱空间**: one space, exactly two members (a user and a chef/admin). The kitchen only serves weekends, with reservations.
 
-- `index.html` — the scrapbook + kitchen + wallet, mobile-first: fixed header, bottom tab bar (首页 / 点餐 / 恋爱卡 / 我的), love timer, milestones, goals, China map, coupons, weekend slot picker, menu/cart, order tracking, wallet sheet, and the 我的 page (upcoming orders, history, ledger, card-usage records).
-- `admin.html` — passcode-gated 大厨端: coupons (恋爱卡) plus the 小灶 tab (reservation queue, wallet/发币, menu CRUD with images, overdraft limit).
+- `index.html` — the scrapbook + kitchen + wallet, mobile-first: fixed header, bottom tab bar (我们 / 小灶 / 恋爱卡 / 空间), love timer, milestones, goals, China map, coupons, weekend slot picker, menu/cart, order tracking, wallet sheet, and a 空间 first-level menu with in-place sub-pages (orders / wallet / card ledger).
+- `admin.html` — passcode-gated 管理端: workbench home, order queue, coupons + coins, system settings (menu, space profile, Bark, 催一催 toggle). Mobile bottom tabs 首页 / 订单 / 恋爱卡 / 系统; desktop sidebar grouped 经营 / 系统.
 - `use.html?id=<couponId>` — QR-code redemption page, self-contained.
+
+## Working model (read this before changing anything)
+
+This repo is developed by **one human + one AI**, with several requirements able to run in parallel. The stable process lives in `docs/`; do not rely on chat memory.
+
+### Session start
+
+1. Read [docs/README.md](docs/README.md), [docs/glossary.md](docs/glossary.md), and [docs/work/BOARD.md](docs/work/BOARD.md).
+2. Read the active task's `docs/work/<task-id>/brief.md`, `plan.md`, and `STATUS.md`.
+3. If there is no task ID for the request, create/agree one before editing; copy `docs/work/_template/`.
+4. Report current status, scope, next 1–3 actions, and open questions before code changes.
+
+### One requirement = one worktree + branch
+
+- Task IDs: `LJ-YYYYMMDD-NN-short-slug`.
+- Branch: `feat/<task-id>`, `fix/<task-id>`, or `chore/<task-id>`.
+- Worktree: `.claude/worktrees/<task-id>` (ignored by git).
+- Task docs: `docs/work/<task-id>/`.
+- Update `STATUS.md` and `BOARD.md` before switching requirements or ending a session.
+- The current `feat/love-space-ordering` work is the baseline exception; from the next new requirement onward, use a separate worktree.
+
+### Quality and release
+
+- No new build/test toolchain: no package.json, Playwright, lint, or bundler unless a new ADR explicitly approves it.
+- Manual gates: `node --check`, 320/390/1280 browser checks, console clean, and the task's `QA.md`.
+- `main` is the deploy branch; functional branches merge only after human acceptance.
+- Follow [docs/runbooks/release.md](docs/runbooks/release.md) for cache-version bump, fonts, merge, and post-deploy smoke.
+- Read [docs/runbooks/oss-data.md](docs/runbooks/oss-data.md) before any OSS write. Read-only first; destructive/data-migration actions need explicit human approval.
+
+### Terminology (avoid ambiguity)
+
+- User bottom tabs: **我们 / 小灶 / 恋爱卡 / 空间**; internal routes remain `home` / `order` / `coupons` / `me`.
+- **我们** = the home/scrapbook tab; **空间** = the former “我们” profile/menu page.
+- **管理端** = `admin.html`; **大厨** is the person/role, not the backend name. Never call the backend “大厨端”.
+- “出餐” = status `served`; “完成” = `completed`.
+- Dish `image` = main image, `images[]` = ordered gallery, order item `servedImage` = this order’s serving snapshot.
+
+### Docs map
+
+- Architecture / data / flows: [docs/architecture/](docs/architecture/)
+- Runbooks: [docs/runbooks/](docs/runbooks/)
+- Decisions: [docs/decisions/](docs/decisions/)
+- Task workflow/templates: [docs/work/README.md](docs/work/README.md)
+- Design prototypes: [docs/design/](docs/design/)
+- Changelog: [CHANGELOG.md](CHANGELOG.md)
 
 ## Commands
 
@@ -44,7 +89,7 @@ OSS_REGION=... OSS_BUCKET=... OSS_ACCESS_KEY_ID=... OSS_ACCESS_KEY_SECRET=... \
 OSS_DB_ROOT=love-journey/db COUPON_DURATION=5 COUPON_TITLE='每周按摩卡' \
 node scripts/auto-gift-massage.js
 
-# Encrypt a new AccessKey for js/oss-config.js — algorithm and snippet in docs/OSS_CONFIG_README.md
+# Encrypt a new AccessKey for js/oss-config.js — algorithm and snippet in docs/reference/oss-config.md
 ```
 
 ## Storage: OSS as a document database (v2)
@@ -53,7 +98,7 @@ There is no backend. The bucket is used as a small JSON document store under `OS
 
 ```
 love-journey/db/
-  space.json                 # members (user/chef), settings, serving windows, schemaVersion
+  space.json                 # name, avatar, members, settings (serving, bark, nudgeEnabled), schemaVersion
   content/
     story.json               # loveStory (startDate, title, names)
     milestones.json          # { items: [...] } — bounded, read whole
@@ -79,10 +124,10 @@ love-journey/db/
 - `placeOrder({ slotKey, dishIds, note })` — validates the slot is future/orderable, blocks a second order at the same slot (`SLOT_TAKEN`), allows different slots simultaneously, enforces `balance + overdraftLimit`, writes the order document then the wallet (rollback if the wallet write fails). Order id is `${slot.key}-${sequence}`, e.g. `20261024-1200-01`; the sequence counts all orders ever placed for that slot (including cancelled).
 - `setOrderStatus(id, status, { by })` — pending → **accepted** → prepping → cooking → served → completed.
 - `cancelOrder(id, { by })` — the user may cancel pending/accepted; the chef may cancel any active status; refunds the total into the wallet as a `refund` entry. A cancelled slot is orderable again.
-- `nudgeOrder` (5-minute cooldown), `thankChef`, `completeOrder`.
+- `nudgeOrder` (5-minute cooldown; rejects unless `space.settings.nudgeEnabled === true`), `thankChef`, `completeOrder`.
 - `grantCoins(amount, note)`, `setOverdraftLimit(limit)`.
-- `upsertDish` (includes `image`), `deleteDish`, `toggleDish`, `saveMenu`.
-- `addCoupon`, `useCoupon`, `deleteCoupon` — the existing weekly gift flow writes into `commerce/coupons/`.
+- `upsertDish` (includes `image`, `ingredients`; normalizes time/tag sets), `deleteDish`, `toggleDish`, `saveMenu`.
+- `addCoupon`, `useCoupon`, `deleteCoupon` — weekly gifts still write into `commerce/coupons/`; deletion is a real delete via the `deleteMulti` workaround described in the Admin section.
 
 The wallet is the user's only; the admin never spends. The embedded `entries[]` is the ledger. `balance` is denormalized; it is always written together with the entry that changed it.
 
@@ -117,7 +162,7 @@ There is no admin UI for serving times yet; edit `space.json` (or the seed) if t
     "dateLabel": "10.24 周六", "scheduledFor": "2026-10-24 12:00"
   },
   "status": "pending", // pending | accepted | prepping | cooking | served | completed | cancelled
-  "items": [{ "dishId": "...", "name": "番茄炒蛋", "icon": "🍅", "price": 20, "prepMinutes": 15 }],
+  "items": [{ "dishId": "...", "name": "番茄炒蛋", "icon": "🍅", "price": 20, "prepMinutes": 40 }],
   "total": 35, "etaMinutes": 20, "note": "少辣",
   "placedAt": "YYYY-MM-DD HH:mm:ss", "updatedAt": "…",
   "statusHistory": [{ "status": "pending", "at": "…", "by": "user" }],
@@ -135,28 +180,36 @@ The order index stores summaries (including `slot`, status, items, total, thanks
 - Hash routing `#home` / `#order` / `#coupons` / `#me` with `history.pushState`; top nav at `≥820px`, bottom tab bar below.
 - Order page: slot picker with the next 8 meal slots (2 weekends), a selected-slot summary, tracking card or menu, a fixed cart bar, checkout sheet, dish detail sheet with a large photo/emoji fallback, and a wallet sheet. One order per slot; different slots can coexist. Booked slots show the tracking card instead of the menu; past-cutoff slots show “已截止预约”. Past active orders are appended as extra non-orderable slots so they can still be tracked.
 - The user can cancel pending/accepted orders; after the chef starts prepping only the chef can cancel. All confirmations (cancel, switching slots with a cart) use the custom dialog component, not `alert/confirm`.
-- 我的 page: upcoming reservations, history (with an order-detail sheet), full wallet ledger (up to 50 rows), and used-coupon records. Order rows for active reservations jump back to the order page with that slot selected.
+- The 恋爱卡 refresh action lives in the coupon toolbar (right of the 全部/未使用/已使用 tabs), not the global header; the header keeps only the music button. On narrow screens the refresh button is icon-only.
+- 空间 page is a first-level menu (profile, wallet balance, order counts, card counts) whose rows open in-place sub-views instead of one long scroll: order list, wallet ledger, card ledger. Sub-views hide the bottom tab bar and use a sticky back header; `state.meView` (`menu` / `orders` / `wallet` / `cards` / `order-detail`) drives the swap.
+- Order sub-view: five filters (全部 / 待接单 / 进行中 / 已完成 / 已取消), newest-first grouping with active orders first. Each row shows dish photos, dish name + `×1` + price, and a footer action. Active reservations jump back to the order page with that slot selected; completed/cancelled rows open the order detail sub-view (same `orderDetailHTML` as the legacy sheet).
+- Wallet sub-view: balance, overdraft limit, and the full ledger (up to 200 rows). Card sub-view: a ledger built from every coupon's `acquiredDate` and `usedDate`, with 全部 / 获得 / 使用 tabs and a link to the 恋爱卡 tab.
 - Polling: `refreshOrderData()` every 20s when an order is prepping/cooking/served or a pending/accepted order is within 12 hours; a full `refreshData()` (9 reads) runs when data is older than 30s on page switch/visibility.
 - ECharts and qrcodejs are **lazy-loaded from jsdelivr on demand** (map near viewport / QR sheet open). The map defaults to `roam: false` behind a tap-to-explore guard so page scrolling is never trapped.
 - Sheets lock body scroll with a fixed-body technique and restore the scroll position; Escape/backdrop/tap closes the topmost sheet.
 
 ## Admin (admin.html)
 
-Two tabs after the passcode gate:
+The passcode gate opens a 管理端 shell: mobile bottom tabs 首页 / 订单 / 恋爱卡 / 系统; desktop a left sidebar grouped into 经营 (首页 / 订单 / 恋爱卡 / 恋爱币) and 系统 (菜单 / 空间资料). All views are in one page and toggled client-side.
 
-- **恋爱卡** — the original coupon issue/stats/delete UI, now reading `adminData.coupons`.
-- **小灶** — reservation queue (接单 / 开始备菜 / 开始制作 / 出餐 / 完成 / 取消退款, sorted active-first, slot shown on every card), user wallet (balance, 发币, editable overdraft limit, ledger), and menu CRUD (add/edit/delete, image URL, availability, today's special). The kitchen tab polls orders every 15s while open. Destructive actions use the shared `.dialog` component from `css/style.css` instead of native `confirm`.
+- **首页** — next-meal context, a single “需要你处理” list (pending orders, served orders awaiting confirmation, overdue active orders), this-week stats, and quick actions for 发恋爱币 / 发恋爱卡. Do not add a second accept/cancel entry point on this page; order actions live in the queue.
+- **订单** — status filters (待接单 / 进行中 / 已完成 / 已取消 / 全部), default 待接单; grouped by meal slot; each card has dish photos, note, total, status transition (接单 → 开始备菜 → 开始制作 → 出餐 → 完成) and cancel/refund. **出餐 is a two-step action**: it opens a serving modal that requires one photo per dish (`capture="environment"` opens the iOS camera; an album fallback is kept), uploads/compresses the photos, appends them to each dish's `images[]`, writes each order item's `servedImage` as the order snapshot, then marks the order served. User order cards/detail/history show dish images and a separate large “本次出餐” section for served photos; the dish detail carousel shows the accumulated `images[]`. The page polls orders/wallet every 15s while logged in.
+- **恋爱卡 / 恋爱币** — the same view with a segmented control on mobile; desktop shows both columns. Coupons: stats, filters, manual issue and delete. Coins: balance, grant, overdraft limit, ledger. Weekly issuance still comes from the Action.
+- **系统** — menu CRUD (modal editor + image-set manager), space profile (name + avatar), Bark settings (separate user/admin keys, test buttons), the `催一催` switch (default off, saved with the notification settings), and logout. The passcode is remembered in `sessionStorage` for 12 hours, so a refresh keeps the admin session but closing the tab does not. Menu photos go through `uploadDishImage(file)`; space avatars through `uploadSpaceImage(file)` in `js/oss-utils.js` (client-side compression, max 1600px, JPEG 0.82) and land in `love-journey/uploads/dishes/` or `love-journey/uploads/space/`. The add/edit dish form is a modal on both mobile and desktop; thumbnails and the square preview open a full-image lightbox.
+- **Menu fields** — 菜名 / 图片（`image` 主图 + `images[]` 图片集） / 分类 (快手菜 / 硬核菜) / 价格 / 标签 (only 下饭 / 香辣 / 酸甜, optional multi-select) / 描述 / 预计时间 (only 40 / 60 / 90 / 120) / 食材清单 (admin-only, optional) / 上架. `images[]` is ordered: index 0 is the main image; the dish editor can delete, reorder, or promote any image to main. The photo preview is 1:1 to match the user dish card. `icon` and `todaySpecial` are legacy fields; the admin no longer edits either, and the user UI no longer renders 今日推荐. `upsertDish` normalizes time to the nearest bucket, filters tags to the three allowed values, and preserves `icon` on edit. The user cart also renders the real dish photo. Unavailable (下架) dishes are hidden from the user menu entirely; the admin menu still lists them so they can be re-enabled.
+- **Bark** — settings live in `space.settings.bark` as `{ enabled, userKey, adminKey, events, templates, server }` plus `space.settings.links` (`{ user, admin }`), all edited in 系统, with a test button per key. The user key receives 开始制作 / 出餐; the admin key receives 新单 / 用户取消 / 催一催. Each trigger has an `events` flag (default true) and an editable template with `title` / `subtitle` / `body` / `url`; defaults live in `BARK_TEMPLATE_DEFAULTS` in `js/store.js`. Templates use `{variable}` substitution (`orderId`, `slot`, `slotKey`, `items`, `total`, `note`, `status`, `refund`, `reason`, `minutes`, `userUrl`, `userOrderUrl`, `adminUrl`, …); the default cooking/served click URL is `{userOrderUrl}`, which resolves to the 小灶 order page with `?slot=<slotKey>#order`. the editor modal shows a sample-data preview and only sends a test after a confirmation dialog. `sendBark()` in `js/store.js` uses the documented `POST /push` JSON payload (`device_key`, `group`, `isArchive`, `title`, `subtitle`, `body`, `url`); the click URL comes from the rendered template URL, with `settings.links`/current-origin fallback. There is deliberately no in-app notification center and no cron; pushes happen only when the acting page is open. `催一催` is `space.settings.nudgeEnabled`, default false and saved with the notification settings; when false the user UI hides the button and `nudgeOrder()` rejects.
+- **Coupon delete is a hard delete** — the bucket's browser CORS rule allows `GET/POST/PUT` but not `DELETE`, so `dbDelete()` uses `ossClient.deleteMulti([key])` (OSS `POST ?delete`) instead of `ossClient.delete()`. This keeps hard deletes working from the browser; do not switch `dbDelete()` back to `delete()` without adding DELETE to the bucket CORS.
 
 ## Assets
 
 - `assets/fonts/*.woff2` — subsets of Ma Shan Zheng + Noto Serif SC Bold generated from the current copy + the live config + `scripts/menu-seed.js`, `scripts/serving-seed.js`, `scripts/update-schedule-menu.js`. No Google Fonts (blocked/slow in China). Run `./scripts/build-fonts.sh` after copy/content edits; unseen characters fall back to system fonts.
-- `assets/media/dishes/*.jpg` — **mock dish photos** (Wikimedia Commons / Unsplash) for the menu; credits in `assets/media/dishes/CREDITS.md`. Replace them via the admin `image` field (a local path or OSS URL) when real photos are available. Cards use the image with an emoji fallback; the dish detail sheet shows the large image.
-- `assets/media/xiaomeiman.mp3` — 96 kbps (original 8.5 MB stays in git history). `preload="none"`, opt-in; preference in `localStorage` (`lj-music`).
+- `assets/media/dishes/*.jpg` — **mock dish photos** (Wikimedia Commons / Unsplash) for the menu; credits in `docs/reference/dish-photo-credits.md`. Replace them via the admin photo upload (stored under `love-journey/uploads/dishes/`) or an `image` path/URL when real photos are available. Cards use the image with an emoji fallback; the dish detail sheet shows the large image.
+- `assets/media/xiaomeiman.mp3` — 96 kbps (original 8.5 MB stays in git history). `preload="none"`, strictly click-to-play: no autoplay and no resume-on-first-tap; the `lj-music` preference is no longer used.
 - `assets/texture-noise.png`, `assets/icon.svg` + PNGs, `manifest.webmanifest`.
 
 ## Gotchas
 
-- **No transactions**: order + wallet are two documents. `placeOrder` rolls the order back if the wallet write fails; `cancelOrder` restores the previous order document if the refund write fails. There is still a small window if the second write fails and the rollback also fails. Do not add a third independent write to this flow without thinking it through.
+- **No transactions**: order + wallet are two documents. `placeOrder` rolls the order back if the wallet write fails; `cancelOrder` restores the previous order document if the refund write fails. There is still a small window if the second write fails and the rollback also fails. Do not add a third independent write to this flow without thinking it through. `serveOrder` writes the menu image set first, then the order; if the order write fails the photo may remain in the dish gallery (retry dedupes by URL).
 - **Indexes are derived**: every collection write updates `<dir>/index.json`. If an index is missing/stale, `dbCollection.list()` rebuilds it from the documents. A manual OSS write that bypasses the store can leave the index stale.
 - **Read-modify-write races**: no locking or ETag. Two writers (user ordering while the chef changes status, or the weekly Action firing while the admin issues a card) can lose an update. Same-slot uniqueness is checked in `placeOrder` but is still an RMW check; two simultaneous orders for the same slot could race.
 - **Single space**: `space.json` has exactly two members. The current build is not multi-tenant; the OSS AccessKey is in the deployed bundle, so multiple couples would require a backend/account system.
@@ -165,9 +218,9 @@ Two tabs after the passcode gate:
 - **Weekly Action**: `scripts/auto-gift-massage.js` reads/writes `commerce/coupons/` + `counters.json` under `OSS_DB_ROOT` (default `love-journey/db`). The schedule/duration/title logic is unchanged; only the storage target changed. The workflow no longer uses `OSS_CONFIG_PATH`.
 - **Auth is cosmetic**: `adminPasscode` is plaintext in `js/oss-config.js`, and `CryptoUtils` is reversible obfuscation, not encryption. The credentials are effectively public in the bundle.
 - **`CryptoUtils` uses `btoa`/`atob`**, which throw on non-ASCII — safe for keys, not Chinese text.
-- **Cache versioning**: all local JS/CSS/font/texture/audio URLs carry `?v=20261022-5` in the three pages (and inside `css/style.css` / `MUSIC_SRC`). Bump that token whenever you change those files. If a stale `oss-utils.js` is mixed with a new `store.js`, the app shows “页面脚本版本不一致” instead of a raw ReferenceError; a hard refresh fixes it.
+- **Cache versioning**: all local JS/CSS/font/texture/audio URLs carry `?v=20261023-25` in the three pages (and inside `css/style.css` / `MUSIC_SRC`). Bump that token whenever you change those files. If a stale `oss-utils.js` is mixed with a new `store.js`, the app shows “页面脚本版本不一致” instead of a raw ReferenceError; a hard refresh fixes it.
 - **Date parsing**: `"YYYY-MM-DD HH:mm:ss"` is not ISO-8601 and fails in Safari. `js/app.js`, `admin.html` and `use.html` normalize with `new Date(str.replace(/-/g, '/'))` and leave `T` strings alone.
 - **Font subsets are content-scoped**: the menu lives in `scripts/menu-seed.js` and the serving labels in `scripts/serving-seed.js`; the font build script includes both. If you add menu/copy text with unseen characters, run `./scripts/build-fonts.sh`.
 - **Map framing** is tuned for the eastern half of China (mobile center `[112,34]`, zoom `1.8`; desktop `[110,34]`, `1.8`). Labels use `hideOverlap`.
-- **No coin purchase of love cards yet**: the weekly gift remains; the user's 我的 page only records acquired/used cards. Adding coin purchases would need a price + wallet transaction flow.
-- **Menu categories are fixed to 快手菜 / 硬核菜** in the seed; the admin edits dishes, not categories. Change categories in `menu-seed.js` / `menu.json` if needed.
+- **No coin purchase of love cards yet**: the weekly gift remains; the user's 空间 page only records acquired/used cards. Adding coin purchases would need a price + wallet transaction flow.
+- **Menu categories and dish values are fixed**: categories are 快手菜 / 硬核菜; dish time is one of 40 / 60 / 90 / 120 minutes; tags are only 下饭 / 香辣 / 酸甜. `upsertDish` enforces the time/tag sets, so changing the options requires updating `DISH_TIME_OPTIONS` / `DISH_TAG_OPTIONS` in `js/store.js` and the admin form in `admin.html` together. Change categories in `menu-seed.js` / `menu.json` if needed.

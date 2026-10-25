@@ -24,6 +24,8 @@ const ORDER_STATUS = {
 };
 
 const WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+const DISH_TIME_OPTIONS = [40, 60, 90, 120];
+const DISH_TAG_OPTIONS = ['下饭', '香辣', '酸甜'];
 const DEFAULT_SERVING = {
     slots: [
         { id: 'sat-lunch', day: 6, time: '12:00', label: '午餐', emoji: '☀️' },
@@ -112,6 +114,203 @@ function makeError(code, message, extra) {
     return error;
 }
 
+const BARK_TEMPLATE_DEFAULTS = {
+    newOrder: {
+        title: '新预约',
+        subtitle: '管理端',
+        body: '{orderId} · {slot}\n{items} · 合计 {total} 币\n备注：{note}',
+        url: '{adminUrl}'
+    },
+    userCancel: {
+        title: '用户取消',
+        subtitle: '管理端',
+        body: '{orderId} · {slot}\n{items} · 退款 {refund} 币\n原因：{reason}',
+        url: '{adminUrl}'
+    },
+    cooking: {
+        title: '开始制作',
+        subtitle: '用户端',
+        body: '{orderId} · {slot}\n{items}',
+        url: '{userOrderUrl}'
+    },
+    served: {
+        title: '出餐啦',
+        subtitle: '用户端',
+        body: '{orderId} · {slot}\n{items}',
+        url: '{userOrderUrl}'
+    },
+    nudge: {
+        title: '催一催',
+        subtitle: '管理端',
+        body: '{orderId} · {slot}\n{items} · 当前「{status}」',
+        url: '{adminUrl}'
+    }
+};
+
+/* ---------- Bark (站外通知) ----------
+   The key lives in space.settings.bark in the OSS document store.
+   Sends are fire-and-forget: a failed push must never fail an order.
+   ------------------------------------------------------------ */
+
+function barkTarget(space, audience = 'admin') {
+    const settings = (space && space.settings) || {};
+    const bark = settings.bark || {};
+    if (bark.enabled === false) return null;
+    const key = String(audience === 'user'
+        ? (bark.userKey || bark.key || '')
+        : (bark.adminKey || bark.key || '')).trim();
+    if (!key) return null;
+    const server = String(bark.server || 'https://api.day.app')
+        .replace(/\/+$/, '')
+        .replace(/\/push$/, '');
+    return { key, server };
+}
+
+function barkPageLink(audience) {
+    if (typeof window === 'undefined' || !window.location) return '';
+    try {
+        return new URL(audience === 'user' ? 'index.html' : 'admin.html', window.location.href).href;
+    } catch (error) {
+        return '';
+    }
+}
+
+function barkTemplate(space, event) {
+    const configured = ((space && space.settings && space.settings.bark && space.settings.bark.templates) || {})[event] || {};
+    return { ...(BARK_TEMPLATE_DEFAULTS[event] || {}), ...configured };
+}
+
+function renderBarkTemplate(value, variables) {
+    return String(value == null ? '' : value).replace(/\{([a-zA-Z0-9_]+)\}/g, (match, key) =>
+        variables[key] == null ? '' : String(variables[key]));
+}
+
+function barkOrderLink(base, slotKey) {
+    if (!base || !slotKey || typeof window === 'undefined' || !window.location) return base || '';
+    try {
+        const url = new URL(base, window.location.href);
+        url.searchParams.set('slot', slotKey);
+        url.hash = 'order';
+        return url.href;
+    } catch (error) {
+        return base;
+    }
+}
+
+function barkVariables(space, order, extra = {}) {
+    const settings = (space && space.settings) || {};
+    const links = settings.links || {};
+    const members = (space && space.members) || [];
+    const user = members.find(member => member.role === 'user');
+    const admin = members.find(member => member.role === 'admin');
+    const slot = (order && order.slot) || {};
+    const userUrl = links.user || barkPageLink('user');
+    return {
+        siteName: (space && space.name) || '',
+        userName: (user && user.name) || '',
+        adminName: (admin && admin.name) || '',
+        userUrl,
+        adminUrl: links.admin || barkPageLink('admin'),
+        userOrderUrl: barkOrderLink(userUrl, order && order.slotKey),
+        orderId: (order && order.id) || '',
+        slotKey: (order && order.slotKey) || '',
+        slot: order ? orderSlotText(order) : '',
+        date: slot.date || '',
+        time: slot.time || '',
+        weekday: slot.weekday || '',
+        items: orderItemsText(order),
+        itemCount: (order && order.items && order.items.length) || 0,
+        total: order && order.total != null ? order.total : '',
+        note: (order && order.note) || '',
+        status: order ? (ORDER_STATUS[order.status] || order.status) : '',
+        placedAt: (order && order.placedAt) || '',
+        etaMinutes: order && order.etaMinutes != null ? order.etaMinutes : '',
+        ...extra
+    };
+}
+
+async function sendBark(space, options = {}) {
+    const {
+        audience = 'admin',
+        event,
+        order,
+        variables = {},
+        template,
+        title,
+        subtitle,
+        body,
+        url,
+        image
+    } = options;
+    const target = barkTarget(space, audience);
+    if (!target) return false;
+    const bark = (space && space.settings && space.settings.bark) || {};
+    if (event && (bark.events || {})[event] === false) return false;
+
+    const vars = { ...barkVariables(space, order), ...variables };
+    const tpl = template || (event ? barkTemplate(space, event) : null);
+    let payloadTitle = title;
+    let payloadSubtitle = subtitle;
+    let payloadBody = body;
+    let targetUrl = url;
+    if (tpl) {
+        payloadTitle = renderBarkTemplate(tpl.title, vars);
+        payloadSubtitle = renderBarkTemplate(tpl.subtitle, vars);
+        payloadBody = renderBarkTemplate(tpl.body, vars);
+        targetUrl = renderBarkTemplate(tpl.url, vars);
+    }
+    if (!targetUrl) {
+        const links = (space && space.settings && space.settings.links) || {};
+        targetUrl = audience === 'user' ? links.user : links.admin;
+    }
+    if (!targetUrl) targetUrl = barkPageLink(audience);
+    if (targetUrl && typeof window !== 'undefined' && window.location) {
+        try { targetUrl = new URL(targetUrl, window.location.href).href; } catch (error) {}
+    }
+
+    const payload = {
+        device_key: target.key,
+        group: '恋爱空间',
+        isArchive: '1',
+        title: payloadTitle || '恋爱空间',
+        body: payloadBody || ''
+    };
+    if (payloadSubtitle) payload.subtitle = payloadSubtitle;
+    if (targetUrl) payload.url = targetUrl;
+    if (image) payload.image = image;
+    try {
+        const response = await fetch(`${target.server}/push`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json; charset=utf-8' },
+            body: JSON.stringify(payload)
+        });
+        const result = await response.json().catch(() => null);
+        return response.ok && (!result || result.code === 200);
+    } catch (error) {
+        console.warn('Bark 推送失败:', error);
+        return false;
+    }
+}
+
+function orderSlotText(order) {
+    return order && order.slot
+        ? `${order.slot.dateLabel} ${order.slot.label} · ${order.slot.time}`
+        : '旧订单';
+}
+
+function orderItemsText(order) {
+    return ((order && order.items) || []).map(item => item.name).join('、');
+}
+
+function dishImages(dish) {
+    const images = Array.isArray(dish && dish.images)
+        ? dish.images.map(image => String(image || '').trim()).filter(Boolean)
+        : [];
+    const main = String((dish && dish.image) || '').trim();
+    if (main && !images.includes(main)) images.unshift(main);
+    return [...new Set(images)];
+}
+
 function orderSummary(order) {
     return {
         id: order.id,
@@ -122,6 +321,8 @@ function orderSummary(order) {
             dishId: item.dishId,
             name: item.name,
             icon: item.icon,
+            image: item.image || '',
+            servedImage: item.servedImage || '',
             price: item.price
         })),
         note: order.note || '',
@@ -272,6 +473,8 @@ function snapshotDish(dish) {
         dishId: dish.id,
         name: dish.name,
         icon: dish.icon || '🍽️',
+        image: dish.image || '',
+        servedImage: '',
         price: Number(dish.price) || 0,
         prepMinutes: Number(dish.prepMinutes) || 10,
         categoryId: dish.categoryId || ''
@@ -385,6 +588,13 @@ async function placeOrder({ slotKey, dishIds, note }) {
         throw error;
     }
 
+    sendBark(space, {
+        audience: 'admin',
+        event: 'newOrder',
+        order,
+        variables: { balance: newBalance }
+    });
+
     return { order, wallet: nextWallet };
 }
 
@@ -416,6 +626,67 @@ async function setOrderStatus(orderId, status, options = {}) {
     if (status === 'completed') order.completedAt = now;
 
     await orderCollection.save(orderId, order);
+
+    if (status === 'cooking' || status === 'served') {
+        loadSpace()
+            .then(space => sendBark(space, {
+                audience: 'user',
+                event: status === 'cooking' ? 'cooking' : 'served',
+                order
+            }))
+            .catch(() => {});
+    }
+
+    return order;
+}
+
+async function serveOrder(orderId, photos, options = {}) {
+    ensureStorage();
+    const by = options.by || 'admin';
+    const order = await getOrder(orderId);
+    if (order.status !== 'cooking') {
+        throw makeError('BAD_TRANSITION', '只有制作中的订单才能出餐');
+    }
+    const items = Array.isArray(order.items) ? order.items : [];
+    if (!items.length) throw makeError('EMPTY_ORDER', '这一单没有菜品');
+
+    const urls = {};
+    for (const item of items) {
+        const url = String((photos || {})[item.dishId] || '').trim();
+        if (!url) throw makeError('SERVE_PHOTO_REQUIRED', `请先给「${item.name}」拍一张成品图`);
+        urls[item.dishId] = url;
+    }
+
+    const menu = await loadMenu();
+    const now = nowStamp();
+    for (const item of items) {
+        const url = urls[item.dishId];
+        item.servedImage = url;
+        const dish = menu.dishes.find(entry => String(entry.id) === String(item.dishId));
+        if (dish) {
+            const gallery = dishImages(dish);
+            if (!gallery.includes(url)) gallery.push(url);
+            dish.images = gallery;
+            if (!dish.image) dish.image = gallery[0] || '';
+        }
+    }
+
+    await saveMenu(menu);
+
+    order.status = 'served';
+    order.updatedAt = now;
+    order.servedAt = now;
+    order.statusHistory.push({ status: 'served', at: now, by });
+    await orderCollection.save(orderId, order);
+
+    loadSpace()
+        .then(space => sendBark(space, {
+            audience: 'user',
+            event: 'served',
+            order
+        }))
+        .catch(() => {});
+
     return order;
 }
 
@@ -474,6 +745,21 @@ async function cancelOrder(orderId, options = {}) {
         throw error;
     }
 
+    if (by === 'user') {
+        loadSpace()
+            .then(space => sendBark(space, {
+                audience: 'admin',
+                event: 'userCancel',
+                order,
+                variables: {
+                    refund: order.total,
+                    reason: (order.cancelled && order.cancelled.reason) || '',
+                    balance: newBalance
+                }
+            }))
+            .catch(() => {});
+    }
+
     return { order, wallet: nextWallet };
 }
 
@@ -482,7 +768,10 @@ async function completeOrder(orderId, by = 'user') {
 }
 
 async function nudgeOrder(orderId) {
-    const order = await getOrder(orderId);
+    const [order, space] = await Promise.all([getOrder(orderId), loadSpace()]);
+    if (!space || !space.settings || space.settings.nudgeEnabled !== true) {
+        throw makeError('NUDGE_OFF', '催一催还没有开启');
+    }
     if (!ORDER_ACTIVE.includes(order.status)) {
         throw makeError('NOT_ACTIVE', '这一单已经结束了');
     }
@@ -495,6 +784,14 @@ async function nudgeOrder(orderId) {
     order.nudges = [...nudges, { at: now }];
     order.updatedAt = now;
     await orderCollection.save(orderId, order);
+    const placedAt = new Date(String(order.placedAt || '').replace(/-/g, '/')).getTime();
+    const minutes = placedAt ? Math.max(1, Math.floor((Date.now() - placedAt) / 60000)) : '';
+    sendBark(space, {
+        audience: 'admin',
+        event: 'nudge',
+        order,
+        variables: { minutes }
+    });
     return order;
 }
 
@@ -557,35 +854,58 @@ async function saveMenu(menu) {
     return value;
 }
 
+function nearestDishTime(value) {
+    const minutes = Number(value) || DISH_TIME_OPTIONS[0];
+    return DISH_TIME_OPTIONS.reduce((best, option) =>
+        Math.abs(option - minutes) < Math.abs(best - minutes) ? option : best, DISH_TIME_OPTIONS[0]);
+}
+
+function normalizeDishTags(tags) {
+    const list = Array.isArray(tags)
+        ? tags
+        : String(tags || '').split(/[,，、\s]+/);
+    return [...new Set(list
+        .map(tag => String(tag).trim())
+        .filter(tag => DISH_TAG_OPTIONS.includes(tag)))];
+}
+
 async function upsertDish(input) {
     const menu = await loadMenu();
     const name = String(input.name || '').trim();
     if (!name) throw makeError('BAD_DISH', '菜名不能为空');
 
+    const index = menu.dishes.findIndex(item => String(item.id) === String(input.id));
+    const existing = index >= 0 ? menu.dishes[index] : null;
+    const existingImages = existing ? dishImages(existing) : [];
+    const inputImages = Array.isArray(input.images) ? input.images : existingImages;
+    const gallery = [...new Set(inputImages.map(image => String(image || '').trim()).filter(Boolean))];
+    const mainImage = String(input.image || gallery[0] || (existing && existing.image) || '').trim();
+    if (mainImage) {
+        const mainIndex = gallery.indexOf(mainImage);
+        if (mainIndex > 0) gallery.splice(mainIndex, 1);
+        if (mainIndex !== 0) gallery.unshift(mainImage);
+    }
     const dish = {
         id: input.id || `dish_${Date.now().toString(36)}`,
-        categoryId: input.categoryId || (menu.categories[0] && menu.categories[0].id) || 'hot',
+        categoryId: input.categoryId || (menu.categories[0] && menu.categories[0].id) || 'quick',
         name,
         description: String(input.description || '').trim().slice(0, 120),
         price: Math.max(0, Math.floor(Number(input.price) || 0)),
-        prepMinutes: Math.max(1, Math.floor(Number(input.prepMinutes) || 10)),
-        icon: String(input.icon || '🍽️').slice(0, 8),
-        image: String(input.image || '').trim(),
-        tags: Array.isArray(input.tags)
-            ? input.tags.map(tag => String(tag).trim()).filter(Boolean).slice(0, 5)
-            : String(input.tags || '').split(/[,，、\s]+/).map(tag => tag.trim()).filter(Boolean).slice(0, 5),
+        prepMinutes: nearestDishTime(input.prepMinutes),
+        icon: String(input.icon || (existing && existing.icon) || '🍽️').slice(0, 8),
+        image: mainImage,
+        images: gallery,
+        tags: normalizeDishTags(input.tags),
+        ingredients: String(input.ingredients || '').trim().slice(0, 500),
         available: input.available !== false,
-        todaySpecial: !!input.todaySpecial,
-        order: Number(input.order) || (menu.dishes.length + 1)
+        todaySpecial: input.todaySpecial == null
+            ? !!(existing && existing.todaySpecial)
+            : !!input.todaySpecial,
+        order: existing ? (existing.order || index + 1) : menu.dishes.length + 1
     };
 
-    const index = menu.dishes.findIndex(item => String(item.id) === String(dish.id));
-    if (index >= 0) {
-        dish.order = menu.dishes[index].order || dish.order;
-        menu.dishes[index] = dish;
-    } else {
-        menu.dishes.push(dish);
-    }
+    if (existing) menu.dishes[index] = dish;
+    else menu.dishes.push(dish);
 
     await saveMenu(menu);
     return dish;
@@ -657,4 +977,21 @@ async function saveSpace(space) {
     space.updatedAt = nowStamp();
     await dbPut(SPACE_PATH, space);
     return space;
+}
+
+async function updateSpaceProfile({ name, avatar }) {
+    const space = await loadSpace();
+    if (name != null) {
+        const nextName = String(name).trim();
+        if (!nextName) throw makeError('EMPTY_SPACE_NAME', '空间名称不能为空');
+        space.name = nextName.slice(0, 24);
+    }
+    if (avatar != null) space.avatar = String(avatar).trim();
+    return saveSpace(space);
+}
+
+async function updateSpaceSettings(patch) {
+    const space = await loadSpace();
+    space.settings = { ...(space.settings || {}), ...(patch || {}) };
+    return saveSpace(space);
 }

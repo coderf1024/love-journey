@@ -8,35 +8,32 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="我们的时光">
+    <meta name="apple-mobile-web-app-title" content="恋爱空间">
     <meta name="format-detection" content="telephone=no">
-    <title>我们的时光 · 福福&amp;老李</title>
+    <title>恋爱空间</title>
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="assets/icon-180.png">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="preconnect" href="https://gosspublic.alicdn.com" crossorigin>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261022-5" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/style.css?v=20261022-5">
+    <link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261023-25" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="css/style.css?v=20261023-25">
 </head>
 <body>
     <header class="app-header" id="app-header">
         <a class="brand" href="#home" data-page-link="home">
-            <span class="brand-title">我们的时光</span>
+            <span class="brand-title" id="brand-title">恋爱空间</span>
             <span class="brand-sub">TINY LOVE SCRAPBOOK</span>
         </a>
 
         <nav class="top-nav" aria-label="主导航">
-            <button class="top-nav-item is-active" type="button" data-page="home">首页</button>
-            <button class="top-nav-item" type="button" data-page="order">点餐</button>
+            <button class="top-nav-item is-active" type="button" data-page="home">我们</button>
+            <button class="top-nav-item" type="button" data-page="order">小灶</button>
             <button class="top-nav-item" type="button" data-page="coupons">恋爱卡</button>
-            <button class="top-nav-item" type="button" data-page="me">我的</button>
+            <button class="top-nav-item" type="button" data-page="me">空间</button>
         </nav>
 
         <div class="header-actions">
-            <button class="icon-btn refresh-btn" id="refresh-btn" type="button" aria-label="刷新恋爱卡" hidden>
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.34 5.66"/><path d="M20 5v6h-6"/></svg>
-            </button>
             <button class="icon-btn music-btn" id="music-control" type="button" aria-label="播放背景音乐" aria-pressed="false">
                 <svg class="music-note" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 17.5V6.2l8.5-1.8v11.3"/><circle cx="6.8" cy="18" r="2.6"/><circle cx="15.3" cy="16.2" r="2.6"/></svg>
                 <span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -185,47 +182,70 @@
                 </div>
             </header>
 
-            <div class="coupon-tabs" role="tablist" aria-label="筛选恋爱卡">
-                <button class="coupon-tab is-active" type="button" role="tab" aria-selected="true" data-filter="all">全部</button>
-                <button class="coupon-tab" type="button" role="tab" aria-selected="false" data-filter="available">未使用</button>
-                <button class="coupon-tab" type="button" role="tab" aria-selected="false" data-filter="used">已使用</button>
+            <div class="coupon-toolbar">
+                <div class="coupon-tabs" role="tablist" aria-label="筛选恋爱卡">
+                    <button class="coupon-tab is-active" type="button" role="tab" aria-selected="true" data-filter="all">全部</button>
+                    <button class="coupon-tab" type="button" role="tab" aria-selected="false" data-filter="available">未使用</button>
+                    <button class="coupon-tab" type="button" role="tab" aria-selected="false" data-filter="used">已使用</button>
+                </div>
+                <button class="coupon-refresh-btn refresh-btn" id="refresh-btn" type="button" aria-label="刷新恋爱卡">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.34 5.66"/><path d="M20 5v6h-6"/></svg>
+                    <span class="coupon-refresh-label">刷新</span>
+                </button>
             </div>
 
             <div class="coupons-body" id="coupons-container"></div>
         </section>
 
         <section class="page" id="page-me" data-page="me">
-            <header class="page-head">
-                <p class="eyebrow">OUR SPACE</p>
-                <h1 class="page-title">我的</h1>
-                <p class="section-note">预约、流水，还有吃完的每一顿。</p>
-            </header>
+            <div class="me-menu-view" id="me-menu-view">
+                <header class="page-head">
+                    <p class="eyebrow">OUR SPACE</p>
+                    <h1 class="page-title">空间</h1>
+                    <p class="section-note">预约、流水，还有吃完的每一顿。</p>
+                </header>
 
-            <button class="me-wallet" id="me-wallet" type="button" aria-label="查看恋爱币明细">
-                <span class="me-wallet-label">恋爱币</span>
-                <span class="me-wallet-value"><b id="me-balance">0</b><i>币</i></span>
-                <span class="me-wallet-credit" id="me-credit">最多可欠 50 币</span>
-            </button>
+                <div class="me-profile">
+                    <span class="me-avatar" aria-hidden="true"><img id="me-avatar-img" src="assets/media/space-avatar.svg" alt=""></span>
+                    <div class="me-profile-text">
+                        <b id="me-space-title">恋爱空间</b>
+                        <small id="me-space-sub">一起吃饭，一起过日子</small>
+                    </div>
+                </div>
 
-            <section class="me-section">
-                <header class="me-section-head"><h2>预约中</h2><span id="me-upcoming-count"></span></header>
-                <div class="me-orders" id="me-upcoming"></div>
-            </section>
+                <div class="me-menu-group">
+                    <button class="me-menu-row" type="button" data-me-view="wallet">
+                        <span class="me-menu-icon" aria-hidden="true">币</span>
+                        <span class="me-menu-text"><b>恋爱币</b><small id="me-menu-wallet-sub">最多可欠 50 币</small></span>
+                        <span class="me-menu-value" id="me-menu-balance">0 币</span>
+                        <span class="me-menu-chev" aria-hidden="true">›</span>
+                    </button>
+                </div>
 
-            <section class="me-section">
-                <header class="me-section-head"><h2>历史订单</h2><span id="me-history-count"></span></header>
-                <div class="me-orders" id="me-history"></div>
-            </section>
+                <div class="me-menu-group">
+                    <button class="me-menu-row" type="button" data-me-view="orders">
+                        <span class="me-menu-icon" aria-hidden="true">订</span>
+                        <span class="me-menu-text"><b>我的订单</b><small id="me-menu-orders-sub">待接单 0 · 进行中 0 · 全部 0</small></span>
+                        <span class="me-menu-badge" id="me-menu-orders-badge" hidden>0</span>
+                        <span class="me-menu-chev" aria-hidden="true">›</span>
+                    </button>
+                    <button class="me-menu-row" type="button" data-me-view="cards">
+                        <span class="me-menu-icon" aria-hidden="true">卡</span>
+                        <span class="me-menu-text"><b>恋爱卡记录</b><small id="me-menu-cards-sub">获得 0 次 · 使用 0 次</small></span>
+                        <span class="me-menu-chev" aria-hidden="true">›</span>
+                    </button>
+                </div>
 
-            <section class="me-section">
-                <header class="me-section-head"><h2>恋爱币流水</h2></header>
-                <div class="wallet-entries me-ledger" id="me-ledger"></div>
-            </section>
+                <p class="me-menu-hint">日子和账单，都收在这里。</p>
+            </div>
 
-            <section class="me-section">
-                <header class="me-section-head"><h2>恋爱卡使用记录</h2><a href="#coupons" data-page-link="coupons">全部恋爱卡 →</a></header>
-                <div class="me-coupons" id="me-coupons"></div>
-            </section>
+            <div class="me-sub-view" id="me-sub-view" hidden>
+                <div class="me-sub-head">
+                    <button class="me-back" id="me-back" type="button" aria-label="返回">‹</button>
+                    <strong id="me-sub-title"></strong>
+                </div>
+                <div class="me-sub-body" id="me-sub-body"></div>
+            </div>
         </section>
     </main>
 
@@ -242,13 +262,13 @@
             <span class="tab-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24"><path d="M3.5 10.6 12 3.5l8.5 7.1"/><path d="M5.5 9.2V20a1 1 0 0 0 1 1H10v-5.5h4V21h3.5a1 1 0 0 0 1-1V9.2"/></svg>
             </span>
-            <span class="tab-label">首页</span>
+            <span class="tab-label">我们</span>
         </button>
         <button class="tab" type="button" data-page="order">
             <span class="tab-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24"><path d="M4 11h16a8 8 0 0 1-16 0Z"/><path d="M8 7.5c0-1.4 1-1.9 1-3M12 7.5c0-1.4 1-1.9 1-3M16 7.5c0-1.4 1-1.9 1-3"/></svg>
             </span>
-            <span class="tab-label">点餐</span>
+            <span class="tab-label">小灶</span>
         </button>
         <button class="tab" type="button" data-page="coupons">
             <span class="tab-icon" aria-hidden="true">
@@ -260,14 +280,13 @@
             <span class="tab-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.2 20c.7-3.4 3.4-5.4 6.8-5.4s6.1 2 6.8 5.4"/></svg>
             </span>
-            <span class="tab-label">我的</span>
+            <span class="tab-label">空间</span>
         </button>
     </nav>
 
     <div class="sheet" id="memory-sheet" aria-hidden="true">
         <div class="sheet-backdrop" data-close></div>
         <div class="sheet-panel sheet-panel-tall" role="dialog" aria-modal="true" aria-labelledby="memory-detail-title">
-            <div class="sheet-grabber" aria-hidden="true"></div>
             <button class="sheet-close" type="button" data-close aria-label="关闭">✕</button>
             <div class="sheet-scroll">
                 <div class="memory-detail-cover" id="memory-detail-cover"></div>
@@ -287,7 +306,6 @@
     <div class="sheet" id="timeline-sheet" aria-hidden="true">
         <div class="sheet-backdrop" data-close></div>
         <div class="sheet-panel sheet-panel-full" role="dialog" aria-modal="true" aria-labelledby="timeline-title">
-            <div class="sheet-grabber" aria-hidden="true"></div>
             <header class="sheet-head">
                 <h2 id="timeline-title">全部回忆 <span id="timeline-count">41</span></h2>
                 <button class="sheet-close is-inline" type="button" data-close aria-label="关闭">✕</button>
@@ -299,7 +317,6 @@
     <div class="sheet" id="qr-sheet" aria-hidden="true">
         <div class="sheet-backdrop" data-close></div>
         <div class="sheet-panel sheet-panel-center" role="dialog" aria-modal="true" aria-labelledby="qr-title">
-            <div class="sheet-grabber" aria-hidden="true"></div>
             <button class="sheet-close" type="button" data-close aria-label="关闭">✕</button>
             <div class="qr-body">
                 <p class="eyebrow">SCAN TO REDEEM</p>
@@ -317,7 +334,6 @@
     <div class="sheet" id="cart-sheet" aria-hidden="true">
         <div class="sheet-backdrop" data-close></div>
         <div class="sheet-panel sheet-panel-cart" role="dialog" aria-modal="true" aria-labelledby="cart-sheet-title">
-            <div class="sheet-grabber" aria-hidden="true"></div>
             <header class="sheet-head">
                 <h2 id="cart-sheet-title">确认这顿饭</h2>
                 <button class="sheet-close is-inline" type="button" data-close aria-label="关闭">✕</button>
@@ -342,7 +358,6 @@
     <div class="sheet" id="wallet-sheet" aria-hidden="true">
         <div class="sheet-backdrop" data-close></div>
         <div class="sheet-panel sheet-panel-wallet" role="dialog" aria-modal="true" aria-labelledby="wallet-sheet-title">
-            <div class="sheet-grabber" aria-hidden="true"></div>
             <header class="sheet-head">
                 <h2 id="wallet-sheet-title">恋爱币</h2>
                 <button class="sheet-close is-inline" type="button" data-close aria-label="关闭">✕</button>
@@ -363,7 +378,6 @@
     <div class="sheet" id="dish-sheet" aria-hidden="true">
         <div class="sheet-backdrop" data-close></div>
         <div class="sheet-panel sheet-panel-dish" role="dialog" aria-modal="true" aria-labelledby="dish-sheet-name">
-            <div class="sheet-grabber" aria-hidden="true"></div>
             <button class="sheet-close" type="button" data-close aria-label="关闭">✕</button>
             <div class="dish-detail-image" id="dish-detail-image"></div>
             <div class="dish-detail-body">
@@ -380,7 +394,6 @@
     <div class="sheet" id="order-detail-sheet" aria-hidden="true">
         <div class="sheet-backdrop" data-close></div>
         <div class="sheet-panel sheet-panel-tall" role="dialog" aria-modal="true" aria-labelledby="order-detail-title">
-            <div class="sheet-grabber" aria-hidden="true"></div>
             <header class="sheet-head">
                 <h2 id="order-detail-title">订单详情</h2>
                 <button class="sheet-close is-inline" type="button" data-close aria-label="关闭">✕</button>
@@ -415,10 +428,10 @@
     <audio id="bg-music" loop playsinline preload="none"></audio>
 
     <script src="https://gosspublic.alicdn.com/aliyun-oss-sdk-6.18.0.min.js"></script>
-    <script src="js/oss-config.js?v=20261022-5"></script>
-    <script src="js/crypto-utils.js?v=20261022-5"></script>
-    <script src="js/oss-utils.js?v=20261022-5"></script>
-    <script src="js/store.js?v=20261022-5"></script>
-    <script src="js/app.js?v=20261022-5"></script>
+    <script src="js/oss-config.js?v=20261023-25"></script>
+    <script src="js/crypto-utils.js?v=20261023-25"></script>
+    <script src="js/oss-utils.js?v=20261023-25"></script>
+    <script src="js/store.js?v=20261023-25"></script>
+    <script src="js/app.js?v=20261023-25"></script>
 </body>
 </html>

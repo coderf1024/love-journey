@@ -1,6 +1,6 @@
 # Mock dish photos
 
-These are temporary stock photos for the ordering UI. Replace them with your own photos by dropping files here (or using any OSS/URL) and editing the dish `image` field in the admin menu.
+These are temporary stock photos for the ordering UI. The files live in `assets/media/dishes/`. Replace them with your own photos there (or use any OSS/URL) and edit the dish `image` field in the admin menu.
 
 ## Wikimedia Commons
 

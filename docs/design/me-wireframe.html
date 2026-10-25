@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>「空间」页面 · 线框稿 v1（导航已更名）</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        color: #232323;
+        background: #e9e7e3;
+        padding: 36px 26px 70px;
+    }
+    a { color: inherit; }
+    .page-head {
+        max-width: 1320px;
+        margin: 0 auto 30px;
+    }
+    .eyebrow {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .2em;
+        color: #8a7b78;
+    }
+    .page-head h1 {
+        margin-top: 6px;
+        font-size: 28px;
+        letter-spacing: .01em;
+    }
+    .page-head p {
+        max-width: 790px;
+        margin-top: 10px;
+        color: #625c59;
+        font-size: 14px;
+        line-height: 1.75;
+    }
+    .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-top: 16px;
+        color: #777;
+        font-size: 11px;
+    }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .dot { width: 8px; height: 8px; border-radius: 999px; display: inline-block; }
+    .dot.accent { background: #b94a63; }
+    .dot.line { border: 1px solid #999; }
+    .dot.dash { border: 1px dashed #999; }
+
+    .frames {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 34px 30px;
+        align-items: flex-start;
+        max-width: 1320px;
+        margin: 0 auto;
+    }
+    .frame-wrap { width: 300px; }
+    .frame-wrap h2 {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: .02em;
+        margin-bottom: 10px;
+    }
+    .frame-wrap h2 em {
+        margin-left: 5px;
+        color: #b94a63;
+        font-style: normal;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: .1em;
+    }
+
+    .phone {
+        width: 300px;
+        height: 620px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background: #fdfdfb;
+        border: 2px solid #2a2a2a;
+        border-radius: 28px;
+        box-shadow: 0 18px 34px -24px rgba(0, 0, 0, .45);
+    }
+    .statusbar {
+        flex: 0 0 auto;
+        display: flex;
+        justify-content: space-between;
+        padding: 9px 18px 4px;
+        color: #8d8d8d;
+        font-size: 9px;
+        letter-spacing: .08em;
+    }
+    .screen {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 10px 16px 14px;
+        overflow: hidden;
+    }
+    .screen.scroll { overflow-y: auto; }
+
+    .app-title { font-size: 24px; font-weight: 800; letter-spacing: -.02em; }
+
+    .profile {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 12px;
+        border: 1px solid #d6d3ce;
+        border-radius: 14px;
+        background: #f7f5f1;
+    }
+    .avatar {
+        width: 44px;
+        height: 44px;
+        flex: 0 0 44px;
+        display: grid;
+        place-items: center;
+        border: 1px dashed #999;
+        border-radius: 999px;
+        color: #888;
+        font-size: 16px;
+        font-weight: 700;
+    }
+    .profile-name { font-size: 14px; font-weight: 700; }
+    .profile-sub { margin-top: 2px; color: #888; font-size: 10px; }
+    .profile-edit { margin-left: auto; color: #999; font-size: 16px; }
+
+    .menu-group {
+        overflow: hidden;
+        border: 1px solid #d6d3ce;
+        border-radius: 14px;
+        background: #f7f5f1;
+    }
+    .menu-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 13px 12px;
+        text-decoration: none;
+        border-bottom: 1px dashed #d6d3ce;
+    }
+    .menu-row:last-child { border-bottom: 0; }
+    .menu-row:active { background: #efebe5; }
+    .mi {
+        width: 28px;
+        height: 28px;
+        flex: 0 0 28px;
+        display: grid;
+        place-items: center;
+        border: 1px dashed #a9a29b;
+        border-radius: 8px;
+        color: #8a837c;
+        font-size: 12px;
+    }
+    .mt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .mt b { font-size: 13px; font-weight: 600; }
+    .mt small { color: #8d8782; font-size: 10px; }
+    .value { margin-left: auto; color: #6f6863; font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .badge {
+        margin-left: auto;
+        min-width: 18px;
+        height: 18px;
+        display: grid;
+        place-items: center;
+        padding: 0 5px;
+        color: #fff;
+        background: #b94a63;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 700;
+    }
+    .badge + .chev { margin-left: 2px; }
+    .chev { margin-left: auto; color: #aaa39c; font-size: 18px; line-height: 1; }
+    .value + .chev { margin-left: 2px; }
+
+    .hint {
+        margin-top: auto;
+        padding: 8px 10px;
+        color: #958e88;
+        font-size: 10px;
+        line-height: 1.6;
+        text-align: center;
+        border: 1px dashed #d6d3ce;
+        border-radius: 10px;
+    }
+
+    .tabs {
+        flex: 0 0 auto;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        padding: 7px 4px 9px;
+        border-top: 1px solid #e1ded9;
+        background: #fbfaf7;
+    }
+    .tabs span {
+        display: grid;
+        justify-items: center;
+        gap: 3px;
+        color: #9b958f;
+        font-size: 9px;
+    }
+    .tabs span::before {
+        content: '';
+        width: 18px;
+        height: 18px;
+        border: 1px dashed #b4ada6;
+        border-radius: 7px;
+    }
+    .tabs span.active { color: #b94a63; }
+    .tabs span.active::before { border-color: #b94a63; background: #f6e2e7; }
+
+    .back-head {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 0 2px;
+        text-decoration: none;
+    }
+    .back-head .back {
+        width: 26px;
+        height: 26px;
+        display: grid;
+        place-items: center;
+        border: 1px solid #d6d3ce;
+        border-radius: 999px;
+        font-size: 16px;
+        line-height: 1;
+    }
+    .back-head strong { font-size: 16px; }
+    .back-head span.context { margin-left: auto; color: #999; font-size: 9px; }
+
+    .summary-line {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        color: #8d8782;
+        font-size: 10px;
+    }
+    .summary-line b { color: #333; font-size: 12px; }
+
+    .filters {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 2px;
+        padding: 3px;
+        border: 1px solid #d6d3ce;
+        border-radius: 999px;
+        background: #f2efea;
+    }
+    .filters span {
+        padding: 6px 0;
+        color: #8d8782;
+        font-size: 9px;
+        text-align: center;
+        border-radius: 999px;
+    }
+    .filters.three { grid-template-columns: repeat(3, 1fr); }
+    .filters span.active { color: #fff; background: #2a2a2a; }
+
+    .order-row {
+        display: grid;
+        gap: 5px;
+        padding: 11px 12px;
+        border: 1px solid #d6d3ce;
+        border-radius: 12px;
+        background: #fbfaf7;
+        text-decoration: none;
+    }
+    .order-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .order-slot { font-size: 12px; font-weight: 700; }
+    .order-status {
+        padding: 3px 7px;
+        color: #3d7d78;
+        font-size: 9px;
+        border: 1px solid #a9cfca;
+        border-radius: 999px;
+        background: #edf7f4;
+        white-space: nowrap;
+    }
+    .order-status.done { color: #777; border-color: #d2cec8; background: #f2f0ec; }
+    .order-status.cancel { color: #a45c6a; border-color: #e3c4ca; background: #fbf0f2; }
+    .order-meta { color: #827b75; font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .order-foot { display: flex; justify-content: space-between; color: #9b958f; font-size: 9px; }
+    .order-foot b { color: #5f5954; font-size: 10px; }
+
+    .order-photos { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+    .order-photos img {
+        width: 32px;
+        height: 32px;
+        object-fit: cover;
+        border: 1px solid #e1ded9;
+        border-radius: 8px;
+    }
+    .order-photos small { margin-left: auto; color: #9b958f; font-size: 9px; white-space: nowrap; }
+
+    .order-items { display: grid; gap: 6px; margin-top: 2px; }
+    .order-item { display: flex; align-items: center; gap: 8px; }
+    .order-item img {
+        width: 34px;
+        height: 34px;
+        object-fit: cover;
+        border: 1px solid #e1ded9;
+        border-radius: 8px;
+    }
+    .order-item-name { flex: 1; color: #47413d; font-size: 11px; }
+    .order-item-name i { margin-left: 4px; color: #9b958f; font-size: 9px; font-style: normal; }
+    .order-item-price { color: #8d8782; font-size: 10px; }
+
+    .detail-items { display: grid; gap: 6px; padding: 8px 0; border-bottom: 1px dashed #ddd8d2; }
+    .detail-item { display: flex; align-items: center; gap: 8px; font-size: 10px; }
+    .detail-item img {
+        width: 36px;
+        height: 36px;
+        object-fit: cover;
+        border: 1px solid #e1ded9;
+        border-radius: 8px;
+    }
+    .detail-item span { flex: 1; color: #47413d; }
+    .detail-item b { font-size: 10px; }
+
+    .empty-block {
+        padding: 26px 12px;
+        color: #9a938d;
+        font-size: 10px;
+        text-align: center;
+        border: 1px dashed #d6d3ce;
+        border-radius: 12px;
+    }
+
+    .note-box {
+        padding: 9px 10px;
+        color: #7b726c;
+        font-size: 10px;
+        line-height: 1.6;
+        border: 1px dashed #d6d3ce;
+        border-radius: 10px;
+        background: #f8f5f0;
+    }
+    .note-box b { color: #4f4843; }
+
+    .wallet-hero {
+        padding: 16px;
+        color: #f7f5f1;
+        border-radius: 14px;
+        background: #2c272d;
+    }
+    .wallet-hero small { color: #bcb4ae; font-size: 10px; }
+    .wallet-value { margin-top: 4px; font-size: 30px; font-weight: 800; letter-spacing: -.02em; }
+    .wallet-value i { margin-left: 4px; font-style: normal; font-size: 10px; font-weight: 500; color: #c9c1ba; }
+    .wallet-limit { margin-top: 5px; color: #bcb4ae; font-size: 10px; }
+
+    .ledger-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 2px;
+        border-bottom: 1px dashed #e1ded9;
+    }
+    .ledger-row b { font-size: 11px; font-weight: 600; }
+    .ledger-row small { color: #948d87; font-size: 9px; }
+    .ledger-amount { font-size: 11px; font-weight: 700; color: #3d7d78; white-space: nowrap; }
+    .ledger-amount.minus { color: #b94a63; }
+
+    .coupon-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 0;
+        border-bottom: 1px dashed #e1ded9;
+    }
+    .coupon-row b { font-size: 11px; font-weight: 600; }
+    .coupon-row small { display: block; margin-top: 2px; color: #948d87; font-size: 9px; }
+    .coupon-used { color: #b94a63; font-size: 9px; text-align: right; white-space: nowrap; }
+    .coupon-event {
+        padding: 2px 7px;
+        font-size: 9px;
+        border-radius: 999px;
+        white-space: nowrap;
+    }
+    .coupon-event.acquired {
+        color: #3d7d78;
+        background: #edf7f4;
+        border: 1px solid #a9cfca;
+    }
+    .coupon-event.used {
+        color: #b94a63;
+        background: #fbf0f2;
+        border: 1px solid #e3c4ca;
+    }
+
+    .detail-status {
+        padding: 13px;
+        border: 1px solid #d6d3ce;
+        border-radius: 14px;
+        background: #f7f5f1;
+    }
+    .detail-status h3 { font-size: 16px; }
+    .detail-status p { margin-top: 4px; color: #8b8480; font-size: 10px; }
+    .detail-line { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px dashed #ddd8d2; font-size: 10px; }
+    .detail-line:last-child { border-bottom: 0; }
+    .detail-line span { color: #8b8480; }
+    .timeline { display: grid; gap: 8px; padding-top: 2px; }
+    .timeline div { display: grid; grid-template-columns: 46px 1fr; gap: 8px; color: #8b8480; font-size: 9px; }
+    .timeline div b { color: #47413d; font-size: 10px; font-weight: 600; }
+    .button-line {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 4px;
+    }
+    .button-line span {
+        padding: 10px 0;
+        font-size: 10px;
+        text-align: center;
+        border: 1px solid #d6d3ce;
+        border-radius: 999px;
+    }
+    .button-line span.primary { color: #fff; background: #2a2a2a; border-color: #2a2a2a; }
+
+    .caption {
+        margin-top: 10px;
+        color: #77706b;
+        font-size: 10px;
+        line-height: 1.65;
+    }
+
+    .questions {
+        max-width: 1320px;
+        margin: 46px auto 0;
+        padding: 24px 26px;
+        background: #fbfaf7;
+        border: 1px solid #d6d3ce;
+        border-radius: 18px;
+    }
+    .questions h2 { font-size: 16px; margin-bottom: 12px; }
+    .questions ol { padding-left: 20px; color: #5f5954; font-size: 12px; line-height: 2; }
+    .questions li b { color: #2a2a2a; }
+    .questions .default { color: #9a938d; font-size: 11px; }
+
+    @media (max-width: 700px) {
+        body { padding: 22px 14px 50px; }
+        .frames { justify-content: center; }
+    }
+</style>
+</head>
+<body>
+    <header class="page-head">
+        <p class="eyebrow">WIREFRAME · V1</p>
+        <h1>「空间」页面重构</h1>
+        <p>把原来的长列表改成「一级菜单 → 二级列表」。预约中和历史订单不再分成两个入口，而是同一个订单列表的状态筛选。下面的灰色块是内容占位，红色只用来标交互和状态。</p>
+        <div class="legend">
+            <span><i class="dot accent"></i>交互 / 状态强调</span>
+            <span><i class="dot dash"></i>图片 / 内容占位</span>
+            <span>点击菜单行可跳到对应线框；点击返回箭头回到一级</span>
+        </div>
+    </header>
+
+    <main class="frames">
+        <!-- 1. 我的 一级 -->
+        <section class="frame-wrap" id="me">
+            <h2>① 空间（一级菜单）<em>一屏内</em></h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>● ● ●</span></div>
+                <div class="screen">
+                    <div class="app-title">空间</div>
+                    <div class="profile">
+                        <div class="avatar">福</div>
+                        <div>
+                            <div class="profile-name">福福 &amp; 老李</div>
+                            <div class="profile-sub">我们的恋爱空间 · 相爱 2133 天</div>
+                        </div>
+                        <span class="profile-edit">⚙</span>
+                    </div>
+
+                    <div class="menu-group">
+                        <a class="menu-row" href="#wallet">
+                            <span class="mi">币</span>
+                            <span class="mt"><b>恋爱币</b><small>最多可欠 50 币</small></span>
+                            <span class="value">520 币</span><span class="chev">›</span>
+                        </a>
+                    </div>
+
+                    <div class="menu-group">
+                        <a class="menu-row" href="#orders">
+                            <span class="mi">订</span>
+                            <span class="mt"><b>我的订单</b><small>待接单 1 · 进行中 1 · 全部 7</small></span>
+                            <span class="badge">1</span><span class="chev">›</span>
+                        </a>
+                        <a class="menu-row" href="#coupons">
+                            <span class="mi">卡</span>
+                            <span class="mt"><b>恋爱卡记录</b><small>获得 45 次 · 使用 26 次</small></span>
+                            <span class="chev">›</span>
+                        </a>
+                    </div>
+
+                    <div class="hint">一级页面只放入口<br>不在这里铺开订单和流水</div>
+                </div>
+                <nav class="tabs"><span>我们</span><span>小灶</span><span>恋爱卡</span><span class="active">空间</span></nav>
+            </div>
+            <p class="caption">恋爱币组放在我的订单上面；钱包不再做整块大卡，改成带余额的一级菜单行。</p>
+        </section>
+
+        <!-- 2. 我的订单 -->
+        <section class="frame-wrap" id="orders">
+            <h2>② 我的订单<em>二级</em></h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>● ● ●</span></div>
+                <div class="screen scroll">
+                    <a class="back-head" href="#me"><span class="back">‹</span><strong>我的订单</strong><span class="context">空间</span></a>
+                    <div class="summary-line"><span>共 <b>7</b> 单</span><span>待接单 1 · 进行中 1</span></div>
+
+                    <div class="filters">
+                        <span class="active">全部</span><span>待接单</span><span>进行中</span><span>已完成</span><span>已取消</span>
+                    </div>
+
+                    <a class="order-row" href="#detail">
+                        <span class="order-top"><span class="order-slot">10.24 周六 · 午餐 12:00</span><span class="order-status">待接单</span></span>
+                        <span class="order-items">
+                            <span class="order-item"><img src="../../assets/media/dishes/cola-wings.jpg" alt=""><span class="order-item-name">可乐鸡翅<i>× 1</i></span><b class="order-item-price">35 币</b></span>
+                        </span>
+                        <span class="order-foot"><span>20261024-1200-01</span><span>查看进度 ›</span></span>
+                    </a>
+
+                    <a class="order-row" href="#detail">
+                        <span class="order-top"><span class="order-slot">10.25 周日 · 午餐 12:00</span><span class="order-status">已接单</span></span>
+                        <span class="order-items">
+                            <span class="order-item"><img src="../../assets/media/dishes/tomato-egg.jpg" alt=""><span class="order-item-name">番茄炒蛋<i>× 1</i></span><b class="order-item-price">20 币</b></span>
+                        </span>
+                        <span class="order-foot"><span>20261025-1200-01</span><span>查看进度 ›</span></span>
+                    </a>
+
+                    <a class="order-row" href="#detail">
+                        <span class="order-top"><span class="order-slot">10.19 周日 · 晚餐 20:00</span><span class="order-status done">已完成</span></span>
+                        <span class="order-items">
+                            <span class="order-item"><img src="../../assets/media/dishes/mapo-tofu.jpg" alt=""><span class="order-item-name">麻婆豆腐<i>× 1</i></span><b class="order-item-price">22 币</b></span>
+                        </span>
+                        <span class="order-foot"><span>20261019-2000-01</span><span>查看详情 ›</span></span>
+                    </a>
+
+                    <a class="order-row" href="#detail">
+                        <span class="order-top"><span class="order-slot">10.18 周六 · 午餐 12:00</span><span class="order-status cancel">已取消</span></span>
+                        <span class="order-items">
+                            <span class="order-item"><img src="../../assets/media/dishes/tomato-soup.jpg" alt=""><span class="order-item-name">番茄蛋汤<i>× 1</i></span><b class="order-item-price">12 币</b></span>
+                        </span>
+                        <span class="order-foot"><span>20261018-1200-01</span><span>查看详情 ›</span></span>
+                    </a>
+
+                    <div class="note-box"><b>预约中 / 历史不再分两个入口</b><br>「待接单」单独一段；进行中 = 已接单 / 备菜 / 制作 / 出餐；已完成和已取消也在同一个列表里筛选。</div>
+                </div>
+            </div>
+            <p class="caption">订单列表和详情都使用真实菜品缩略图（线框里用的是 mock 图），不是 emoji 图标；行尾文案区分「查看进度」和「查看详情」。</p>
+        </section>
+
+        <!-- 3. 订单详情 -->
+        <section class="frame-wrap" id="detail">
+            <h2>③ 订单详情<em>二级 / 历史</em></h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>● ● ●</span></div>
+                <div class="screen scroll">
+                    <a class="back-head" href="#orders"><span class="back">‹</span><strong>订单详情</strong><span class="context">我的订单</span></a>
+
+                    <div class="detail-status">
+                        <h3>一餐圆满</h3>
+                        <p>10.19 周日 · 晚餐 20:00 · 已完成</p>
+                    </div>
+
+                    <div class="note-box">
+                        <div class="detail-line"><span>订单号</span><b>20261019-2000-01</b></div>
+                        <div class="detail-items">
+                            <div class="detail-item"><img src="../../assets/media/dishes/mapo-tofu.jpg" alt=""><span>麻婆豆腐 × 1</span><b>22 币</b></div>
+                        </div>
+                        <div class="detail-line"><span>合计</span><b>22 币</b></div>
+                        <div class="detail-line"><span>扣币 / 退款</span><b>已支付</b></div>
+                    </div>
+
+                    <div class="note-box">
+                        <div class="detail-line"><span>状态记录</span><b></b></div>
+                        <div class="timeline">
+                            <div><b>19:05</b><span>待接单</span></div>
+                            <div><b>19:12</b><span>已接单</span></div>
+                            <div><b>19:50</b><span>备菜中</span></div>
+                            <div><b>20:00</b><span>已出餐</span></div>
+                            <div><b>20:48</b><span>已完成</span></div>
+                        </div>
+                    </div>
+
+                    <div class="note-box">历史订单只读展示；进行中的订单在列表里点「查看进度」直接回到小灶页的追踪卡。</div>
+                </div>
+            </div>
+            <p class="caption">详情页是只读的订单记录；菜品行显示照片；不再用底部弹层，层级更清楚。</p>
+        </section>
+
+        <!-- 4. 恋爱币 -->
+        <section class="frame-wrap" id="wallet">
+            <h2>④ 恋爱币<em>二级</em></h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>● ● ●</span></div>
+                <div class="screen scroll">
+                    <a class="back-head" href="#me"><span class="back">‹</span><strong>恋爱币</strong><span class="context">空间</span></a>
+
+                    <div class="wallet-hero">
+                        <small>当前余额</small>
+                        <div class="wallet-value">520<i>币</i></div>
+                        <div class="wallet-limit">最多可欠 50 币 · 由大厨发放</div>
+                    </div>
+
+                    <div class="summary-line"><span>最近流水</span><span>共 4 笔</span></div>
+
+                    <div>
+                        <div class="ledger-row"><div><b>恋爱空间开张礼</b><br><small>大厨发币 · 10.22 19:15</small></div><span class="ledger-amount">+520</span></div>
+                        <div class="ledger-row"><div><b>下单 20261024-1200-01</b><br><small>点餐 · 10.22 18:39</small></div><span class="ledger-amount minus">-35</span></div>
+                        <div class="ledger-row"><div><b>取消退款 20261024-1200-01</b><br><small>退款 · 10.22 18:45</small></div><span class="ledger-amount">+35</span></div>
+                        <div class="ledger-row"><div><b>下单 20261019-2000-01</b><br><small>点餐 · 10.19 19:05</small></div><span class="ledger-amount minus">-22</span></div>
+                    </div>
+
+                    <div class="note-box">只读流水；没有充值入口，恋爱币由大厨在管理端发放。</div>
+                </div>
+            </div>
+            <p class="caption">完整流水在二级页滚动，一级页面只显示当前余额。</p>
+        </section>
+
+        <!-- 5. 恋爱卡记录 -->
+        <section class="frame-wrap" id="coupons">
+            <h2>⑤ 恋爱卡流水<em>二级 / 获得 + 使用</em></h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>● ● ●</span></div>
+                <div class="screen scroll">
+                    <a class="back-head" href="#me"><span class="back">‹</span><strong>恋爱卡流水</strong><span class="context">空间</span></a>
+
+                    <div class="summary-line"><span>共 <b>71</b> 条</span><a href="#coupons">全部恋爱卡 ›</a></div>
+
+                    <div class="filters three">
+                        <span class="active">全部</span><span>获得</span><span>使用</span>
+                    </div>
+
+                    <div>
+                        <div class="coupon-row"><div><b>💆 每周按摩卡</b><small>5 分钟 · 10.23 获得</small></div><span class="coupon-event acquired">获得</span></div>
+                        <div class="coupon-row"><div><b>💆 每周按摩卡</b><small>5 分钟 · 10.22 使用</small></div><span class="coupon-event used">使用</span></div>
+                        <div class="coupon-row"><div><b>💆 按摩卡</b><small>10 分钟 · 10.18 获得</small></div><span class="coupon-event acquired">获得</span></div>
+                        <div class="coupon-row"><div><b>💆 按摩卡</b><small>10 分钟 · 10.18 使用</small></div><span class="coupon-event used">使用</span></div>
+                        <div class="coupon-row"><div><b>💆 每周按摩卡</b><small>5 分钟 · 10.11 获得</small></div><span class="coupon-event acquired">获得</span></div>
+                        <div class="coupon-row"><div><b>💆 每周按摩卡</b><small>5 分钟 · 10.11 使用</small></div><span class="coupon-event used">使用</span></div>
+                    </div>
+
+                    <div class="note-box">获得和使用都记在这条流水里；未使用的卡去「恋爱卡」tab 出示二维码。</div>
+                </div>
+            </div>
+            <p class="caption">获得 / 使用是同一张卡的两个事件；默认显示全部，可按类型筛选。总条数 = 获得次数 + 使用次数。</p>
+        </section>
+    </main>
+
+    <section class="questions">
+        <h2>已按你的反馈调整</h2>
+        <ol>
+            <li><b>恋爱币组</b>已移到「我的订单」上面；钱包入口保持一级菜单行，右侧显示余额。</li>
+            <li><b>订单筛选</b>改为「全部 / 待接单 / 进行中 / 已完成 / 已取消」；待接单单独一段。</li>
+            <li><b>恋爱卡流水</b>包含获得和使用两种事件，页内 tab 为「全部 / 获得 / 使用」。</li>
+        </ol>
+        <h2 style="margin-top:20px;">还需确认</h2>
+        <ol>
+            <li>二级页面隐藏底部 tab、只保留返回箭头，可以吗？<span class="default">默认：隐藏，层级更像常见 App。</span></li>
+            <li>进行中的订单点「查看进度」直接回到小灶页追踪卡；历史订单点开只读详情页，可以吗？</li>
+            <li>卡片流水的 tab 用「全部 / 获得 / 使用」，还是只保留「获得 / 使用」？<span class="default">默认：三个都保留。</span></li>
+        </ol>
+    </section>
+</body>
+</html>

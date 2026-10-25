@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>恋爱卡刷新按钮 · 线框 v1</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        color: #232323;
+        background: #e9e7e3;
+        padding: 36px 26px 70px;
+    }
+    .page-head { max-width: 1320px; margin: 0 auto 28px; }
+    .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .2em; color: #8a7b78; }
+    .page-head h1 { margin-top: 6px; font-size: 28px; letter-spacing: .01em; }
+    .page-head p { max-width: 840px; margin-top: 10px; color: #625c59; font-size: 14px; line-height: 1.75; }
+    .legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 14px; color: #777; font-size: 11px; }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .dot { width: 8px; height: 8px; border-radius: 999px; display: inline-block; }
+    .dot.accent { background: #b94a63; }
+    .dot.ok { background: #447a6d; }
+    .dot.dash { border: 1px dashed #999; }
+
+    .frames { display: flex; flex-wrap: wrap; gap: 34px 28px; align-items: flex-start; max-width: 1320px; margin: 0 auto; }
+    .frame-wrap { width: 300px; }
+    .frame-wrap h2 { margin-bottom: 8px; font-size: 13px; font-weight: 700; }
+    .frame-wrap h2 em { margin-left: 5px; color: #b94a63; font-style: normal; font-size: 10px; letter-spacing: .1em; }
+    .frame-wrap h2 em.ok { color: #447a6d; }
+    .frame-note { min-height: 34px; margin-bottom: 8px; color: #77706a; font-size: 10px; line-height: 1.55; }
+
+    .phone {
+        width: 300px; height: 640px; display: flex; flex-direction: column; overflow: hidden;
+        background: #fdfdfb; border: 2px solid #2a2a2a; border-radius: 28px;
+        box-shadow: 0 18px 34px -24px rgba(0,0,0,.45);
+    }
+    .statusbar { flex: 0 0 auto; display: flex; justify-content: space-between; padding: 9px 18px 4px; color: #8d8d8d; font-size: 9px; letter-spacing: .08em; }
+    .screen { flex: 1; min-height: 0; overflow: hidden; padding: 0 16px 14px; }
+
+    .app-header { display: flex; align-items: center; gap: 8px; height: 50px; }
+    .brand { display: grid; gap: 0; line-height: 1.1; }
+    .brand b { font-family: Georgia, "Songti SC", serif; font-size: 17px; font-weight: 700; }
+    .brand small { color: #9a938e; font-size: 6px; font-weight: 700; letter-spacing: .18em; }
+    .header-actions { display: flex; gap: 4px; margin-left: auto; align-items: center; }
+    .icon-btn { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 999px; font-size: 14px; }
+    .icon-btn.refresh { color: #6b6560; border: 1px solid #d6d3ce; background: #fff; }
+    .icon-btn.music { color: #fff; background: #2b2231; }
+    .icon-btn.ghost { color: #b3aca5; }
+
+    .page-eyebrow { margin-top: 4px; color: #9a938e; font-size: 8px; font-weight: 700; letter-spacing: .18em; }
+    .page-heading { margin-top: 3px; font-family: Georgia, "Songti SC", serif; font-size: 30px; font-weight: 700; line-height: 1.1; }
+    .page-sub { margin-top: 6px; color: #77706a; font-size: 10px; line-height: 1.55; }
+
+    .title-row { display: flex; align-items: flex-start; gap: 10px; }
+    .title-row > div { flex: 1; min-width: 0; }
+    .sync-btn { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; padding: 6px 9px; background: #fff; border: 1px solid #d6d3ce; border-radius: 999px; color: #6b6560; font-size: 9px; }
+    .sync-btn b { font-size: 12px; font-weight: 400; }
+    .sync-text { color: #b94a63; font-size: 9px; white-space: nowrap; }
+
+    .stats { display: flex; gap: 6px; margin-top: 11px; }
+    .stat-chip { padding: 5px 9px; background: #f7f5f1; border: 1px solid #d6d3ce; border-radius: 999px; color: #77706a; font-size: 9px; }
+    .stat-chip b { color: #232323; font-size: 11px; }
+    .stat-chip.muted { color: #9a938e; }
+    .stats.with-sync { display: flex; align-items: center; }
+    .stats.with-sync .sync-text { margin-left: auto; }
+
+    .tabs { display: flex; align-items: center; gap: 4px; margin-top: 13px; padding-bottom: 8px; border-bottom: 1px solid #e1ddd7; }
+    .tab { padding: 6px 12px; border-radius: 999px; color: #77706a; font-size: 9px; }
+    .tab.active { background: #2b2231; color: #fff; }
+    .tabs .sync-text { margin-left: auto; }
+
+    .coupon-list { display: grid; gap: 8px; margin-top: 10px; }
+    .coupon-card { display: flex; align-items: center; gap: 9px; padding: 11px; background: #fff; border: 1px solid #d6d3ce; border-radius: 13px; }
+    .coupon-mark { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; background: #f4e9dc; border-radius: 9px; font-size: 15px; }
+    .coupon-main { flex: 1; display: grid; gap: 2px; }
+    .coupon-main b { font-size: 10px; }
+    .coupon-main small { color: #9a938e; font-size: 8px; }
+    .pill { padding: 2px 7px; background: #e3efeb; border-radius: 999px; color: #447a6d; font-size: 7px; }
+    .text { color: #9a938e; font-size: 8px; }
+
+    .callout { position: relative; margin-top: 8px; padding: 7px 8px; background: #fff8e8; border: 1px dashed #d8b56b; border-radius: 8px; color: #8a6b2c; font-size: 8.5px; line-height: 1.5; }
+    .callout.bad { background: #fbe9ec; border-color: #d9a9b3; color: #a14c60; }
+    .callout.good { background: #eaf3ef; border-color: #a9c9bd; color: #3d6e62; }
+    .callout b { font-weight: 700; }
+
+    /* desktop */
+    .desktop-wrap { width: 900px; max-width: 100%; }
+    .desktop-wrap h2 { margin-bottom: 8px; font-size: 13px; font-weight: 700; }
+    .desktop-wrap h2 em { margin-left: 5px; color: #447a6d; font-style: normal; font-size: 10px; letter-spacing: .1em; }
+    .browser { overflow: hidden; background: #fdfdfb; border: 2px solid #2a2a2a; border-radius: 13px; box-shadow: 0 18px 34px -24px rgba(0,0,0,.45); }
+    .browser-bar { display: flex; align-items: center; gap: 5px; height: 28px; padding: 0 10px; background: #f1eee8; border-bottom: 1px solid #d6d3ce; }
+    .browser-bar i { width: 7px; height: 7px; border: 1px solid #b3aca5; border-radius: 999px; }
+    .browser-url { flex: 1; max-width: 300px; margin-left: 6px; padding: 2px 8px; background: #fff; border: 1px solid #d6d3ce; border-radius: 999px; color: #9a938e; font-size: 8px; }
+    .desktop-screen { padding: 0 28px 22px; }
+    .desktop-header { display: flex; align-items: center; gap: 8px; height: 56px; border-bottom: 1px solid #e1ddd7; }
+    .desktop-nav { display: flex; gap: 4px; }
+    .desktop-nav span { padding: 5px 10px; color: #8d8782; font-size: 9px; }
+    .desktop-nav span.active { color: #232323; font-weight: 600; border-bottom: 2px solid #b94a63; }
+    .desktop-content { max-width: 760px; margin: 0 auto; padding-top: 18px; }
+    .desktop-content .page-heading { font-size: 34px; }
+    .desktop-coupon-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+
+    .notes { max-width: 1320px; margin: 38px auto 0; padding: 18px 20px; background: #f6f3ee; border: 1px solid #d6d3ce; border-radius: 14px; }
+    .notes h2 { font-size: 15px; margin-bottom: 8px; }
+    .notes table { width: 100%; border-collapse: collapse; font-size: 10.5px; }
+    .notes th, .notes td { padding: 8px 7px; border-bottom: 1px dashed #d6d3ce; text-align: left; vertical-align: top; }
+    .notes th { color: #8a7b78; font-size: 9px; font-weight: 600; }
+    .notes tr:last-child td { border-bottom: 0; }
+    .notes .rec { display: inline-block; padding: 1px 6px; color: #fff; background: #447a6d; border-radius: 999px; font-size: 8px; }
+</style>
+</head>
+<body>
+<div class="page-head">
+    <p class="eyebrow">UX WIREFRAME · V1</p>
+    <h1>恋爱卡刷新按钮 · 位置调整</h1>
+    <p>现在刷新按钮放在全局 app header 里，但只在恋爱卡页出现：移动端会让右侧音乐按钮左右移动，桌面端也和页面内容脱节。刷新是「恋爱卡」这一页自己的动作，应该回到页面内容里。下面是 3 个落点方案。</p>
+    <div class="legend">
+        <span><i class="dot accent"></i>当前问题</span>
+        <span><i class="dot ok"></i>推荐方案</span>
+        <span><i class="dot dash"></i>页面内容边界</span>
+    </div>
+</div>
+
+<main class="frames">
+    <!-- current -->
+    <section class="frame-wrap">
+        <h2>00 · 现状 <em>问题</em></h2>
+        <p class="frame-note">刷新只在这个页面出现，却占着全局 header 的位置；它一出现，音乐按钮就被挤到左边。</p>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen">
+                <div class="app-header">
+                    <div class="brand"><b>我们的时光</b><small>TINY LOVE SCRAPBOOK</small></div>
+                    <div class="header-actions">
+                        <span class="icon-btn refresh">↻</span>
+                        <span class="icon-btn music">♪</span>
+                    </div>
+                </div>
+                <p class="page-eyebrow">LOVE COUPONS</p>
+                <h2 class="page-heading">恋爱卡</h2>
+                <p class="page-sub">一张可以兑换的小约定，留给刚刚好的今天。</p>
+                <div class="stats">
+                    <span class="stat-chip"><b>45</b> 张可用</span>
+                    <span class="stat-chip muted"><b>26</b> 张已用</span>
+                </div>
+                <div class="tabs"><span class="tab active">全部</span><span class="tab">未使用</span><span class="tab">已使用</span></div>
+                <div class="coupon-list">
+                    <div class="coupon-card"><span class="coupon-mark">💆</span><span class="coupon-main"><b>每周按摩卡 · 5 分钟</b><small>NO.071 · 2026-10-18 获得</small></span><span class="pill">未使用</span></div>
+                    <div class="coupon-card"><span class="coupon-mark">💆</span><span class="coupon-main"><b>每周按摩卡 · 5 分钟</b><small>NO.070 · 2026-10-11 获得</small></span><span class="pill">未使用</span></div>
+                    <div class="coupon-card"><span class="coupon-mark">💆</span><span class="coupon-main"><b>每周按摩卡 · 5 分钟</b><small>NO.069 · 2026-10-04 已使用</small></span><span class="text">已使用</span></div>
+                </div>
+                <div class="callout bad"><b>问题：</b>刷新和音乐都属于全局 header，但刷新不是全局功能。它出现/消失时，音乐按钮位置会变化。</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- option A -->
+    <section class="frame-wrap">
+        <h2>01 · 方案 A <em class="ok">推荐</em></h2>
+        <p class="frame-note">把刷新放回恋爱卡页头，和标题同一行；全局 header 只保留音乐。移动端和 PC 都稳定。</p>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen">
+                <div class="app-header">
+                    <div class="brand"><b>我们的时光</b><small>TINY LOVE SCRAPBOOK</small></div>
+                    <div class="header-actions"><span class="icon-btn music">♪</span></div>
+                </div>
+                <p class="page-eyebrow">LOVE COUPONS</p>
+                <div class="title-row">
+                    <div>
+                        <h2 class="page-heading">恋爱卡</h2>
+                    </div>
+                    <button class="sync-btn"><b>↻</b>刷新</button>
+                </div>
+                <p class="page-sub">一张可以兑换的小约定，留给刚刚好的今天。</p>
+                <div class="stats">
+                    <span class="stat-chip"><b>45</b> 张可用</span>
+                    <span class="stat-chip muted"><b>26</b> 张已用</span>
+                </div>
+                <div class="tabs"><span class="tab active">全部</span><span class="tab">未使用</span><span class="tab">已使用</span></div>
+                <div class="coupon-list">
+                    <div class="coupon-card"><span class="coupon-mark">💆</span><span class="coupon-main"><b>每周按摩卡 · 5 分钟</b><small>NO.071 · 2026-10-18 获得</small></span><span class="pill">未使用</span></div>
+                    <div class="coupon-card"><span class="coupon-mark">💆</span><span class="coupon-main"><b>每周按摩卡 · 5 分钟</b><small>NO.070 · 2026-10-11 获得</small></span><span class="pill">未使用</span></div>
+                    <div class="coupon-card"><span class="coupon-mark">💆</span><span class="coupon-main"><b>每周按摩卡 · 5 分钟</b><small>NO.069 · 2026-10-04 已使用</small></span><span class="text">已使用</span></div>
+                </div>
+                <div class="callout good"><b>推荐：</b>刷新属于恋爱卡页，放在标题右侧；有文字「刷新」比纯图标更容易理解。音乐按钮固定在右上角，不再被挤动。</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- option B -->
+    <section class="frame-wrap">
+        <h2>02 · 方案 B <em>贴近列表</em></h2>
+        <p class="frame-note">刷新放在全部/未使用/已使用 tabs 的右侧，和列表筛选在同一行。</p>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen">
+                <div class="app-header">
+                    <div class="brand"><b>我们的时光</b><small>TINY LOVE SCRAPBOOK</small></div>
+                    <div class="header-actions"><span class="icon-btn music">♪</span></div>
+                </div>
+                <p class="page-eyebrow">LOVE COUPONS</p>
+                <h2 class="page-heading">恋爱卡</h2>
+                <p class="page-sub">一张可以兑换的小约定，留给刚刚好的今天。</p>
+                <div class="stats">
+                    <span class="stat-chip"><b>45</b> 张可用</span>
+                    <span class="stat-chip muted"><b>26</b> 张已用</span>
+                </div>
+                <div class="tabs">
+                    <span class="tab active">全部</span><span class="tab">未使用</span><span class="tab">已使用</span>
+                    <span class="sync-text">↻ 刷新</span>
+                </div>
+                <div class="coupon-list">
+                    <div class="coupon-card"><span class="coupon-mark">💆</span><span class="coupon-main"><b>每周按摩卡 · 5 分钟</b><small>NO.071 · 2026-10-18 获得</small></span><span class="pill">未使用</span></div>
+                    <div class="coupon-card"><span class="coupon-mark">💆</span><span class="coupon-main"><b>每周按摩卡 · 5 分钟</b><small>NO.070 · 2026-10-11 获得</small></span><span class="pill">未使用</span></div>
+                    <div class="coupon-card"><span class="coupon-mark">💆</span><span class="coupon-main"><b>每周按摩卡 · 5 分钟</b><small>NO.069 · 2026-10-04 已使用</small></span><span class="text">已使用</span></div>
+                </div>
+                <div class="callout"><b>取舍：</b>离列表最近，但移动端 tabs 已经占满一行，加「刷新」会显得拥挤；纯图标又不够明确。</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- option C -->
+    <section class="frame-wrap">
+        <h2>03 · 方案 C <em>弱化</em></h2>
+        <p class="frame-note">刷新放进统计行，做成「45 张可用 · 26 张已用  ↻ 刷新」的弱操作。</p>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen">
+                <div class="app-header">
+                    <div class="brand"><b>我们的时光</b><small>TINY LOVE SCRAPBOOK</small></div>
+                    <div class="header-actions"><span class="icon-btn music">♪</span></div>
+                </div>
+                <p class="page-eyebrow">LOVE COUPONS</p>
+                <h2 class="page-heading">恋爱卡</h2>
+                <p class="page-sub">一张可以兑换的小约定，留给刚刚好的今天。</p>
+                <div class="stats with-sync">
+                    <span class="stat-chip"><b>45</b> 张可用</span>
+                    <span class="stat-chip muted"><b>26</b> 张已用</span>
+                    <span class="sync-text">↻ 刷新</span>
+                </div>
+                <div class="tabs"><span class="tab active">全部</span><span class="tab">未使用</span><span class="tab">已使用</span></div>
+                <div class="coupon-list">
+                    <div class="coupon-card"><span class="coupon-mark">💆</span><span class="coupon-main"><b>每周按摩卡 · 5 分钟</b><small>NO.071 · 2026-10-18 获得</small></span><span class="pill">未使用</span></div>
+                    <div class="coupon-card"><span class="coupon-mark">💆</span><span class="coupon-main"><b>每周按摩卡 · 5 分钟</b><small>NO.070 · 2026-10-11 获得</small></span><span class="pill">未使用</span></div>
+                    <div class="coupon-card"><span class="coupon-mark">💆</span><span class="coupon-main"><b>每周按摩卡 · 5 分钟</b><small>NO.069 · 2026-10-04 已使用</small></span><span class="text">已使用</span></div>
+                </div>
+                <div class="callout"><b>取舍：</b>最安静，但刷新变得不显眼；如果用户主要靠自动刷新，问题不大，如果经常手动同步，不如方案 A。</div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div class="frames" style="margin-top:38px">
+    <section class="desktop-wrap">
+        <h2>04 · 桌面端 · 方案 A <em>推荐</em></h2>
+        <div class="browser">
+            <div class="browser-bar"><i></i><i></i><i></i><span class="browser-url">我们的时光 / 恋爱卡</span></div>
+            <div class="desktop-screen">
+                <div class="desktop-header">
+                    <div class="brand"><b>我们的时光</b><small>TINY LOVE SCRAPBOOK</small></div>
+                    <div class="desktop-nav" style="margin-left:auto"><span>我们</span><span>小灶</span><span class="active">恋爱卡</span><span>空间</span></div>
+                    <div class="header-actions"><span class="icon-btn music">♪</span></div>
+                </div>
+                <div class="desktop-content">
+                    <p class="page-eyebrow">LOVE COUPONS</p>
+                    <div class="title-row">
+                        <div><h2 class="page-heading">恋爱卡</h2></div>
+                        <button class="sync-btn"><b>↻</b>刷新</button>
+                    </div>
+                    <p class="page-sub">一张可以兑换的小约定，留给刚刚好的今天。</p>
+                    <div class="stats">
+                        <span class="stat-chip"><b>45</b> 张可用</span>
+                        <span class="stat-chip muted"><b>26</b> 张已用</span>
+                    </div>
+                    <div class="tabs"><span class="tab active">全部</span><span class="tab">未使用</span><span class="tab">已使用</span></div>
+                    <div class="desktop-coupon-grid">
+                        <div class="coupon-card"><span class="coupon-mark">💆</span><span class="coupon-main"><b>每周按摩卡 · 5 分钟</b><small>NO.071 · 2026-10-18 获得</small></span><span class="pill">未使用</span></div>
+                        <div class="coupon-card"><span class="coupon-mark">💆</span><span class="coupon-main"><b>每周按摩卡 · 5 分钟</b><small>NO.070 · 2026-10-11 获得</small></span><span class="pill">未使用</span></div>
+                        <div class="coupon-card"><span class="coupon-mark">💆</span><span class="coupon-main"><b>每周按摩卡 · 5 分钟</b><small>NO.069 · 2026-10-04 已使用</small></span><span class="text">已使用</span></div>
+                        <div class="coupon-card"><span class="coupon-mark">💆</span><span class="coupon-main"><b>每周按摩卡 · 5 分钟</b><small>NO.068 · 2026-09-27 获得</small></span><span class="pill">未使用</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<div class="notes">
+    <h2>方案对比与建议</h2>
+    <table>
+        <thead><tr><th>方案</th><th>位置</th><th>优点</th><th>风险</th></tr></thead>
+        <tbody>
+            <tr><td>现状</td><td>全局 header，仅恋爱卡页出现</td><td>不用改页面结构</td><td>音乐按钮会左右移动；刷新和页面内容脱节；其他页面没有这个按钮，却占着全局位置</td></tr>
+            <tr><td><b>A · 页头右侧</b> <span class="rec">推荐</span></td><td>恋爱卡标题右侧</td><td>归属明确；移动/PC 一致；有文字“刷新”更好理解；音乐位置稳定</td><td>会占一点标题右侧空间</td></tr>
+            <tr><td>B · tabs 右侧</td><td>筛选行末尾</td><td>离列表最近</td><td>移动端 tabs 拥挤；容易被误认为筛选的一部分</td></tr>
+            <tr><td>C · 统计行</td><td>统计 chips 右侧</td><td>最安静，不抢视觉</td><td>可发现性低；如果用户依赖手动刷新会不方便</td></tr>
+        </tbody>
+    </table>
+    <p style="margin-top:12px;color:#77706a;font-size:10.5px;line-height:1.7">落地时：把 <code>#refresh-btn</code> 从 header 移到 <code>#page-coupons</code> 的标题行，桌面端跟随内容列；<code>switchPage</code> 不再控制它显示/隐藏，刷新监听逻辑可以保持不变。默认建议用方案 A。</p>
+</div>
+</body>
+</html>

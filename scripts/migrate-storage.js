@@ -111,7 +111,7 @@ function buildDocuments(legacy) {
   docs.set('space.json', {
     schemaVersion: 2,
     id: 'our-space',
-    name: '我们的恋爱空间',
+    name: '我们的时光',
     createdAt: now,
     updatedAt: now,
     members: [

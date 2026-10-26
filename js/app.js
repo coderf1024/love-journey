@@ -13,7 +13,7 @@ const CDN = {
     qrcode: 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261026-02';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261026-03';
 const MINUTE = 60 * 1000;
 const ORDER_POLL_MS = 20 * 1000;
 const KITCHEN_STEPS = ['下单', '接单', '备菜', '制作', '出餐'];
@@ -1469,9 +1469,10 @@ function renderMenuCategories() {
     const categories = (state.menu.categories || [])
         .slice()
         .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+    const wish = '<button class="menu-cat menu-cat-wish" type="button" data-wish-open><span aria-hidden="true">+</span>我想吃</button>';
 
     if (!categories.length) {
-        container.innerHTML = '';
+        container.innerHTML = wish;
         return;
     }
 
@@ -1484,7 +1485,8 @@ function renderMenuCategories() {
     `;
 
     container.innerHTML = item('all', '全部', '') +
-        categories.map(category => item(category.id, cleanText(category.name), cleanText(category.icon))).join('');
+        categories.map(category => item(category.id, cleanText(category.name), cleanText(category.icon))).join('') +
+        wish;
 }
 
 function renderMenu() {
@@ -2607,6 +2609,12 @@ function initOrderUI() {
     const categories = $('menu-categories');
     if (categories) {
         categories.addEventListener('click', event => {
+            const wish = event.target.closest('[data-wish-open]');
+            if (wish) {
+                resetDishWishForm();
+                openSheet('dish-wish-sheet');
+                return;
+            }
             const button = event.target.closest('[data-category]');
             if (!button) return;
             state.menuCategory = button.dataset.category;
@@ -2643,13 +2651,6 @@ function initOrderUI() {
         });
     }
 
-    const wishButton = $('menu-wish-btn');
-    if (wishButton) {
-        wishButton.addEventListener('click', () => {
-            resetDishWishForm();
-            openSheet('dish-wish-sheet');
-        });
-    }
     ['dish-wish-camera', 'dish-wish-album'].forEach(id => {
         const input = $(id);
         if (input) input.addEventListener('change', handleDishWishFile);

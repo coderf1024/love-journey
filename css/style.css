@@ -6,7 +6,7 @@
 
 @font-face {
     font-family: 'Ma Shan Zheng';
-    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261026-02') format('woff2');
+    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261026-03') format('woff2');
     font-weight: 400;
     font-style: normal;
     font-display: swap;
@@ -14,7 +14,7 @@
 
 @font-face {
     font-family: 'Noto Serif SC';
-    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261026-02') format('woff2');
+    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261026-03') format('woff2');
     font-weight: 700;
     font-style: normal;
     font-display: swap;
@@ -90,7 +90,7 @@ body::after {
 }
 
 body::before {
-    background: url('../assets/texture-noise.png?v=20261026-02') repeat;
+    background: url('../assets/texture-noise.png?v=20261026-03') repeat;
     opacity: 0.06;
     mix-blend-mode: multiply;
 }
@@ -563,7 +563,7 @@ select:focus-visible {
     content: '';
     position: absolute;
     inset: 0;
-    background: url('../assets/texture-noise.png?v=20261026-02') repeat;
+    background: url('../assets/texture-noise.png?v=20261026-03') repeat;
     opacity: 0.1;
     mix-blend-mode: soft-light;
     pointer-events: none;
@@ -2394,38 +2394,14 @@ select:focus-visible {
     font-size: 0.7rem;
 }
 
-.wish-entry {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-top: 22px;
-    padding: 11px 14px;
-    background: var(--paper-soft);
-    border: 1px dashed var(--line-strong);
-    border-radius: 16px;
-}
-
-.wish-entry span {
+.menu-cat.menu-cat-wish {
+    margin-left: auto;
     color: var(--muted);
-    font-size: 0.74rem;
+    background: transparent;
+    border-style: dashed;
 }
 
-.menu-wish-btn {
-    min-height: 32px;
-    padding: 0 12px;
-    color: var(--stamp-deep);
-    font-family: var(--font-ui);
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    background: rgba(223, 95, 126, 0.08);
-    border: 1px solid rgba(223, 95, 126, 0.2);
-    border-radius: 999px;
-    transition: background 0.2s ease, transform 0.2s ease;
-}
-
-.menu-wish-btn:active {
+.menu-cat.menu-cat-wish:active {
     transform: scale(0.97);
 }
 

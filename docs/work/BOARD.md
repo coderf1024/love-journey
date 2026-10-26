@@ -8,6 +8,7 @@
 | LJ-20261025-002 | 通知模板口吻拆分（大厨侧系统通知 / 用户侧男友口吻） | in-review | 已由 `feat/LJ-20261025-002-bark-tone` 合入 `feat/love-space-ordering`（merge `9dcccd6`） | 在 8888 验收；通过后合并 main；上线后保存新单默认模板 | 人 |
 | LJ-20261025-003 | 开发规范改为只建分支、不使用 worktree | in-review | `chore/LJ-20261025-003-branch-only-workflow` | 合入 `feat/love-space-ordering`；人工确认后生效 | 人 |
 | LJ-20261025-004 | 管理端测试确认框被模板弹窗遮挡 | in-review | `fix/LJ-20261025-004-admin-confirm-layer` | 人工复测「发送测试」确认框；通过后合入基线 | 人 |
+| LJ-20261026-001 | 接单通知与空间头像图标 | in-review | `feat/LJ-20261026-001-bark-accept-icon` | 真机验证接单通知和头像图标；通过后合入基线 | 人 |
 
 ## 状态说明
 

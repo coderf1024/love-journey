@@ -1,8 +1,8 @@
 # LJ-20261026-008-order-card-uniform · 状态
 
-- 状态：in-review
+- 状态：accepted
 - 分支：`fix/LJ-20261026-008-order-card-uniform`
-- 最后更新：2026-10-26 17:00
+- 最后更新：2026-10-26
 - 当前负责人：人（验收）
 
 ## 已完成
@@ -11,8 +11,7 @@
 
 ## 未完成 / 下一步
 
-1. 人工确认各筛选下卡片布局一致。
-2. 合入 `feat/love-space-ordering`。
+- 无。已合入 `feat/love-space-ordering`；按发布策略暂不合并 `main`。
 
 ## 已验证
 

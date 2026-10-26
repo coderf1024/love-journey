@@ -10,14 +10,14 @@
 | LJ-20261025-004 | 管理端测试确认框被模板弹窗遮挡 | in-review | `fix/LJ-20261025-004-admin-confirm-layer` | 人工复测「发送测试」确认框；通过后合入基线 | 人 |
 | LJ-20261026-001 | 接单通知与空间头像图标 | in-review | `feat/LJ-20261026-001-bark-accept-icon` | 真机验证接单通知和头像图标；通过后合入基线 | 人 |
 | LJ-20261026-002 | 我想吃：用户提交菜品申请，管理端审核上架 | in-review | `feat/LJ-20261026-002-dish-wish` | 真机验收三种图片方式和 Bark；通过后合入基线 | 人 |
-| LJ-20261026-003 | 「我想吃」入口降到分类栏最右边 | in-review | `fix/LJ-20261026-003-wish-entry` | 人工确认视觉；通过后合入基线 | 人 |
-| LJ-20261026-004 | 管理端确认框按钮配色与订单默认筛选 | in-review | `fix/LJ-20261026-004-admin-ui` | 人工确认确认框和订单默认 tab；通过后合入基线 | 人 |
-| LJ-20261026-005 | 订单筛选吸顶与「全部」前置 | in-review | `fix/LJ-20261026-005-filter-ui` | 人工确认滚动吸顶和管理端 tab 顺序；通过后合入基线 | 人 |
-| LJ-20261026-006 | 订单列表内部滚动，修复与子标题重合 | in-review | `fix/LJ-20261026-006-orders-scroll` | 人工确认订单列表滚动和多分辨率；通过后合入基线 | 人 |
-| LJ-20261026-007 | 恋爱卡 / 恋爱币流水改为内部滚动 | in-review | `fix/LJ-20261026-007-me-scroll-views` | 人工确认三个视图滚动和高度；通过后合入基线 | 人 |
-| LJ-20261026-008 | 订单卡片在各筛选下布局统一 | in-review | `fix/LJ-20261026-008-order-card-uniform` | 人工确认各筛选卡片高度一致；通过后合入基线 | 人 |
-| LJ-20261026-009 | 首页晚餐卡片去掉 emoji、调整水印 | in-review | `fix/LJ-20261026-009-dinner-card` | 人工确认卡片和水印位置；通过后合入基线 | 人 |
-| LJ-20261026-010 | 饭点卡片去阴影、移除选中摘要、菜单标题去上边距 | in-review | `fix/LJ-20261026-010-slot-ui` | 人工确认小灶页视觉；通过后合入基线 | 人 |
+| LJ-20261026-003 | 「我想吃」入口降到分类栏最右边 | accepted | 已合入 `feat/love-space-ordering` | 验收通过；按发布策略暂不合并 main | 人 |
+| LJ-20261026-004 | 管理端确认框按钮配色与订单默认筛选 | accepted | 已合入 `feat/love-space-ordering` | 验收通过；按发布策略暂不合并 main | 人 |
+| LJ-20261026-005 | 订单筛选吸顶与「全部」前置 | accepted | 已合入 `feat/love-space-ordering` | 验收通过；按发布策略暂不合并 main | 人 |
+| LJ-20261026-006 | 订单列表内部滚动，修复与子标题重合 | accepted | 已合入 `feat/love-space-ordering` | 验收通过；按发布策略暂不合并 main | 人 |
+| LJ-20261026-007 | 恋爱卡 / 恋爱币流水改为内部滚动 | accepted | 已合入 `feat/love-space-ordering` | 验收通过；按发布策略暂不合并 main | 人 |
+| LJ-20261026-008 | 订单卡片在各筛选下布局统一 | accepted | 已合入 `feat/love-space-ordering` | 验收通过；按发布策略暂不合并 main | 人 |
+| LJ-20261026-009 | 首页晚餐卡片去掉 emoji、调整水印 | accepted | 已合入 `feat/love-space-ordering` | 验收通过；按发布策略暂不合并 main | 人 |
+| LJ-20261026-010 | 饭点卡片去阴影、移除选中摘要、菜单标题去上边距 | accepted | 已合入 `feat/love-space-ordering` | 验收通过；按发布策略暂不合并 main | 人 |
 
 ## 状态说明
 
@@ -35,6 +35,7 @@
 - 每个新需求先建任务文件夹，再建分支。
 - 切换任务前更新行内“下一步”和对应 `STATUS.md`。
 - 直接在主工作目录切换分支开发，**不使用 git worktree**（见 [ADR-0005](../decisions/ADR-0005-branch-only-workflow.md)）。
+- 当前发布策略：已验收任务停在 `accepted`，暂不合并 `main`。
 
 ## 待登记
 

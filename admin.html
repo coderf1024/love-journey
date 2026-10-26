@@ -8,19 +8,19 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="管理端">
 <title>管理端 · 恋爱空间</title>
-<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261026-01" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261026-01" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261026-02" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261026-02" as="font" type="font/woff2" crossorigin>
 <style>
     @font-face {
         font-family: 'Ma Shan Zheng';
-        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261026-01') format('woff2');
+        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261026-02') format('woff2');
         font-weight: 400;
         font-style: normal;
         font-display: swap;
     }
     @font-face {
         font-family: 'Noto Serif SC';
-        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261026-01') format('woff2');
+        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261026-02') format('woff2');
         font-weight: 700;
         font-style: normal;
         font-display: swap;
@@ -86,7 +86,7 @@
         pointer-events: none;
     }
     body.admin-body::before {
-        background: url('assets/texture-noise.png?v=20261026-01') repeat;
+        background: url('assets/texture-noise.png?v=20261026-02') repeat;
         opacity: .06;
         mix-blend-mode: multiply;
     }
@@ -497,6 +497,19 @@
     .menu-row-actions { display: flex; gap: 4px; }
     .menu-row-actions button { padding: 4px 7px; background: #fff; border: 1px solid var(--line); border-radius: 7px; color: var(--admin-muted); font-size: 9px; }
     .menu-row-actions .danger { color: var(--admin-stamp); }
+    .dish-request-card { margin-bottom: 10px; }
+    .dish-request-list { display: grid; gap: 7px; margin-top: 9px; }
+    .dish-request-row { display: flex; align-items: center; gap: 10px; padding: 8px 9px; background: var(--admin-soft); border: 1px solid var(--line); border-radius: 12px; }
+    .dish-request-row img,
+    .dish-request-photo-empty { width: 52px; height: 52px; flex: 0 0 52px; display: grid; place-items: center; overflow: hidden; background: #f3eee7; border-radius: 10px; font-size: 18px; object-fit: cover; }
+    .dish-request-main { flex: 1; min-width: 0; display: grid; gap: 2px; }
+    .dish-request-main b { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    .dish-request-main small { color: var(--admin-muted); font-size: 8.5px; }
+    .dish-request-banner { display: flex; align-items: center; gap: 10px; padding: 9px 11px; background: #fff7e8; border: 1px dashed var(--line-strong); border-radius: 11px; }
+    .dish-request-banner[hidden] { display: none; }
+    .dish-request-banner-main { flex: 1; min-width: 0; display: grid; gap: 2px; }
+    .dish-request-banner-main b { font-size: 11px; }
+    .dish-request-banner-main small { color: var(--admin-muted); font-size: 9px; }
     .dish-form { display: grid; gap: 9px; }
     .form-title { display: flex; align-items: baseline; margin-bottom: 2px; }
     .form-title b { font-size: 13px; }
@@ -818,7 +831,7 @@
             <div class="settings-group">
                 <div class="setting-row">
                     <span class="setting-icon">铃</span>
-                    <span class="setting-main"><b>Bark 推送</b><small>新单 / 接单 / 用户取消 / 开始制作 / 出餐</small></span>
+                    <span class="setting-main"><b>Bark 推送</b><small>新单 / 接单 / 菜品申请 / 用户取消 / 开始制作 / 出餐</small></span>
                     <button class="admin-switch" id="bark-enabled" type="button" role="switch" aria-pressed="false" aria-label="启用 Bark 推送"><i></i></button>
                 </div>
                 <div class="setting-row bark-key-row">
@@ -872,6 +885,12 @@
                     <button class="admin-switch" type="button" role="switch" data-bark-event="accepted" aria-pressed="true" aria-label="接单通知"><i></i></button>
                 </div>
                 <div class="setting-row">
+                    <span class="setting-icon">菜</span>
+                    <span class="setting-main"><b>菜品申请</b><small>用户提交「我想吃」时推给管理员</small></span>
+                    <button class="admin-btn ghost sm" type="button" data-bark-template="dishRequest">模板</button>
+                    <button class="admin-switch" type="button" role="switch" data-bark-event="dishRequest" aria-pressed="true" aria-label="菜品申请通知"><i></i></button>
+                </div>
+                <div class="setting-row">
                     <span class="setting-icon">消</span>
                     <span class="setting-main"><b>用户取消</b><small>用户取消预约时推给管理员</small></span>
                     <button class="admin-btn ghost sm" type="button" data-bark-template="userCancel">模板</button>
@@ -904,7 +923,7 @@
                     <button class="admin-btn primary block" id="bark-save" type="button">保存通知设置</button>
                 </div>
             </div>
-            <div class="system-note">Bark 不做定时任务，只在订单事件发生的页面里直接发送。用户密钥接收「接单 / 开始制作 / 出餐」，管理员密钥接收「新单 / 用户取消 / 催一催」；两把密钥都保存在 OSS 的 space.settings.bark。通知图标使用空间头像。催一催默认关闭，和密钥一起保存后生效。</div>
+            <div class="system-note">Bark 不做定时任务，只在订单事件发生的页面里直接发送。用户密钥接收「接单 / 开始制作 / 出餐」，管理员密钥接收「新单 / 菜品申请 / 用户取消 / 催一催」；两把密钥都保存在 OSS 的 space.settings.bark。通知图标使用空间头像。催一催默认关闭，和密钥一起保存后生效。</div>
             <button class="admin-btn ghost block logout-btn" id="logout-btn" type="button">退出登录</button>
         </section>
 
@@ -912,6 +931,10 @@
             <div class="view-head">
                 <div><p class="eyebrow">系统 · 菜单</p><h1>菜单</h1><p>时间只有 40 / 60 / 90 / 120 分钟四档。</p></div>
                 <div class="head-actions"><button class="admin-btn primary sm" id="dish-add" type="button">＋ 添加菜品</button></div>
+            </div>
+            <div class="admin-card dish-request-card" id="dish-request-card" hidden>
+                <div class="section-title"><h2>菜品申请</h2><span id="dish-request-count"></span></div>
+                <div class="dish-request-list" id="dish-request-list"></div>
             </div>
             <div class="admin-card">
                 <div class="menu-toolbar">
@@ -966,6 +989,10 @@
         <form class="dish-form" id="dish-form">
             <div class="admin-modal-body">
                 <input id="dish-id" type="hidden">
+                <div class="dish-request-banner" id="dish-request-banner" hidden>
+                    <span class="dish-request-banner-main"><b>来自用户的「我想吃」</b><small id="dish-request-banner-text"></small></span>
+                    <button class="admin-btn ghost sm" id="dish-request-reject" type="button">不采纳</button>
+                </div>
                 <div class="photo-field">
                     <div class="photo-preview" id="dish-image-preview"><span class="photo-placeholder"><b>＋</b>点击上传菜品照片</span></div>
                     <div class="photo-upload-row">
@@ -1073,10 +1100,10 @@
 <div class="admin-toast" id="message" role="status" aria-live="polite"></div>
 
 <script src="https://gosspublic.alicdn.com/aliyun-oss-sdk-6.18.0.min.js"></script>
-<script src="js/oss-config.js?v=20261026-01"></script>
-<script src="js/crypto-utils.js?v=20261026-01"></script>
-<script src="js/oss-utils.js?v=20261026-01"></script>
-<script src="js/store.js?v=20261026-01"></script>
+<script src="js/oss-config.js?v=20261026-02"></script>
+<script src="js/crypto-utils.js?v=20261026-02"></script>
+<script src="js/oss-utils.js?v=20261026-02"></script>
+<script src="js/store.js?v=20261026-02"></script>
 <script>
     const ORDER_LABEL = {
         pending: '待接单',
@@ -1114,6 +1141,7 @@
     const BARK_EVENT_LABELS = {
         newOrder: '新单',
         accepted: '接单',
+        dishRequest: '菜品申请',
         userCancel: '用户取消',
         cooking: '开始制作',
         served: '出餐',
@@ -1139,12 +1167,12 @@
             { name: '番茄炒蛋', price: 20 }
         ]
     };
-    const BARK_SAMPLE_EXTRA = { refund: 38, reason: '临时有事', minutes: 18, balance: 482 };
+    const BARK_SAMPLE_EXTRA = { refund: 38, reason: '临时有事', minutes: 18, balance: 482, dishName: '可乐鸡翅' };
     const BARK_TEMPLATE_VARIABLES = [
         ['siteName', '空间名'], ['userName', '用户名'], ['userLabel', '用户名（空则 TA）'], ['adminName', '管理员'],
         ['userUrl', '用户端地址'], ['userOrderUrl', '用户端订单链接'], ['adminUrl', '管理端地址'], ['slotKey', '饭点 key'],
         ['orderId', '订单号'], ['slot', '饭点'], ['date', '日期'], ['time', '时间'],
-        ['weekday', '星期'], ['items', '菜品'], ['itemCount', '菜数'], ['total', '合计'],
+        ['weekday', '星期'], ['items', '菜品'], ['itemCount', '菜数'], ['total', '合计'], ['dishName', '申请菜名'],
         ['note', '备注'], ['noteBlock', '备注整行（空则隐藏）'], ['status', '状态'], ['placedAt', '下单时间'], ['etaMinutes', '预计分钟'],
         ['refund', '退款'], ['reason', '取消原因'], ['reasonBlock', '原因整行（空则隐藏）'], ['minutes', '等待分钟'], ['balance', '余额']
     ];
@@ -1165,6 +1193,7 @@
     let dishGallery = [];
     let dishGalleryDragIndex = null;
     let dishImageUploading = false;
+    let pendingDishRequestId = null;
     let dishImageUploadToken = 0;
     let spaceAvatarUploading = false;
     let spaceAvatarUploadToken = 0;
@@ -1491,13 +1520,15 @@
     async function refreshAdminOrders() {
         if (!isLoggedIn || document.visibilityState !== 'visible') return;
         try {
-            const data = await refreshOrderData();
+            const [data, dishRequests] = await Promise.all([refreshOrderData(), listDishRequests()]);
             if (!adminData) return loadAdmin();
             adminData.orders = data.orders;
             adminData.wallet = data.wallet;
+            adminData.dishRequests = dishRequests;
             renderHome();
             renderOrders();
             renderWallet();
+            renderDishRequests();
             renderChrome();
         } catch (error) {
             console.warn('刷新订单失败:', error);
@@ -1551,6 +1582,7 @@
                <p>用户可以提前两个周末选饭点。</p>
                <div class="next-meal-foot"><span>本周暂无饭点</span><button class="admin-btn sm" type="button" data-go-orders>查看订单 →</button></div>`;
 
+        const dishTodos = pendingDishRequests();
         const todos = ((adminData.orders) || [])
             .filter(order => ['pending', 'served'].includes(order.status) || (overdue(order) && ADMIN_ORDER_ACTIVE.includes(order.status)))
             .slice()
@@ -1559,8 +1591,7 @@
                 return (rank[a.status] || 2) - (rank[b.status] || 2) ||
                     String(a.scheduledFor || '').localeCompare(String(b.scheduledFor || ''));
             });
-        $('home-todo-count').textContent = todos.length ? `${todos.length} 件` : '';
-        $('home-todos').innerHTML = todos.length ? todos.map(order => {
+        const orderRows = todos.map(order => {
             const nextStatus = NEXT_STATUS[order.status];
             const label = nextStatus ? nextStatus.label : '去处理';
             return `<div class="todo-row">
@@ -1568,7 +1599,16 @@
                 <span class="todo-main"><b>${ORDER_LABEL[order.status]}</b><small>${esc(slotText(order))} · ${esc(itemsText(order))}${overdue(order) ? ' · 已过时间' : ''}</small></span>
                 ${nextStatus ? `<button class="admin-btn dark sm" type="button" data-home-next="${esc(order.id)}" data-next-status="${nextStatus.status}">${label}</button>` : `<span class="admin-small admin-muted">去订单处理</span>`}
             </div>`;
-        }).join('') : '<div class="empty-state">现在没有需要处理的事。</div>';
+        }).join('');
+        const dishRows = dishTodos.map(request => `
+            <div class="todo-row">
+                <span class="todo-mark">菜</span>
+                <span class="todo-main"><b>我想吃：${esc(request.name)}</b><small>${esc(request.submittedAt || '')} · 等你审核</small></span>
+                <button class="admin-btn dark sm" type="button" data-review-dish="${esc(request.id)}">去审核</button>
+            </div>`).join('');
+        const totalTodos = todos.length + dishTodos.length;
+        $('home-todo-count').textContent = totalTodos ? `${totalTodos} 件` : '';
+        $('home-todos').innerHTML = (dishRows + orderRows) || '<div class="empty-state">现在没有需要处理的事。</div>';
 
         const weekStart = new Date();
         weekStart.setHours(0, 0, 0, 0);
@@ -1721,6 +1761,8 @@
             }
             const cancel = event.target.closest('[data-order-cancel]');
             if (cancel) cancelAdminOrder(cancel.dataset.orderCancel, cancel);
+            const review = event.target.closest('[data-review-dish]');
+            if (review) openDishRequestReview(review.dataset.reviewDish);
         });
     }
 
@@ -1961,6 +2003,26 @@
         return category ? category.name : '未分类';
     }
 
+    function pendingDishRequests() {
+        return ((adminData && adminData.dishRequests) || [])
+            .filter(request => request.status === 'pending');
+    }
+
+    function renderDishRequests() {
+        const card = $('dish-request-card');
+        if (!card) return;
+        const pending = pendingDishRequests();
+        card.hidden = !pending.length;
+        if (!pending.length) return;
+        $('dish-request-count').textContent = `${pending.length} 条待审核`;
+        $('dish-request-list').innerHTML = pending.map(request => `
+            <div class="dish-request-row">
+                ${request.image ? `<img src="${esc(request.image)}" alt="">` : '<span class="dish-request-photo-empty">🍽️</span>'}
+                <span class="dish-request-main"><b>${esc(request.name)}</b><small>${esc(request.submittedAt || '')}</small></span>
+                <button class="admin-btn primary sm" type="button" data-dish-request-review="${esc(request.id)}">审核</button>
+            </div>`).join('');
+    }
+
     function renderMenu() {
         if (!adminData) return;
         const menu = adminData.menu || { categories: [], dishes: [] };
@@ -2011,6 +2073,7 @@
             </div>`).join('') : '<div class="empty-state">没有符合条件的菜品。</div>';
 
         renderTagPicker();
+        renderDishRequests();
     }
 
     function renderTagPicker() {
@@ -2107,7 +2170,14 @@
         document.body.classList.remove('admin-modal-open');
     }
 
+    function clearDishRequestMode() {
+        pendingDishRequestId = null;
+        if ($('dish-request-banner')) $('dish-request-banner').hidden = true;
+        if ($('dish-submit')) $('dish-submit').textContent = '保存菜品';
+    }
+
     function fillDishForm(dish) {
+        clearDishRequestMode();
         $('dish-id').value = dish.id;
         $('dish-name').value = dish.name || '';
         $('dish-category').value = dish.categoryId || '';
@@ -2129,6 +2199,7 @@
     }
 
     function resetDishForm() {
+        clearDishRequestMode();
         $('dish-id').value = '';
         $('dish-name').value = '';
         $('dish-price').value = '';
@@ -2145,6 +2216,62 @@
         setAvailableSwitch(true);
         $('dish-form-title').textContent = '添加菜品';
         $('dish-cancel').textContent = '取消';
+    }
+
+    function openDishRequestReview(id) {
+        const request = ((adminData && adminData.dishRequests) || [])
+            .find(item => String(item.id) === String(id));
+        if (!request || request.status !== 'pending') return;
+        resetDishForm();
+        pendingDishRequestId = request.id;
+        $('dish-id').value = '';
+        $('dish-name').value = request.name || '';
+        if ($('dish-category').options.length) $('dish-category').selectedIndex = 0;
+        $('dish-price').value = '';
+        $('dish-time').value = '40';
+        $('dish-description').value = '';
+        $('dish-ingredients').value = '';
+        dishTags = new Set();
+        renderTagPicker();
+        dishGallery = request.image ? [request.image] : [];
+        $('dish-image').value = request.image || '';
+        setDishImagePreview(request.image || '');
+        setDishImageStatus(request.image ? '用户上传的图片' : '未选择');
+        renderDishGallery();
+        setAvailableSwitch(true);
+        $('dish-form-title').textContent = '审核「我想吃」';
+        $('dish-submit').textContent = '上架这道菜';
+        $('dish-cancel').textContent = '先不处理';
+        $('dish-request-banner').hidden = false;
+        $('dish-request-banner-text').textContent = `${request.name} · ${request.submittedAt || ''}`;
+        openDishModal();
+    }
+
+    async function rejectDishRequestFromModal() {
+        const requestId = pendingDishRequestId;
+        if (!requestId) return;
+        const ok = await adminConfirm({
+            title: '不采纳这条申请？',
+            message: '会从待审核列表移除；用户端不会看到状态。',
+            okText: '不采纳',
+            cancelText: '再看看',
+            danger: true
+        });
+        if (!ok) return;
+        const button = $('dish-request-reject');
+        button.disabled = true;
+        try {
+            await rejectDishRequest(requestId);
+            showMessage('已不采纳');
+            adminData = await loadAdminData();
+            renderAll();
+            closeDishModal();
+            resetDishForm();
+        } catch (error) {
+            showMessage(error.message, 'error');
+        } finally {
+            button.disabled = false;
+        }
     }
 
     async function handleDishSubmit(event) {
@@ -2167,11 +2294,21 @@
             showMessage('菜名不能为空', 'error');
             return;
         }
+        if (pendingDishRequestId && !(dish.price > 0)) {
+            showMessage('请填写价格', 'error');
+            return;
+        }
+        const requestId = pendingDishRequestId;
         const button = $('dish-submit');
         button.disabled = true;
         try {
-            await upsertDish(dish);
-            showMessage(id ? '菜品已更新' : '菜品已添加');
+            if (requestId) {
+                await approveDishRequest(requestId, dish);
+                showMessage('菜品已上架');
+            } else {
+                await upsertDish(dish);
+                showMessage(id ? '菜品已更新' : '菜品已添加');
+            }
             adminData = await loadAdminData();
             renderAll();
             closeDishModal();
@@ -2442,7 +2579,7 @@
             ...BARK_SAMPLE_ORDER,
             items: BARK_SAMPLE_ORDER.items.map(item => ({ ...item }))
         };
-        if (event === 'served') {
+        if (event === 'served' || event === 'dishRequest') {
             const dishes = (adminData && adminData.menu && adminData.menu.dishes) || [];
             const dish = dishes.find(item => item.image || (Array.isArray(item.images) && item.images.some(Boolean)));
             const raw = dish ? (dish.image || (dish.images || []).find(Boolean)) : '';
@@ -2551,12 +2688,13 @@
         const subtitle = renderBarkTemplate(draft.subtitle, vars);
         const body = renderBarkTemplate(draft.body, vars);
         const url = renderBarkTemplate(draft.url, vars);
-        const audience = ['newOrder', 'userCancel', 'nudge'].includes(event) ? 'admin' : 'user';
+        const audience = ['newOrder', 'userCancel', 'nudge', 'dishRequest'].includes(event) ? 'admin' : 'user';
         const order = sampleBarkOrder(event);
-        const image = event === 'served' ? firstServedImage(order) : '';
+        const image = ['served', 'dishRequest'].includes(event) ? firstServedImage(order) : '';
+        const imageNote = image ? (event === 'served' ? '\n\n（会附带一张样例成品图）' : '\n\n（会附带一张样例图片）') : '';
         const ok = await adminConfirm({
             title: `测试预览 · ${BARK_EVENT_LABELS[event]}`,
-            message: `${subtitle ? subtitle + '\n' : ''}${title}\n\n${body}\n\n${url}${image ? '\n\n（会附带一张样例成品图）' : ''}`,
+            message: `${subtitle ? subtitle + '\n' : ''}${title}\n\n${body}\n\n${url}${imageNote}`,
             okText: '确认发送',
             cancelText: '先不发'
         });
@@ -2658,6 +2796,11 @@
         renderMenu();
     });
     $('menu-list').addEventListener('click', handleMenuClick);
+    $('dish-request-list').addEventListener('click', event => {
+        const button = event.target.closest('[data-dish-request-review]');
+        if (button) openDishRequestReview(button.dataset.dishRequestReview);
+    });
+    $('dish-request-reject').addEventListener('click', rejectDishRequestFromModal);
     $('dish-add').addEventListener('click', () => {
         resetDishForm();
         openDishModal();

@@ -115,7 +115,7 @@ function makeError(code, message, extra) {
 }
 
 /* 两套口吻：
-   大厨侧（newOrder / userCancel / nudge）是系统通知——事件名、人、菜、金额、
+   大厨侧（newOrder / userCancel / nudge / dishRequest）是系统通知——事件名、人、菜、金额、
    要做什么，分行可扫读，不用 emoji、不出现订单号；
    用户侧（accepted / cooking / served）是男朋友发来的消息——我接下了、我在做什么、
    还要多久、你来看看，不出现金额和状态枚举。改模板时不要混用。 */
@@ -136,6 +136,12 @@ const BARK_TEMPLATE_DEFAULTS = {
         title: '催一催',
         subtitle: '{slot}',
         body: '{userLabel} 在等这单\n{items} · 当前「{status}」\n点开看看',
+        url: '{adminUrl}'
+    },
+    dishRequest: {
+        title: '新的我想吃',
+        subtitle: '{dishName}',
+        body: '{userLabel} 想吃这道菜\n点开菜单看看',
         url: '{adminUrl}'
     },
     accepted: {
@@ -397,8 +403,17 @@ const couponCollection = typeof dbCollection === 'function'
     )
     : null;
 
+const dishRequestCollection = typeof dbCollection === 'function'
+    ? dbCollection(
+        'commerce/dish-requests',
+        request => request,
+        (a, b) => (a.status === 'pending' ? 0 : 1) - (b.status === 'pending' ? 0 : 1) ||
+            String(b.submittedAt || '').localeCompare(String(a.submittedAt || ''))
+    )
+    : null;
+
 function ensureStorage() {
-    if (!storageReady || !orderCollection || !couponCollection) {
+    if (!storageReady || !orderCollection || !couponCollection || !dishRequestCollection) {
         throw new Error('页面脚本版本不一致（存储层未加载）。请强制刷新一下：电脑按 Ctrl/Cmd + Shift + R，手机请关闭页面重新打开。');
     }
 }
@@ -502,7 +517,97 @@ async function refreshOrderData() {
 }
 
 async function loadAdminData() {
-    return loadAppData();
+    const [data, dishRequests] = await Promise.all([loadAppData(), listDishRequests()]);
+    return { ...data, dishRequests };
+}
+
+/* ---------- dish requests (我想吃) ---------- */
+
+async function submitDishRequest({ name, image } = {}) {
+    ensureStorage();
+    const dishName = String(name || '').trim().slice(0, 30);
+    if (!dishName) throw makeError('BAD_DISH_REQUEST', '先写一个菜名');
+    const picture = String(image || '').trim().slice(0, 500);
+    if (!/^https?:\/\//i.test(picture)) {
+        throw makeError('BAD_DISH_REQUEST_IMAGE', '图片地址需要以 http 开头，或者直接拍照上传');
+    }
+    const now = nowStamp();
+    const id = `req_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+    const request = {
+        id,
+        name: dishName,
+        image: picture,
+        status: 'pending',
+        submittedAt: now,
+        reviewedAt: null,
+        dishId: null
+    };
+    await dishRequestCollection.save(id, request);
+    loadSpace()
+        .then(space => sendBark(space, {
+            audience: 'admin',
+            event: 'dishRequest',
+            variables: { dishName: request.name },
+            image: request.image
+        }))
+        .catch(() => {});
+    return request;
+}
+
+async function listDishRequests() {
+    ensureStorage();
+    return dishRequestCollection.list();
+}
+
+async function getDishRequest(id) {
+    ensureStorage();
+    try {
+        return await dishRequestCollection.get(id);
+    } catch (error) {
+        if (error && (error.code === 'NoSuchKey' || error.status === 404)) return null;
+        throw error;
+    }
+}
+
+async function approveDishRequest(requestId, input = {}) {
+    ensureStorage();
+    const request = await getDishRequest(requestId);
+    if (!request) throw makeError('MISSING_DISH_REQUEST', '找不到这条申请');
+    if (request.status !== 'pending') throw makeError('ALREADY_REVIEWED', '这条申请已经处理过了');
+
+    const menu = await loadMenu();
+    let dish = (menu.dishes || []).find(item =>
+        String(item.sourceRequestId || '') === String(request.id));
+    if (!dish) {
+        if (!(Number(input.price) > 0)) throw makeError('BAD_PRICE', '请填写价格');
+        const image = String(input.image || request.image || '').trim();
+        const images = Array.isArray(input.images) && input.images.length ? input.images : [image];
+        dish = await upsertDish({
+            ...input,
+            id: undefined,
+            image,
+            images,
+            sourceRequestId: request.id
+        });
+    }
+
+    await dishRequestCollection.save(request.id, {
+        ...request,
+        status: 'approved',
+        reviewedAt: nowStamp(),
+        dishId: dish.id
+    });
+    return dish;
+}
+
+async function rejectDishRequest(requestId) {
+    ensureStorage();
+    const request = await getDishRequest(requestId);
+    if (!request) throw makeError('MISSING_DISH_REQUEST', '找不到这条申请');
+    if (request.status !== 'pending') throw makeError('ALREADY_REVIEWED', '这条申请已经处理过了');
+    const next = { ...request, status: 'rejected', reviewedAt: nowStamp() };
+    await dishRequestCollection.save(request.id, next);
+    return next;
 }
 
 /* ---------- ordering ---------- */
@@ -940,6 +1045,7 @@ async function upsertDish(input) {
         tags: normalizeDishTags(input.tags),
         ingredients: String(input.ingredients || '').trim().slice(0, 500),
         available: input.available !== false,
+        sourceRequestId: String(input.sourceRequestId || (existing && existing.sourceRequestId) || '').slice(0, 80),
         todaySpecial: input.todaySpecial == null
             ? !!(existing && existing.todaySpecial)
             : !!input.todaySpecial,

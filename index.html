@@ -16,8 +16,8 @@
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="preconnect" href="https://gosspublic.alicdn.com" crossorigin>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261026-01" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/style.css?v=20261026-01">
+    <link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261026-02" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="css/style.css?v=20261026-02">
 </head>
 <body>
     <header class="app-header" id="app-header">
@@ -159,6 +159,11 @@
             <p class="selected-slot" id="selected-slot"></p>
 
             <div class="order-status-wrap" id="order-status-wrap"></div>
+
+            <div class="wish-entry">
+                <span>菜单里没有想吃的？</span>
+                <button class="menu-wish-btn" id="menu-wish-btn" type="button">我想吃</button>
+            </div>
 
             <div class="menu-area" id="menu-area">
                 <div class="menu-head">
@@ -391,6 +396,33 @@
         </div>
     </div>
 
+    <div class="sheet" id="dish-wish-sheet" aria-hidden="true">
+        <div class="sheet-backdrop" data-close></div>
+        <div class="sheet-panel sheet-panel-wish" role="dialog" aria-modal="true" aria-labelledby="dish-wish-title">
+            <header class="sheet-head">
+                <h2 id="dish-wish-title">我想吃</h2>
+                <button class="sheet-close is-inline" type="button" data-close aria-label="关闭">✕</button>
+            </header>
+            <div class="sheet-scroll wish-body">
+                <p class="wish-intro">菜单里没有的，也可以告诉大厨。他研究好了就做给你吃。</p>
+                <label class="wish-label" for="dish-wish-name">菜名</label>
+                <input class="wish-input" id="dish-wish-name" type="text" maxlength="30" placeholder="比如 可乐鸡翅" autocomplete="off">
+                <label class="wish-label">图片</label>
+                <div class="wish-photo-row">
+                    <input id="dish-wish-camera" type="file" accept="image/*" capture="environment" hidden>
+                    <input id="dish-wish-album" type="file" accept="image/*" hidden>
+                    <label class="wish-photo-btn" for="dish-wish-camera">拍照</label>
+                    <label class="wish-photo-btn" for="dish-wish-album">从相册选</label>
+                    <span class="wish-status" id="dish-wish-status">还没有图片</span>
+                </div>
+                <input class="wish-input" id="dish-wish-image" type="url" placeholder="或直接粘贴图片地址" autocomplete="off">
+                <div class="wish-preview" id="dish-wish-preview" hidden><img id="dish-wish-preview-img" alt=""></div>
+                <p class="wish-hint">图片会作为菜品图公开展示。</p>
+                <button class="wish-submit" id="dish-wish-submit" type="button">告诉大厨</button>
+            </div>
+        </div>
+    </div>
+
     <div class="sheet" id="order-detail-sheet" aria-hidden="true">
         <div class="sheet-backdrop" data-close></div>
         <div class="sheet-panel sheet-panel-tall" role="dialog" aria-modal="true" aria-labelledby="order-detail-title">
@@ -428,10 +460,10 @@
     <audio id="bg-music" loop playsinline preload="none"></audio>
 
     <script src="https://gosspublic.alicdn.com/aliyun-oss-sdk-6.18.0.min.js"></script>
-    <script src="js/oss-config.js?v=20261026-01"></script>
-    <script src="js/crypto-utils.js?v=20261026-01"></script>
-    <script src="js/oss-utils.js?v=20261026-01"></script>
-    <script src="js/store.js?v=20261026-01"></script>
-    <script src="js/app.js?v=20261026-01"></script>
+    <script src="js/oss-config.js?v=20261026-02"></script>
+    <script src="js/crypto-utils.js?v=20261026-02"></script>
+    <script src="js/oss-utils.js?v=20261026-02"></script>
+    <script src="js/store.js?v=20261026-02"></script>
+    <script src="js/app.js?v=20261026-02"></script>
 </body>
 </html>

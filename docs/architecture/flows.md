@@ -48,6 +48,7 @@ pending 待接单
 |---|---|---|
 | `newOrder` 新单 | 管理员 key | `{adminUrl}` |
 | `accepted` 接单 | 用户 key | `{userOrderUrl}` |
+| `dishRequest` 菜品申请 | 管理员 key | `{adminUrl}` |
 | `userCancel` 用户取消 | 管理员 key | `{adminUrl}` |
 | `cooking` 开始制作 | 用户 key | `{userOrderUrl}` |
 | `served` 出餐 | 用户 key | `{userOrderUrl}` |
@@ -55,6 +56,15 @@ pending 待接单
 
 - 每个事件有独立开关，默认开。
 - 所有推送用 `space.avatar` 作为 Bark 的 `icon`；没有头像或 SVG 头像时不传图标。
+- `dishRequest` 会附带用户提交的菜品图片作为 `image`。
+
+### 我想吃
+
+1. 用户在小灶页点「我想吃」，填写菜名和图片（拍照、相册或图片 URL）。
+2. `submitDishRequest()` 写入 `commerce/dish-requests/`，状态 `pending`，并给管理员发 Bark。
+3. 管理端在首页或菜单页看到待审核申请，打开菜品弹窗补齐分类、价格、标签等字段。
+4. `approveDishRequest()` 创建正式菜品并写入 `sourceRequestId`，再把申请标记 `approved`；重复保存按 `sourceRequestId` 去重。
+5. 不采纳则标记 `rejected`，从待审核列表移除。用户端不展示申请状态。
 - 「催一催」功能本身由 `space.settings.nudgeEnabled` 控制，默认关闭；关闭时用户端不显示按钮，`nudgeOrder()` 拒绝调用。
 - 模板包含 title/subtitle/body/url，变量在发送时替换。
 - 没有定时通知任务；只在动作发生的页面里发送。

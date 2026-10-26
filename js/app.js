@@ -13,7 +13,7 @@ const CDN = {
     qrcode: 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261026-05';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261026-06';
 const MINUTE = 60 * 1000;
 const ORDER_POLL_MS = 20 * 1000;
 const KITCHEN_STEPS = ['下单', '接单', '备菜', '制作', '出餐'];
@@ -1989,7 +1989,7 @@ function resetMeView() {
     state.meView = 'menu';
     state.meOrderId = null;
     document.body.classList.remove('me-subpage');
-    document.body.classList.remove('me-orders-page');
+    document.body.classList.remove('me-fixed-view');
 }
 
 function scrollAppTop() {
@@ -2097,7 +2097,10 @@ function renderMePage() {
     const subView = $('me-sub-view');
     if (!menuView || !subView) return;
 
-    document.body.classList.toggle('me-orders-page', state.meView === 'orders');
+    document.body.classList.toggle(
+        'me-fixed-view',
+        ['orders', 'wallet', 'cards'].includes(state.meView)
+    );
 
     if (state.meView === 'menu') {
         document.body.classList.remove('me-subpage');

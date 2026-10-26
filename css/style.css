@@ -6,7 +6,7 @@
 
 @font-face {
     font-family: 'Ma Shan Zheng';
-    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261026-05') format('woff2');
+    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261026-06') format('woff2');
     font-weight: 400;
     font-style: normal;
     font-display: swap;
@@ -14,7 +14,7 @@
 
 @font-face {
     font-family: 'Noto Serif SC';
-    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261026-05') format('woff2');
+    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261026-06') format('woff2');
     font-weight: 700;
     font-style: normal;
     font-display: swap;
@@ -90,7 +90,7 @@ body::after {
 }
 
 body::before {
-    background: url('../assets/texture-noise.png?v=20261026-05') repeat;
+    background: url('../assets/texture-noise.png?v=20261026-06') repeat;
     opacity: 0.06;
     mix-blend-mode: multiply;
 }
@@ -563,7 +563,7 @@ select:focus-visible {
     content: '';
     position: absolute;
     inset: 0;
-    background: url('../assets/texture-noise.png?v=20261026-05') repeat;
+    background: url('../assets/texture-noise.png?v=20261026-06') repeat;
     opacity: 0.1;
     mix-blend-mode: soft-light;
     pointer-events: none;
@@ -3636,8 +3636,6 @@ select:focus-visible {
 .me-coupons {
     display: grid;
     gap: 6px;
-    max-height: 420px;
-    overflow: auto;
     padding-right: 2px;
 }
 
@@ -3658,12 +3656,6 @@ select:focus-visible {
     font-size: 0.66rem;
     text-align: right;
 }
-
-.me-ledger {
-    max-height: 420px;
-    overflow: auto;
-}
-
 
 /* ---------- 我们 page: menu + sub pages ---------- */
 
@@ -3915,44 +3907,49 @@ body.me-subpage .app-main {
     background: var(--ink);
 }
 
-/* orders sub-view: lock to the viewport; only the list scrolls */
-body.me-orders-page {
+/* Me sub-views: lock to the viewport; only the record list scrolls */
+body.me-fixed-view {
     overflow: hidden;
 }
 
-body.me-orders-page .app-main {
+body.me-fixed-view .app-main {
     height: 100vh;
     height: 100dvh;
     box-sizing: border-box;
 }
 
-body.me-orders-page #page-me,
-body.me-orders-page .me-sub-view {
+body.me-fixed-view #page-me,
+body.me-fixed-view .me-sub-view {
     height: 100%;
 }
 
-body.me-orders-page .me-sub-view {
+body.me-fixed-view .me-sub-view {
     display: flex;
     flex-direction: column;
 }
 
-body.me-orders-page .me-sub-head {
+body.me-fixed-view .me-sub-head {
     flex: 0 0 auto;
 }
 
-body.me-orders-page .me-sub-body {
+body.me-fixed-view .me-sub-body {
     flex: 1;
     min-height: 0;
     display: flex;
     flex-direction: column;
 }
 
-body.me-orders-page .me-list-summary,
-body.me-orders-page .me-filters {
+body.me-fixed-view .me-list-summary,
+body.me-fixed-view .me-filters,
+body.me-fixed-view .wallet-hero,
+body.me-fixed-view .me-section-head,
+body.me-fixed-view .me-note {
     flex: 0 0 auto;
 }
 
-body.me-orders-page .me-orders {
+body.me-fixed-view .me-orders,
+body.me-fixed-view .me-coupons,
+body.me-fixed-view .wallet-entries.me-ledger {
     flex: 1;
     min-height: 0;
     overflow-y: auto;

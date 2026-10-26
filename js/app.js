@@ -13,7 +13,7 @@ const CDN = {
     qrcode: 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261026-07';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261026-08';
 const MINUTE = 60 * 1000;
 const ORDER_POLL_MS = 20 * 1000;
 const KITCHEN_STEPS = ['下单', '接单', '备菜', '制作', '出餐'];
@@ -1295,26 +1295,21 @@ function renderWalletUI() {
 function renderDinnerCard() {
     const next = nextUpcomingOrder();
     const slot = next ? slotByKey(next.slotKey) : nextOrderableSlot();
-    const copy = next ? KITCHEN_COPY[next.status] : null;
 
-    const emoji = $('dinner-emoji');
     const title = $('dinner-title');
     const desc = $('dinner-desc');
     const cta = $('dinner-cta');
-    if (!emoji || !title || !desc || !cta) return;
+    if (!title || !desc || !cta) return;
 
     title.textContent = '周末吃什么';
     if (next) {
-        emoji.textContent = copy ? copy.emoji : '🍽️';
         const when = next.slot ? slotText(next.slot) : '已预约';
         desc.textContent = `${when} · ${ORDER_STATUS[next.status]}`;
         cta.textContent = '看看进度 →';
     } else if (slot) {
-        emoji.textContent = '🗓️';
         desc.textContent = `下一顿：${slotText(slot)}`;
         cta.textContent = '去预约 →';
     } else {
-        emoji.textContent = '🌙';
         desc.textContent = '这一轮的饭点都截止了，等下次开饭吧。';
         cta.textContent = '看看菜单 →';
     }

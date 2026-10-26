@@ -6,7 +6,7 @@
 
 @font-face {
     font-family: 'Ma Shan Zheng';
-    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261026-07') format('woff2');
+    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261026-08') format('woff2');
     font-weight: 400;
     font-style: normal;
     font-display: swap;
@@ -14,7 +14,7 @@
 
 @font-face {
     font-family: 'Noto Serif SC';
-    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261026-07') format('woff2');
+    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261026-08') format('woff2');
     font-weight: 700;
     font-style: normal;
     font-display: swap;
@@ -90,7 +90,7 @@ body::after {
 }
 
 body::before {
-    background: url('../assets/texture-noise.png?v=20261026-07') repeat;
+    background: url('../assets/texture-noise.png?v=20261026-08') repeat;
     opacity: 0.06;
     mix-blend-mode: multiply;
 }
@@ -563,7 +563,7 @@ select:focus-visible {
     content: '';
     position: absolute;
     inset: 0;
-    background: url('../assets/texture-noise.png?v=20261026-07') repeat;
+    background: url('../assets/texture-noise.png?v=20261026-08') repeat;
     opacity: 0.1;
     mix-blend-mode: soft-light;
     pointer-events: none;
@@ -1962,8 +1962,8 @@ select:focus-visible {
 .dinner-card::after {
     content: '小灶';
     position: absolute;
-    right: 16px;
-    top: -6px;
+    right: 70px;
+    top: 3px;
     font-family: var(--font-cute);
     font-size: 4.4rem;
     line-height: 1;
@@ -1974,18 +1974,6 @@ select:focus-visible {
 .dinner-card:hover {
     transform: translateY(-3px);
     box-shadow: var(--shadow);
-}
-
-.dinner-emoji {
-    flex: 0 0 58px;
-    width: 58px;
-    height: 58px;
-    display: grid;
-    place-items: center;
-    font-size: 1.9rem;
-    background: linear-gradient(145deg, #fff3f6, #ffe1c9);
-    border: 1px solid rgba(223, 95, 126, 0.16);
-    border-radius: 18px;
 }
 
 .dinner-body {
@@ -4447,13 +4435,6 @@ body.me-fixed-view .wallet-entries.me-ledger {
     .dinner-card {
         margin-top: 36px;
         padding: 20px 24px;
-    }
-
-    .dinner-emoji {
-        flex-basis: 64px;
-        width: 64px;
-        height: 64px;
-        font-size: 2.2rem;
     }
 
     .dinner-title {

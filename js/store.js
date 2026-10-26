@@ -117,8 +117,8 @@ function makeError(code, message, extra) {
 /* 两套口吻：
    大厨侧（newOrder / userCancel / nudge）是系统通知——事件名、人、菜、金额、
    要做什么，分行可扫读，不用 emoji、不出现订单号；
-   用户侧（cooking / served）是男朋友发来的消息——我在做什么、还要多久、
-   你来看看，不出现金额和状态枚举。改模板时不要混用。 */
+   用户侧（accepted / cooking / served）是男朋友发来的消息——我接下了、我在做什么、
+   还要多久、你来看看，不出现金额和状态枚举。改模板时不要混用。 */
 const BARK_TEMPLATE_DEFAULTS = {
     newOrder: {
         title: '新预约',
@@ -137,6 +137,12 @@ const BARK_TEMPLATE_DEFAULTS = {
         subtitle: '{slot}',
         body: '{userLabel} 在等这单\n{items} · 当前「{status}」\n点开看看',
         url: '{adminUrl}'
+    },
+    accepted: {
+        title: '接单啦，这顿我来做 ❤️',
+        subtitle: '{slot}',
+        body: '记下了：{items}\n到饭点我喊你',
+        url: '{userOrderUrl}'
     },
     cooking: {
         title: '我开火啦 🔥',
@@ -175,6 +181,20 @@ function barkPageLink(audience) {
     if (typeof window === 'undefined' || !window.location) return '';
     try {
         return new URL(audience === 'user' ? 'index.html' : 'admin.html', window.location.href).href;
+    } catch (error) {
+        return '';
+    }
+}
+
+function barkIcon(space) {
+    const avatar = String((space && space.avatar) || '').trim();
+    if (!avatar || /\.svg($|[?#])/i.test(avatar)) return '';
+    if (/^https?:\/\//i.test(avatar)) return avatar;
+    const links = ((space && space.settings) || {}).links || {};
+    const base = links.user || barkPageLink('user');
+    if (!base) return '';
+    try {
+        return new URL(avatar, base).href;
     } catch (error) {
         return '';
     }
@@ -287,6 +307,8 @@ async function sendBark(space, options = {}) {
         title: payloadTitle || '恋爱空间',
         body: payloadBody || ''
     };
+    const icon = barkIcon(space);
+    if (icon) payload.icon = icon;
     if (payloadSubtitle) payload.subtitle = payloadSubtitle;
     if (targetUrl) payload.url = targetUrl;
     if (image) payload.image = image;
@@ -644,12 +666,12 @@ async function setOrderStatus(orderId, status, options = {}) {
 
     await orderCollection.save(orderId, order);
 
-    if (status === 'cooking' || status === 'served') {
+    if (status === 'accepted' || status === 'cooking' || status === 'served') {
         const image = status === 'served' ? firstServedImage(order) : '';
         loadSpace()
             .then(space => sendBark(space, {
                 audience: 'user',
-                event: status === 'cooking' ? 'cooking' : 'served',
+                event: status,
                 order,
                 image
             }))

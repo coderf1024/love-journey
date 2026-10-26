@@ -8,19 +8,19 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="管理端">
 <title>管理端 · 恋爱空间</title>
-<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261025-01" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261025-01" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261026-01" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261026-01" as="font" type="font/woff2" crossorigin>
 <style>
     @font-face {
         font-family: 'Ma Shan Zheng';
-        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261025-01') format('woff2');
+        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261026-01') format('woff2');
         font-weight: 400;
         font-style: normal;
         font-display: swap;
     }
     @font-face {
         font-family: 'Noto Serif SC';
-        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261025-01') format('woff2');
+        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261026-01') format('woff2');
         font-weight: 700;
         font-style: normal;
         font-display: swap;
@@ -86,7 +86,7 @@
         pointer-events: none;
     }
     body.admin-body::before {
-        background: url('assets/texture-noise.png?v=20261025-01') repeat;
+        background: url('assets/texture-noise.png?v=20261026-01') repeat;
         opacity: .06;
         mix-blend-mode: multiply;
     }
@@ -818,14 +818,14 @@
             <div class="settings-group">
                 <div class="setting-row">
                     <span class="setting-icon">铃</span>
-                    <span class="setting-main"><b>Bark 推送</b><small>新单 / 用户取消 / 开始制作 / 出餐</small></span>
+                    <span class="setting-main"><b>Bark 推送</b><small>新单 / 接单 / 用户取消 / 开始制作 / 出餐</small></span>
                     <button class="admin-switch" id="bark-enabled" type="button" role="switch" aria-pressed="false" aria-label="启用 Bark 推送"><i></i></button>
                 </div>
                 <div class="setting-row bark-key-row">
                     <span class="setting-icon">用</span>
                     <div class="bark-key-box">
                         <label class="admin-small" for="bark-user-key">用户密钥</label>
-                        <input class="admin-input" id="bark-user-key" type="password" autocomplete="off" placeholder="接收开始制作 / 出餐">
+                        <input class="admin-input" id="bark-user-key" type="password" autocomplete="off" placeholder="接收接单 / 开始制作 / 出餐">
                     </div>
                     <div class="bark-key-actions">
                         <button class="admin-btn sm" id="bark-test-user" type="button">测试</button>
@@ -866,6 +866,12 @@
                     <button class="admin-switch" type="button" role="switch" data-bark-event="newOrder" aria-pressed="true" aria-label="新单通知"><i></i></button>
                 </div>
                 <div class="setting-row">
+                    <span class="setting-icon">接</span>
+                    <span class="setting-main"><b>接单</b><small>接单时推给用户</small></span>
+                    <button class="admin-btn ghost sm" type="button" data-bark-template="accepted">模板</button>
+                    <button class="admin-switch" type="button" role="switch" data-bark-event="accepted" aria-pressed="true" aria-label="接单通知"><i></i></button>
+                </div>
+                <div class="setting-row">
                     <span class="setting-icon">消</span>
                     <span class="setting-main"><b>用户取消</b><small>用户取消预约时推给管理员</small></span>
                     <button class="admin-btn ghost sm" type="button" data-bark-template="userCancel">模板</button>
@@ -898,7 +904,7 @@
                     <button class="admin-btn primary block" id="bark-save" type="button">保存通知设置</button>
                 </div>
             </div>
-            <div class="system-note">Bark 不做定时任务，只在订单事件发生的页面里直接发送。用户密钥接收「开始制作 / 出餐」，管理员密钥接收「新单 / 用户取消 / 催一催」；两把密钥都保存在 OSS 的 space.settings.bark。催一催默认关闭，和密钥一起保存后生效。</div>
+            <div class="system-note">Bark 不做定时任务，只在订单事件发生的页面里直接发送。用户密钥接收「接单 / 开始制作 / 出餐」，管理员密钥接收「新单 / 用户取消 / 催一催」；两把密钥都保存在 OSS 的 space.settings.bark。通知图标使用空间头像。催一催默认关闭，和密钥一起保存后生效。</div>
             <button class="admin-btn ghost block logout-btn" id="logout-btn" type="button">退出登录</button>
         </section>
 
@@ -1067,10 +1073,10 @@
 <div class="admin-toast" id="message" role="status" aria-live="polite"></div>
 
 <script src="https://gosspublic.alicdn.com/aliyun-oss-sdk-6.18.0.min.js"></script>
-<script src="js/oss-config.js?v=20261025-01"></script>
-<script src="js/crypto-utils.js?v=20261025-01"></script>
-<script src="js/oss-utils.js?v=20261025-01"></script>
-<script src="js/store.js?v=20261025-01"></script>
+<script src="js/oss-config.js?v=20261026-01"></script>
+<script src="js/crypto-utils.js?v=20261026-01"></script>
+<script src="js/oss-utils.js?v=20261026-01"></script>
+<script src="js/store.js?v=20261026-01"></script>
 <script>
     const ORDER_LABEL = {
         pending: '待接单',
@@ -1107,6 +1113,7 @@
 
     const BARK_EVENT_LABELS = {
         newOrder: '新单',
+        accepted: '接单',
         userCancel: '用户取消',
         cooking: '开始制作',
         served: '出餐',

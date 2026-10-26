@@ -47,12 +47,14 @@ pending 待接单
 | 事件 | 发给 | 默认点击地址 |
 |---|---|---|
 | `newOrder` 新单 | 管理员 key | `{adminUrl}` |
+| `accepted` 接单 | 用户 key | `{userOrderUrl}` |
 | `userCancel` 用户取消 | 管理员 key | `{adminUrl}` |
 | `cooking` 开始制作 | 用户 key | `{userOrderUrl}` |
 | `served` 出餐 | 用户 key | `{userOrderUrl}` |
 | `nudge` 催一催 | 管理员 key | `{adminUrl}` |
 
 - 每个事件有独立开关，默认开。
+- 所有推送用 `space.avatar` 作为 Bark 的 `icon`；没有头像或 SVG 头像时不传图标。
 - 「催一催」功能本身由 `space.settings.nudgeEnabled` 控制，默认关闭；关闭时用户端不显示按钮，`nudgeOrder()` 拒绝调用。
 - 模板包含 title/subtitle/body/url，变量在发送时替换。
 - 没有定时通知任务；只在动作发生的页面里发送。

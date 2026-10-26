@@ -13,7 +13,7 @@ const CDN = {
     qrcode: 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261026-04';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261026-05';
 const MINUTE = 60 * 1000;
 const ORDER_POLL_MS = 20 * 1000;
 const KITCHEN_STEPS = ['下单', '接单', '备菜', '制作', '出餐'];
@@ -1989,6 +1989,7 @@ function resetMeView() {
     state.meView = 'menu';
     state.meOrderId = null;
     document.body.classList.remove('me-subpage');
+    document.body.classList.remove('me-orders-page');
 }
 
 function scrollAppTop() {
@@ -2096,6 +2097,8 @@ function renderMePage() {
     const subView = $('me-sub-view');
     if (!menuView || !subView) return;
 
+    document.body.classList.toggle('me-orders-page', state.meView === 'orders');
+
     if (state.meView === 'menu') {
         document.body.classList.remove('me-subpage');
         menuView.hidden = false;
@@ -2142,13 +2145,11 @@ function renderMeOrders() {
             <span>共 <b>${orders.length}</b> 单</span>
             <span>${filter === 'all' ? `待接单 ${counts.pending} · 进行中 ${counts.active}` : `${filterLabel} ${filterCount}`}</span>
         </div>
-        <div class="me-filters-bar">
-            <div class="me-filters" role="tablist" aria-label="订单状态">
-                ${ME_ORDER_FILTERS.map(item => `
-                    <button class="me-filter ${filter === item.id ? 'is-active' : ''}" type="button"
-                        role="tab" aria-selected="${filter === item.id}" data-me-filter="${item.id}">${item.label}</button>
-                `).join('')}
-            </div>
+        <div class="me-filters" role="tablist" aria-label="订单状态">
+            ${ME_ORDER_FILTERS.map(item => `
+                <button class="me-filter ${filter === item.id ? 'is-active' : ''}" type="button"
+                    role="tab" aria-selected="${filter === item.id}" data-me-filter="${item.id}">${item.label}</button>
+            `).join('')}
         </div>
         <div class="me-orders">
             ${orders.length
@@ -2212,13 +2213,11 @@ function renderMeCards() {
             <span>共 <b>${events.length}</b> 条</span>
             <button class="me-link" type="button" data-me-link="coupons">全部恋爱卡 ›</button>
         </div>
-        <div class="me-filters-bar">
-            <div class="me-filters three" role="tablist" aria-label="恋爱卡流水类型">
-                ${ME_CARD_FILTERS.map(item => `
-                    <button class="me-filter ${filter === item.id ? 'is-active' : ''}" type="button"
-                        role="tab" aria-selected="${filter === item.id}" data-me-card-filter="${item.id}">${item.label}</button>
-                `).join('')}
-            </div>
+        <div class="me-filters three" role="tablist" aria-label="恋爱卡流水类型">
+            ${ME_CARD_FILTERS.map(item => `
+                <button class="me-filter ${filter === item.id ? 'is-active' : ''}" type="button"
+                    role="tab" aria-selected="${filter === item.id}" data-me-card-filter="${item.id}">${item.label}</button>
+            `).join('')}
         </div>
         <div class="me-coupons">
             ${filtered.length

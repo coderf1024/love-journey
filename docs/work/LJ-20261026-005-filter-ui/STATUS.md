@@ -15,6 +15,10 @@
 1. 人工确认滚动吸顶效果和管理端 tab 顺序。
 2. 合入 `feat/love-space-ordering`。
 
+## 后续调整
+
+- 订单页的吸顶方案已被 `LJ-20261026-006-orders-scroll` 替换为“固定视口 + 列表内部滚动”；恋爱卡流水的吸顶改动已撤回。
+
 ## 已验证
 
 - 无头 Chrome：订单筛选栏 `position: sticky`、`top: 96px`；页面滚动后从 176px 吸到 98px。

@@ -13,7 +13,7 @@ const CDN = {
     qrcode: 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261026-08';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261026-09';
 const MINUTE = 60 * 1000;
 const ORDER_POLL_MS = 20 * 1000;
 const KITCHEN_STEPS = ['下单', '接单', '备菜', '制作', '出餐'];
@@ -1901,16 +1901,7 @@ function renderOrderPage() {
     renderSlotPicker();
 
     const slot = selectedSlot();
-    const selectedLine = $('selected-slot');
     const summary = slot ? orderForSlot(slot.key) : null;
-    if (selectedLine) {
-        if (slot) {
-            const label = summary ? (slot.past ? '已过时间' : '已预约') : slot.orderable ? '可预约' : '已截止';
-            selectedLine.innerHTML = `<span>${slot.dateLabel} ${cleanText(slot.label)} · ${slot.time}</span><em>${label}</em>`;
-        } else {
-            selectedLine.textContent = '';
-        }
-    }
 
     renderOrderStatus();
 

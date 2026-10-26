@@ -6,7 +6,7 @@
 
 @font-face {
     font-family: 'Ma Shan Zheng';
-    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261026-08') format('woff2');
+    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261026-09') format('woff2');
     font-weight: 400;
     font-style: normal;
     font-display: swap;
@@ -14,7 +14,7 @@
 
 @font-face {
     font-family: 'Noto Serif SC';
-    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261026-08') format('woff2');
+    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261026-09') format('woff2');
     font-weight: 700;
     font-style: normal;
     font-display: swap;
@@ -90,7 +90,7 @@ body::after {
 }
 
 body::before {
-    background: url('../assets/texture-noise.png?v=20261026-08') repeat;
+    background: url('../assets/texture-noise.png?v=20261026-09') repeat;
     opacity: 0.06;
     mix-blend-mode: multiply;
 }
@@ -563,7 +563,7 @@ select:focus-visible {
     content: '';
     position: absolute;
     inset: 0;
-    background: url('../assets/texture-noise.png?v=20261026-08') repeat;
+    background: url('../assets/texture-noise.png?v=20261026-09') repeat;
     opacity: 0.1;
     mix-blend-mode: soft-light;
     pointer-events: none;
@@ -2369,7 +2369,6 @@ select:focus-visible {
     align-items: baseline;
     justify-content: space-between;
     gap: 12px;
-    margin-top: 36px;
 }
 
 .menu-head .section-title {
@@ -3086,7 +3085,6 @@ select:focus-visible {
     background: var(--paper-soft);
     border: 1px solid var(--line);
     border-radius: 16px;
-    box-shadow: var(--shadow-soft);
     transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 
@@ -3160,23 +3158,6 @@ select:focus-visible {
     padding: 16px 2px;
     color: var(--muted);
     font-size: 0.8rem;
-}
-
-.selected-slot {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 10px;
-    margin-top: 12px;
-    color: var(--muted);
-    font-size: 0.76rem;
-}
-
-.selected-slot em {
-    color: var(--stamp-deep);
-    font-style: normal;
-    font-weight: 600;
-    white-space: nowrap;
 }
 
 /* ---------- order cards: scheduled copy ---------- */

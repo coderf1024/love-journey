@@ -304,7 +304,7 @@
     .admin-btn.primary { background: var(--admin-ink); border-color: var(--admin-ink); color: #fff; }
     .admin-btn.accent { background: var(--admin-stamp); border-color: var(--admin-stamp); color: #fff; }
     .admin-btn.ghost { background: transparent; color: var(--admin-muted); }
-    .admin-btn.danger { color: var(--admin-stamp); border-color: rgba(185, 74, 99, .25); }
+    .admin-btn.danger { border-color: rgba(185, 74, 99, .25); }
     .admin-btn.sm { padding: 5px 9px; font-size: 10px; }
     .admin-btn.block { width: 100%; padding: 11px 14px; }
     .admin-btn:disabled { opacity: .5; }
@@ -762,7 +762,7 @@
 
         <section class="admin-view" data-panel="orders" hidden>
             <div class="view-head">
-                <div><p class="eyebrow">经营 · 订单</p><h1>订单</h1><p>默认落在待接单。</p></div>
+                <div><p class="eyebrow">经营 · 订单</p><h1>订单</h1><p>默认显示全部。</p></div>
                 <div class="head-actions"><button class="admin-btn ghost sm" id="orders-refresh" type="button">刷新</button></div>
             </div>
             <div class="filters" id="order-filters"></div>
@@ -1184,7 +1184,7 @@
     let adminView = 'home';
     let adminTab = 'home';
     let adminPollTimer = null;
-    let orderFilter = 'pending';
+    let orderFilter = 'all';
     let couponFilter = 'available';
     let cardsSegment = 'cards';
     let menuFilter = 'all';

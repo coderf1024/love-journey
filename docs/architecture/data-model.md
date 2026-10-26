@@ -16,6 +16,9 @@ love-journey/db/
     menu.json
     wallet.json
     counters.json
+    dish-requests/
+      index.json
+      <requestId>.json
     orders/
       index.json
       <orderId>.json
@@ -84,6 +87,7 @@ love-journey/db/
     "available": true,           // 下架菜品不在用户菜单出现
     "icon": "🥔",                 // 历史字段，仅图片缺失时兜底
     "todaySpecial": false,       // 历史字段，用户端不再展示
+    "sourceRequestId": "",       // 由「我想吃」审核创建时写入，用于重试去重
     "order": 2
   }]
 }
@@ -92,6 +96,26 @@ love-journey/db/
 - 新菜上传的图片是主图；出餐时每道菜的成品图追加到 `images[]`。
 - 管理端图片集支持删除、设为主图、拖动排序；删除主图时下一张自动补位。
 - `upsertDish` 会把时间归一到四档、标签过滤到三个值，并保持主图在 `images[0]`。
+
+## 菜品申请（我想吃）
+
+```jsonc
+// commerce/dish-requests/<requestId>.json
+{
+  "id": "req_…",
+  "name": "可乐鸡翅",
+  "image": "https://…/love-journey/uploads/requests/….jpg",
+  "status": "pending",        // pending | approved | rejected
+  "submittedAt": "2026-10-26 10:00:00",
+  "reviewedAt": null,
+  "dishId": null
+}
+```
+
+- 用户只提交菜名和图片，申请不写入 `menu.json`，因此不会出现在用户菜单。
+- 图片上传到 `love-journey/uploads/requests/`；也允许用户直接填 http(s) 图片地址。
+- 管理端审核通过时 `approveDishRequest()` 创建正式菜品，并写入 `dish.sourceRequestId`；先写菜单再写申请，重试按 `sourceRequestId` 去重。
+- 用户端不读取这个集合，也不展示申请状态；管理端 `loadAdminData()` 会带上 `dishRequests`。
 
 ## 订单
 

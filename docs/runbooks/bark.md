@@ -12,7 +12,7 @@
 
 - Bark 推送总开关
 - 用户密钥：接收「接单 / 开始制作 / 出餐」
-- 管理员密钥：接收「新单 / 用户取消 / 催一催」
+- 管理员密钥：接收「新单 / 菜品申请 / 用户取消 / 催一催」
 - 用户端跳转地址 / 管理端跳转地址
 - 每类事件的发送开关（默认全开）
 - 催一催开关（`space.settings.nudgeEnabled`，默认关闭）
@@ -26,21 +26,22 @@
 |---|---|---|
 | `newOrder` | 管理员 | `{adminUrl}` |
 | `accepted` | 用户 | `{userOrderUrl}` |
+| `dishRequest` | 管理员 | `{adminUrl}` |
 | `userCancel` | 管理员 | `{adminUrl}` |
 | `cooking` | 用户 | `{userOrderUrl}` |
 | `served` | 用户 | `{userOrderUrl}` |
 | `nudge` | 管理员 | `{adminUrl}` |
 
-事件开关在 `space.settings.bark.events`；`false` 时 `sendBark()` 直接跳过。`accepted` 在管理员点「接单」时触发。
+事件开关在 `space.settings.bark.events`；`false` 时 `sendBark()` 直接跳过。`accepted` 在管理员点「接单」时触发；`dishRequest` 在用户提交「我想吃」时触发。
 
 ## 口吻
 
-六个事件按收件人分两套口吻，默认模板就是这个分工；改模板时不要混用。
+七个事件按收件人分两套口吻，默认模板就是这个分工；改模板时不要混用。
 
-| | 大厨侧（`newOrder` / `userCancel` / `nudge`） | 用户侧（`accepted` / `cooking` / `served`） |
+| | 大厨侧（`newOrder` / `dishRequest` / `userCancel` / `nudge`） | 用户侧（`accepted` / `cooking` / `served`） |
 |---|---|---|
 | 定位 | 系统通知 | 男朋友发来的消息 |
-| 标题 | 事件名：新预约 / 预约已取消 / 催一催 | 一句他说的话：接单啦 / 我开火啦 / 做好啦，快来吃 |
+| 标题 | 事件名：新预约 / 新的我想吃 / 预约已取消 / 催一催 | 一句他说的话：接单啦 / 我开火啦 / 做好啦，快来吃 |
 | 正文 | 人、菜、金额、备注/原因、当前状态，分行可扫读 | 接下了什么、在做什么、还要多久、你来干嘛 |
 | 人称 | 第三人称或无人称 | 第一人称「我」+ 第二人称「你」 |
 | 交易信息 | 合计、退款、原因全部保留 | 不出现金额、订单号、状态枚举 |
@@ -54,7 +55,7 @@
 
 ## 变量
 
-`{siteName}`、`{userName}`、`{userLabel}`、`{adminName}`、`{userUrl}`、`{userOrderUrl}`、`{adminUrl}`、`{slotKey}`、`{orderId}`、`{slot}`、`{date}`、`{time}`、`{weekday}`、`{items}`、`{itemCount}`、`{total}`、`{note}`、`{noteBlock}`、`{status}`、`{placedAt}`、`{etaMinutes}`、`{refund}`、`{reason}`、`{reasonBlock}`、`{minutes}`、`{balance}`。
+`{siteName}`、`{userName}`、`{userLabel}`、`{adminName}`、`{userUrl}`、`{userOrderUrl}`、`{adminUrl}`、`{slotKey}`、`{orderId}`、`{slot}`、`{date}`、`{time}`、`{weekday}`、`{items}`、`{itemCount}`、`{total}`、`{dishName}`、`{note}`、`{noteBlock}`、`{status}`、`{placedAt}`、`{etaMinutes}`、`{refund}`、`{reason}`、`{reasonBlock}`、`{minutes}`、`{balance}`。
 
 - 未知变量替换为空字符串；不做条件语法。
 - `{items}` 是逗号连接的菜名，不带数量。
@@ -66,9 +67,9 @@
 
 `barkTemplate()` 返回 `{ ...默认模板, ...space.settings.bark.templates[event] }`。**代码里的默认值只对没有保存过的事件生效。** 如果线上 `space.json` 已保存旧模板，改代码不会改变实际推送；需要在管理端逐个事件点「恢复默认」或按新文案保存。
 
-## 出餐配图
+## 通知配图
 
-`serveOrder()` 和 `setOrderStatus('served')` 推送出餐通知时，会把订单里第一张非空 `servedImage` 作为 Bark 的 `image` 字段发送。图片 URL 必须能被 Bark 服务端公开访问；没有成品图时不传 `image`，推送照常发送。大厨侧通知不加图。
+`serveOrder()` 和 `setOrderStatus('served')` 推送出餐通知时，会把订单里第一张非空 `servedImage` 作为 Bark 的 `image` 字段发送。`dishRequest` 会把用户提交的菜品图片作为 `image`。图片 URL 必须能被 Bark 服务端公开访问；没有图片时不传 `image`，推送照常发送。
 
 ## 图标
 
@@ -86,7 +87,7 @@
 - 支持标题、副标题、正文、点击地址四项；变量面板点击插入当前输入框。
 - 底部显示样例订单的实时渲染结果。
 - 「发送测试」先弹出渲染后的确认框，确认后才真正发送。
-- 出餐事件的测试会把当前菜单第一张图作为样例成品图，确认框会注明；用于验证通知配图，不依赖真实订单。
+- 出餐事件的测试会把当前菜单第一张图作为样例成品图，确认框会注明；菜品申请事件的测试也会附一张样例图片。用于验证通知配图，不依赖真实订单。
 - 不覆盖其他事件模板；保存只更新当前事件。
 
 ## 调试

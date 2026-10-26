@@ -13,7 +13,7 @@ const CDN = {
     qrcode: 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261026-01';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261026-02';
 const MINUTE = 60 * 1000;
 const ORDER_POLL_MS = 20 * 1000;
 const KITCHEN_STEPS = ['下单', '接单', '备菜', '制作', '出餐'];
@@ -136,6 +136,7 @@ const state = {
     memoryIndex: -1,
     lastLoadedAt: 0,
     refreshing: false,
+    wishUploading: false,
     mapRoam: false,
     mapStatus: 'idle', // idle | loading | ready | error
     openSheets: [],
@@ -2454,6 +2455,108 @@ async function handleMeSubClick(event) {
     scrollAppTop();
 }
 
+function setWishStatus(text, tone) {
+    const element = $('dish-wish-status');
+    if (!element) return;
+    element.textContent = text;
+    element.classList.toggle('is-error', tone === 'error');
+}
+
+function setWishPreview(url) {
+    const wrap = $('dish-wish-preview');
+    const image = $('dish-wish-preview-img');
+    if (!wrap || !image) return;
+    const value = String(url || '').trim();
+    if (!value) {
+        wrap.hidden = true;
+        image.removeAttribute('src');
+        return;
+    }
+    image.src = value;
+    wrap.hidden = false;
+}
+
+function resetDishWishForm() {
+    if ($('dish-wish-name')) $('dish-wish-name').value = '';
+    if ($('dish-wish-image')) $('dish-wish-image').value = '';
+    if ($('dish-wish-camera')) $('dish-wish-camera').value = '';
+    if ($('dish-wish-album')) $('dish-wish-album').value = '';
+    state.wishUploading = false;
+    setWishStatus('还没有图片');
+    setWishPreview('');
+    const submit = $('dish-wish-submit');
+    if (submit) {
+        submit.disabled = false;
+        submit.textContent = '告诉大厨';
+    }
+}
+
+async function handleDishWishFile(event) {
+    const input = event.target;
+    const file = input.files && input.files[0];
+    input.value = '';
+    if (!file) return;
+    if (typeof uploadDishRequestImage !== 'function') {
+        toast('页面脚本版本不一致，请强制刷新一下');
+        return;
+    }
+    state.wishUploading = true;
+    const submit = $('dish-wish-submit');
+    if (submit) {
+        submit.disabled = true;
+        submit.textContent = '正在上传…';
+    }
+    setWishStatus('正在上传图片…');
+    try {
+        const url = await uploadDishRequestImage(file);
+        $('dish-wish-image').value = url;
+        setWishPreview(url);
+        setWishStatus('图片已就绪');
+    } catch (error) {
+        const message = error && error.message ? error.message : '图片上传失败';
+        setWishStatus(message, 'error');
+        toast(message);
+    } finally {
+        state.wishUploading = false;
+        if (submit) {
+            submit.disabled = false;
+            submit.textContent = '告诉大厨';
+        }
+    }
+}
+
+async function submitDishWish() {
+    if (state.wishUploading) return;
+    const name = $('dish-wish-name').value.trim();
+    const image = $('dish-wish-image').value.trim();
+    if (!name) {
+        toast('先写一个菜名');
+        $('dish-wish-name').focus();
+        return;
+    }
+    if (!image) {
+        toast('拍一张图，或者粘贴图片地址');
+        return;
+    }
+    if (!/^https?:\/\//i.test(image)) {
+        toast('图片地址要以 http 开头');
+        return;
+    }
+    const submit = $('dish-wish-submit');
+    submit.disabled = true;
+    submit.textContent = '正在告诉大厨…';
+    try {
+        await submitDishRequest({ name, image });
+        closeSheet('dish-wish-sheet');
+        resetDishWishForm();
+        toast('已经告诉大厨啦');
+    } catch (error) {
+        toast(error && error.message ? error.message : '提交失败，再试一次');
+        submit.disabled = false;
+        submit.textContent = '告诉大厨';
+    }
+}
+
 function initOrderUI() {
     initConfirm();
 
@@ -2539,6 +2642,31 @@ function initOrderUI() {
             if (state.dishId) toggleCart(state.dishId);
         });
     }
+
+    const wishButton = $('menu-wish-btn');
+    if (wishButton) {
+        wishButton.addEventListener('click', () => {
+            resetDishWishForm();
+            openSheet('dish-wish-sheet');
+        });
+    }
+    ['dish-wish-camera', 'dish-wish-album'].forEach(id => {
+        const input = $(id);
+        if (input) input.addEventListener('change', handleDishWishFile);
+    });
+    const wishImage = $('dish-wish-image');
+    if (wishImage) {
+        wishImage.addEventListener('input', () => {
+            const value = wishImage.value.trim();
+            setWishPreview(value);
+            setWishStatus(
+                value ? '图片地址已填写' : '还没有图片',
+                value && !/^https?:\/\//i.test(value) ? 'error' : ''
+            );
+        });
+    }
+    const wishSubmit = $('dish-wish-submit');
+    if (wishSubmit) wishSubmit.addEventListener('click', submitDishWish);
 
     const statusWrap = $('order-status-wrap');
     if (statusWrap) {

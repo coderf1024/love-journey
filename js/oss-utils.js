@@ -177,6 +177,7 @@ function verifyPasscode(inputPasscode) {
    -------------------------------------------------------------- */
 
 const DISH_UPLOAD_PREFIX = 'love-journey/uploads/dishes/';
+const DISH_REQUEST_UPLOAD_PREFIX = 'love-journey/uploads/requests/';
 const SPACE_UPLOAD_PREFIX = 'love-journey/uploads/space/';
 const DISH_UPLOAD_MAX_BYTES = 20 * 1024 * 1024;
 const DISH_UPLOAD_MAX_DIMENSION = 1600;
@@ -307,6 +308,10 @@ async function uploadBucketImage(file, prefix) {
 
 async function uploadDishImage(file) {
     return uploadBucketImage(file, DISH_UPLOAD_PREFIX);
+}
+
+async function uploadDishRequestImage(file) {
+    return uploadBucketImage(file, DISH_REQUEST_UPLOAD_PREFIX);
 }
 
 async function uploadSpaceImage(file) {

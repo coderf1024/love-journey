@@ -276,7 +276,14 @@ function applyAppData(data) {
     };
 
     massageCouponsData = state.coupons;
-    state.milestones = config.milestones.slice();
+    state.milestones = config.milestones.slice().sort((a, b) => {
+        const left = parseDate(a.date);
+        const right = parseDate(b.date);
+        if (!left && !right) return 0;
+        if (!left) return 1;
+        if (!right) return -1;
+        return right - left;
+    });
     state.goals = config.goals.slice();
     state.slots = withPastOrderSlots(upcomingSlots(state.space, new Date()));
 
@@ -465,9 +472,6 @@ function memoryCoverHTML(milestone, index, large) {
     const year = dateYear(milestone.date);
     const variant = `v${index % 4}`;
     const motif = MOTIFS[index % MOTIFS.length];
-    const image = milestone.image
-        ? `<img src="${escapeHTML(milestone.image)}" alt="" loading="lazy" decoding="async">`
-        : '';
     return {
         className: `memory-cover ${variant}`,
         html: `
@@ -475,7 +479,6 @@ function memoryCoverHTML(milestone, index, large) {
                 <span class="memory-year">${escapeHTML(year)}</span>
                 <span class="memory-motif" aria-hidden="true">${motif}</span>
             </div>
-            ${image}
             ${!large ? `<span class="memory-date-chip">${escapeHTML(formatDate(milestone.date))}</span>` : ''}
         `
     };
@@ -507,10 +510,6 @@ function renderMilestones() {
     if (total) total.textContent = list.length;
     if (count) count.textContent = list.length;
     if (current) current.textContent = list.length ? '01' : '00';
-
-    container.querySelectorAll('img').forEach(img => {
-        img.addEventListener('error', () => img.remove());
-    });
 
     container.scrollLeft = 0;
     updateCarouselMeta();
@@ -599,8 +598,6 @@ function renderMemoryDetail() {
         const data = memoryCoverHTML(milestone, state.memoryIndex, true);
         cover.className = data.className.replace('memory-cover', 'memory-detail-cover');
         cover.innerHTML = data.html;
-        const img = cover.querySelector('img');
-        if (img) img.addEventListener('error', () => img.remove());
     }
 
     const date = $('memory-detail-date');
@@ -641,8 +638,10 @@ function renderTimeline() {
     const items = state.milestones
         .map((milestone, index) => ({ milestone, index, date: parseDate(milestone.date) }))
         .sort((a, b) => {
-            if (!a.date || !b.date) return 0;
-            return a.date - b.date;
+            if (!a.date && !b.date) return 0;
+            if (!a.date) return 1;
+            if (!b.date) return -1;
+            return b.date - a.date;
         });
 
     const groups = new Map();

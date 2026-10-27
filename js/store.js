@@ -145,21 +145,21 @@ const BARK_TEMPLATE_DEFAULTS = {
         url: '{adminUrl}'
     },
     accepted: {
-        title: '接单啦，这顿我来做 ❤️',
+        title: '这单我接下了 ❤️',
         subtitle: '{slot}',
-        body: '记下了：{items}\n到饭点我喊你',
+        body: '记下了：{items}，到点我叫你',
         url: '{userOrderUrl}'
     },
     cooking: {
-        title: '我开火啦 🔥',
+        title: '开始下厨了 🔥',
         subtitle: '{slot}',
-        body: '今天给你做 {items}\n大概 {etaMinutes} 分钟就好，等我一会儿',
+        body: '正在做 {items}，大约 {etaMinutes} 分钟',
         url: '{userOrderUrl}'
     },
     served: {
-        title: '做好啦，快来吃 ❤️',
+        title: '饭菜做好了 ❤️',
         subtitle: '{slot}',
-        body: '{items} 刚出锅，趁热\n给你拍了照片，点开看看',
+        body: '{items} 刚出锅，趁热吃 · 照片点开看看',
         url: '{userOrderUrl}'
     }
 };

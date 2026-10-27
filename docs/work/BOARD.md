@@ -20,7 +20,7 @@
 | LJ-20261026-010 | 饭点卡片去阴影、移除选中摘要、菜单标题去上边距 | accepted | 已合入 `feat/love-space-ordering` | 验收通过；按发布策略暂不合并 main | 人 |
 | LJ-20261026-011 | 岁月留痕最新在前、回忆卡片统一纯色 | done | `feat/LJ-20261026-011-milestone-order-solid` | 已发布（2026-10-27），线上 smoke 通过 | 人 |
 | LJ-20261027-012 | 菜名字体子集覆盖线上菜品、管理端用户密钥改明文 | done | `fix/LJ-20261027-012-font-subset-and-bark-key` | 已发布（2026-10-27），线上 smoke 通过 | 人 |
-| LJ-20261027-013 | 用户侧 Bark 模板精简并改为正式口吻 | accepted | `fix/LJ-20261027-013-bark-user-templates` | 2026-10-27 合并 main 并发布；线上旧模板待「恢复默认 + 保存」 | 人 |
+| LJ-20261027-013 | 用户侧 Bark 模板精简并改为正式口吻 | done | `fix/LJ-20261027-013-bark-user-templates`（已合入 main） | 已发布；线上保留既有的「宝宝」自定义模板（人确认），代码默认值仅作兜底 | 人 |
 | LJ-20261027-014 | 自托管 ECharts / qrcodejs，修复微信内地图打不开 | accepted | `fix/LJ-20261027-014-self-host-echarts-qrcode`（已合入 main） | 已发布 `2cacde9`，待微信真机复测 | 人 |
 
 ## 状态说明

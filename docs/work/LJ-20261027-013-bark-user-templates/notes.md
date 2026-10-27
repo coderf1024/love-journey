@@ -26,3 +26,5 @@
 
 - 线上 `space.settings.links` 已由本地地址改为 `https://coderf1024.github.io/love-journey/index.html` 与 `.../admin.html`，Bark 深链与管理端跳转均按新地址渲染。
 - 实测确认线上 `space.settings.bark.templates` 已保存过用户侧自定义文案（如「收到啦宝宝」「小灶开火啦宝宝」「开饭啦宝宝！」），`barkTemplate()` 会用它们覆盖默认值——**本次改的默认模板当前不会生效**。要让新文案上线，需在管理端逐条「恢复默认」→「保存模板」，或直接写 `space.settings.bark.templates`。
+
+- 2026-10-27：人决定线上继续使用已保存的自定义「宝宝」版三条模板，不回退、也不覆盖；013 的代码默认值只作为无保存模板时的兜底。

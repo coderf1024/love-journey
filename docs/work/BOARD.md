@@ -19,6 +19,7 @@
 | LJ-20261026-009 | 首页晚餐卡片去掉 emoji、调整水印 | accepted | 已合入 `feat/love-space-ordering` | 验收通过；按发布策略暂不合并 main | 人 |
 | LJ-20261026-010 | 饭点卡片去阴影、移除选中摘要、菜单标题去上边距 | accepted | 已合入 `feat/love-space-ordering` | 验收通过；按发布策略暂不合并 main | 人 |
 | LJ-20261026-011 | 岁月留痕最新在前、回忆卡片统一纯色 | accepted | `feat/LJ-20261026-011-milestone-order-solid` | 2026-10-27 合并 main 并发布 | 人 |
+| LJ-20261027-012 | 菜名字体子集覆盖线上菜品、管理端用户密钥改明文 | accepted | `fix/LJ-20261027-012-font-subset-and-bark-key` | 2026-10-27 合并 main 并发布 | 人 |
 
 ## 状态说明
 

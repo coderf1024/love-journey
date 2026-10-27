@@ -8,19 +8,19 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="管理端">
 <title>管理端 · 恋爱空间</title>
-<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261026-09" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261026-09" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261027-02" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261027-02" as="font" type="font/woff2" crossorigin>
 <style>
     @font-face {
         font-family: 'Ma Shan Zheng';
-        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261026-09') format('woff2');
+        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261027-02') format('woff2');
         font-weight: 400;
         font-style: normal;
         font-display: swap;
     }
     @font-face {
         font-family: 'Noto Serif SC';
-        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261026-09') format('woff2');
+        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261027-02') format('woff2');
         font-weight: 700;
         font-style: normal;
         font-display: swap;
@@ -86,7 +86,7 @@
         pointer-events: none;
     }
     body.admin-body::before {
-        background: url('assets/texture-noise.png?v=20261026-09') repeat;
+        background: url('assets/texture-noise.png?v=20261027-02') repeat;
         opacity: .06;
         mix-blend-mode: multiply;
     }
@@ -838,7 +838,7 @@
                     <span class="setting-icon">用</span>
                     <div class="bark-key-box">
                         <label class="admin-small" for="bark-user-key">用户密钥</label>
-                        <input class="admin-input" id="bark-user-key" type="password" autocomplete="off" placeholder="接收接单 / 开始制作 / 出餐">
+                        <input class="admin-input" id="bark-user-key" type="text" autocomplete="off" placeholder="接收接单 / 开始制作 / 出餐">
                     </div>
                     <div class="bark-key-actions">
                         <button class="admin-btn sm" id="bark-test-user" type="button">测试</button>
@@ -848,7 +848,7 @@
                     <span class="setting-icon">管</span>
                     <div class="bark-key-box">
                         <label class="admin-small" for="bark-admin-key">管理员密钥</label>
-                        <input class="admin-input" id="bark-admin-key" type="password" autocomplete="off" placeholder="接收新单 / 取消 / 催一催">
+                        <input class="admin-input" id="bark-admin-key" type="text" autocomplete="off" placeholder="接收新单 / 取消 / 催一催">
                     </div>
                     <div class="bark-key-actions">
                         <button class="admin-btn sm" id="bark-test-admin" type="button">测试</button>
@@ -1100,10 +1100,10 @@
 <div class="admin-toast" id="message" role="status" aria-live="polite"></div>
 
 <script src="https://gosspublic.alicdn.com/aliyun-oss-sdk-6.18.0.min.js"></script>
-<script src="js/oss-config.js?v=20261026-09"></script>
-<script src="js/crypto-utils.js?v=20261026-09"></script>
-<script src="js/oss-utils.js?v=20261026-09"></script>
-<script src="js/store.js?v=20261026-09"></script>
+<script src="js/oss-config.js?v=20261027-02"></script>
+<script src="js/crypto-utils.js?v=20261027-02"></script>
+<script src="js/oss-utils.js?v=20261027-02"></script>
+<script src="js/store.js?v=20261027-02"></script>
 <script>
     const ORDER_LABEL = {
         pending: '待接单',

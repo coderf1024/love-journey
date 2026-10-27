@@ -18,10 +18,10 @@
 | LJ-20261026-008 | 订单卡片在各筛选下布局统一 | accepted | 已合入 `feat/love-space-ordering` | 验收通过；按发布策略暂不合并 main | 人 |
 | LJ-20261026-009 | 首页晚餐卡片去掉 emoji、调整水印 | accepted | 已合入 `feat/love-space-ordering` | 验收通过；按发布策略暂不合并 main | 人 |
 | LJ-20261026-010 | 饭点卡片去阴影、移除选中摘要、菜单标题去上边距 | accepted | 已合入 `feat/love-space-ordering` | 验收通过；按发布策略暂不合并 main | 人 |
-| LJ-20261026-011 | 岁月留痕最新在前、回忆卡片统一纯色 | accepted | `feat/LJ-20261026-011-milestone-order-solid` | 2026-10-27 合并 main 并发布 | 人 |
-| LJ-20261027-012 | 菜名字体子集覆盖线上菜品、管理端用户密钥改明文 | accepted | `fix/LJ-20261027-012-font-subset-and-bark-key` | 2026-10-27 合并 main 并发布 | 人 |
+| LJ-20261026-011 | 岁月留痕最新在前、回忆卡片统一纯色 | done | `feat/LJ-20261026-011-milestone-order-solid` | 已发布（2026-10-27），线上 smoke 通过 | 人 |
+| LJ-20261027-012 | 菜名字体子集覆盖线上菜品、管理端用户密钥改明文 | done | `fix/LJ-20261027-012-font-subset-and-bark-key` | 已发布（2026-10-27），线上 smoke 通过 | 人 |
 | LJ-20261027-013 | 用户侧 Bark 模板精简并改为正式口吻 | accepted | `fix/LJ-20261027-013-bark-user-templates` | 2026-10-27 合并 main 并发布；线上旧模板待「恢复默认 + 保存」 | 人 |
-| LJ-20261027-014 | 自托管 ECharts / qrcodejs，修复微信内地图打不开 | in-progress | `fix/LJ-20261027-014-self-host-echarts-qrcode` | 本地阻断 jsdelivr 验证后合并 main，微信复测 | 人 |
+| LJ-20261027-014 | 自托管 ECharts / qrcodejs，修复微信内地图打不开 | accepted | `fix/LJ-20261027-014-self-host-echarts-qrcode`（已合入 main） | 已发布 `2cacde9`，待微信真机复测 | 人 |
 
 ## 状态说明
 

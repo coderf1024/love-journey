@@ -24,4 +24,5 @@
 
 ## 备注
 
+- 线上 `2cacde9`（Chrome 390 宽、阻断 jsdelivr）：地图渲染正常，echarts 走站内 vendor。
 - 微信网页缓存较久，复测前建议右上角刷新或重新进入。

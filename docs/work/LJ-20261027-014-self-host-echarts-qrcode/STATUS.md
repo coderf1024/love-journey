@@ -1,6 +1,6 @@
 # LJ-20261027-014 · 状态
 
-- 状态：in-progress
+- 状态：accepted
 - 分支：`fix/LJ-20261027-014-self-host-echarts-qrcode`
 - 最后更新：2026-10-27
 - 当前负责人：AI
@@ -13,8 +13,7 @@
 
 ## 未完成 / 下一步
 
-1. 本地阻断 jsdelivr 验证地图与二维码。
-2. 合并 main、发布，微信内复测（必要时强刷）。
+1. 微信真机复测地图与恋爱卡二维码（必要时强刷）。
 
 ## 阻塞
 
@@ -23,6 +22,7 @@
 ## 已验证
 
 - 本地 CDP 阻断 `*cdn.jsdelivr.net*`，390×844 视口：`mapStatus: ready`、canvas 2 个、点击「轻触探索地图」可解锁；请求命中本地 `assets/vendor/echarts.min.js?v=20261027-03`。
+- 线上 `2cacde9` 同样阻断 jsdelivr 复测通过：echarts 从 `https://coderf1024.github.io/love-journey/assets/vendor/echarts.min.js?v=20261027-03` 加载，二维码库 `QRCode` 可用。
 - 同环境下 `loadScript(LIBS.qrcode)` 成功，`typeof QRCode === "function"`。
 - `node --check js/app.js` 通过；token `20261027-03` 全站一致。
 

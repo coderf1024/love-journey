@@ -21,6 +21,7 @@
 | LJ-20261026-011 | 岁月留痕最新在前、回忆卡片统一纯色 | accepted | `feat/LJ-20261026-011-milestone-order-solid` | 2026-10-27 合并 main 并发布 | 人 |
 | LJ-20261027-012 | 菜名字体子集覆盖线上菜品、管理端用户密钥改明文 | accepted | `fix/LJ-20261027-012-font-subset-and-bark-key` | 2026-10-27 合并 main 并发布 | 人 |
 | LJ-20261027-013 | 用户侧 Bark 模板精简并改为正式口吻 | accepted | `fix/LJ-20261027-013-bark-user-templates` | 2026-10-27 合并 main 并发布；线上旧模板待「恢复默认 + 保存」 | 人 |
+| LJ-20261027-014 | 自托管 ECharts / qrcodejs，修复微信内地图打不开 | in-progress | `fix/LJ-20261027-014-self-host-echarts-qrcode` | 本地阻断 jsdelivr 验证后合并 main，微信复测 | 人 |
 
 ## 状态说明
 

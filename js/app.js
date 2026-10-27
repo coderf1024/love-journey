@@ -8,12 +8,13 @@ let massageCouponsData = [];
 let timerInterval = null;
 let myChart = null;
 
-const CDN = {
-    echarts: 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js',
-    qrcode: 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js'
+// Self-hosted: cdn.jsdelivr.net is unreliable in WeChat / mainland mobile networks.
+const LIBS = {
+    echarts: 'assets/vendor/echarts.min.js?v=20261027-03',
+    qrcode: 'assets/vendor/qrcode.min.js?v=20261027-03'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261027-02';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261027-03';
 const MINUTE = 60 * 1000;
 const ORDER_POLL_MS = 20 * 1000;
 const KITCHEN_STEPS = ['下单', '接单', '备菜', '制作', '出餐'];
@@ -765,7 +766,7 @@ async function initMap() {
 
     try {
         if (typeof echarts === 'undefined') {
-            await loadScript(CDN.echarts);
+            await loadScript(LIBS.echarts);
         }
 
         const response = await fetch('assets/data/china-map.json');
@@ -2713,7 +2714,7 @@ async function openQR(coupon) {
 
     try {
         if (typeof QRCode === 'undefined') {
-            await loadScript(CDN.qrcode);
+            await loadScript(LIBS.qrcode);
         }
     } catch (error) {
         console.error('二维码组件加载失败:', error);

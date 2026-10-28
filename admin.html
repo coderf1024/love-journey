@@ -1441,23 +1441,27 @@
 
     /* ---------- auth / data ---------- */
     const ADMIN_SESSION_KEY = 'lj-admin-session';
-    const ADMIN_SESSION_MAX_AGE = 12 * 60 * 60 * 1000;
+    // 滑动过期：每次成功打开管理端都重新计时，超过 7 天没打开才需要重新输入口令
+    const ADMIN_SESSION_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
     function readAdminSession() {
         try {
-            const saved = Number(sessionStorage.getItem(ADMIN_SESSION_KEY) || 0);
-            return saved && Date.now() - saved < ADMIN_SESSION_MAX_AGE ? saved : 0;
+            const saved = Number(localStorage.getItem(ADMIN_SESSION_KEY) || 0);
+            if (!saved) return 0;
+            if (Date.now() - saved < ADMIN_SESSION_MAX_AGE) return saved;
+            localStorage.removeItem(ADMIN_SESSION_KEY);
+            return 0;
         } catch (error) {
             return 0;
         }
     }
 
     function saveAdminSession() {
-        try { sessionStorage.setItem(ADMIN_SESSION_KEY, String(Date.now())); } catch (error) {}
+        try { localStorage.setItem(ADMIN_SESSION_KEY, String(Date.now())); } catch (error) {}
     }
 
     function clearAdminSession() {
-        try { sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch (error) {}
+        try { localStorage.removeItem(ADMIN_SESSION_KEY); } catch (error) {}
     }
 
     async function openAdmin() {
@@ -1474,6 +1478,7 @@
     async function handleLogin() {
         const passcode = $('passcode-input').value;
         if (!verifyPasscode(passcode)) {
+            $('login-error').textContent = '口令不对，再试一次。';
             $('login-error').style.display = 'block';
             return;
         }
@@ -1499,6 +1504,7 @@
         }
         try {
             adminData = await loadAdminData();
+            saveAdminSession();
             renderAll();
         } catch (error) {
             console.error(error);
@@ -2935,11 +2941,13 @@
     if (readAdminSession()) {
         openAdmin().catch(error => {
             console.error('恢复管理登录失败:', error);
-            clearAdminSession();
+            // 保留登录态：一次加载失败不应该把「记住登录」清掉
             document.body.classList.remove('admin-mode');
             $('login-screen').hidden = false;
             $('admin-panel').hidden = true;
             isLoggedIn = false;
+            $('login-error').textContent = '数据加载失败，刷新页面重试（登录状态已保留）。';
+            $('login-error').style.display = 'block';
         });
     }
 </script>

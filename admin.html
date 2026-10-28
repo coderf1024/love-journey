@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#fbf6ec">
+<link rel="preconnect" href="https://gosspublic.alicdn.com" crossorigin>
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="管理端">
@@ -154,6 +155,41 @@
     }
     .login-input:focus { outline: 2px solid rgba(185, 74, 99, .25); border-color: var(--stamp); }
     .login-error { display: none; color: var(--stamp); font-size: 11px; }
+
+    /* ---------- 已登录过渡态 ----------
+       有登录态时首屏直接显示加载态，避免登录页闪一下；数据就绪后由 openAdmin 收起。 */
+    .admin-boot {
+        position: fixed;
+        inset: 0;
+        z-index: 30;
+        display: none;
+        place-content: center;
+        justify-items: center;
+        gap: 12px;
+        background:
+            radial-gradient(circle at 15% 10%, rgba(248, 205, 212, .55), transparent 38%),
+            radial-gradient(circle at 90% 20%, rgba(226, 238, 214, .5), transparent 36%),
+            var(--paper);
+        color: var(--muted);
+        font-size: 11px;
+        letter-spacing: .14em;
+    }
+    html.admin-session-boot .login-screen { display: none; }
+    html.admin-session-boot .admin-boot { display: grid; }
+    .admin-boot-mark {
+        width: 52px;
+        height: 52px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: linear-gradient(145deg, var(--petal), var(--lemon));
+        animation: admin-boot-pulse 1.6s ease-in-out infinite;
+    }
+    .admin-boot-mark img { width: 100%; height: 100%; object-fit: cover; }
+    .admin-boot p { margin: 0; }
+    @keyframes admin-boot-pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: .72; transform: scale(.96); }
+    }
 
     /* ---------- shell ---------- */
     .admin-app { min-height: 100dvh; }
@@ -687,8 +723,42 @@
         .next-meal-card b { font-size: 22px; }
     }
 </style>
+<script>
+    /* 登录态放在 <head>：浏览器绘制前就要决定显示登录页还是过渡加载态，
+       避免已登录用户先看到登录页再跳走。底部脚本共用这里的常量与函数。 */
+    const ADMIN_SESSION_KEY = 'lj-admin-session';
+    // 滑动过期：每次成功打开管理端都重新计时，超过 7 天没打开才需要重新输入口令
+    const ADMIN_SESSION_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+
+    function readAdminSession() {
+        try {
+            const saved = Number(localStorage.getItem(ADMIN_SESSION_KEY) || 0);
+            if (!saved) return 0;
+            if (Date.now() - saved < ADMIN_SESSION_MAX_AGE) return saved;
+            localStorage.removeItem(ADMIN_SESSION_KEY);
+            return 0;
+        } catch (error) {
+            return 0;
+        }
+    }
+
+    function saveAdminSession() {
+        try { localStorage.setItem(ADMIN_SESSION_KEY, String(Date.now())); } catch (error) {}
+    }
+
+    function clearAdminSession() {
+        try { localStorage.removeItem(ADMIN_SESSION_KEY); } catch (error) {}
+    }
+
+    if (readAdminSession()) document.documentElement.classList.add('admin-session-boot');
+</script>
 </head>
 <body class="admin-body">
+
+<div class="admin-boot" id="admin-boot" role="status" aria-live="polite">
+    <div class="admin-boot-mark"><img src="assets/media/space-avatar.svg" alt=""></div>
+    <p>正在打开管理端…</p>
+</div>
 
 <div class="login-screen" id="login-screen">
     <div class="login-card">
@@ -1440,29 +1510,7 @@
     }
 
     /* ---------- auth / data ---------- */
-    const ADMIN_SESSION_KEY = 'lj-admin-session';
-    // 滑动过期：每次成功打开管理端都重新计时，超过 7 天没打开才需要重新输入口令
-    const ADMIN_SESSION_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
-
-    function readAdminSession() {
-        try {
-            const saved = Number(localStorage.getItem(ADMIN_SESSION_KEY) || 0);
-            if (!saved) return 0;
-            if (Date.now() - saved < ADMIN_SESSION_MAX_AGE) return saved;
-            localStorage.removeItem(ADMIN_SESSION_KEY);
-            return 0;
-        } catch (error) {
-            return 0;
-        }
-    }
-
-    function saveAdminSession() {
-        try { localStorage.setItem(ADMIN_SESSION_KEY, String(Date.now())); } catch (error) {}
-    }
-
-    function clearAdminSession() {
-        try { localStorage.removeItem(ADMIN_SESSION_KEY); } catch (error) {}
-    }
+    // 登录态常量与读写函数定义在 <head> 中（绘制前就要用到）。
 
     async function openAdmin() {
         isLoggedIn = true;
@@ -1471,6 +1519,9 @@
         $('admin-panel').hidden = false;
         $('login-error').style.display = 'none';
         await loadAdmin();
+        // 数据就绪后再收起过渡加载态，避免先露出一个空面板
+        document.documentElement.classList.remove('admin-session-boot');
+        $('admin-boot').hidden = true;
         switchView('home');
         startPolling();
     }
@@ -1490,6 +1541,8 @@
         isLoggedIn = false;
         stopPolling();
         clearAdminSession();
+        document.documentElement.classList.remove('admin-session-boot');
+        $('admin-boot').hidden = true;
         document.body.classList.remove('admin-mode');
         $('passcode-input').value = '';
         $('login-screen').hidden = false;
@@ -2942,6 +2995,8 @@
         openAdmin().catch(error => {
             console.error('恢复管理登录失败:', error);
             // 保留登录态：一次加载失败不应该把「记住登录」清掉
+            document.documentElement.classList.remove('admin-session-boot');
+            $('admin-boot').hidden = true;
             document.body.classList.remove('admin-mode');
             $('login-screen').hidden = false;
             $('admin-panel').hidden = true;

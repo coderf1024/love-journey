@@ -15,8 +15,8 @@
     <link rel="apple-touch-icon" href="assets/icon-180.png">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="preconnect" href="https://gosspublic.alicdn.com" crossorigin>
-    <link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261027-03" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/style.css?v=20261027-03">
+    <link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261028-10" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="css/style.css?v=20261028-10">
 </head>
 <body>
     <header class="app-header" id="app-header">
@@ -115,21 +115,26 @@
                         <span class="section-index">03</span>
                         <h2 class="section-title" id="map-title">山河共赏</h2>
                     </div>
-                    <span class="section-badge" id="city-count">17 座城市</span>
+                    <span class="section-badge" id="city-count">18 座城市</span>
                 </header>
                 <p class="section-note">地图不是目的地清单，是一起散步到更远地方的证据。</p>
 
                 <div class="map-card">
                     <div id="asia-map" class="asia-map"></div>
-                    <button class="map-guard" id="map-guard" type="button">
-                        <span class="map-guard-pill">轻触探索地图</span>
-                        <span class="map-guard-sub">缩放 · 拖动 · 点亮城市</span>
+                    <button class="map-guard" id="map-guard" type="button" aria-label="探索地图，可拖动和缩放">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="m15.2 8.8-2.1 4.3-4.3 2.1 2.1-4.3 4.3-2.1Z"></path></svg>
+                        <span>探索地图</span>
                     </button>
                     <button class="map-lock" id="map-lock" type="button" hidden>锁定地图</button>
                     <div class="map-loading" id="map-loading"><span class="map-loading-dot"></span><span id="map-loading-text">正在展开地图</span></div>
+                    <button class="overseas-stamp" id="overseas-stamp" type="button" hidden></button>
                 </div>
 
-                <div class="city-chips" id="city-chips" aria-label="去过的城市"></div>
+                <div class="city-head">
+                    <span>去过的城市</span>
+                    <span id="city-sub">最近在前</span>
+                </div>
+                <div class="city-grid" id="city-chips" aria-label="去过的城市"></div>
             </section>
 
             <footer class="app-footer">
@@ -452,10 +457,10 @@
     <audio id="bg-music" loop playsinline preload="none"></audio>
 
     <script src="https://gosspublic.alicdn.com/aliyun-oss-sdk-6.18.0.min.js"></script>
-    <script src="js/oss-config.js?v=20261027-03"></script>
-    <script src="js/crypto-utils.js?v=20261027-03"></script>
-    <script src="js/oss-utils.js?v=20261027-03"></script>
-    <script src="js/store.js?v=20261027-03"></script>
-    <script src="js/app.js?v=20261027-03"></script>
+    <script src="js/oss-config.js?v=20261028-10"></script>
+    <script src="js/crypto-utils.js?v=20261028-10"></script>
+    <script src="js/oss-utils.js?v=20261028-10"></script>
+    <script src="js/store.js?v=20261028-10"></script>
+    <script src="js/app.js?v=20261028-10"></script>
 </body>
 </html>

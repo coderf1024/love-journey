@@ -19,6 +19,7 @@
 | [数据模型](./architecture/data-model.md) | `space/menu/orders/coupons` 等文档结构与约束 |
 | [核心流程](./architecture/flows.md) | 预约、出餐图集、Bark、深链、发卡、核销 |
 | [本地开发](./runbooks/local-development.md) | 本地预览、手动检查、字体和缓存版本 |
+| [测试库](./runbooks/test-db.md) | 本地默认使用 db-test，克隆/切换/上传/Bark 隔离 |
 | [发布手册](./runbooks/release.md) | 验收、合并 main、版本 bump、线上 smoke、回滚 |
 | [OSS 数据安全](./runbooks/oss-data.md) | 读写顺序、索引、删除、迁移、竞态 |
 | [Bark 通知](./runbooks/bark.md) | 双密钥、模板变量、事件开关、深链 |

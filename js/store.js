@@ -268,6 +268,12 @@ function barkVariables(space, order, extra = {}) {
 }
 
 async function sendBark(space, options = {}) {
+    // Test data must never send real pushes. ?bark=on is an explicit opt-in.
+    if (typeof isTestEnv === 'function' && isTestEnv()) {
+        const barkOn = typeof window !== 'undefined'
+            && new URLSearchParams(window.location.search).get('bark') === 'on';
+        if (!barkOn) return false;
+    }
     const {
         audience = 'admin',
         event,
@@ -495,7 +501,9 @@ async function loadAppData() {
         ]);
 
     if (!space) {
-        throw new Error('恋爱空间还没有初始化，请先运行 scripts/migrate-storage.js');
+        throw new Error(typeof isTestEnv === 'function' && isTestEnv()
+            ? '测试库还没有数据，请先运行 scripts/clone-test-db.js'
+            : '恋爱空间还没有初始化，请先运行 scripts/migrate-storage.js');
     }
 
     return {

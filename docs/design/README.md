@@ -8,6 +8,7 @@
 | [admin-wireframe.html](./admin-wireframe.html) | 管理端 V4：首页/订单/恋爱卡/系统、出餐拍照、菜品图片集、用户端图集 |
 | [coupons-refresh-wireframe.html](./coupons-refresh-wireframe.html) | 恋爱卡刷新按钮位置方案 |
 | [wallet-icons.html](./wallet-icons.html) | 钱包流水图标方案（已采用方案 A） |
+| [home-map-wireframe.html](./home-map-wireframe.html) | 首页「山河共赏」地图改造：圆点 / 省份点亮 A/B 对比、同省归并、按大区配色、视野自适应、城市卡、境外足迹 |
 
 本地查看：
 

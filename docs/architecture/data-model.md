@@ -1,6 +1,6 @@
 # 数据模型
 
-所有数据在 OSS bucket 的 `love-journey/db/` 下（路径由 `OSS_CONFIG.dbRoot` 决定）。完整结构以 `js/store.js` 为准，本文只记录约定和容易出错的字段。
+所有数据在 OSS bucket 的 `love-journey/db/` 下（路径由 `OSS_CONFIG.dbRoot` 决定）。本地/私有 IP 默认使用 `love-journey/db-test`，线上域名始终使用 `love-journey/db`；见 [测试库](../runbooks/test-db.md)。完整结构以 `js/store.js` 为准，本文只记录约定和容易出错的字段。
 
 ## 文档树
 
@@ -28,6 +28,10 @@ love-journey/db/
 ```
 
 集合是「一份记录一个文档 + 一个 index 读模型」。索引不是事实来源，丢失时可由 `dbCollection.rebuild()` 重建。
+
+## cities.json
+
+`{ "items": [{ "name": "北京", "date": "2020-12-20", "description": "…" }] }`，可选 `overseas: true` / `country: "韩国"`。首页地图按 `name` 归并到省份：同一省有多个城市时只点亮一次，颜色取最早访问的城市；境外城市不参与省份归并，用地图角落印章展示。现有数据没有 `overseas/country` 时，`js/app.js` 用内置境外名单兜底。
 
 ## space.json
 

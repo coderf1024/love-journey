@@ -7,6 +7,31 @@
 
 let ossClient = null;
 
+/* ---------- test / production environment ----------
+   Local and private-network hosts default to the test document store so
+   development writes never touch production. The public site always uses
+   production, even if ?env=test is present. ?env=prod forces production
+   from a local host.
+   -------------------------------------------------------------- */
+function isPrivateHost(hostname) {
+    const host = String(hostname || '').toLowerCase();
+    return host === 'localhost'
+        || host === '127.0.0.1'
+        || host === '0.0.0.0'
+        || host === '::1'
+        || /^192\.168\./.test(host)
+        || /^10\./.test(host)
+        || /^172\.(1[6-9]|2\d|3[01])\./.test(host);
+}
+
+function isTestEnv() {
+    if (typeof window === 'undefined' || !window.location) return false;
+    const host = window.location.hostname;
+    if (!isPrivateHost(host)) return false;
+    const params = new URLSearchParams(window.location.search);
+    return params.get('env') !== 'prod';
+}
+
 function initOSS() {
     if (typeof OSS === 'undefined') {
         console.error('OSS SDK 未加载');
@@ -26,7 +51,17 @@ function initOSS() {
 }
 
 function dbRoot() {
-    return String(OSS_CONFIG.dbRoot || 'love-journey/db').replace(/\/+$/, '');
+    const root = isTestEnv() && OSS_CONFIG.testDbRoot
+        ? OSS_CONFIG.testDbRoot
+        : (OSS_CONFIG.dbRoot || 'love-journey/db');
+    return String(root).replace(/\/+$/, '');
+}
+
+function uploadsRoot() {
+    const root = isTestEnv() && OSS_CONFIG.testUploadsRoot
+        ? OSS_CONFIG.testUploadsRoot
+        : 'love-journey/uploads';
+    return String(root).replace(/\/+$/, '');
 }
 
 function dbFullPath(path) {
@@ -176,9 +211,9 @@ function verifyPasscode(inputPasscode) {
    love-journey/uploads/dishes/ in the same public-read bucket.
    -------------------------------------------------------------- */
 
-const DISH_UPLOAD_PREFIX = 'love-journey/uploads/dishes/';
-const DISH_REQUEST_UPLOAD_PREFIX = 'love-journey/uploads/requests/';
-const SPACE_UPLOAD_PREFIX = 'love-journey/uploads/space/';
+function dishUploadPrefix() { return `${uploadsRoot()}/dishes/`; }
+function dishRequestUploadPrefix() { return `${uploadsRoot()}/requests/`; }
+function spaceUploadPrefix() { return `${uploadsRoot()}/space/`; }
 const DISH_UPLOAD_MAX_BYTES = 20 * 1024 * 1024;
 const DISH_UPLOAD_MAX_DIMENSION = 1600;
 const DISH_UPLOAD_QUALITY = 0.82;
@@ -307,13 +342,32 @@ async function uploadBucketImage(file, prefix) {
 }
 
 async function uploadDishImage(file) {
-    return uploadBucketImage(file, DISH_UPLOAD_PREFIX);
+    return uploadBucketImage(file, dishUploadPrefix());
 }
 
 async function uploadDishRequestImage(file) {
-    return uploadBucketImage(file, DISH_REQUEST_UPLOAD_PREFIX);
+    return uploadBucketImage(file, dishRequestUploadPrefix());
 }
 
 async function uploadSpaceImage(file) {
-    return uploadBucketImage(file, SPACE_UPLOAD_PREFIX);
+    return uploadBucketImage(file, spaceUploadPrefix());
+}
+
+/* ---------- environment badge ---------- */
+function mountTestBadge() {
+    if (typeof document === 'undefined' || !document.body) return;
+    if (typeof window === 'undefined' || !isPrivateHost(window.location.hostname)) return;
+    if (document.getElementById('lj-env-badge')) return;
+    const test = isTestEnv();
+    const badge = document.createElement('div');
+    badge.id = 'lj-env-badge';
+    badge.textContent = test ? '测试库' : '线上库';
+    badge.title = `数据来自 ${dbRoot()}`;
+    badge.style.cssText = `position:fixed;left:12px;bottom:12px;z-index:9999;padding:4px 8px;border-radius:999px;background:${test ? 'rgba(43,34,49,.82)' : 'rgba(185,74,99,.9)'};color:#fffdf8;font:600 10px/1.4 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;letter-spacing:.06em;pointer-events:none;box-shadow:0 6px 14px -8px rgba(0,0,0,.6);`;
+    document.body.appendChild(badge);
+}
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mountTestBadge);
+} else {
+    mountTestBadge();
 }

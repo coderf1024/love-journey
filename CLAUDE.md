@@ -60,7 +60,14 @@ This repo is developed by **one human + one AI**, with several requirements able
 
 ```bash
 # Local preview — must be a real HTTP server, not file:// (app.js fetches assets/data/china-map.json)
+# Localhost/private IP defaults to love-journey/db-test; add ?env=prod to inspect production data.
 python3 -m http.server 8888
+
+# Clone the production document store into the local test prefix (source is read-only).
+# Without OSS_* it uses the shared js/oss-config.js credentials.
+npm install ali-oss
+node scripts/clone-test-db.js --dry-run
+node scripts/clone-test-db.js --force
 
 # One-off migration: legacy love-journey/config.json → love-journey/db/** documents.
 # Reads with the OSS credentials in the environment; never modifies config.json.
@@ -94,6 +101,8 @@ node scripts/auto-gift-massage.js
 ## Storage: OSS as a document database (v2)
 
 There is no backend. The bucket is used as a small JSON document store under `OSS_CONFIG.dbRoot` (default `love-journey/db`). `js/oss-utils.js` is the low-level document API; `js/store.js` is the domain layer that every page uses.
+
+**Test isolation:** local and private-network hosts (`localhost`, `127.0.0.1`, `192.168.*`, `10.*`, `172.16-31.*`) use `OSS_CONFIG.testDbRoot` (`love-journey/db-test`) and uploads under `love-journey/uploads-test/`. Public hosts always use production, even with `?env=test`; a local `?env=prod` forces production. The test environment shows a 「测试库」 badge and suppresses Bark unless `?bark=on`; a local `?env=prod` shows a 「线上库」 badge. The query string survives tab navigation. `scripts/clone-test-db.js` copies production into `db-test` (read-only source; target must contain `test`) and disables Bark / 催一催 in the cloned `space.json`. See [docs/runbooks/test-db.md](docs/runbooks/test-db.md).
 
 ```
 love-journey/db/
@@ -188,6 +197,7 @@ The order index stores summaries (including `slot`, status, items, total, thanks
 - Order sub-view: five filters (全部 / 待接单 / 进行中 / 已完成 / 已取消), newest-first grouping with active orders first. Each row shows dish photos, dish name + `×1` + price, and a footer action. Active reservations jump back to the order page with that slot selected; completed/cancelled rows open the order detail sub-view (same `orderDetailHTML` as the legacy sheet).
 - Wallet sub-view: balance, overdraft limit, and the full ledger (up to 200 rows). Card sub-view: a ledger built from every coupon's `acquiredDate` and `usedDate`, with 全部 / 获得 / 使用 tabs and a link to the 恋爱卡 tab.
 - Polling: `refreshOrderData()` every 20s when an order is prepping/cooking/served or a pending/accepted order is within 12 hours; a full `refreshData()` (9 reads) runs when data is older than 30s on page switch/visibility.
+- 山河共赏 map: city records are grouped by province (`PROVINCE_OF` / `REGION_OF` in `js/app.js`); a province lights once if any city in it was visited, colored by one of 7 regions (华北 / 东北 / 华东 / 华南 / 华中 / 西南 / 西北) with same-region shades by visit time. Unvisited cities are not rendered at all. City dots and labels stay city-level; the tooltip lists the cities in a lit province. Overseas visits are excluded from the China map and shown as a corner passport stamp (latest overseas city); clicking it highlights the matching cell in the 3-column (4 on desktop, 2 under 360px) city grid below. The grid includes overseas with a ✈ mark and never scrolls horizontally. The badge shows the total city count only (no domestic/overseas split); the map legend and region-color legend are intentionally omitted. The map guard is a compact bottom-left 「探索地图」 pill with a compass icon and no sub-line; the 「锁定地图」 button shares the same bottom-left slot; the initial map shows the whole China map at zoom 1.2 / center [104,36] with a small margin (no visited-city bounding box); clicking a city cell zooms to 6x and re-anchors its tooltip after the geo transform finishes (`hideTip` → wait for `finished`/280ms → `showTip`). The focused city's tooltip is placed 22px below its point so it never covers the top-positioned city label; other cities may be covered. City cells are buttons laid out as name left / YY.MM right on one line: clicking a domestic cell centers and zooms the map and shows its tooltip, clicking an overseas cell pulses the stamp.
 - ECharts and qrcodejs are **self-hosted in `assets/vendor/` and lazy-loaded on demand** (map near viewport / QR sheet open); no jsdelivr dependency, which is unreliable inside WeChat. The map defaults to `roam: false` behind a tap-to-explore guard so page scrolling is never trapped.
 - Sheets lock body scroll with a fixed-body technique and restore the scroll position; Escape/backdrop/tap closes the topmost sheet.
 
@@ -213,6 +223,8 @@ The passcode gate opens a 管理端 shell: mobile bottom tabs 首页 / 订单 / 
 
 ## Gotchas
 
+- **Test DB safety**: `isTestEnv()` is based on the hostname, not a stored flag. Public hosts never select `db-test`. `dbRoot()` / `uploadsRoot()` are the only places that choose the prefix; do not hardcode `love-journey/uploads/` or `love-journey/db/` elsewhere. Test Bark is suppressed unless `?bark=on`; the clone script disables it in `space.json` too.
+- **City → province map**: `PROVINCE_OF` in `js/app.js` covers the names in `cityCoordinates`; a visited city outside that table has no map dot/province fill but still appears in the city grid. Same-province cities light one province; the color uses the earliest visit. Overseas cities are excluded by the built-in `OVERSEAS_CITY_NAMES` fallback until `cities.json` records get an `overseas` / `country` field.
 - **No transactions**: order + wallet are two documents. `placeOrder` rolls the order back if the wallet write fails; `cancelOrder` restores the previous order document if the refund write fails. There is still a small window if the second write fails and the rollback also fails. Do not add a third independent write to this flow without thinking it through. `serveOrder` writes the menu image set first, then the order; if the order write fails the photo may remain in the dish gallery (retry dedupes by URL). `approveDishRequest` writes the menu first, then the request; retries dedupe by `dish.sourceRequestId`.
 - **Indexes are derived**: every collection write updates `<dir>/index.json`. If an index is missing/stale, `dbCollection.list()` rebuilds it from the documents. A manual OSS write that bypasses the store can leave the index stale.
 - **Read-modify-write races**: no locking or ETag. Two writers (user ordering while the chef changes status, or the weekly Action firing while the admin issues a card) can lose an update. Same-slot uniqueness is checked in `placeOrder` but is still an RMW check; two simultaneous orders for the same slot could race.
@@ -222,7 +234,7 @@ The passcode gate opens a 管理端 shell: mobile bottom tabs 首页 / 订单 / 
 - **Weekly Action**: `scripts/auto-gift-massage.js` reads/writes `commerce/coupons/` + `counters.json` under `OSS_DB_ROOT` (default `love-journey/db`). The schedule/duration/title logic is unchanged; only the storage target changed. The workflow no longer uses `OSS_CONFIG_PATH`.
 - **Auth is cosmetic**: `adminPasscode` is plaintext in `js/oss-config.js`, and `CryptoUtils` is reversible obfuscation, not encryption. The credentials are effectively public in the bundle.
 - **`CryptoUtils` uses `btoa`/`atob`**, which throw on non-ASCII — safe for keys, not Chinese text.
-- **Cache versioning**: all local JS/CSS/font/texture/audio URLs carry `?v=20261027-03` in the three pages (and inside `css/style.css` / `MUSIC_SRC`). Bump that token whenever you change those files. If a stale `oss-utils.js` is mixed with a new `store.js`, the app shows “页面脚本版本不一致” instead of a raw ReferenceError; a hard refresh fixes it.
+- **Cache versioning**: all local JS/CSS/font/texture/audio URLs carry `?v=20261028-10` in the three pages (and inside `css/style.css` / `MUSIC_SRC`). Bump that token whenever you change those files. If a stale `oss-utils.js` is mixed with a new `store.js`, the app shows “页面脚本版本不一致” instead of a raw ReferenceError; a hard refresh fixes it.
 - **Date parsing**: `"YYYY-MM-DD HH:mm:ss"` is not ISO-8601 and fails in Safari. `js/app.js`, `admin.html` and `use.html` normalize with `new Date(str.replace(/-/g, '/'))` and leave `T` strings alone.
 - **Font subsets are content-scoped**: `scripts/build-fonts.sh` reads the live OSS documents read-only (`space`, `content/*`, `commerce/menu`, `commerce/coupons/index`, `commerce/dish-requests/index`, plus the legacy `config.json`), the page/script copy, the seeds in `scripts/menu-seed.js` / `scripts/serving-seed.js`, and `scripts/font-extra-chars.txt` (2,500 common characters + food vocabulary, Noto only). If you add menu/copy text with unseen characters, add them to `scripts/font-extra-chars.txt` and run `./scripts/build-fonts.sh`; otherwise the glyphs fall back to `Songti SC` and a single dish name renders in two fonts.
 - **Map framing** is tuned for the eastern half of China (mobile center `[112,34]`, zoom `1.8`; desktop `[110,34]`, `1.8`). Labels use `hideOverlap`.

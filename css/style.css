@@ -6,7 +6,7 @@
 
 @font-face {
     font-family: 'Ma Shan Zheng';
-    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261027-03') format('woff2');
+    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261028-10') format('woff2');
     font-weight: 400;
     font-style: normal;
     font-display: swap;
@@ -14,7 +14,7 @@
 
 @font-face {
     font-family: 'Noto Serif SC';
-    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261027-03') format('woff2');
+    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261028-10') format('woff2');
     font-weight: 700;
     font-style: normal;
     font-display: swap;
@@ -90,7 +90,7 @@ body::after {
 }
 
 body::before {
-    background: url('../assets/texture-noise.png?v=20261027-03') repeat;
+    background: url('../assets/texture-noise.png?v=20261028-10') repeat;
     opacity: 0.06;
     mix-blend-mode: multiply;
 }
@@ -563,7 +563,7 @@ select:focus-visible {
     content: '';
     position: absolute;
     inset: 0;
-    background: url('../assets/texture-noise.png?v=20261027-03') repeat;
+    background: url('../assets/texture-noise.png?v=20261028-10') repeat;
     opacity: 0.1;
     mix-blend-mode: soft-light;
     pointer-events: none;
@@ -978,6 +978,7 @@ select:focus-visible {
     overflow: hidden;
     background: #f7efdf;
     border-radius: 20px;
+    touch-action: pan-y;
 }
 
 .map-loading {
@@ -1010,41 +1011,50 @@ select:focus-visible {
 
 .map-guard {
     position: absolute;
-    inset: 8px;
-    z-index: 2;
+    left: 14px;
+    bottom: 14px;
+    z-index: 3;
     display: none;
-    align-content: start;
-    justify-items: end;
-    gap: 5px;
-    padding: 14px;
-    text-align: right;
-    background: transparent;
-    border-radius: 20px;
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 0 11px;
+    color: var(--paper-soft);
+    font-family: var(--font-ui);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    background: rgba(43, 34, 49, 0.82);
+    border: 0;
+    border-radius: 999px;
+    box-shadow: 0 12px 30px -14px rgba(43, 34, 49, 0.72);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
     cursor: pointer;
-    transition: opacity 0.25s ease, visibility 0.25s ease;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.map-guard svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.map-guard:hover {
+    background: rgba(43, 34, 49, 0.92);
+}
+
+.map-guard:focus-visible {
+    outline: 2px solid var(--stamp);
+    outline-offset: 2px;
 }
 
 .map-card.is-ready:not(.is-active) .map-guard {
-    display: grid;
-}
-
-.map-guard-pill {
-    padding: 10px 18px;
-    color: var(--paper-soft);
-    font-size: 0.84rem;
-    font-weight: 600;
-    background: rgba(43, 34, 49, 0.82);
-    border-radius: 999px;
-    box-shadow: 0 12px 30px -12px rgba(43, 34, 49, 0.7);
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
-}
-
-.map-guard-sub {
-    padding-right: 4px;
-    font-size: 0.66rem;
-    letter-spacing: 0.06em;
-    color: rgba(43, 34, 49, 0.62);
+    display: inline-flex;
 }
 
 .map-card.is-active .map-guard {
@@ -1057,11 +1067,11 @@ select:focus-visible {
 
 .map-lock {
     position: absolute;
-    top: 18px;
-    right: 18px;
+    left: 14px;
+    bottom: 14px;
     z-index: 3;
-    min-height: 40px;
-    padding: 0 14px;
+    min-height: 34px;
+    padding: 0 11px;
     color: var(--paper-soft);
     font-size: 0.72rem;
     background: rgba(43, 34, 49, 0.72);
@@ -1074,41 +1084,170 @@ select:focus-visible {
     display: none;
 }
 
-.city-chips {
+.city-head {
     display: flex;
-    gap: 8px;
-    margin: 14px calc(-1 * var(--page-x)) 0;
-    padding: 2px var(--page-x) 6px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-}
-
-.city-chips::-webkit-scrollbar {
-    display: none;
-}
-
-.city-chip {
-    flex: 0 0 auto;
-    display: inline-flex;
     align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 16px 2px 0;
+    color: var(--muted);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+}
+
+.city-head span:last-child {
+    color: var(--muted);
+    font-size: 0.6rem;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+}
+
+.city-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 6px;
-    padding: 8px 12px;
+    margin-top: 7px;
+}
+
+@media (max-width: 360px) {
+    .city-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.city-cell {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4px;
+    width: 100%;
+    margin: 0;
+    min-width: 0;
+    padding: 6px 8px;
     background: var(--paper-soft);
     border: 1px solid var(--line);
-    border-radius: 999px;
-    font-size: 0.8rem;
-    box-shadow: 0 8px 20px -16px rgba(77, 48, 61, 0.4);
+    border-radius: 10px;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.78rem;
+    line-height: inherit;
+    text-align: left;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    box-shadow: 0 8px 20px -18px rgba(77, 48, 61, 0.4);
+    transition: background 0.2s ease, border-color 0.2s ease;
 }
 
-.city-chip b {
+.city-cell b {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 0.78rem;
     font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.city-chip span {
-    font-family: var(--font-ui);
-    font-size: 0.64rem;
+.city-cell > span:last-child {
+    flex: 0 0 auto;
     color: var(--muted);
+    font-family: var(--font-ui);
+    font-size: 0.62rem;
+}
+
+.city-cell-mark {
+    flex: 0 0 auto;
+    color: var(--stamp-deep);
+    font-size: 0.66rem;
+    line-height: 1;
+}
+
+.city-cell:hover,
+.city-cell:focus-visible {
+    border-color: rgba(223, 95, 126, 0.45);
+}
+
+.city-cell:focus-visible {
+    outline: 2px solid var(--stamp);
+    outline-offset: 1px;
+}
+
+.city-cell.is-active {
+    background: var(--stamp-soft);
+    border-color: rgba(223, 95, 126, 0.6);
+}
+
+.overseas-stamp {
+    position: absolute;
+    right: 14px;
+    bottom: 14px;
+    z-index: 4;
+    width: 84px;
+    height: 62px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    background: rgba(255, 253, 248, 0.84);
+    border: 2px solid rgba(185, 74, 99, 0.55);
+    border-radius: 50%;
+    color: var(--stamp-deep);
+    cursor: pointer;
+    transform: rotate(-7deg);
+    box-shadow: 0 8px 18px -14px rgba(43, 34, 49, 0.55);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.overseas-stamp::before {
+    content: "";
+    position: absolute;
+    inset: 3.5px;
+    border: 1px dashed rgba(185, 74, 99, 0.55);
+    border-radius: 50%;
+}
+
+.overseas-stamp:hover {
+    transform: rotate(-3deg) scale(1.04);
+    background: rgba(251, 227, 233, 0.94);
+}
+
+.overseas-stamp.is-focus {
+    animation: stamp-pulse 0.7s ease 2;
+}
+
+@keyframes stamp-pulse {
+    50% {
+        transform: rotate(-3deg) scale(1.1);
+        background: rgba(251, 227, 233, 0.98);
+    }
+}
+
+.overseas-stamp .stamp-top {
+    position: relative;
+    font-size: 0.5rem;
+    letter-spacing: 0.1em;
+}
+
+.overseas-stamp .stamp-name {
+    position: relative;
+    font-family: var(--font-display);
+    font-size: 0.86rem;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: 0.04em;
+}
+
+.overseas-stamp .stamp-foot {
+    position: relative;
+    font-size: 0.5rem;
+    letter-spacing: 0.04em;
 }
 
 /* ---------- footer ---------- */
@@ -4384,11 +4523,8 @@ body.me-fixed-view .wallet-entries.me-ledger {
         min-height: 176px;
     }
 
-    .city-chips {
-        margin-left: 0;
-        margin-right: 0;
-        padding-left: 0;
-        padding-right: 0;
+    .city-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
     .dinner-card {

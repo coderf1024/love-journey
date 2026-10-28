@@ -48,6 +48,16 @@ node scripts/migrate-storage.js
 
 迁移会创建空间、内容、菜单、钱包、卡券等文档。菜单会先写入 14 道示例菜（快手菜 / 硬核菜），之后可以在管理端「系统 → 菜单」里增删改。
 
+本地 `localhost` 默认连接测试库 `love-journey/db-test`，不会写线上。第一次使用先复制一份：
+
+```bash
+npm install ali-oss
+node scripts/clone-test-db.js --force
+# 需要看线上数据时：http://localhost:8888/index.html?env=prod
+```
+
+详见 [测试库](./docs/runbooks/test-db.md)。
+
 如果是从上一版升级，运行一次周末预约更新脚本（会写入 serving 配置、更新菜单图片和分类、清理旧的测试订单）：
 
 ```bash

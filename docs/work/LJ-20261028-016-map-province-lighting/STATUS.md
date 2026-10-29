@@ -1,9 +1,13 @@
 # LJ-20261028-016 · 状态
 
-- 状态：accepted
+- 状态：done
 - 分支：`feat/LJ-20261028-016-map-province-lighting`
 - 最后更新：2026-10-28 16:50
 - 当前负责人：AI
+
+## 发布
+
+- 2026-10-29 合并 `main`（`f77a17f`），GitHub Pages 部署；发布 token `20261029-04`。
 
 ## 已完成
 

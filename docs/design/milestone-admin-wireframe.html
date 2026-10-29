@@ -35,6 +35,8 @@
     .page-head h1 { margin-top: 6px; font-size: 28px; letter-spacing: .01em; }
     .page-head p { max-width: 900px; margin-top: 10px; color: #625c59; font-size: 14px; line-height: 1.75; }
     .page-head p b { color: #2b2231; }
+    .scope-note { max-width: 900px; margin-top: 12px; padding: 9px 12px; background: #fff8e8; border: 1px dashed #d8b56b; border-radius: 10px; color: #8a6b2c; font-size: 11px; line-height: 1.6; }
+    .scope-note b { color: #6d5220; }
     .legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 14px; color: #777; font-size: 11px; }
     .legend span { display: inline-flex; align-items: center; gap: 6px; }
     .dot { width: 8px; height: 8px; display: inline-block; border-radius: 999px; }
@@ -443,7 +445,8 @@
 <header class="page-head">
     <p class="eyebrow">LJ-20261029-004 · 管理端 · 岁月留痕</p>
     <h1>里程碑配置原型</h1>
-    <p>管理端新增「岁月留痕」维护：列表、编辑、删除和<b>封面图上传</b>。用户端轮播、全部回忆和详情恢复图片展示，没有图片时继续用原来的纯色渐变兜底。展示顺序仍按日期，不需要手动拖拽。</p>
+    <p>管理端新增「岁月留痕」维护：列表、编辑、删除和<b>封面图上传</b>。展示顺序仍按日期，不需要手动拖拽。</p>
+    <div class="scope-note"><b>范围更新 2026-10-30：</b>本次只实现管理端，用户端代码和渲染不改；下面的用户端画面仅作为以后单独做封面展示时的参考。</div>
     <div class="legend">
         <span><i class="dot accent"></i>新增 / 本次改造</span>
         <span><i class="dot line"></i>现有组件样式</span>

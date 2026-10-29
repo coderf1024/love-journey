@@ -6,8 +6,8 @@
 
 - 📚 [工程文档索引](./docs/README.md) - 架构、数据、流程、运维和任务规范
 - 🧭 [术语表](./docs/glossary.md) - 我们/空间/管理端/小灶等名称定义
-- 🗂️ [任务流程与看板](./docs/work/README.md) - 一需求一 worktree/branch 的协作方式
-- 🚢 [发布手册](./docs/runbooks/release.md) - 验收、合并 main、缓存版本和回滚
+- 🗂️ [任务流程与看板](./docs/work/README.md) - 一需求一分支的协作方式
+- 🚢 [发布手册](./docs/runbooks/release.md) - 验收、合并 main、EdgeOne / GitHub Pages 双站部署和回滚
 - 🔐 [OSS 配置说明](./docs/reference/oss-config.md) - 阿里云 OSS 配置详细教程
 
 ## ✨ 功能特性
@@ -78,12 +78,17 @@ npx serve
 
 然后在浏览器中访问 `http://localhost:8888`
 
-### 5. 部署到 GitHub Pages
+### 5. 部署
 
-1. 将代码推送到 GitHub
-2. 在仓库设置中启用 GitHub Pages
-3. 选择 `main` 分支和 `/ (root)` 目录
-4. 等待部署完成
+线上主站：**https://coderf.site**（EdgeOne Makers，Git 集成 `main`，push 自动部署）。
+
+- 仓库推送到 GitHub 后，`main` 的任何提交会同时触发：
+  - EdgeOne Makers 主站部署（`coderf.site`）；
+  - GitHub Pages 备用部署（`https://coderf1024.github.io/love-journey/`）。
+- EdgeOne 的默认项目域名（`*.edgeone.dev` / `*.edgeone.cool`）在中国大陆网络只能用 3 小时有效的预览链接访问，**不要作为公开入口**；公开访问一律使用自定义域名 `coderf.site`。
+- EdgeOne 项目为「全球可用区（不含中国大陆）」加速区，绑定自定义域名无需 ICP 备案。
+- GitHub Pages 备用继续使用仓库 Settings → Pages → `main` / `/ (root)`，无需额外构建。
+- 详细步骤和排障见 [EdgeOne 运维手册](./docs/runbooks/edgeone.md) 和 [发布手册](./docs/runbooks/release.md)。
 
 ## 📂 项目结构
 
@@ -149,10 +154,10 @@ love-journey/
 
 这个项目按「一个人 + 一个 AI、多需求并行」的方式开发：
 
-- 每个需求有独立任务 ID、worktree、分支和 `docs/work/<task-id>/` 上下文。
+- 每个需求有独立任务 ID、分支和 `docs/work/<task-id>/` 上下文。
 - 开始工作先读 `docs/README.md`、`docs/work/BOARD.md` 和当前任务的 `STATUS.md`。
 - 切换需求前先更新 `STATUS.md`，写清已完成、未完成和下一步。
-- 功能分支人工验收后合并 `main`；`main` 是线上部署分支。
+- 功能分支人工验收后合并 `main`；`main` 是线上部署分支，推送后 EdgeOne 主站和 GitHub Pages 备用都会自动部署。
 - 项目不新增构建/测试工具链；质量检查以手动验收、现有 `node --check` 和 `QA.md` 为准。
 - 详细规则见 [需求工作流](./docs/work/README.md)；变更记录见 [CHANGELOG.md](./CHANGELOG.md)。
 

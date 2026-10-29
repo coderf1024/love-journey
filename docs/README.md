@@ -10,6 +10,12 @@
 4. 当前任务的 `docs/work/<task-id>/STATUS.md` — 上次做到哪、下一步是什么。
 5. 需要发布时读 [发布手册](./runbooks/release.md)。
 
+## 线上环境
+
+- **主站**：`https://coderf.site`（EdgeOne Makers，push `main` 自动部署）
+- **备用**：`https://coderf1024.github.io/love-journey/`（GitHub Pages）
+- 主站选「全球可用区（不含中国大陆）」，自定义域名无需 ICP 备案；EdgeOne 默认项目域名在大陆只能 3 小时预览，不作为公开入口。
+
 ## 文档地图
 
 | 文档 | 用途 |
@@ -21,6 +27,7 @@
 | [本地开发](./runbooks/local-development.md) | 本地预览、手动检查、字体和缓存版本 |
 | [测试库](./runbooks/test-db.md) | 本地默认使用 db-test，克隆/切换/上传/Bark 隔离 |
 | [发布手册](./runbooks/release.md) | 验收、合并 main、版本 bump、线上 smoke、回滚 |
+| [EdgeOne 运维](./runbooks/edgeone.md) | 主站部署、自定义域名、3 小时预览限制、排障和回滚 |
 | [OSS 数据安全](./runbooks/oss-data.md) | 读写顺序、索引、删除、迁移、竞态 |
 | [Bark 通知](./runbooks/bark.md) | 双密钥、模板变量、事件开关、深链 |
 | [GitHub Action](./runbooks/github-action.md) | 周更恋爱卡任务说明入口 |
@@ -42,6 +49,6 @@
 
 - 需求说明、方案、状态、验收记录都写入 `docs/work/`，不依赖聊天记忆。
 - 一个需求一个分支，直接在主工作目录切换分支开发；不使用 worktree。切换需求前先更新该任务的 `STATUS.md`。
-- 线上以 `main` 为部署分支，功能分支验收后才合并。
+- 线上以 `main` 为部署分支；推送后 EdgeOne 主站（`coderf.site`）和 GitHub Pages 备用同时部署，功能分支验收后才合并。
 - 项目不新增构建/测试工具链；质量闸门以手动检查和现有命令为主。具体规则见 [需求流程](./work/README.md)。
 - 文档以中文为主；代码标识、字段名、命令保留英文。

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A static, no-build vanilla-JS site (Chinese-language, personal project) deployed via GitHub Pages from the repo root. There is no package.json, bundler, test suite, or linter — the source files are the artifact.
+A static, no-build vanilla-JS site (Chinese-language, personal project). The primary deployment is EdgeOne Makers at `https://coderf.site` (custom domain, Git integration on `main`); GitHub Pages (`https://coderf1024.github.io/love-journey/`) is kept as a fallback. Both deploy the repo root from `main`. There is no package.json, bundler, test suite, or linter — the source files are the artifact.
 
 The product is a **恋爱空间**: one space, exactly two members (a user and a chef/admin). The kitchen only serves weekends, with reservations.
 
@@ -35,7 +35,7 @@ This repo is developed by **one human + one AI**, with several requirements able
 
 - No new build/test toolchain: no package.json, Playwright, lint, or bundler unless a new ADR explicitly approves it.
 - Manual gates: `node --check`, 320/390/1280 browser checks, console clean, and the task's `QA.md`.
-- `main` is the deploy branch; functional branches merge only after human acceptance.
+- `main` is the deploy branch; functional branches merge only after human acceptance. Pushing `main` triggers both EdgeOne Makers (primary, `https://coderf.site`) and GitHub Pages (fallback). EdgeOne's default project/deployment domain is preview-only in mainland China (3-hour link, 401 after expiry); use the custom domain for public access.
 - Follow [docs/runbooks/release.md](docs/runbooks/release.md) for cache-version bump, fonts, merge, and post-deploy smoke.
 - Read [docs/runbooks/oss-data.md](docs/runbooks/oss-data.md) before any OSS write. Read-only first; destructive/data-migration actions need explicit human approval.
 
@@ -223,6 +223,7 @@ The passcode gate opens a 管理端 shell: mobile bottom tabs 首页 / 订单 / 
 
 ## Gotchas
 
+- **Deployment**: primary is EdgeOne Makers at `https://coderf.site` (Git integration on `main`, Global-excluding-mainland acceleration, no ICP filing); GitHub Pages remains a fallback. EdgeOne's default `*.edgeone.dev` / `*.edgeone.cool` domain is not a public URL in mainland China — it requires a system preview link valid for 3 hours and returns 401 after expiry. `space.settings.links` points to `coderf.site`; Bark templates use `{userUrl}` / `{userOrderUrl}` / `{adminUrl}`. QR codes generated on GitHub Pages still point at github.io, so keep GitHub Pages until old codes are retired. See [docs/runbooks/edgeone.md](docs/runbooks/edgeone.md).
 - **Test DB safety**: `isTestEnv()` is based on the hostname, not a stored flag. Public hosts never select `db-test`. `dbRoot()` / `uploadsRoot()` are the only places that choose the prefix; do not hardcode `love-journey/uploads/` or `love-journey/db/` elsewhere. Test Bark is suppressed unless `?bark=on`; the clone script disables it in `space.json` too.
 - **City → province map**: `PROVINCE_OF` in `js/app.js` covers the names in `cityCoordinates`; a visited city outside that table has no map dot/province fill but still appears in the city grid. Same-province cities light one province; the color uses the earliest visit. Overseas cities are excluded by the built-in `OVERSEAS_CITY_NAMES` fallback until `cities.json` records get an `overseas` / `country` field.
 - **No transactions**: order + wallet are two documents. `placeOrder` rolls the order back if the wallet write fails; `cancelOrder` restores the previous order document if the refund write fails. There is still a small window if the second write fails and the rollback also fails. Do not add a third independent write to this flow without thinking it through. `serveOrder` writes the menu image set first, then the order; if the order write fails the photo may remain in the dish gallery (retry dedupes by URL). `approveDishRequest` writes the menu first, then the request; retries dedupe by `dish.sourceRequestId`.

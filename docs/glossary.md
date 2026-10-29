@@ -27,6 +27,14 @@
 - Web：经营（首页 / 订单 / 恋爱卡 / 恋爱币）、系统（系统设置 / 菜单 / 空间资料）
 - 「首页」在管理端仍然叫首页，不要和用户端的「我们」混用。
 
+## 部署
+
+| 名称 | 定义 |
+|---|---|
+| 主站 | `https://coderf.site`，EdgeOne Makers 托管，GitHub `main` 自动部署；公开访问一律用这个域名。 |
+| 备用站 | `https://coderf1024.github.io/love-journey/`，GitHub Pages；保留用于回退和旧二维码/书签。 |
+| 默认项目域名 | EdgeOne 分配的 `*.edgeone.dev` / `*.edgeone.cool`；中国大陆网络只能用 3 小时预览链接访问，不作为公开入口。 |
+
 ## 订单与饭点
 
 | 名称 | 定义 |

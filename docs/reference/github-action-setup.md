@@ -49,7 +49,7 @@ scripts/auto-gift-massage.js             # 自动赠送按摩卡的 Node.js 脚�
 
 ## 注意事项
 
-1. **不影响 GitHub Pages 部署**：此 Action 只操作 OSS 数据，不会修改仓库文件或影响 Pages 部署
+1. **不影响站点部署**：此 Action 只操作 OSS 数据，不会修改仓库文件，也不会影响 EdgeOne 主站或 GitHub Pages 备用部署
 2. **安全性**：所有敏感信息都存储在 GitHub Secrets 中，不会暴露在代码里
 3. **日志查看**：每次执行后可以在 Actions 页面查看详细日志
 

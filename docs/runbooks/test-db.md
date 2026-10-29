@@ -20,7 +20,7 @@ open 'http://localhost:8888/index.html?env=prod'
 判定规则：
 
 - `localhost` / `127.0.0.1` / `::1` / `192.168.*` / `10.*` / `172.16-31.*` → 测试库；
-- 其他域名（包括 GitHub Pages）→ 生产库，**`?env=test` 也不会切到测试库**；
+- 其他域名（包括 `coderf.site`、GitHub Pages）→ 生产库，**`?env=test` 也不会切到测试库**；
 - 本地 `?env=prod` → 生产库；
 - 查询参数会在 tab 切换时保留；
 - 本地测试库显示「测试库」角标；本地 `?env=prod` 显示「线上库」角标；线上域名不显示角标。

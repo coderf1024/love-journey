@@ -9,5 +9,6 @@
 | [ADR-0003](./ADR-0003-bark-client-side.md) | Bark 客户端发送，无 cron，模板可配 | 已采纳 |
 | [ADR-0004](./ADR-0004-manual-qa.md) | 不新增构建/测试工具链，手动验收 | 已采纳 |
 | [ADR-0005](./ADR-0005-branch-only-workflow.md) | 只建分支，不使用 worktree | 已采纳 |
+| [ADR-0006](./ADR-0006-edgeone-primary-hosting.md) | EdgeOne Makers 主站 + GitHub Pages 备用 | 已采纳 |
 
 模板：[`_template.md`](./_template.md)

@@ -35,6 +35,9 @@
 
 ### Changed
 
+- 部署迁移：主站改为 EdgeOne Makers `https://coderf.site`（GitHub `main` 自动部署，全球（不含中国大陆）加速，无需备案）；GitHub Pages（`https://coderf1024.github.io/love-journey/`）保留为备用。EdgeOne 默认项目域名在大陆只能 3 小时预览，不作为公开入口。
+- 线上 `space.settings.links` 已切到 `coderf.site`，Bark 深链和管理端跳转随之更新；测试库 `db-test/space.json` 的 links 也已同步；旧二维码仍指向 GitHub Pages。
+- 文档：新增 EdgeOne 运维手册和 ADR-0006，发布手册改为双站部署检查。
 - 本地预览默认连接测试库；需要看线上数据时使用 `?env=prod`，tab 切换会保留该参数；本地测试库显示「测试库」角标，本地 `?env=prod` 显示「线上库」角标。测试环境默认跳过 Bark（`?bark=on` 才发），避免验收通知真实账号。
 - 首页地图不再渲染未访问城市的灰点；省份 tooltip 显示该省去过的城市；城市点仍是城市维度。
 - 字体子集按新文案重建，缓存 token 更新为 `20261028-02`。

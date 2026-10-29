@@ -85,6 +85,6 @@ const OSS_CONFIG = {
 - 对于生产环境，建议使用后端代理来处理 OSS 操作
 - 不要将加密后的配置分享给他人
 
-## 部署到 GitHub Pages
+## 部署
 
-加密后的配置可以安全地提交到 GitHub，不会被安全扫描检测到敏感信息。
+线上主站为 EdgeOne Makers（`https://coderf.site`），GitHub Pages（`https://coderf1024.github.io/love-journey/`）作为备用；两套都直接托管仓库根目录。加密后的配置可以安全地提交到 GitHub，不会被安全扫描检测到敏感信息。部署细节见 [EdgeOne 运维手册](../runbooks/edgeone.md)。

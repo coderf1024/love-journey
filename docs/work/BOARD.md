@@ -26,6 +26,7 @@
 | LJ-20261029-002 | 新增去过的城市：大理、丽江、郑州、开封（测试库 + 线上库） | done | `feat/LJ-20261029-002-visit-cities` | 已合并 main（`f77a17f`），发布 token `20261029-04` | 人 |
 | LJ-20261028-016 | 首页地图省份点亮 + 独立测试库 | done | `feat/LJ-20261028-016-map-province-lighting` | 已随 002 合并 main（`f77a17f`），发布 token `20261029-04` | 人 |
 | LJ-20261028-015 | 管理端关闭浏览器后免重新登录（localStorage + 7 天滑动、首屏不闪登录页） | done | `261028_space_fix`（已合入 main `434abfe`） | 已发布，线上 smoke 待复核 | 人 |
+| LJ-20261029-003 | 部署迁移：EdgeOne 主站 + GitHub Pages 备用（文档） | in-review | `chore/LJ-20261029-003-deploy-edgeone` | 人工确认文档后合并 main | 人 |
 
 ## 状态说明
 

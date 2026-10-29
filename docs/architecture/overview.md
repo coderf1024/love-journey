@@ -2,7 +2,7 @@
 
 ## 产品与运行时
 
-- 无后端、无构建步骤，部署在 GitHub Pages 的仓库根目录。
+- 无后端、无构建步骤；主站部署在 EdgeOne Makers（`https://coderf.site`，GitHub `main` 自动部署），GitHub Pages 作为备用，两套都直接托管仓库根目录。
 - 三个入口：
   - `index.html`：用户端（我们 / 小灶 / 恋爱卡 / 空间）
   - `admin.html`：管理端（首页 / 订单 / 恋爱卡 / 系统）
@@ -50,7 +50,12 @@
 
 - `main` 是线上部署分支；功能分支直接在主工作目录开发（不使用 worktree），人工验收后合并。
 - 没有 CI 构建；页面上线即静态文件。
+- 推送 `main` 会同时触发：
+  - **EdgeOne Makers 主站**（`https://coderf.site`）：Git 集成、自定义域名、全球（不含中国大陆）加速区，无需 ICP 备案；
+  - **GitHub Pages 备用**（`https://coderf1024.github.io/love-journey/`）。
+- EdgeOne 的默认项目/部署域名在中国大陆网络只能使用 3 小时预览链接（过期 401），不作为公开入口；公开访问只使用 `coderf.site`。
 - 每次修改 JS/CSS/字体/音频都要 bump 缓存版本，详见 [发布手册](../runbooks/release.md)。
+- EdgeOne 绑定、验证和排障见 [EdgeOne 运维手册](../runbooks/edgeone.md)。
 
 ## 约束
 

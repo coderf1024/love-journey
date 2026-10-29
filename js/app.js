@@ -13,11 +13,11 @@ let lastCityColumns = 0;
 
 // Self-hosted: cdn.jsdelivr.net is unreliable in WeChat / mainland mobile networks.
 const LIBS = {
-    echarts: 'assets/vendor/echarts.min.js?v=20261029-03',
-    qrcode: 'assets/vendor/qrcode.min.js?v=20261029-03'
+    echarts: 'assets/vendor/echarts.min.js?v=20261029-04',
+    qrcode: 'assets/vendor/qrcode.min.js?v=20261029-04'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261029-03';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261029-04';
 const MINUTE = 60 * 1000;
 const ORDER_POLL_MS = 20 * 1000;
 const KITCHEN_STEPS = ['下单', '接单', '备菜', '制作', '出餐'];
@@ -241,7 +241,7 @@ function renderOverseasStamp() {
     const parts = String(city.date || '').split('-');
     const month = parts.length >= 2 ? `${parts[0]}.${parts[1]}` : formatDate(city.date);
     stamp.hidden = false;
-    stamp.innerHTML = `<span class="stamp-top">境外 · ${escapeHTML(month)}</span>`
+    stamp.innerHTML = `<span class="stamp-top">${escapeHTML(month)}</span>`
         + `<span class="stamp-name">${cleanText(city.name)}</span>`
         + `<span class="stamp-foot">✈ ${cleanText(city.country || OVERSEAS_COUNTRIES[city.name] || '境外')}</span>`;
     stamp.setAttribute('aria-label', `境外足迹：${city.name}，${formatDate(city.date)}`);

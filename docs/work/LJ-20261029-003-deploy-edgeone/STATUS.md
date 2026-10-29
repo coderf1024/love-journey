@@ -1,8 +1,8 @@
 # LJ-20261029-003 · 状态
 
-- 状态：in-review
+- 状态：done
 - 分支：`chore/LJ-20261029-003-deploy-edgeone`
-- 最后更新：2026-10-29 18:03
+- 最后更新：2026-10-29 21:06
 - 当前负责人：AI / 人
 
 ## 已完成
@@ -15,11 +15,11 @@
 - 更新 README、CLAUDE.md、架构总览、发布手册、OSS 配置、Action 参考、测试库说明、术语表、CHANGELOG、BOARD。
 - 新增 `docs/runbooks/edgeone.md`、`docs/decisions/ADR-0006-edgeone-primary-hosting.md`。
 - 完成任务文档。
+- 2026-10-29 合并 `main` 并推送；文档任务完成。
 
 ## 未完成 / 下一步
 
-1. 人工确认文档措辞和“主站/备用”定位。
-2. 合并 `main` 后按发布手册做一次双站 smoke。
+1. 无；双站 smoke 由人按发布手册复核。
 
 ## 阻塞
 

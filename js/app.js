@@ -9,14 +9,15 @@ let timerInterval = null;
 let myChart = null;
 let mapFocusToken = 0;
 let focusedCityName = '';
+let lastCityColumns = 0;
 
 // Self-hosted: cdn.jsdelivr.net is unreliable in WeChat / mainland mobile networks.
 const LIBS = {
-    echarts: 'assets/vendor/echarts.min.js?v=20261028-10',
-    qrcode: 'assets/vendor/qrcode.min.js?v=20261028-10'
+    echarts: 'assets/vendor/echarts.min.js?v=20261029-02',
+    qrcode: 'assets/vendor/qrcode.min.js?v=20261029-02'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261028-10';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261029-02';
 const MINUTE = 60 * 1000;
 const ORDER_POLL_MS = 20 * 1000;
 const KITCHEN_STEPS = ['下单', '接单', '备菜', '制作', '出餐'];
@@ -929,6 +930,12 @@ function visitedCities() {
     return Array.isArray(state.cities) ? state.cities.slice() : [];
 }
 
+function cityColumns() {
+    if (window.innerWidth <= 360) return 2;
+    if (window.innerWidth >= 820) return 4;
+    return 3;
+}
+
 function renderCityChips() {
     const container = $('city-chips');
     const badge = $('city-count');
@@ -936,16 +943,26 @@ function renderCityChips() {
     if (!container) return;
 
     const cities = visitedCities().slice().sort((a, b) => cityTime(b.date) - cityTime(a.date));
+    const columns = cityColumns();
+    lastCityColumns = columns;
+    const pageSize = columns * 2;
+    const pages = [];
+    for (let index = 0; index < cities.length; index += pageSize) {
+        pages.push(cities.slice(index, index + pageSize));
+    }
 
-    container.innerHTML = cities.map(city => {
-        const abroad = isOverseasCity(city);
-        const mark = abroad ? '<span class="city-cell-mark" aria-hidden="true">✈</span>' : '';
-        const label = abroad ? `查看境外足迹：${city.name}` : `在地图上查看：${city.name}`;
-        return `<button type="button" class="city-cell${abroad ? ' is-overseas' : ''}" data-city="${escapeHTML(city.name)}" title="${escapeHTML(city.name)} · ${escapeHTML(formatDate(city.date))}" aria-label="${escapeHTML(label)}">`
-            + mark
-            + `<b>${cleanText(city.name)}</b>`
-            + `<span>${escapeHTML(shortCityDate(city.date))}</span>`
-            + '</button>';
+    container.innerHTML = pages.map(page => {
+        const cells = page.map(city => {
+            const abroad = isOverseasCity(city);
+            const mark = abroad ? '<span class="city-cell-mark" aria-hidden="true">✈</span>' : '';
+            const label = abroad ? `查看境外足迹：${city.name}` : `在地图上查看：${city.name}`;
+            return `<button type="button" class="city-cell${abroad ? ' is-overseas' : ''}" data-city="${escapeHTML(city.name)}" title="${escapeHTML(city.name)} · ${escapeHTML(formatDate(city.date))}" aria-label="${escapeHTML(label)}">`
+                + mark
+                + `<b>${cleanText(city.name)}</b>`
+                + `<span>${escapeHTML(shortCityDate(city.date))}</span>`
+                + '</button>';
+        }).join('');
+        return `<div class="city-page" style="grid-template-columns:repeat(${columns},minmax(0,1fr))">${cells}</div>`;
     }).join('');
 
     Array.prototype.forEach.call(container.querySelectorAll('.city-cell'), cell => {
@@ -953,11 +970,15 @@ function renderCityChips() {
     });
 
     if (badge) badge.textContent = `${cities.length} 座城市`;
-    if (sub) sub.textContent = '最近在前';
+    if (sub) sub.textContent = '最近在前 · 左右滑动';
 
     renderOverseasStamp();
     updateMapAria();
 }
+
+window.addEventListener('resize', () => {
+    if (cityColumns() !== lastCityColumns) renderCityChips();
+});
 
 /* ---------- map ---------- */
 
@@ -1092,7 +1113,7 @@ function buildMapOption() {
         geo: {
             map: 'china',
             roam: state.mapRoam,
-            zoom: 1.2,
+            zoom: 1.3,
             center: [104, 36],
             regions,
             label: { show: false },

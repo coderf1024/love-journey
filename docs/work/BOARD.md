@@ -22,6 +22,7 @@
 | LJ-20261027-012 | 菜名字体子集覆盖线上菜品、管理端用户密钥改明文 | done | `fix/LJ-20261027-012-font-subset-and-bark-key` | 已发布（2026-10-27），线上 smoke 通过 | 人 |
 | LJ-20261027-013 | 用户侧 Bark 模板精简并改为正式口吻 | done | `fix/LJ-20261027-013-bark-user-templates`（已合入 main） | 已发布；线上保留既有的「宝宝」自定义模板（人确认），代码默认值仅作兜底 | 人 |
 | LJ-20261027-014 | 自托管 ECharts / qrcodejs，修复微信内地图打不开 | accepted | `fix/LJ-20261027-014-self-host-echarts-qrcode`（已合入 main） | 已发布 `2cacde9`，待微信真机复测 | 人 |
+| LJ-20261029-001 | 城市列表两行横向滚动 + 地图高度 | accepted | `feat/LJ-20261029-001-city-list-scroll` | 人工验收通过并提交；按发布策略保留分支，暂不合并 main | 人 |
 | LJ-20261028-016 | 首页地图省份点亮 + 独立测试库 | accepted | `feat/LJ-20261028-016-map-province-lighting` | 人工验收通过；保留功能分支，暂不合并 main | 人 |
 | LJ-20261028-015 | 管理端关闭浏览器后免重新登录（localStorage + 7 天滑动、首屏不闪登录页） | done | `261028_space_fix`（已合入 main `434abfe`） | 已发布，线上 smoke 待复核 | 人 |
 

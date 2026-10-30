@@ -13,11 +13,11 @@ let lastCityColumns = 0;
 
 // Self-hosted: cdn.jsdelivr.net is unreliable in WeChat / mainland mobile networks.
 const LIBS = {
-    echarts: 'assets/vendor/echarts.min.js?v=20261029-04',
-    qrcode: 'assets/vendor/qrcode.min.js?v=20261029-04'
+    echarts: 'assets/vendor/echarts.min.js?v=20261030-01',
+    qrcode: 'assets/vendor/qrcode.min.js?v=20261030-01'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261029-04';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261030-01';
 const MINUTE = 60 * 1000;
 const ORDER_POLL_MS = 20 * 1000;
 const KITCHEN_STEPS = ['下单', '接单', '备菜', '制作', '出餐'];
@@ -693,9 +693,12 @@ function memoryCoverHTML(milestone, index, large) {
     const year = dateYear(milestone.date);
     const variant = `v${index % 4}`;
     const motif = MOTIFS[index % MOTIFS.length];
+    const image = String(milestone.image || '').trim();
+    const hasImage = !!image;
     return {
-        className: `memory-cover ${variant}`,
+        className: `memory-cover ${variant}${hasImage ? ' has-image' : ''}`,
         html: `
+            ${hasImage ? `<img class="memory-cover-img" src="${escapeHTML(image)}" alt="" loading="${large ? 'eager' : 'lazy'}" decoding="async" onerror="this.onerror=null;this.style.display='none';this.parentElement.classList.remove('has-image')">` : ''}
             <div class="memory-cover-text">
                 <span class="memory-year">${escapeHTML(year)}</span>
                 <span class="memory-motif" aria-hidden="true">${motif}</span>

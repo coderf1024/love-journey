@@ -50,7 +50,7 @@ grep -rn "20261025-" --include="*.html" --include="*.js" --include="*.css" --inc
 ./scripts/build-fonts.sh
 ```
 
-确认新字形存在，再把字体 URL 的版本 token 更新到本次发布版本。
+确认新字形存在，再把字体 URL 的版本 token 更新到本次发布版本。改了地图源数据时先 `node scripts/build-map.js`，再 bump `MAP_SRC`。
 
 ## 合并与部署
 

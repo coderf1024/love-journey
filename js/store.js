@@ -484,39 +484,122 @@ async function getCoupon(id) {
     }
 }
 
-async function loadAppData() {
+/* ---------- first-paint cache ----------
+   The public site is a two-person space opened many times a day. Keeping the
+   last successful read lets the page paint the timer, memories and balances
+   before any OSS round trip; the network revalidates in the background.
+   The key includes dbRoot() so the test DB and production never mix.
+   ---------------------------------------------------------------- */
+const APP_CACHE_VERSION = 1;
+const APP_CACHE_PREFIX = 'lj-app-data';
+
+function appCacheStorageKey() {
+    return `${APP_CACHE_PREFIX}:${dbRoot()}`;
+}
+
+function readAppDataCache() {
+    try {
+        const raw = localStorage.getItem(appCacheStorageKey());
+        if (!raw) return null;
+        const cached = JSON.parse(raw);
+        if (!cached || cached.version !== APP_CACHE_VERSION || !cached.data) return null;
+        return cached.data;
+    } catch (error) {
+        return null;
+    }
+}
+
+function writeAppDataCache(data) {
+    try {
+        localStorage.setItem(appCacheStorageKey(), JSON.stringify({
+            version: APP_CACHE_VERSION,
+            savedAt: Date.now(),
+            data
+        }));
+    } catch (error) {
+        // Quota or private mode: the cache is best-effort.
+    }
+}
+
+const APP_DATA_FIELDS = [
+    'space', 'story', 'milestones', 'goals', 'cities', 'menu', 'wallet', 'orders', 'coupons'
+];
+
+async function loadAppData(options = {}) {
     ensureStorage();
 
-    const [space, story, milestonesDoc, goalsDoc, citiesDoc, menu, wallet, orders, coupons] =
-        await Promise.all([
-            dbGetOrNull(SPACE_PATH),
-            dbGetOrNull(STORY_PATH),
-            dbGetOrNull(MILESTONES_PATH),
-            dbGetOrNull(GOALS_PATH),
-            dbGetOrNull(CITIES_PATH),
-            dbGetOrNull(MENU_PATH),
-            dbGetOrNull(WALLET_PATH),
-            orderCollection.list(),
-            couponCollection.list()
-        ]);
+    const requests = [
+        dbGetOrNull(SPACE_PATH),
+        dbGetOrNull(STORY_PATH),
+        dbGetOrNull(MILESTONES_PATH),
+        dbGetOrNull(GOALS_PATH),
+        dbGetOrNull(CITIES_PATH),
+        dbGetOrNull(MENU_PATH),
+        dbGetOrNull(WALLET_PATH),
+        orderCollection.list(),
+        couponCollection.list()
+    ];
+    const results = await Promise.allSettled(requests);
 
-    if (!space) {
+    const value = index => {
+        const result = results[index];
+        if (result.status === 'fulfilled') return result.value;
+        console.warn('读取失败:', result.reason);
+        return null;
+    };
+    const failed = results
+        .map((result, index) => result.status === 'rejected' ? index : -1)
+        .filter(index => index >= 0);
+    const failedFields = failed.map(index => APP_DATA_FIELDS[index]);
+    const cached = options.mergeCache ? readAppDataCache() : null;
+    const cachedField = field => (cached && cached[field] != null ? cached[field] : undefined);
+
+    // A failed read keeps the last known good value when we have one. A
+    // transient blip should not blank the page or show 0 coins. Without a
+    // cached value, space / menu are still required to start.
+    const unresolved = failedFields.filter(field =>
+        (field === 'space' || field === 'menu') && cachedField(field) === undefined
+    );
+    if (unresolved.length) {
+        throw results[APP_DATA_FIELDS.indexOf(unresolved[0])].reason;
+    }
+
+    const [space, story, milestonesDoc, goalsDoc, citiesDoc, menu, wallet, orders, coupons] =
+        results.map((result, index) => value(index));
+
+    const pick = (field, fresh, empty) => {
+        if (!failedFields.includes(field)) return fresh == null ? empty : fresh;
+        const cachedValue = cachedField(field);
+        return cachedValue === undefined ? empty : cachedValue;
+    };
+
+    const resolvedSpace = pick('space', space, null);
+    if (!resolvedSpace) {
         throw new Error(typeof isTestEnv === 'function' && isTestEnv()
             ? '测试库还没有数据，请先运行 scripts/clone-test-db.js'
             : '恋爱空间还没有初始化，请先运行 scripts/migrate-storage.js');
     }
 
-    return {
-        space,
-        story: story || {},
-        milestones: (milestonesDoc && milestonesDoc.items) || [],
-        goals: (goalsDoc && goalsDoc.items) || [],
-        cities: (citiesDoc && citiesDoc.items) || [],
-        menu: normalizeMenu(menu),
-        wallet: normalizeWallet(wallet),
-        orders,
-        coupons
+    const resolvedOrders = pick('orders', orders, []);
+    const resolvedCoupons = pick('coupons', coupons, []);
+
+    const data = {
+        space: resolvedSpace,
+        story: pick('story', story, {}),
+        milestones: pick('milestones', milestonesDoc && milestonesDoc.items, []),
+        goals: pick('goals', goalsDoc && goalsDoc.items, []),
+        cities: pick('cities', citiesDoc && citiesDoc.items, []),
+        menu: normalizeMenu(pick('menu', menu, null)),
+        wallet: normalizeWallet(pick('wallet', wallet, null)),
+        orders: Array.isArray(resolvedOrders) ? resolvedOrders : [],
+        coupons: Array.isArray(resolvedCoupons) ? resolvedCoupons : []
     };
+
+    // Only a complete read replaces the snapshot. A merged read keeps the
+    // previous cache intact and tells the page which fields are old.
+    if (failedFields.length) data.stale = failedFields;
+    else writeAppDataCache(data);
+    return data;
 }
 
 async function refreshOrderData() {

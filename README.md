@@ -111,10 +111,12 @@ love-journey/
 │   ├── update-schedule-menu.js # 周末预约 / 菜单图片 / 旧订单清理
 │   ├── menu-seed.js    # 14 道示例菜 + 两个分类
 │   ├── serving-seed.js # 周末饭点配置
-│   └── build-fonts.sh   # 副本/内容变化后重建字体子集
+│   ├── build-map.js    # 生成首页用的简化地图 GeoJSON
+│   └── build-fonts.sh   # 文案/内容变化后重建字体子集
 ├── assets/              # 资源文件
-│   ├── data/           # 数据文件
-│   │   └── china-map.json  # 地图数据
+│   ├── data/
+│   │   ├── china-map.json             # 全量地图源数据（构建用）
+│   │   └── china-map.simplified.json  # 首页实际加载的简化地图
 │   ├── fonts/          # 自托管中文显示字体（子集）
 │   ├── media/          # 媒体文件
 │   │   ├── xiaomeiman.mp3  # 背景音乐（96kbps，默认不加载）

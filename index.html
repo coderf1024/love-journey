@@ -14,9 +14,10 @@
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="assets/icon-180.png">
     <link rel="manifest" href="manifest.webmanifest">
-    <link rel="preconnect" href="https://gosspublic.alicdn.com" crossorigin>
-    <link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261029-04" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/style.css?v=20261029-04">
+    <link rel="preconnect" href="https://love-config.oss-cn-beijing.aliyuncs.com" crossorigin>
+    <link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261030-01" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261030-01" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="css/style.css?v=20261030-01">
 </head>
 <body>
     <header class="app-header" id="app-header">
@@ -53,7 +54,7 @@
                         <span class="timer-since" id="timer-since">2020.12.20</span>
                     </div>
                     <div class="timer-main">
-                        <span class="timer-days" id="days">0</span>
+                        <span class="timer-days" id="days" data-start="2020-12-20">0</span>
                         <span class="timer-days-unit">天</span>
                     </div>
                     <div class="timer-sub">
@@ -63,6 +64,18 @@
                     </div>
                 </div>
             </div>
+
+            <script>
+                // Paint the day count before the app scripts load. js/app.js
+                // re-renders it from the live story date once data arrives.
+                (function () {
+                    var el = document.getElementById('days');
+                    if (!el) return;
+                    var start = new Date(String(el.getAttribute('data-start') || '').replace(/-/g, '/'));
+                    if (isNaN(start.getTime())) return;
+                    el.textContent = Math.max(0, Math.floor((Date.now() - start.getTime()) / 86400000));
+                })();
+            </script>
 
             <button class="dinner-card" id="dinner-card" type="button" aria-labelledby="dinner-title">
                 <span class="dinner-body">
@@ -456,11 +469,10 @@
 
     <audio id="bg-music" loop playsinline preload="none"></audio>
 
-    <script src="https://gosspublic.alicdn.com/aliyun-oss-sdk-6.18.0.min.js"></script>
-    <script src="js/oss-config.js?v=20261029-04"></script>
-    <script src="js/crypto-utils.js?v=20261029-04"></script>
-    <script src="js/oss-utils.js?v=20261029-04"></script>
-    <script src="js/store.js?v=20261029-04"></script>
-    <script src="js/app.js?v=20261029-04"></script>
+    <script src="js/oss-config.js?v=20261030-01"></script>
+    <script src="js/crypto-utils.js?v=20261030-01"></script>
+    <script src="js/oss-utils.js?v=20261030-01"></script>
+    <script src="js/store.js?v=20261030-01"></script>
+    <script src="js/app.js?v=20261030-01"></script>
 </body>
 </html>

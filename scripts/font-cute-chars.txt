@@ -1,0 +1,24 @@
+# --font-cute 实际会用到的文字
+#
+# css/style.css 里使用 var(--font-cute) 的位置：
+#   .brand-title       空间名（space.name）
+#   .hero-title        故事标题（story.title）
+#   .footer-script     把日子过成手帐
+#   .page-title        周末吃什么 / 恋爱卡 / 空间
+#   .coupon-empty span ♡
+#   .dinner-card::after 小灶
+#   .me-menu-icon      币 / 订 / 卡
+# admin.html：
+#   .login-card h1     管理端
+#   .view-head h1      订单 / 恋爱卡 / 系统 / 菜单 / 空间资料
+#   .home-greeting h1  下午好 + 空间成员名（space.members[].name）
+# use.html：
+#   .use-title         卡券标题（coupon.title）/ 已使用 / 恋爱卡
+#   .error-title       出错了
+#
+# 这里只放静态文案；space.name / space.members[].name / story.title /
+# coupon.title 由 build-fonts.sh 从线上文档读取，不需要手写。
+# 这个字体是装饰字体，缺字会回退到 Noto Serif，所以宁可少放。
+
+恋爱空间福福&老李老李把日子过成手帐周末吃什么恋爱卡空间小灶♡币订卡管理端下午好早上好中午好晚上好订单系统菜单空间资料已使用出错了
+，。！？、；：""''《》…—·（）【】「」『』～

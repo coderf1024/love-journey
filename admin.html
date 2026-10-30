@@ -4,24 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#fbf6ec">
-<link rel="preconnect" href="https://gosspublic.alicdn.com" crossorigin>
+<link rel="preconnect" href="https://love-config.oss-cn-beijing.aliyuncs.com" crossorigin>
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="管理端">
 <title>管理端 · 恋爱空间</title>
-<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261029-04" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261029-04" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261030-01" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261030-01" as="font" type="font/woff2" crossorigin>
 <style>
     @font-face {
         font-family: 'Ma Shan Zheng';
-        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261029-04') format('woff2');
+        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261030-01') format('woff2');
         font-weight: 400;
         font-style: normal;
         font-display: swap;
     }
     @font-face {
         font-family: 'Noto Serif SC';
-        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261029-04') format('woff2');
+        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261030-01') format('woff2');
         font-weight: 700;
         font-style: normal;
         font-display: swap;
@@ -87,7 +87,7 @@
         pointer-events: none;
     }
     body.admin-body::before {
-        background: url('assets/texture-noise.png?v=20261029-04') repeat;
+        background: url('assets/texture-noise.png?v=20261030-01') repeat;
         opacity: .06;
         mix-blend-mode: multiply;
     }
@@ -1169,11 +1169,10 @@
 
 <div class="admin-toast" id="message" role="status" aria-live="polite"></div>
 
-<script src="https://gosspublic.alicdn.com/aliyun-oss-sdk-6.18.0.min.js"></script>
-<script src="js/oss-config.js?v=20261029-04"></script>
-<script src="js/crypto-utils.js?v=20261029-04"></script>
-<script src="js/oss-utils.js?v=20261029-04"></script>
-<script src="js/store.js?v=20261029-04"></script>
+<script src="js/oss-config.js?v=20261030-01"></script>
+<script src="js/crypto-utils.js?v=20261030-01"></script>
+<script src="js/oss-utils.js?v=20261030-01"></script>
+<script src="js/store.js?v=20261030-01"></script>
 <script>
     const ORDER_LABEL = {
         pending: '待接单',
@@ -1519,6 +1518,7 @@
         $('admin-panel').hidden = false;
         $('login-error').style.display = 'none';
         await loadAdmin();
+        if (typeof warmOssSdk === 'function') warmOssSdk();
         // 数据就绪后再收起过渡加载态，避免先露出一个空面板
         document.documentElement.classList.remove('admin-session-boot');
         $('admin-boot').hidden = true;

@@ -6,7 +6,7 @@
 
 @font-face {
     font-family: 'Ma Shan Zheng';
-    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261029-04') format('woff2');
+    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261030-01') format('woff2');
     font-weight: 400;
     font-style: normal;
     font-display: swap;
@@ -14,7 +14,7 @@
 
 @font-face {
     font-family: 'Noto Serif SC';
-    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261029-04') format('woff2');
+    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261030-01') format('woff2');
     font-weight: 700;
     font-style: normal;
     font-display: swap;
@@ -90,7 +90,7 @@ body::after {
 }
 
 body::before {
-    background: url('../assets/texture-noise.png?v=20261029-04') repeat;
+    background: url('../assets/texture-noise.png?v=20261030-01') repeat;
     opacity: 0.06;
     mix-blend-mode: multiply;
 }
@@ -563,7 +563,7 @@ select:focus-visible {
     content: '';
     position: absolute;
     inset: 0;
-    background: url('../assets/texture-noise.png?v=20261029-04') repeat;
+    background: url('../assets/texture-noise.png?v=20261030-01') repeat;
     opacity: 0.1;
     mix-blend-mode: soft-light;
     pointer-events: none;

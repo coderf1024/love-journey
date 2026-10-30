@@ -33,10 +33,7 @@ function isTestEnv() {
 }
 
 function initOSS() {
-    if (typeof OSS === 'undefined') {
-        console.error('OSS SDK 未加载');
-        return false;
-    }
+    if (typeof OSS === 'undefined') return false;
 
     if (!ossClient) {
         ossClient = new OSS({
@@ -48,6 +45,78 @@ function initOSS() {
     }
 
     return true;
+}
+
+/* ---------- read path: plain fetch, no SDK, no preflight ----------
+   The bucket is public-read (anonymous GET is allowed and returns
+   Access-Control-Allow-Origin: *). Reading with a plain fetch keeps the
+   request a CORS "simple request", so the browser skips the OPTIONS
+   preflight. The OSS SDK signs reads with an Authorization header, and the
+   bucket answers preflights with Access-Control-Max-Age: 0 — so every
+   signed read used to cost an extra round trip that was never cached.
+   Writes still use the SDK, loaded on demand.
+   ---------------------------------------------------------------- */
+function ossEndpoint() {
+    return `https://${OSS_CONFIG.bucket}.${OSS_CONFIG.region}.aliyuncs.com`;
+}
+
+function publicObjectUrl(key) {
+    return `${ossEndpoint()}/${String(key).replace(/^\/+/, '')}`;
+}
+
+const OSS_SDK_URL = 'assets/vendor/aliyun-oss-sdk-6.18.0.min.js?v=20261030-01';
+let ossSdkPromise = null;
+
+function loadOssSdk() {
+    if (typeof OSS !== 'undefined') return Promise.resolve();
+    if (!ossSdkPromise) {
+        ossSdkPromise = new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = OSS_SDK_URL;
+            script.async = true;
+            script.onload = () => {
+                if (typeof OSS === 'undefined') {
+                    ossSdkPromise = null;
+                    reject(new Error('OSS SDK 未加载'));
+                    return;
+                }
+                resolve();
+            };
+            script.onerror = () => {
+                ossSdkPromise = null;
+                reject(new Error('OSS SDK 加载失败，检查一下网络'));
+            };
+            document.head.appendChild(script);
+        });
+    }
+    return ossSdkPromise;
+}
+
+async function ensureOSS() {
+    if (!ossClient) {
+        await loadOssSdk();
+        initOSS();
+    }
+    if (!ossClient) throw new Error('OSS 初始化失败');
+    return ossClient;
+}
+
+/**
+ * Start loading the write SDK while the user is likely to write soon.
+ * Called when the kitchen/order page opens, after admin login, and after a
+ * coupon renders — never on the home page. The first write then does not pay
+ * for the 1.17MB download/parse. Failures are ignored; ensureOSS() retries.
+ */
+function warmOssSdk() {
+    if (typeof OSS !== 'undefined') return;
+    const start = () => {
+        loadOssSdk().catch(() => {});
+    };
+    if (typeof requestIdleCallback === 'function') {
+        requestIdleCallback(start, { timeout: 2500 });
+    } else {
+        setTimeout(start, 800);
+    }
 }
 
 function dbRoot() {
@@ -72,10 +141,44 @@ function isNotFound(error) {
     return !!error && (error.code === 'NoSuchKey' || error.status === 404);
 }
 
+const DB_READ_TIMEOUT_MS = 12000;
+
 async function dbGet(path) {
-    if (!initOSS()) throw new Error('OSS 初始化失败');
-    const result = await ossClient.get(dbFullPath(path));
-    return JSON.parse(result.content.toString());
+    const controller = typeof AbortController === 'function' ? new AbortController() : null;
+    const timer = controller ? setTimeout(() => controller.abort(), DB_READ_TIMEOUT_MS) : null;
+    let response;
+    try {
+        response = await fetch(publicObjectUrl(dbFullPath(path)), {
+            cache: 'no-cache',
+            signal: controller ? controller.signal : undefined
+        });
+    } catch (error) {
+        if (error && error.name === 'AbortError') {
+            const timeout = new Error('读取超时，检查一下网络');
+            timeout.code = 'Timeout';
+            throw timeout;
+        }
+        throw error;
+    } finally {
+        if (timer) clearTimeout(timer);
+    }
+
+    if (response.status === 404) {
+        const missing = new Error('NotFound');
+        missing.status = 404;
+        missing.code = 'NoSuchKey';
+        throw missing;
+    }
+    if (!response.ok) {
+        const failed = new Error(`读取失败（${response.status}）`);
+        failed.status = response.status;
+        throw failed;
+    }
+    try {
+        return await response.json();
+    } catch (error) {
+        throw new Error('数据格式不对，刷新一下试试');
+    }
 }
 
 async function dbGetOrNull(path) {
@@ -88,7 +191,7 @@ async function dbGetOrNull(path) {
 }
 
 async function dbPut(path, data) {
-    if (!initOSS()) throw new Error('OSS 初始化失败');
+    await ensureOSS();
     const content = JSON.stringify(data, null, 2);
     const blob = new Blob([content], { type: 'application/json' });
     await ossClient.put(dbFullPath(path), blob);
@@ -96,14 +199,14 @@ async function dbPut(path, data) {
 }
 
 async function dbDelete(path) {
-    if (!initOSS()) throw new Error('OSS 初始化失败');
+    await ensureOSS();
     // The bucket's browser CORS rule allows GET/POST/PUT but not DELETE.
     // OSS's multi-object delete uses POST ?delete, so use that for a single key.
     await ossClient.deleteMulti([dbFullPath(path)]);
 }
 
 async function dbList(prefix) {
-    if (!initOSS()) throw new Error('OSS 初始化失败');
+    await ensureOSS();
     const keys = [];
     let marker;
     do {
@@ -307,7 +410,7 @@ async function compressDishImage(file) {
  * @returns {Promise<string>} https://<bucket>.<region>.aliyuncs.com/<key>
  */
 async function uploadBucketImage(file, prefix) {
-    if (!initOSS()) throw new Error('OSS 初始化失败，请检查网络后重试');
+    await ensureOSS();
     if (!file) throw new Error('请选择一张照片');
 
     const type = String(file.type || '').toLowerCase();

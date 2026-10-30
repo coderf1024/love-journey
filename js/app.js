@@ -13,11 +13,21 @@ let lastCityColumns = 0;
 
 // Self-hosted: cdn.jsdelivr.net is unreliable in WeChat / mainland mobile networks.
 const LIBS = {
-    echarts: 'assets/vendor/echarts.min.js?v=20261029-04',
-    qrcode: 'assets/vendor/qrcode.min.js?v=20261029-04'
+    echarts: 'assets/vendor/echarts.min.js?v=20261030-01',
+    qrcode: 'assets/vendor/qrcode.min.js?v=20261030-01'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261029-04';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261030-01';
+const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261030-01';
+// First-paint fallback only. The live story document always wins once it loads.
+const LOVE_START_FALLBACK = '2020-12-20';
+
+function fallbackStartDate() {
+    const el = $('days');
+    const value = el && el.dataset ? el.dataset.start : '';
+    return value || LOVE_START_FALLBACK;
+}
+
 const MINUTE = 60 * 1000;
 const ORDER_POLL_MS = 20 * 1000;
 const KITCHEN_STEPS = ['下单', '接单', '备菜', '制作', '出餐'];
@@ -356,10 +366,11 @@ const state = {
     confirmResolver: null,
     memoryIndex: -1,
     lastLoadedAt: 0,
+    dataLoaded: false,
     refreshing: false,
     wishUploading: false,
     mapRoam: false,
-    mapStatus: 'idle', // idle | loading | ready | error
+    mapStatus: 'idle', // idle | observing | loading | ready | error
     openSheets: [],
     toastTimer: null
 };
@@ -449,19 +460,51 @@ async function loadConfig() {
 
 async function bootstrap() {
     const errorCard = $('boot-error');
+    let paintedFromCache = false;
     try {
         if (typeof loadAppData !== 'function') {
             throw new Error('页面脚本版本不一致，请强制刷新一下：电脑按 Ctrl/Cmd + Shift + R，手机请关闭页面重新打开。');
         }
+
+        // The timer only needs a local date. Paint it before any network
+        // wait, even on the very first visit with no cache.
+        renderLoveStory();
+        tickLoveTime();
+
+        // Paint the last successful read before touching the network. The
+        // timer, memories and balances are visible immediately; the refresh
+        // below corrects them a moment later.
+        const cached = typeof readAppDataCache === 'function' ? readAppDataCache() : null;
+        if (cached) {
+            applyAppData(cached);
+            applyOrderDeepLink();
+            paintedFromCache = true;
+            renderAll({ fromCache: true });
+        }
+
         if (errorCard) errorCard.hidden = true;
-        const data = await loadAppData();
+        const data = await loadAppData({ mergeCache: true });
         applyAppData(data);
         applyOrderDeepLink();
         await refreshSelectedOrder();
         state.lastLoadedAt = Date.now();
+        state.dataLoaded = true;
         renderAll();
+        if (data.stale && data.stale.length) {
+            toast(paintedFromCache ? '部分数据没更新，先显示上次的' : '部分数据没加载出来，稍后再试');
+        }
     } catch (error) {
         console.error('加载恋爱空间失败:', error);
+
+        // A cached render already painted the page; keep it usable instead of
+        // covering it with the boot error card.
+        if (paintedFromCache) {
+            state.dataLoaded = true;
+            observeMap();
+            toast('网络不太稳，先显示上次的内容');
+            return;
+        }
+
         if (errorCard) {
             errorCard.hidden = false;
             const message = $('boot-error-message');
@@ -560,10 +603,15 @@ function applyOrderDeepLink() {
     }
 }
 
-function renderAll() {
+function renderAll(options = {}) {
     renderDashboard();
     startTimer();
-    observeMap();
+    if (!options.fromCache) {
+        observeMap();
+        // Deep links can land directly on 小灶. Warm the write SDK only
+        // after the first data read, so it never competes with it.
+        if (state.page === 'order' && typeof warmOssSdk === 'function') warmOssSdk();
+    }
 }
 
 function renderDashboard() {
@@ -571,14 +619,18 @@ function renderDashboard() {
     renderLoveStory();
     tickLoveTime();
     renderMilestones();
-    renderTimeline();
     renderGoals();
     renderCityChips();
-    renderCoupons();
     renderWalletUI();
     renderDinnerCard();
-    renderOrderPage();
-    renderMePage();
+
+    // Inactive tabs render on first visit (switchPage); the timeline sheet
+    // renders when it opens. Rendering all four tabs on boot built hundreds
+    // of hidden nodes before the first frame.
+    if (state.page === 'order') renderOrderPage();
+    else if (state.page === 'coupons') renderCoupons();
+    else if (state.page === 'me') renderMePage();
+
     if (state.mapStatus === 'ready') updateMapData();
     ensureOrderPolling();
 }
@@ -590,12 +642,16 @@ async function refreshData(manual) {
     if (button) button.classList.add('is-loading');
 
     try {
-        const data = await loadAppData();
+        const data = await loadAppData({ mergeCache: true });
         applyAppData(data);
         await refreshSelectedOrder();
         state.lastLoadedAt = Date.now();
+        state.dataLoaded = true;
         renderDashboard();
-        if (manual) toast('已刷新');
+        observeMap();
+        if (manual) {
+            toast(data.stale && data.stale.length ? '部分数据没刷新，稍后再试' : '已刷新');
+        }
     } catch (error) {
         console.error('刷新失败:', error);
         if (manual) toast('刷新失败，检查一下网络');
@@ -609,7 +665,7 @@ async function refreshData(manual) {
 
 function renderLoveStory() {
     const story = config.loveStory || {};
-    const start = parseDate(story.startDate);
+    const start = parseDate(story.startDate || fallbackStartDate());
     const title = $('love-title');
     if (title && story.title) title.textContent = String(story.title).trim();
 
@@ -653,8 +709,9 @@ function renderSpaceChrome() {
 }
 
 function tickLoveTime() {
+    if (document.visibilityState === 'hidden') return;
     const story = config.loveStory || {};
-    const start = parseDate(story.startDate);
+    const start = parseDate(story.startDate || fallbackStartDate());
     if (!start) return;
 
     const diff = Math.max(0, Date.now() - start.getTime());
@@ -733,7 +790,9 @@ function renderMilestones() {
     if (current) current.textContent = list.length ? '01' : '00';
 
     container.scrollLeft = 0;
-    updateCarouselMeta();
+    // Reading layout right after innerHTML forced a synchronous reflow of all
+    // 40+ cards; let the browser finish the frame first.
+    requestAnimationFrame(updateCarouselMeta);
 }
 
 function updateCarouselMeta() {
@@ -895,7 +954,10 @@ function renderTimeline() {
 function initTimelineSheet() {
     const list = $('timeline-list');
     const open = $('open-timeline');
-    if (open) open.addEventListener('click', () => openSheet('timeline-sheet'));
+    if (open) open.addEventListener('click', () => {
+        renderTimeline();
+        openSheet('timeline-sheet');
+    });
     if (list) {
         list.addEventListener('click', (event) => {
             const item = event.target.closest('.timeline-item');
@@ -987,7 +1049,8 @@ window.addEventListener('resize', () => {
 
 function observeMap() {
     const mapEl = $('asia-map');
-    if (!mapEl || state.mapStatus !== 'idle') return;
+    if (!mapEl || state.mapStatus !== 'idle' || !state.dataLoaded) return;
+    state.mapStatus = 'observing';
 
     if (!('IntersectionObserver' in window)) {
         initMap();
@@ -1000,12 +1063,13 @@ function observeMap() {
             observer.disconnect();
             initMap();
         });
-    }, { rootMargin: '500px 0px' });
+    }, { rootMargin: '200px 0px' });
 
     observer.observe(mapEl);
 }
 
 async function initMap() {
+    if (!state.dataLoaded) return;
     if (state.mapStatus === 'loading' || state.mapStatus === 'ready') return;
     state.mapStatus = 'loading';
 
@@ -1017,7 +1081,7 @@ async function initMap() {
             await loadScript(LIBS.echarts);
         }
 
-        const response = await fetch('assets/data/china-map.json');
+        const response = await fetch(MAP_SRC);
         if (!response.ok) throw new Error('地图数据加载失败');
         const geoJson = await response.json();
         echarts.registerMap('china', geoJson);
@@ -3094,6 +3158,9 @@ function switchPage(page, options = {}) {
         }
     } else if (target === 'order') {
         renderOrderPage();
+        // Orders are written from this page; start the write SDK in the
+        // background so the first "确认下单" does not wait for it.
+        if (state.dataLoaded && typeof warmOssSdk === 'function') warmOssSdk();
         const summary = state.selectedSlotKey ? orderForSlot(state.selectedSlotKey) : null;
         if (summary && (!state.selectedOrder || String(state.selectedOrder.id) !== String(summary.id))) {
             refreshSelectedOrder().then(() => {

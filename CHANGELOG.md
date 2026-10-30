@@ -4,6 +4,15 @@
 
 ## [Unreleased]
 
+### Performance
+
+- 首页首屏：OSS 文档读取改为匿名 `fetch`（bucket 公共读，去掉每个文档一次、且不缓存的 CORS 预检）；OSS SDK 改为写入时按需加载，首页不再下载/解析 1.17MB 的 SDK。小灶页、管理端登录后、核销页渲染后会空闲预热 SDK，首次写入通常不需要等待；确认按钮仍有「下单中… / 核销中…」状态。
+- 首屏缓存优先：上次成功读取存入 `localStorage`（key 带 `dbRoot()`，测试库/线上库隔离），天数、回忆、余额先渲染再后台刷新；天数另有 `index.html` 内联脚本在业务脚本之前算出，首次访问也不再显示 0。读取失败的字段保留上次好数据并提示，部分失败不会覆盖完整快照。
+- 字体子集按实际字体位置重建：Ma Shan Zheng 395KB → 33KB，Noto Serif SC Bold 570KB → 188KB；`--font-cute` 的静态文案集中到 `scripts/font-cute-chars.txt`。
+- 地图改读 `assets/data/china-map.simplified.json`（582KB → 209KB，gzip ~60KB），等数据加载完、距视口 200px 时才初始化；涟漪动画、roam、城市聚焦逻辑保持不变。
+- 未访问 tab 和「全部回忆」弹层改为首次进入时渲染；修复轮播在首屏强制同步布局；页面隐藏时暂停倒计时。
+- 地图数据可由 `node scripts/build-map.js` 重新生成（默认容差 0.02°）。
+
 ### Added
 
 - 本地测试库：`love-journey/db-test` 前缀 + `uploads-test/` 上传；本地/私有 IP 默认测试库，线上域名始终生产库；`scripts/clone-test-db.js` 可从生产只读复制并关闭 Bark；测试环境左下角显示「测试库」角标。

@@ -13,12 +13,12 @@ let lastCityColumns = 0;
 
 // Self-hosted: cdn.jsdelivr.net is unreliable in WeChat / mainland mobile networks.
 const LIBS = {
-    echarts: 'assets/vendor/echarts.min.js?v=20261030-01',
-    qrcode: 'assets/vendor/qrcode.min.js?v=20261030-01'
+    echarts: 'assets/vendor/echarts.min.js?v=20261103-03',
+    qrcode: 'assets/vendor/qrcode.min.js?v=20261103-03'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261030-01';
-const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261030-01';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261103-03';
+const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261103-03';
 // First-paint fallback only. The live story document always wins once it loads.
 const LOVE_START_FALLBACK = '2020-12-20';
 
@@ -372,7 +372,17 @@ const state = {
     mapRoam: false,
     mapStatus: 'idle', // idle | observing | loading | ready | error
     openSheets: [],
-    toastTimer: null
+    toastTimer: null,
+    thanksBusy: false,
+    announcements: [],
+    announcementsLoaded: false,
+    announcementsLoading: false,
+    announcementsError: false,
+    announcementsAt: 0,
+    announcementId: null,
+    announcementHref: '',
+    announcementTimer: null,
+    announcementShowPending: false
 };
 
 /* ---------- tiny helpers ---------- */
@@ -490,6 +500,7 @@ async function bootstrap() {
         state.lastLoadedAt = Date.now();
         state.dataLoaded = true;
         renderAll();
+        refreshAnnouncements({ show: true });
         if (data.stale && data.stale.length) {
             toast(paintedFromCache ? '部分数据没更新，先显示上次的' : '部分数据没加载出来，稍后再试');
         }
@@ -501,6 +512,7 @@ async function bootstrap() {
         if (paintedFromCache) {
             state.dataLoaded = true;
             observeMap();
+            refreshAnnouncements();
             toast('网络不太稳，先显示上次的内容');
             return;
         }
@@ -649,6 +661,7 @@ async function refreshData(manual) {
         state.dataLoaded = true;
         renderDashboard();
         observeMap();
+        if (!state.announcementsLoaded || state.page === 'me') refreshAnnouncements();
         if (manual) {
             toast(data.stale && data.stale.length ? '部分数据没刷新，稍后再试' : '已刷新');
         }
@@ -1550,11 +1563,12 @@ const WALLET_ENTRY_ICONS = {
     grant: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="8" width="17" height="12" rx="2.5"/><path d="M3.5 12h17M12 8v12M8 8c-1.8-2.4 1.4-4.6 4-1.5 2.6-3.1 5.8-.9 4 1.5"/></svg>',
     order: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5h16a8 8 0 0 1-16 0Z"/><path d="M8 7.3c0-1.4 1-1.9 1-3M12 7.3c0-1.4 1-1.9 1-3M16 7.3c0-1.4 1-1.9 1-3"/><path d="M5 19h14"/></svg>',
     refund: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h11a4.5 4.5 0 0 1 0 9H8"/><path d="m8 5-4 5 4 5"/></svg>',
+    thanks: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.4-7.5-9.6A4.4 4.4 0 0 1 12 8a4.4 4.4 0 0 1 7.5 2.9c0 5.2-7.5 9.6-7.5 9.6Z"/><circle cx="12" cy="12.3" r="2.1"/></svg>',
     other: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.4-7.5-9.6A4.4 4.4 0 0 1 12 8a4.4 4.4 0 0 1 7.5 2.9c0 5.2-7.5 9.6-7.5 9.6Z"/></svg>'
 };
 
 function walletEntryHTML(entry) {
-    const labels = { grant: '大厨发币', order: '点餐', refund: '退款' };
+    const labels = { grant: '大厨发币', order: '点餐', refund: '退款', thanks: '谢谢大厨' };
     const type = WALLET_ENTRY_ICONS[entry.type] ? entry.type : 'other';
     const positive = Number(entry.amount) >= 0;
     return `
@@ -2120,9 +2134,16 @@ async function handleOrderAction(action) {
             return;
         }
         if (action === 'thanks') {
-            await thankChef(order.id);
-            await syncOrderState();
-            toast('已经告诉大厨啦');
+            if (state.thanksBusy) return;
+            state.thanksBusy = true;
+            try {
+                const updated = await thankChef(order.id);
+                await syncOrderState();
+                const reward = updated && updated.thanks ? Number(updated.thanks.reward) || 0 : 0;
+                toast(reward > 0 ? `已谢谢大厨，+${reward} 恋爱币` : '已经告诉大厨啦');
+            } finally {
+                state.thanksBusy = false;
+            }
             return;
         }
         if (action === 'complete') {
@@ -2276,6 +2297,223 @@ const ME_ORDER_RANK = {
     cancelled: 6
 };
 const ME_ORDER_ACTIVE = new Set(['accepted', 'prepping', 'cooking', 'served']);
+
+/* ---------- announcements ---------- */
+
+function announcementSeenKey() {
+    const root = typeof dbRoot === 'function' ? dbRoot() : 'local';
+    return `lj-announcements-seen:${root}`;
+}
+
+function announcementSeenIds() {
+    try {
+        const raw = storageGet(announcementSeenKey());
+        const list = raw ? JSON.parse(raw) : [];
+        return Array.isArray(list) ? list.map(String) : [];
+    } catch (error) {
+        return [];
+    }
+}
+
+function markAnnouncementSeen(id) {
+    if (!id) return;
+    const seen = new Set(announcementSeenIds());
+    if (seen.has(String(id))) return;
+    seen.add(String(id));
+    storageSet(announcementSeenKey(), JSON.stringify([...seen].slice(-100)));
+    renderMeMenu();
+}
+
+function markAllAnnouncementsSeen() {
+    const ids = (state.announcements || [])
+        .filter(item => item && item.status === 'published')
+        .map(item => String(item.id));
+    if (!ids.length) return;
+    const seen = new Set(announcementSeenIds());
+    let changed = false;
+    ids.forEach(id => {
+        if (!seen.has(id)) {
+            seen.add(id);
+            changed = true;
+        }
+    });
+    if (changed) storageSet(announcementSeenKey(), JSON.stringify([...seen].slice(-100)));
+}
+
+function announcementVersion(item) {
+    if (!item) return '';
+    if (item.version) return String(item.version);
+    if (item.publishedAt && typeof stampToVersion === 'function') {
+        const version = stampToVersion(item.publishedAt);
+        if (version) return version;
+    }
+    return '未发布';
+}
+
+function announcementPublishedAt(item) {
+    return item && item.publishedAt ? formatDate(item.publishedAt, true) : '';
+}
+
+async function refreshAnnouncements(options = {}) {
+    if (state.announcementsLoading) {
+        if (options.show) state.announcementShowPending = true;
+        return;
+    }
+    state.announcementsLoading = true;
+    try {
+        const items = await listAnnouncements();
+        state.announcements = Array.isArray(items) ? items : [];
+        state.announcementsError = false;
+    } catch (error) {
+        console.warn('读取更新公告失败:', error);
+        state.announcementsError = true;
+    } finally {
+        state.announcementsLoaded = true;
+        state.announcementsLoading = false;
+        state.announcementsAt = Date.now();
+        if (state.page === 'me') renderMePage();
+        else renderMeMenu();
+        if (state.meView === 'announcements') {
+            markAllAnnouncementsSeen();
+            renderMeMenu();
+        }
+        const showNow = options.show || state.announcementShowPending;
+        state.announcementShowPending = false;
+        if (showNow) maybeShowAnnouncement();
+    }
+}
+
+function maybeShowAnnouncement() {
+    if (!state.announcementsLoaded || state.announcementsError) return;
+    const latest = (state.announcements || []).find(item => item && item.status === 'published');
+    if (!latest) return;
+    if (announcementSeenIds().includes(String(latest.id))) return;
+
+    clearTimeout(state.announcementTimer);
+    state.announcementTimer = setTimeout(() => {
+        if (state.openSheets.length || document.querySelector('.dialog.is-open')) return;
+        if (announcementSeenIds().includes(String(latest.id))) return;
+        openAnnouncementSheet(latest);
+    }, 600);
+}
+
+function openAnnouncementSheet(item, options = {}) {
+    if (!item) return;
+    state.announcementId = item.id;
+    state.announcementHref = item.cta && item.cta.href ? item.cta.href : '';
+
+    const eyebrow = $('announcement-eyebrow');
+    if (eyebrow) {
+        eyebrow.innerHTML = `<span>NEW</span> ${cleanText(announcementVersion(item))} · 新功能上线`;
+    }
+    const title = $('announcement-title');
+    if (title) title.textContent = item.title || '更新公告';
+    const summary = $('announcement-summary');
+    if (summary) {
+        summary.textContent = item.summary || '';
+        summary.hidden = !item.summary;
+    }
+    const list = $('announcement-list');
+    if (list) {
+        list.innerHTML = (item.items || [])
+            .map(text => `<div class="announcement-item">${cleanText(text)}</div>`)
+            .join('');
+    }
+    const cta = $('announcement-cta');
+    const actions = $('announcement-actions');
+    if (cta) {
+        const label = item.cta && item.cta.label ? item.cta.label : '';
+        cta.hidden = !label;
+        cta.textContent = label;
+        if (actions) actions.classList.toggle('is-single', !label);
+    }
+
+    openSheet('announcement-sheet');
+    if (options.markRead) markAnnouncementSeen(item.id);
+}
+
+function initAnnouncements() {
+    const cta = $('announcement-cta');
+    if (cta) {
+        cta.addEventListener('click', () => {
+            const href = state.announcementHref;
+            markAnnouncementSeen(state.announcementId);
+            closeSheet('announcement-sheet');
+            if (!href) return;
+            if (/^https:\/\//i.test(href)) {
+                window.open(href, '_blank', 'noopener');
+                return;
+            }
+            const page = (href.split('#')[1] || 'home').toLowerCase();
+            switchPage(['home', 'order', 'coupons', 'me'].includes(page) ? page : 'home');
+        });
+    }
+    const ok = $('announcement-ok');
+    if (ok) {
+        ok.addEventListener('click', () => {
+            markAnnouncementSeen(state.announcementId);
+            closeSheet('announcement-sheet');
+        });
+    }
+}
+
+function announcementCardHTML(item, unread) {
+    const items = (item.items || [])
+        .map(text => `<span class="announcement-card-item">${cleanText(text)}</span>`)
+        .join('');
+    return `
+        <button class="announcement-card ${unread ? 'is-unread' : ''}" type="button" data-announcement-id="${cleanText(item.id)}">
+            <span class="announcement-card-top">
+                <span class="announcement-version">${cleanText(announcementVersion(item))}</span>
+                <span class="announcement-state ${unread ? 'is-unread' : ''}">${unread ? '未读' : '已读'}</span>
+            </span>
+            <b class="announcement-card-title">${cleanText(item.title)}</b>
+            ${item.summary ? `<span class="announcement-card-summary">${cleanText(item.summary)}</span>` : ''}
+            <span class="announcement-card-items">${items}</span>
+            <span class="announcement-card-foot">
+                <span>${cleanText(announcementPublishedAt(item))}${item.publishedAt ? ' 发布' : ''}</span>
+                <span>${(item.items || []).length} 条更新</span>
+            </span>
+        </button>
+    `;
+}
+
+function renderMeAnnouncements() {
+    const body = $('me-sub-body');
+    if (!body) return;
+
+    const items = (state.announcements || []).filter(item => item && item.status === 'published');
+    if (!state.announcementsLoaded && !items.length) {
+        body.innerHTML = '<div class="order-loading">正在读取更新公告…</div>';
+        return;
+    }
+    if (state.announcementsError && !items.length) {
+        body.innerHTML = `
+            <div class="me-empty">
+                暂时读不到更新，稍后再试。
+                <button class="me-link" type="button" data-announcement-retry>重试</button>
+            </div>
+        `;
+        return;
+    }
+    if (!items.length) {
+        body.innerHTML = '<div class="me-empty">还没有更新公告。</div>';
+        return;
+    }
+
+    const seen = new Set(announcementSeenIds());
+    body.innerHTML = `
+        <div class="me-list-summary">
+            <span>共 <b>${items.length}</b> 条</span>
+            <span>最近 ${items[0].publishedAt ? formatDate(items[0].publishedAt).slice(5) : ''}</span>
+        </div>
+        <div class="announcement-cards">
+            ${items.map(item => announcementCardHTML(item, !seen.has(String(item.id)))).join('')}
+        </div>
+        <p class="me-note">公告保留最近 20 条；下线后不再展示。</p>
+    `;
+}
+
 const ME_ORDER_FILTERS = [
     { id: 'all', label: '全部' },
     { id: 'pending', label: '待接单' },
@@ -2306,11 +2544,16 @@ function scrollAppTop() {
 }
 
 function openMeView(view) {
-    if (!['orders', 'wallet', 'cards'].includes(view)) return;
+    if (!['orders', 'wallet', 'cards', 'announcements'].includes(view)) return;
     state.meView = view;
     state.meOrderId = null;
     document.body.classList.add('me-subpage');
     renderMePage();
+    if (view === 'announcements') {
+        markAllAnnouncementsSeen();
+        renderMeMenu();
+        if (!state.announcementsLoaded) refreshAnnouncements();
+    }
     scrollAppTop();
 }
 
@@ -2395,6 +2638,31 @@ function renderMeMenu() {
     const used = (state.coupons || []).filter(coupon => coupon.status === 'used').length;
     const cardsSub = $('me-menu-cards-sub');
     if (cardsSub) cardsSub.textContent = `获得 ${acquired} 次 · 使用 ${used} 次`;
+
+    const announcementGroup = $('me-announcement-group');
+    const announcementSub = $('me-menu-announcements-sub');
+    const announcementBadge = $('me-menu-announcements-badge');
+    if (announcementGroup) {
+        const items = (state.announcements || []).filter(item => item && item.status === 'published');
+        const seen = new Set(announcementSeenIds());
+        const unread = items.filter(item => !seen.has(String(item.id)));
+        const show = !state.announcementsLoaded || state.announcementsError || items.length > 0;
+        announcementGroup.hidden = !show;
+        if (announcementSub) {
+            if (state.announcementsError) {
+                announcementSub.textContent = '暂时读不到更新';
+            } else if (!state.announcementsLoaded) {
+                announcementSub.textContent = '正在读取更新…';
+            } else if (unread.length) {
+                const latest = unread[0];
+                const when = latest.publishedAt ? formatDate(latest.publishedAt).slice(5) : '';
+                announcementSub.textContent = `${unread.length} 条未读${when ? ` · 最近 ${when}` : ''}`;
+            } else {
+                announcementSub.textContent = '看看这次更新了什么';
+            }
+        }
+        if (announcementBadge) announcementBadge.hidden = unread.length === 0;
+    }
 }
 
 function renderMePage() {
@@ -2404,7 +2672,7 @@ function renderMePage() {
 
     document.body.classList.toggle(
         'me-fixed-view',
-        ['orders', 'wallet', 'cards'].includes(state.meView)
+        ['orders', 'wallet', 'cards', 'announcements'].includes(state.meView)
     );
 
     if (state.meView === 'menu') {
@@ -2423,6 +2691,7 @@ function renderMePage() {
         orders: '我的订单',
         wallet: '恋爱币',
         cards: '恋爱卡流水',
+        announcements: '更新公告',
         'order-detail': '订单详情'
     }[state.meView] || '空间';
 
@@ -2432,6 +2701,7 @@ function renderMePage() {
     if (state.meView === 'orders') renderMeOrders();
     else if (state.meView === 'wallet') renderMeWallet();
     else if (state.meView === 'cards') renderMeCards();
+    else if (state.meView === 'announcements') renderMeAnnouncements();
     else if (state.meView === 'order-detail') renderMeOrderDetail(state.meOrderId);
 }
 
@@ -2730,6 +3000,22 @@ function initConfirm() {
 }
 
 async function handleMeSubClick(event) {
+    const announcementCard = event.target.closest('[data-announcement-id]');
+    if (announcementCard) {
+        const item = (state.announcements || []).find(entry => String(entry.id) === String(announcementCard.dataset.announcementId));
+        if (item) {
+            markAnnouncementSeen(item.id);
+            openAnnouncementSheet(item);
+            renderMeAnnouncements();
+        }
+        return;
+    }
+
+    if (event.target.closest('[data-announcement-retry]')) {
+        refreshAnnouncements();
+        return;
+    }
+
     const filter = event.target.closest('[data-me-filter]');
     if (filter) {
         state.meOrderFilter = filter.dataset.meFilter;
@@ -3085,6 +3371,11 @@ function openSheet(id) {
 function closeSheet(id) {
     const sheet = $(id);
     if (!sheet) return;
+    if (id === 'announcement-sheet') {
+        markAnnouncementSeen(state.announcementId);
+        state.announcementId = null;
+        state.announcementHref = '';
+    }
     sheet.classList.remove('is-open');
     sheet.setAttribute('aria-hidden', 'true');
     state.openSheets = state.openSheets.filter(item => item !== id);
@@ -3172,6 +3463,9 @@ function switchPage(page, options = {}) {
         }
     } else if (target === 'me') {
         renderMePage();
+        if (!state.announcementsLoaded || Date.now() - state.announcementsAt > 30 * 1000) {
+            refreshAnnouncements();
+        }
         if (state.lastLoadedAt && Date.now() - state.lastLoadedAt > 30 * 1000) {
             refreshData(false);
         }
@@ -3324,6 +3618,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initSheets();
     initCoupons();
     initOrderUI();
+    initAnnouncements();
     initMapControls();
     initVisibilityRefresh();
     initBootError();

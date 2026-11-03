@@ -15,9 +15,9 @@
     <link rel="apple-touch-icon" href="assets/icon-180.png">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="preconnect" href="https://love-config.oss-cn-beijing.aliyuncs.com" crossorigin>
-    <link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261030-01" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261030-01" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/style.css?v=20261030-01">
+    <link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261103-03" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261103-03" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="css/style.css?v=20261103-03">
 </head>
 <body>
     <header class="app-header" id="app-header">
@@ -251,6 +251,15 @@
                     </button>
                 </div>
 
+                <div class="me-menu-group" id="me-announcement-group">
+                    <button class="me-menu-row" type="button" data-me-view="announcements">
+                        <span class="me-menu-icon" aria-hidden="true">告</span>
+                        <span class="me-menu-text"><b>更新公告</b><small id="me-menu-announcements-sub">正在读取更新…</small></span>
+                        <span class="me-menu-badge dot" id="me-menu-announcements-badge" hidden></span>
+                        <span class="me-menu-chev" aria-hidden="true">›</span>
+                    </button>
+                </div>
+
                 <p class="me-menu-hint">日子和账单，都收在这里。</p>
             </div>
 
@@ -433,6 +442,24 @@
         </div>
     </div>
 
+    <div class="sheet" id="announcement-sheet" aria-hidden="true">
+        <div class="sheet-backdrop" data-close></div>
+        <div class="sheet-panel sheet-panel-announcement" role="dialog" aria-modal="true" aria-labelledby="announcement-title">
+            <button class="sheet-close" type="button" data-close aria-label="关闭">✕</button>
+            <div class="sheet-scroll announcement-body">
+                <p class="announcement-eyebrow" id="announcement-eyebrow"></p>
+                <h2 class="announcement-title" id="announcement-title"></h2>
+                <p class="announcement-summary" id="announcement-summary"></p>
+                <div class="announcement-list" id="announcement-list"></div>
+                <div class="announcement-actions" id="announcement-actions">
+                    <button class="announcement-cta" id="announcement-cta" type="button" hidden></button>
+                    <button class="announcement-ok" id="announcement-ok" type="button">知道啦</button>
+                </div>
+                <p class="announcement-foot">下次可以在「空间 → 更新公告」回看</p>
+            </div>
+        </div>
+    </div>
+
     <div class="sheet" id="order-detail-sheet" aria-hidden="true">
         <div class="sheet-backdrop" data-close></div>
         <div class="sheet-panel sheet-panel-tall" role="dialog" aria-modal="true" aria-labelledby="order-detail-title">
@@ -469,10 +496,10 @@
 
     <audio id="bg-music" loop playsinline preload="none"></audio>
 
-    <script src="js/oss-config.js?v=20261030-01"></script>
-    <script src="js/crypto-utils.js?v=20261030-01"></script>
-    <script src="js/oss-utils.js?v=20261030-01"></script>
-    <script src="js/store.js?v=20261030-01"></script>
-    <script src="js/app.js?v=20261030-01"></script>
+    <script src="js/oss-config.js?v=20261103-03"></script>
+    <script src="js/crypto-utils.js?v=20261103-03"></script>
+    <script src="js/oss-utils.js?v=20261103-03"></script>
+    <script src="js/store.js?v=20261103-03"></script>
+    <script src="js/app.js?v=20261103-03"></script>
 </body>
 </html>

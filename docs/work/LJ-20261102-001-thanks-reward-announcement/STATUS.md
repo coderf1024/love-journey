@@ -2,7 +2,7 @@
 
 - 状态：accepted
 - 分支：`feat/thank-chef-10-coins-announcement`
-- 最后更新：2026-11-03 14:14
+- 最后更新：2026-11-03 14:17
 - 当前负责人：人（线上 smoke）
 
 ## 已完成
@@ -24,14 +24,15 @@
   - CTA 文案 + 跳转地址成对校验，快捷填入四个 tab；
   - 订单卡显示「已返 10 币」。
 - 工程：
-  - 缓存 token bump 到 `20261103-03`；
+  - 已合并 `main`（merge `a447530`）并推送；EdgeOne / GitHub Pages 部署已触发；
+  - 缓存 token `20261103-03`；
   - 钱包「谢谢大厨」图标统一为用户端同款（心形 + 圆点、无底色），管理端和用户端一致；
   - 字体子集重建（Noto Serif SC 188K → 191K）；
   - 架构文档、CHANGELOG、CLAUDE.md 已更新。
 
 ## 未完成 / 下一步
 
-1. 人已批准合并 `main`；本次提交推送后触发 EdgeOne / GitHub Pages 部署。
+1. 等 EdgeOne / GitHub Pages 部署完成。
 2. 人做线上 smoke（用户端 / 管理端 / 公告入口）。
 3. 线上 smoke 通过后把状态改为 `done`，并更新 `notes.md` 的发布记录。
 

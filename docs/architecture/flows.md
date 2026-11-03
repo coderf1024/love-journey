@@ -95,3 +95,24 @@ pending 待接单
 - 菜品主图/出餐图：`uploadDishImage()` → `uploadBucketImage()` → `love-journey/uploads/dishes/`。
 - 空间头像：`uploadSpaceImage()` → `love-journey/uploads/space/`。
 - 浏览器端压缩；图片是公开读对象，URL 直接用于页面展示。
+
+## 8. 谢谢大厨返币
+
+1. 用户在 `served` / `completed` 订单上点「谢谢大厨」。
+2. `thankChef()` 读取订单、钱包和空间设置；如果订单已有 `thanks`，直接返回，不重复发币。
+3. 返币金额取 `space.settings.thanksReward`，缺省 10；0 表示只记录感谢。
+4. 先写订单 `thanks = { note, at, reward, rewardTxId }`，再写钱包流水：
+   - 流水 id 固定 `thanks_<orderId>`，写入前先查重；
+   - 类型 `thanks`，备注是「谢谢大厨 + 哪一餐」，如 `谢谢大厨 10.24 周六 午餐`。
+5. 钱包写入失败时回滚订单感谢，允许用户重试。
+6. 用户端 toast 显示 `已谢谢大厨，+10 恋爱币`；管理端订单卡显示「已返 10 币」。
+
+## 9. 更新公告
+
+1. 管理端「系统 → 更新公告」新建公告，保存后固定为 `draft`。
+2. 草稿在列表上单独「发布」；`publishAnnouncement()` 写入 `status: published`、`publishedAt` 和 14 位 `version`（`YYYYMMDDHHmmss`）。
+3. 已发布可以「下线」；已下线可以「重新发布」或删除；已发布不能直接删除。
+4. 用户端启动后在数据加载完成后再懒加载公告，最多弹一次最新未读公告。
+5. 关闭 / 「知道啦」/「去看看」都写入本机已读；「空间 → 更新公告」保留历史列表和未读红点。
+6. 公告 CTA 必须同时有文案和跳转地址；站内只允许 `index.html#home|order|coupons|me`，外链只允许 https。
+7. 发布顺序：先上线代码并线上 smoke，再发布公告；首次上线时公告 UI 本身依赖这次代码部署。

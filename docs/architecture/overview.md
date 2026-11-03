@@ -17,7 +17,7 @@
 | `js/oss-config.js` | OSS bucket、路径、混淆后的 AccessKey、管理口令 |
 | `js/crypto-utils.js` | AccessKey 的可逆混淆（不是加密） |
 | `js/oss-utils.js` | 低层文档 API：`dbGet/dbPut/dbDelete/dbList/dbCollection`，图片上传 |
-| `js/store.js` | 领域层：空间、菜单、订单、钱包、恋爱卡、Bark；所有页面共享 |
+| `js/store.js` | 领域层：空间、菜单、订单、钱包、恋爱卡、更新公告、Bark；所有页面共享 |
 | `js/app.js` | 用户端 UI 与交互 |
 | `admin.html` | 管理端自包含页面：内联样式、管理端 UI 与操作逻辑 |
 | `css/style.css` | 用户端设计 token、组件和页面样式 |
@@ -35,6 +35,7 @@
 ```
 
 - `loadAppData()` 并行读取空间、内容、菜单、钱包、订单索引、恋爱卡索引。
+- 更新公告不在这 9 个首屏读里：数据渲染完成后再单独 `listAnnouncements()`，避免拖慢首屏；公告读取使用 `fresh: true` 绕过 OSS 缺失的 Cache-Control。
 - 写操作通常是 read-modify-write；没有锁、没有事务、没有 ETag。
 - 订单和钱包是两份文档；`placeOrder`/`cancelOrder` 失败时有回滚逻辑。
 - `serveOrder` 先写菜单图片集，再写订单；失败重试按图片 URL 去重。

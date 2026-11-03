@@ -64,7 +64,7 @@ function publicObjectUrl(key) {
     return `${ossEndpoint()}/${String(key).replace(/^\/+/, '')}`;
 }
 
-const OSS_SDK_URL = 'assets/vendor/aliyun-oss-sdk-6.18.0.min.js?v=20261030-01';
+const OSS_SDK_URL = 'assets/vendor/aliyun-oss-sdk-6.18.0.min.js?v=20261103-03';
 let ossSdkPromise = null;
 
 function loadOssSdk() {
@@ -143,13 +143,20 @@ function isNotFound(error) {
 
 const DB_READ_TIMEOUT_MS = 12000;
 
-async function dbGet(path) {
+async function dbGet(path, options = {}) {
     const controller = typeof AbortController === 'function' ? new AbortController() : null;
     const timer = controller ? setTimeout(() => controller.abort(), DB_READ_TIMEOUT_MS) : null;
     let response;
+    const base = publicObjectUrl(dbFullPath(path));
+    // OSS does not send Cache-Control; a same-URL GET can be served from the
+    // browser's heuristic cache right after a write. Announcement actions
+    // need read-after-write, so they opt into a fresh query + no-store.
+    const url = options.fresh
+        ? `${base}${base.includes('?') ? '&' : '?'}_=${Date.now()}`
+        : base;
     try {
-        response = await fetch(publicObjectUrl(dbFullPath(path)), {
-            cache: 'no-cache',
+        response = await fetch(url, {
+            cache: options.fresh ? 'no-store' : 'no-cache',
             signal: controller ? controller.signal : undefined
         });
     } catch (error) {
@@ -181,9 +188,9 @@ async function dbGet(path) {
     }
 }
 
-async function dbGetOrNull(path) {
+async function dbGetOrNull(path, options) {
     try {
-        return await dbGet(path);
+        return await dbGet(path, options);
     } catch (error) {
         if (isNotFound(error)) return null;
         throw error;

@@ -53,7 +53,18 @@ node --check js/crypto-utils.js
 ./scripts/build-fonts.sh
 ```
 
-脚本会下载字体源、扫描页面和内容、重建 `assets/fonts/*.woff2`。重建后再 bump 字体 URL 的版本。
+脚本会下载字体源、读取线上文档、按**实际使用该字体的位置**取字（`--font-cute` 只取 `scripts/font-cute-chars.txt` + 空间/成员/故事/卡券名；`--font-display` 只取标题类字段和页面静态文案），重建 `assets/fonts/*.woff2`。正文描述不参与子集。重建后再 bump 字体 URL 的版本。
+
+## 地图数据
+
+首页加载的是 `assets/data/china-map.simplified.json`。需要更新地图时：
+
+```bash
+node scripts/build-map.js            # 默认容差 0.02°
+node scripts/build-map.js --tolerance=0.01
+```
+
+然后 bump `js/app.js` 里的 `MAP_SRC` 版本 token。原图 `assets/data/china-map.json` 保留作为构建源。
 
 ## 敏感信息
 

@@ -2,7 +2,7 @@
 
 - 状态：in-review（实现完成，等待人工验收）
 - 分支：`feat/LJ-20261029-004-milestone-admin`
-- 最后更新：2026-10-30
+- 最后更新：2026-11-04
 - 当前负责人：人（验收）
 
 ## 已完成
@@ -15,8 +15,16 @@
 - 封面上传复用 `uploadBucketImage()`，测试环境 `uploads-test/milestones/`，生产 `uploads/milestones/`。
 - 用户端 `memoryCoverHTML` 读取 `image`：有图显示 4:3 照片，年份白色叠层、隐藏 motif；无图/加载失败回退 v0–v3 渐变 + motif。
 - 用户端卡片和详情共用同一套封面渲染；日期胶囊、详情正文、前后翻页保持不变。
-- 缓存 token bump 到 `20261030-01`（三页 + CSS/JS 内引用）。
+- 缓存 token bump 到 `20261104-01`（三页 + CSS/JS/OSS SDK 内引用）。
 - 文档：data-model、CHANGELOG、CLAUDE、brief、plan 已同步。
+
+### 2026-11-04 合并 main
+
+- 已把 `main`（首页性能优化、谢谢大厨返币 + 更新公告）合入本分支。
+- 管理端同时保留「岁月留痕」和「更新公告」入口/视图；`VIEW_TITLES`、返回按钮、`switchView` 白名单和子页状态同时包含两者。
+- `js/app.js` 保留 main 的 `MAP_SRC`/首屏 fallback，同时保留回忆封面图片分支；`css/style.css` 保留图片封面规则。
+- 新增 `syncMilestoneCache()`：管理端保存/删除后同步 main 首屏缓存里的 `milestones`。
+- 合并后管理端、用户端回归通过，缓存 token `20261104-01`。
 
 ## 未完成 / 下一步
 
@@ -41,6 +49,7 @@
 - 删除：确认框 → 数组移除 → 整份写入 → 列表更新。
 - 上传：测试环境前缀 `love-journey/uploads-test/milestones/`，成功提示与预览正常；坏 URL 显示「图片加载失败」。
 - 320 / 390 / 1280：页面无横向溢出；列表与弹窗布局正常。
+- 合并 main 后：里程碑/公告两个视图切换正常，侧栏激活、返回按钮正常；保存回忆仍写入 `content/milestones.json`。
 
 ### 用户端
 
@@ -55,8 +64,8 @@
 
 ## 关键文件
 
-- `admin.html`（管理端）
-- `js/app.js`（用户端封面渲染）
+- `admin.html`（管理端，含合并后的公告入口）
+- `js/app.js`（用户端封面渲染 + main 首屏优化）
 - `css/style.css`（照片封面样式）
 - `index.html` / `use.html` / `admin.html` / `css/style.css` / `js/app.js`（缓存 token）
 - `docs/architecture/data-model.md`、`CHANGELOG.md`、`CLAUDE.md`

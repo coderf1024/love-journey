@@ -50,7 +50,7 @@ grep -rn "20261025-" --include="*.html" --include="*.js" --include="*.css" --inc
 ./scripts/build-fonts.sh
 ```
 
-确认新字形存在，再把字体 URL 的版本 token 更新到本次发布版本。
+确认新字形存在，再把字体 URL 的版本 token 更新到本次发布版本。改了地图源数据时先 `node scripts/build-map.js`，再 bump `MAP_SRC`。
 
 ## 合并与部署
 
@@ -66,6 +66,18 @@ grep -rn "20261025-" --include="*.html" --include="*.js" --include="*.css" --inc
    - 静态资源无 404、console 无报错。
    - 不要用 EdgeOne 默认项目域名（`*.edgeone.dev` / `*.edgeone.cool`）做 smoke：大陆网络需要 3 小时预览链接。
 5. 更新 `docs/work/BOARD.md` 和任务 `STATUS.md` 为 `done`。
+
+## 更新公告
+
+公告是 OSS 内容，不是代码；但它依赖用户端的公告 UI，所以顺序固定：
+
+1. 先合并 / 推送代码并完成线上 smoke。
+2. 管理端「系统 → 更新公告」新建公告，保存草稿。
+3. 确认代码已上线后，在列表点「发布」；版本号自动取发布时间（`YYYYMMDDHHmmss`）。
+4. 需要修改已发布公告时，直接编辑保存（状态不变）；要撤下就点「下线」，已下线可「重新发布」或删除。
+5. 已发布公告不能直接删除，必须先下线。
+
+首次上线公告功能时，公告 UI 本身也依赖这次代码部署，不能先发布公告。
 
 ## 回滚
 

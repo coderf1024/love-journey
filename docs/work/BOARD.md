@@ -1,9 +1,11 @@
 # 任务看板
 
-最后更新：2026-10-30
+最后更新：2026-11-04
 
 | ID | 需求 | 状态 | 分支 | 下一步 | 验收人 |
 |---|---|---|---|---|---|
+| LJ-20261102-001 | 谢谢大厨返 10 恋爱币 + 新功能公告 | accepted | 已合并 main（merge `a447530`） | 等部署完成，人做线上 smoke；通过后改 done | 人 |
+| LJ-20261030-001 | 首页加载速度：字体、天数、地图、OSS 读路径 | in-review | 当前分支（人要求不建新分支） | 人工按 QA.md 验收；通过后合并 main | 人 |
 | LJ-20261025-001 | 工程规范与项目结构初始化 | in-review | `feat/love-space-ordering`（本次基线直接在当前分支完成） | 人工阅读 docs，确认规范后合并 | 人 |
 | LJ-20261025-002 | 通知模板口吻拆分（大厨侧系统通知 / 用户侧男友口吻） | in-review | 已由 `feat/LJ-20261025-002-bark-tone` 合入 `feat/love-space-ordering`（merge `9dcccd6`） | 在 8888 验收；通过后合并 main；上线后保存新单默认模板 | 人 |
 | LJ-20261025-003 | 开发规范改为只建分支、不使用 worktree | in-review | `chore/LJ-20261025-003-branch-only-workflow` | 合入 `feat/love-space-ordering`；人工确认后生效 | 人 |
@@ -27,7 +29,7 @@
 | LJ-20261028-016 | 首页地图省份点亮 + 独立测试库 | done | `feat/LJ-20261028-016-map-province-lighting` | 已随 002 合并 main（`f77a17f`），发布 token `20261029-04` | 人 |
 | LJ-20261028-015 | 管理端关闭浏览器后免重新登录（localStorage + 7 天滑动、首屏不闪登录页） | done | `261028_space_fix`（已合入 main `434abfe`） | 已发布，线上 smoke 待复核 | 人 |
 | LJ-20261029-003 | 部署迁移：EdgeOne 主站 + GitHub Pages 备用（文档） | done | `chore/LJ-20261029-003-deploy-edgeone` | 已合并 main（文档提交 `02feaca`），文档发布 | 人 |
-| LJ-20261029-004 | 管理端里程碑配置 + 用户端封面展示 | in-review | `feat/LJ-20261029-004-milestone-admin` | 人在 8888（测试库）验收管理端增删改/上传，以及用户端有图/无图/坏图；抽查 13 条旧 image | 人 |
+| LJ-20261029-004 | 管理端里程碑配置 + 用户端封面展示 | in-review | `feat/LJ-20261029-004-milestone-admin` | 已合并 main（2026-11-04）；人在 8888（测试库）验收管理端增删改/上传、用户端有图/无图/坏图，并抽查 13 条旧 image | 人 |
 
 ## 状态说明
 

@@ -14,9 +14,10 @@
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="assets/icon-180.png">
     <link rel="manifest" href="manifest.webmanifest">
-    <link rel="preconnect" href="https://gosspublic.alicdn.com" crossorigin>
-    <link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261030-01" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/style.css?v=20261030-01">
+    <link rel="preconnect" href="https://love-config.oss-cn-beijing.aliyuncs.com" crossorigin>
+    <link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261104-01" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261104-01" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="css/style.css?v=20261104-01">
 </head>
 <body>
     <header class="app-header" id="app-header">
@@ -53,7 +54,7 @@
                         <span class="timer-since" id="timer-since">2020.12.20</span>
                     </div>
                     <div class="timer-main">
-                        <span class="timer-days" id="days">0</span>
+                        <span class="timer-days" id="days" data-start="2020-12-20">0</span>
                         <span class="timer-days-unit">天</span>
                     </div>
                     <div class="timer-sub">
@@ -63,6 +64,18 @@
                     </div>
                 </div>
             </div>
+
+            <script>
+                // Paint the day count before the app scripts load. js/app.js
+                // re-renders it from the live story date once data arrives.
+                (function () {
+                    var el = document.getElementById('days');
+                    if (!el) return;
+                    var start = new Date(String(el.getAttribute('data-start') || '').replace(/-/g, '/'));
+                    if (isNaN(start.getTime())) return;
+                    el.textContent = Math.max(0, Math.floor((Date.now() - start.getTime()) / 86400000));
+                })();
+            </script>
 
             <button class="dinner-card" id="dinner-card" type="button" aria-labelledby="dinner-title">
                 <span class="dinner-body">
@@ -234,6 +247,15 @@
                     <button class="me-menu-row" type="button" data-me-view="cards">
                         <span class="me-menu-icon" aria-hidden="true">卡</span>
                         <span class="me-menu-text"><b>恋爱卡记录</b><small id="me-menu-cards-sub">获得 0 次 · 使用 0 次</small></span>
+                        <span class="me-menu-chev" aria-hidden="true">›</span>
+                    </button>
+                </div>
+
+                <div class="me-menu-group" id="me-announcement-group">
+                    <button class="me-menu-row" type="button" data-me-view="announcements">
+                        <span class="me-menu-icon" aria-hidden="true">告</span>
+                        <span class="me-menu-text"><b>更新公告</b><small id="me-menu-announcements-sub">正在读取更新…</small></span>
+                        <span class="me-menu-badge dot" id="me-menu-announcements-badge" hidden></span>
                         <span class="me-menu-chev" aria-hidden="true">›</span>
                     </button>
                 </div>
@@ -420,6 +442,24 @@
         </div>
     </div>
 
+    <div class="sheet" id="announcement-sheet" aria-hidden="true">
+        <div class="sheet-backdrop" data-close></div>
+        <div class="sheet-panel sheet-panel-announcement" role="dialog" aria-modal="true" aria-labelledby="announcement-title">
+            <button class="sheet-close" type="button" data-close aria-label="关闭">✕</button>
+            <div class="sheet-scroll announcement-body">
+                <p class="announcement-eyebrow" id="announcement-eyebrow"></p>
+                <h2 class="announcement-title" id="announcement-title"></h2>
+                <p class="announcement-summary" id="announcement-summary"></p>
+                <div class="announcement-list" id="announcement-list"></div>
+                <div class="announcement-actions" id="announcement-actions">
+                    <button class="announcement-cta" id="announcement-cta" type="button" hidden></button>
+                    <button class="announcement-ok" id="announcement-ok" type="button">知道啦</button>
+                </div>
+                <p class="announcement-foot">下次可以在「空间 → 更新公告」回看</p>
+            </div>
+        </div>
+    </div>
+
     <div class="sheet" id="order-detail-sheet" aria-hidden="true">
         <div class="sheet-backdrop" data-close></div>
         <div class="sheet-panel sheet-panel-tall" role="dialog" aria-modal="true" aria-labelledby="order-detail-title">
@@ -456,11 +496,10 @@
 
     <audio id="bg-music" loop playsinline preload="none"></audio>
 
-    <script src="https://gosspublic.alicdn.com/aliyun-oss-sdk-6.18.0.min.js"></script>
-    <script src="js/oss-config.js?v=20261030-01"></script>
-    <script src="js/crypto-utils.js?v=20261030-01"></script>
-    <script src="js/oss-utils.js?v=20261030-01"></script>
-    <script src="js/store.js?v=20261030-01"></script>
-    <script src="js/app.js?v=20261030-01"></script>
+    <script src="js/oss-config.js?v=20261104-01"></script>
+    <script src="js/crypto-utils.js?v=20261104-01"></script>
+    <script src="js/oss-utils.js?v=20261104-01"></script>
+    <script src="js/store.js?v=20261104-01"></script>
+    <script src="js/app.js?v=20261104-01"></script>
 </body>
 </html>

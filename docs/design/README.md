@@ -10,6 +10,7 @@
 | [coupons-refresh-wireframe.html](./coupons-refresh-wireframe.html) | 恋爱卡刷新按钮位置方案 |
 | [wallet-icons.html](./wallet-icons.html) | 钱包流水图标方案（已采用方案 A） |
 | [home-map-wireframe.html](./home-map-wireframe.html) | 首页「山河共赏」地图改造：圆点 / 省份点亮 A/B 对比、同省归并、按大区配色、视野自适应、城市卡、境外足迹 |
+| [thanks-reward-announcement-wireframe.html](./thanks-reward-announcement-wireframe.html) | 谢谢大厨返 10 恋爱币 + 新功能公告：用户端订单卡 / 钱包流水 / 公告弹窗与列表；管理端公告严格状态流转（草稿 → 发布 → 下线 → 重新发布）、发布版本号按时间自动生成（精确到秒）、纯文本条目、CTA 文案 + 跳转地址、代码先上线公告后发布 |
 
 本地查看：
 

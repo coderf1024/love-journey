@@ -1,17 +1,24 @@
 #!/usr/bin/env bash
 # Rebuild the two self-hosted display-font subsets from the current copy.
 #
-# The site ships only the glyphs it actually uses: the character set is the
-# union of the live OSS documents (space / story / milestones / goals / cities /
-# menu / coupons / dish requests plus the legacy config.json), the text in the
-# pages/scripts, and the extra characters in scripts/font-extra-chars.txt.
-# Re-run this after adding milestones, goals, city notes, menu items or UI copy
-# that uses characters not already covered. Missing characters fall back to the
-# system serif/sans font.
+# The site ships only the glyphs it actually renders in each face:
 #
-# The extra character file only feeds Noto Serif SC (--font-display). Ma Shan
-# Zheng keeps the narrower set: it is a decorative face and anything missing
-# falls through to Noto in the --font-cute stack.
+#   --font-cute (Ma Shan Zheng)
+#     Short decorative strings only: the space name, the story title, coupon
+#     titles, page titles, the footer script and a few labels. See
+#     scripts/font-cute-chars.txt for the exact positions.
+#
+#   --font-display (Noto Serif SC Bold)
+#     Title-like content and UI copy: milestone titles, goal titles, city
+#     names, dish names, coupon titles, space/story names, all static page
+#     copy, digits and punctuation.
+#
+# Long-form content (milestone descriptions, city notes, dish descriptions)
+# renders in the body sans font, so its characters are deliberately not
+# included. That is what makes the display font small.
+#
+# Missing characters fall back to Songti SC / STSong. Re-run this after adding
+# content with characters that are not covered yet.
 #
 # Requires: curl, python3, uv (https://docs.astral.sh/uv/)
 set -euo pipefail
@@ -30,7 +37,7 @@ DB_DOCS=(
     "love-journey/db/commerce/coupons/index.json"
     "love-journey/db/commerce/dish-requests/index.json"
 )
-EXTRA_CHARS="scripts/font-extra-chars.txt"
+CUTE_CHARS="scripts/font-cute-chars.txt"
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -59,65 +66,122 @@ for doc in "${DB_DOCS[@]}"; do
 done
 
 echo "· collecting characters"
-python3 - "$TMP" "$EXTRA_CHARS" <<'PY'
+python3 - "$TMP" "$CUTE_CHARS" <<'PY'
 import json, pathlib, sys
 
 tmp = pathlib.Path(sys.argv[1])
-extra_path = pathlib.Path(sys.argv[2])
+cute_path = pathlib.Path(sys.argv[2])
 
-chars = set()
+PUNCT = '，。！？、；：""''《》…—·（）【】「」『』～'
+# Symbols the layout renders in the display/cute faces (arrows, marks, the
+# timer's infinity watermark). Emoji are system-rendered and need no subset.
+SYMBOLS = '∞♡✶✈‹›→←✕♥·'
+ASCII = {chr(code) for code in range(32, 127)}
 
-def add(value):
-    for ch in str(value):
+
+def add(chars, value):
+    for ch in str(value or ''):
         if ch.isprintable():
             chars.add(ch)
 
-def walk(value):
+
+def walk(chars, value):
+    if value is None:
+        return
     if isinstance(value, str):
-        add(value)
+        add(chars, value)
     elif isinstance(value, list):
         for item in value:
-            walk(item)
+            walk(chars, item)
     elif isinstance(value, dict):
         for item in value.values():
-            walk(item)
+            walk(chars, item)
 
-for doc in sorted((tmp / 'live').glob('*.json')):
+
+def live(rel):
+    path = tmp / 'live' / ('love-journey_db_' + rel.replace('/', '_'))
     try:
-        walk(json.loads(doc.read_text(encoding='utf-8') or '{}'))
+        return json.loads(path.read_text(encoding='utf-8') or '{}')
     except Exception:
-        pass
+        return {}
 
-for name in ['index.html', 'use.html', 'admin.html', 'js/app.js', 'js/store.js', 'js/oss-utils.js', 'css/style.css', 'scripts/migrate-storage.js', 'scripts/menu-seed.js', 'scripts/serving-seed.js', 'scripts/update-schedule-menu.js']:
-    for ch in pathlib.Path(name).read_text(encoding='utf-8'):
-        if ord(ch) < 128 or '一' <= ch <= '鿿' or ch in '，。！？、；：""''《》…—·（）【】「」『』～':
-            chars.add(ch)
 
-for code in range(32, 127):
-    chars.add(chr(code))
+# --- static copy from the pages and scripts -------------------------------
+static = set()
+for name in [
+    'index.html', 'use.html', 'admin.html',
+    'js/app.js', 'js/store.js', 'js/oss-utils.js', 'css/style.css',
+    'scripts/migrate-storage.js', 'scripts/menu-seed.js',
+    'scripts/serving-seed.js', 'scripts/update-schedule-menu.js',
+]:
+    try:
+        text = pathlib.Path(name).read_text(encoding='utf-8')
+    except OSError:
+        continue
+    for ch in text:
+        if ord(ch) < 128 or '一' <= ch <= '鿿' or ch in PUNCT:
+            static.add(ch)
 
-chars -= {'\n', '\r', '\t'}
+# --- live documents -------------------------------------------------------
+space = live('space.json')
+story = live('content/story.json')
+milestones = live('content/milestones.json')
+goals = live('content/goals.json')
+cities = live('content/cities.json')
+menu = live('commerce/menu.json')
+coupons = live('commerce/coupons/index.json')
+requests = live('commerce/dish-requests/index.json')
 
-extra = set()
-if extra_path.exists():
-    for line in extra_path.read_text(encoding='utf-8').splitlines():
+members = [member.get('name') for member in space.get('members', []) if isinstance(member, dict)]
+coupon_titles = [coupon.get('title') for coupon in coupons.get('items', []) if isinstance(coupon, dict)]
+
+# --- --font-display: title-like content + all UI copy ---------------------
+display = set(static)
+for value in (
+    space.get('name'),
+    members,
+    story.get('title'),
+    [item.get('title') for item in milestones.get('items', []) if isinstance(item, dict)],
+    [item.get('title') for item in goals.get('items', []) if isinstance(item, dict)],
+    [item.get('name') for item in cities.get('items', []) if isinstance(item, dict)],
+    [item.get('name') for item in menu.get('dishes', []) if isinstance(item, dict)],
+    [item.get('name') for item in menu.get('categories', []) if isinstance(item, dict)],
+    coupon_titles,
+    [item.get('name') for item in requests.get('items', []) if isinstance(item, dict)],
+):
+    walk(display, value)
+display |= ASCII
+display |= set(PUNCT)
+display |= set(SYMBOLS)
+
+# --- --font-cute: only the strings rendered in the decorative face --------
+cute = set()
+if cute_path.exists():
+    for line in cute_path.read_text(encoding='utf-8').splitlines():
         line = line.strip()
         if not line or line.startswith('#'):
             continue
-        extra.update(line)
-    extra = {ch for ch in extra if ch.isprintable() and ch not in '\n\r\t'}
+        add(cute, line)
 else:
-    print(f'! {extra_path} missing — Noto subset uses the base set only')
+    print(f'! {cute_path} missing — using live strings only')
 
-(tmp / 'chars-base.txt').write_text(''.join(sorted(chars)), encoding='utf-8')
-(tmp / 'chars-noto.txt').write_text(''.join(sorted(chars | extra)), encoding='utf-8')
-print(f'· base set {len(chars)} chars, Noto set {len(chars | extra)} chars')
+for value in (space.get('name'), members, story.get('title'), coupon_titles):
+    walk(cute, value)
+cute |= ASCII
+cute |= set(PUNCT)
+cute |= set(SYMBOLS)
+
+noto = display | cute
+
+(tmp / 'chars-cute.txt').write_text(''.join(sorted(cute)), encoding='utf-8')
+(tmp / 'chars-noto.txt').write_text(''.join(sorted(noto)), encoding='utf-8')
+print(f'· cute set {len(cute)} chars, display set {len(noto)} chars')
 PY
 
 echo "· subsetting woff2"
 mkdir -p assets/fonts
 uvx --from fonttools --with brotli pyftsubset "$TMP/MaShanZheng-Regular.ttf" \
-    --text-file="$TMP/chars-base.txt" --flavor=woff2 \
+    --text-file="$TMP/chars-cute.txt" --flavor=woff2 \
     --output-file=assets/fonts/mashanzheng-subset.woff2 \
     --layout-features='*' --no-hinting
 

@@ -12,6 +12,7 @@ love-journey/db/
     milestones.json
     goals.json
     cities.json
+    announcements.json
   commerce/
     menu.json
     wallet.json
@@ -80,13 +81,15 @@ love-journey/db/
       "server": "https://api.day.app"
     },
     "links": { "user": "https://…/index.html", "admin": "https://…/admin.html" },
-    "nudgeEnabled": false
+    "nudgeEnabled": false,
+    "thanksReward": 10
   }
 }
 ```
 
 - `name`/`avatar` 由管理端「空间资料」维护，用户端顶部和「空间」页读取。
 - `serving` 没有管理 UI，改排期时直接改文档或 seed。
+- `thanksReward` 可选，默认 10；设为 0 时「谢谢大厨」只记录感谢、不返币。首版没有管理 UI。
 - `bark.userKey` 接收用户事件，`bark.adminKey` 接收管理员事件；缺失时回退旧字段 `key`。
 - 模板变量见 [Bark 手册](../runbooks/bark.md)；未知变量替换为空字符串。
 - `links` 只存基础页面地址；实际订单链接在发送时追加 `?slot=<slotKey>#order`。
@@ -170,12 +173,13 @@ love-journey/db/
   "statusHistory": [{ "status": "pending", "at": "…", "by": "user" }],
   "payment": { "amount": 18, "balanceAfter": 482, "refundedAt": null },
   "nudges": [],
-  "thanks": null,
+  "thanks": { "note": "谢谢大厨，超级好吃", "at": "…", "reward": 10, "rewardTxId": "thanks_20261024-1200-01" },
   "cancelled": null
 }
 ```
 
 - `servedImage` 是订单项快照，不随菜品图片集后续变化；历史订单用它展示「本次出餐」。
+- `thanks` 只在出餐 / 完成后写入；`reward` / `rewardTxId` 是返币快照。旧订单没有这两个字段时不补发。
 - 出餐快照还会被追加到菜品 `images[]`，之后菜品详情轮播可见。
 - 同一饭点只能有一个未结束订单；取消后饭点可重新预约。
 - 订单 ID = `slotKey + '-' + 两位序号`；序号统计该饭点所有历史订单（含取消）。
@@ -188,12 +192,14 @@ love-journey/db/
   "balance": 482,
   "overdraftLimit": 50,
   "entries": [
-    { "id": "tx_…", "type": "order|grant|refund", "amount": -18, "balanceAfter": 465, "note": "…", "createdAt": "…", "by": "user" }
+    { "id": "tx_…", "type": "order|grant|refund|thanks", "amount": -18, "balanceAfter": 465, "note": "…", "createdAt": "…", "by": "user" }
   ]
 }
 ```
 
 `balance` 是反规范化字段，必须和流水一起写。没有管理员钱包。
+
+- `thanks` 流水由「谢谢大厨」触发，id 固定为 `thanks_<orderId>`，备注是「谢谢大厨 + 哪一餐」（如 `谢谢大厨 10.24 周六 午餐`）。同一订单重复感谢不会重复发币。
 
 ## 恋爱卡
 
@@ -201,6 +207,37 @@ love-journey/db/
 
 - 周更 Action 和管理端手动发卡都会增加新文档并更新索引。
 - 浏览器直接 `DELETE` OSS 对象会被 CORS 拦截；`dbDelete` 改为 `deleteMulti`（`POST ?delete`）实现硬删除。不要改回 `ossClient.delete`。
+
+## 更新公告
+
+`content/announcements.json` 是一个有界列表，不拆集合：
+
+```jsonc
+{
+  "items": [
+    {
+      "id": "an_…",
+      "title": "谢谢大厨，能返恋爱币啦",
+      "summary": "吃完饭说声谢谢，钱包里会多 10 枚恋爱币。",
+      "items": ["出餐后点「谢谢大厨」，每单返一次", "返币会记在「空间 → 恋爱币」流水里"],
+      "cta": { "label": "去小灶看看", "href": "index.html#order" },
+      "status": "draft | published | offline",
+      "version": "20261103120210",
+      "publishedAt": "2026-11-03 12:02:10",
+      "createdAt": "…",
+      "updatedAt": "…"
+    }
+  ],
+  "updatedAt": "…"
+}
+```
+
+- 新建固定 `draft`；只能通过 `publishAnnouncement()` 进入 `published`，`unpublishAnnouncement()` 进入 `offline`，`offline` 可重新发布。
+- 已发布不能直接删除，必须先下线；用户端只读取 `published`。
+- `version` 是发布时间的 14 位数字 `YYYYMMDDHHmmss`，由 `publishAnnouncement()` 写入；编辑不改，重新发布会刷新。
+- `items` 是纯文本字符串数组，不带图标；用户端统一渲染圆点。
+- `cta` 可空；非空时 `label` / `href` 必须成对。`href` 只允许 `index.html#home|order|coupons|me` 或 `https://` 外链。
+- 公告已读状态只存浏览器 `localStorage`（key 带 `dbRoot()`），不写 OSS。
 
 ## 数据安全与竞态
 

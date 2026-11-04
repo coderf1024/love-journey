@@ -2,14 +2,14 @@
 
 - 2026-10-29：按人要求从 `main` 新建 `feat/LJ-20261029-004-milestone-admin`；后续改动不再新建分支。
 - 原型阶段只新增 `docs/design/milestone-admin-wireframe.html` 和任务文档，不改页面代码、缓存 token、OSS 数据。
-- 011 把 `memoryCoverHTML` 的图片分支删掉了；本次按人要求不恢复，用户端仍用纯色渐变。
+- 011 把 `memoryCoverHTML` 的图片分支删掉了；管理端阶段先不恢复，2026-10-30 追加用户端展示时已恢复（见下）。
 - 现有 `milestones.json` 经迁移脚本已经带 `ms_001` 形式的 `id`；管理端列表用数组索引定位编辑，保存时保留已有 id。
-- 旧数据带 `image` 字段的回忆，在管理端列表会显示为「有封面」；用户端仍不展示图片。
-- 已确认：4:3 固定封面比例、单图、硬删除、只改管理端。
+- 旧数据带 `image` 字段的回忆，在管理端列表会显示为「有封面」；用户端在 2026-10-30 后也显示图片。
+- 已确认：4:3 固定封面比例、单图、硬删除；初始阶段只改管理端，后续追加用户端展示。
 
 ## 2026-10-30 实现记录
 
-- 人确认四项取舍：4:3 封面、单图、硬删除、入口在系统 → 数据（桌面侧栏同级）；同时明确**只改管理端，用户端不改**。
+- 人确认四项取舍：4:3 封面、单图、硬删除、入口在系统 → 数据（桌面侧栏同级）；同时明确**初始阶段只改管理端，用户端不改**（当天晚些时候追加用户端展示，见下）。
 - 代码只改 `admin.html`：新增侧栏/系统入口、`milestones` 视图、编辑弹窗、保存/删除/上传内联逻辑和样式。
 - 保存逻辑放在管理端页面内（`saveMilestonesAdmin`），直接 `dbGetOrNull` + `dbPut` 整份写 `content/milestones.json`；不改 `js/store.js` / `js/oss-utils.js`，因此不 bump 缓存 token。
 - 封面上传复用现有全局 `uploadBucketImage(file, prefix)`，前缀 `${uploadsRoot()}/milestones/`；测试库自动 `uploads-test`。
@@ -26,3 +26,16 @@
 - 缓存 token 从 `20261029-04` bump 到 `20261030-01`（三页 + CSS/JS 内引用）。
 - 未改 `js/store.js` / `js/oss-utils.js`；管理端保存/上传仍在 `admin.html` 内。
 - CDP 假数据验证：有图、无图、坏图、详情、320/390/1280 全部通过，console 无异常。
+
+## 2026-11-04 合并 main
+
+- 按人要求把 `main` 合入 `feat/LJ-20261029-004-milestone-admin`；`main` 新增首页性能优化、谢谢大厨返币 + 更新公告，涉及 `admin.html` / `js/app.js` / `js/store.js` / `js/oss-utils.js` / `css/style.css` / `index.html` / `use.html` / 文档。
+- 冲突处理：
+  - 管理端侧栏和系统数据区同时保留「岁月留痕」与「更新公告」；`VIEW_TITLES`、返回按钮、`switchView` 允许列表和 `admin-subpage` 同时包含 `milestones` / `announcements`。
+  - `js/app.js` 取 main 的 `MAP_SRC` / 首屏 fallback / token 结构，保留 `memoryCoverHTML` 的图片分支。
+  - `css/style.css` 取 main 的 token，保留 `.memory-cover-img` / `has-image` 规则。
+  - `index.html` / `use.html` 取 main 的结构（本地 OSS SDK、preconnect、首屏脚本），只保留统一 token。
+  - `CLAUDE.md` 合并 main 的「更新公告 / warmOssSdk」系统说明和本需求的「岁月留痕」说明。
+- 缓存 token 统一 bump 到 `20261104-01`（三页 + CSS/JS + `js/oss-utils.js` 的 `OSS_SDK_URL`）。
+- main 的首屏缓存会缓存整份 `loadAppData`；新增 `syncMilestoneCache()`，管理端保存/删除回忆后同步更新 localStorage 里的 `milestones`，避免用户端先看到旧一屏。
+- 合并后回归：管理端里程碑视图/弹窗/保存、更新公告空态、侧栏激活和返回按钮都正常；用户端有图/无图/坏图、详情、时间线、320/390/1280 正常；console 无报错。

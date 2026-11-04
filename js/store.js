@@ -11,6 +11,14 @@ const CITIES_PATH = 'content/cities.json';
 const MENU_PATH = 'commerce/menu.json';
 const WALLET_PATH = 'commerce/wallet.json';
 const COUNTERS_PATH = 'commerce/counters.json';
+const ANNOUNCEMENTS_PATH = 'content/announcements.json';
+
+const ANNOUNCEMENT_STATUS = {
+    draft: '草稿',
+    published: '已发布',
+    offline: '已下线'
+};
+const ANNOUNCEMENT_LIMIT = 20;
 
 const ORDER_ACTIVE = ['pending', 'accepted', 'prepping', 'cooking'];
 const ORDER_STATUS = {
@@ -484,39 +492,122 @@ async function getCoupon(id) {
     }
 }
 
-async function loadAppData() {
+/* ---------- first-paint cache ----------
+   The public site is a two-person space opened many times a day. Keeping the
+   last successful read lets the page paint the timer, memories and balances
+   before any OSS round trip; the network revalidates in the background.
+   The key includes dbRoot() so the test DB and production never mix.
+   ---------------------------------------------------------------- */
+const APP_CACHE_VERSION = 1;
+const APP_CACHE_PREFIX = 'lj-app-data';
+
+function appCacheStorageKey() {
+    return `${APP_CACHE_PREFIX}:${dbRoot()}`;
+}
+
+function readAppDataCache() {
+    try {
+        const raw = localStorage.getItem(appCacheStorageKey());
+        if (!raw) return null;
+        const cached = JSON.parse(raw);
+        if (!cached || cached.version !== APP_CACHE_VERSION || !cached.data) return null;
+        return cached.data;
+    } catch (error) {
+        return null;
+    }
+}
+
+function writeAppDataCache(data) {
+    try {
+        localStorage.setItem(appCacheStorageKey(), JSON.stringify({
+            version: APP_CACHE_VERSION,
+            savedAt: Date.now(),
+            data
+        }));
+    } catch (error) {
+        // Quota or private mode: the cache is best-effort.
+    }
+}
+
+const APP_DATA_FIELDS = [
+    'space', 'story', 'milestones', 'goals', 'cities', 'menu', 'wallet', 'orders', 'coupons'
+];
+
+async function loadAppData(options = {}) {
     ensureStorage();
 
-    const [space, story, milestonesDoc, goalsDoc, citiesDoc, menu, wallet, orders, coupons] =
-        await Promise.all([
-            dbGetOrNull(SPACE_PATH),
-            dbGetOrNull(STORY_PATH),
-            dbGetOrNull(MILESTONES_PATH),
-            dbGetOrNull(GOALS_PATH),
-            dbGetOrNull(CITIES_PATH),
-            dbGetOrNull(MENU_PATH),
-            dbGetOrNull(WALLET_PATH),
-            orderCollection.list(),
-            couponCollection.list()
-        ]);
+    const requests = [
+        dbGetOrNull(SPACE_PATH),
+        dbGetOrNull(STORY_PATH),
+        dbGetOrNull(MILESTONES_PATH),
+        dbGetOrNull(GOALS_PATH),
+        dbGetOrNull(CITIES_PATH),
+        dbGetOrNull(MENU_PATH),
+        dbGetOrNull(WALLET_PATH),
+        orderCollection.list(),
+        couponCollection.list()
+    ];
+    const results = await Promise.allSettled(requests);
 
-    if (!space) {
+    const value = index => {
+        const result = results[index];
+        if (result.status === 'fulfilled') return result.value;
+        console.warn('读取失败:', result.reason);
+        return null;
+    };
+    const failed = results
+        .map((result, index) => result.status === 'rejected' ? index : -1)
+        .filter(index => index >= 0);
+    const failedFields = failed.map(index => APP_DATA_FIELDS[index]);
+    const cached = options.mergeCache ? readAppDataCache() : null;
+    const cachedField = field => (cached && cached[field] != null ? cached[field] : undefined);
+
+    // A failed read keeps the last known good value when we have one. A
+    // transient blip should not blank the page or show 0 coins. Without a
+    // cached value, space / menu are still required to start.
+    const unresolved = failedFields.filter(field =>
+        (field === 'space' || field === 'menu') && cachedField(field) === undefined
+    );
+    if (unresolved.length) {
+        throw results[APP_DATA_FIELDS.indexOf(unresolved[0])].reason;
+    }
+
+    const [space, story, milestonesDoc, goalsDoc, citiesDoc, menu, wallet, orders, coupons] =
+        results.map((result, index) => value(index));
+
+    const pick = (field, fresh, empty) => {
+        if (!failedFields.includes(field)) return fresh == null ? empty : fresh;
+        const cachedValue = cachedField(field);
+        return cachedValue === undefined ? empty : cachedValue;
+    };
+
+    const resolvedSpace = pick('space', space, null);
+    if (!resolvedSpace) {
         throw new Error(typeof isTestEnv === 'function' && isTestEnv()
             ? '测试库还没有数据，请先运行 scripts/clone-test-db.js'
             : '恋爱空间还没有初始化，请先运行 scripts/migrate-storage.js');
     }
 
-    return {
-        space,
-        story: story || {},
-        milestones: (milestonesDoc && milestonesDoc.items) || [],
-        goals: (goalsDoc && goalsDoc.items) || [],
-        cities: (citiesDoc && citiesDoc.items) || [],
-        menu: normalizeMenu(menu),
-        wallet: normalizeWallet(wallet),
-        orders,
-        coupons
+    const resolvedOrders = pick('orders', orders, []);
+    const resolvedCoupons = pick('coupons', coupons, []);
+
+    const data = {
+        space: resolvedSpace,
+        story: pick('story', story, {}),
+        milestones: pick('milestones', milestonesDoc && milestonesDoc.items, []),
+        goals: pick('goals', goalsDoc && goalsDoc.items, []),
+        cities: pick('cities', citiesDoc && citiesDoc.items, []),
+        menu: normalizeMenu(pick('menu', menu, null)),
+        wallet: normalizeWallet(pick('wallet', wallet, null)),
+        orders: Array.isArray(resolvedOrders) ? resolvedOrders : [],
+        coupons: Array.isArray(resolvedCoupons) ? resolvedCoupons : []
     };
+
+    // Only a complete read replaces the snapshot. A merged read keeps the
+    // previous cache intact and tells the page which fields are old.
+    if (failedFields.length) data.stale = failedFields;
+    else writeAppDataCache(data);
+    return data;
 }
 
 async function refreshOrderData() {
@@ -525,8 +616,12 @@ async function refreshOrderData() {
 }
 
 async function loadAdminData() {
-    const [data, dishRequests] = await Promise.all([loadAppData(), listDishRequests()]);
-    return { ...data, dishRequests };
+    const [data, dishRequests, announcements] = await Promise.all([
+        loadAppData(),
+        listDishRequests(),
+        listAnnouncements({ includeAll: true }).catch(() => [])
+    ]);
+    return { ...data, dishRequests, announcements };
 }
 
 /* ---------- dish requests (我想吃) ---------- */
@@ -955,12 +1050,65 @@ async function thankChef(orderId, note) {
     if (!['served', 'completed'].includes(order.status)) {
         throw makeError('NOT_SERVED', '出餐后才能谢谢大厨');
     }
+    // Already thanked: never grant a second time, even if the first wallet
+    // write failed after the order was saved.
+    if (order.thanks) return order;
+
+    const [wallet, space] = await Promise.all([
+        loadWallet(),
+        loadSpace().catch(() => null)
+    ]);
+    const now = nowStamp();
+    const configured = space && space.settings ? space.settings.thanksReward : undefined;
+    const rawReward = configured == null ? 10 : Number(configured);
+    const reward = Number.isFinite(rawReward) ? Math.max(0, Math.floor(rawReward)) : 10;
+    const rewardTxId = reward > 0 ? `thanks_${order.id}` : null;
+    const slot = order.slot || {};
+    const meal = [slot.dateLabel, slot.label].filter(Boolean).join(' ');
+
     order.thanks = {
         note: String(note || '谢谢大厨，超级好吃').trim().slice(0, 80),
-        at: nowStamp()
+        at: now,
+        reward,
+        rewardTxId
     };
-    order.updatedAt = order.thanks.at;
+    order.updatedAt = now;
     await orderCollection.save(orderId, order);
+
+    if (reward <= 0) return order;
+
+    // Deterministic id makes a retry after a partial write idempotent.
+    if ((wallet.entries || []).some(entry => entry && entry.id === rewardTxId)) {
+        return order;
+    }
+
+    const newBalance = wallet.balance + reward;
+    const nextWallet = {
+        ...wallet,
+        balance: newBalance,
+        updatedAt: now,
+        entries: [{
+            id: rewardTxId,
+            type: 'thanks',
+            amount: reward,
+            balanceAfter: newBalance,
+            orderId: order.id,
+            note: `谢谢大厨${meal ? ` ${meal}` : ''}`,
+            createdAt: now,
+            by: 'user'
+        }, ...wallet.entries].slice(0, 200)
+    };
+
+    try {
+        await dbPut(WALLET_PATH, nextWallet);
+    } catch (error) {
+        // Do not leave a thanks without its reward: allow the user to retry.
+        order.thanks = null;
+        order.updatedAt = now;
+        await orderCollection.save(orderId, order).catch(() => {});
+        throw error;
+    }
+
     return order;
 }
 
@@ -1082,6 +1230,182 @@ async function toggleDish(id, field) {
     if (field === 'todaySpecial') dish.todaySpecial = !dish.todaySpecial;
     await saveMenu(menu);
     return dish;
+}
+
+/* ---------- announcements ---------- */
+
+function stampToVersion(stamp) {
+    const value = String(stamp || '').replace(/[-: ]/g, '');
+    return /^\d{14}$/.test(value) ? value : '';
+}
+
+function normalizeAnnouncementHref(href) {
+    const value = String(href || '').trim();
+    if (!value) return '';
+    const pageMatch = value.match(/^(?:\.?\/?index\.html)?#(home|order|coupons|me)$/i);
+    if (pageMatch) return `index.html#${pageMatch[1].toLowerCase()}`;
+    if (/^https:\/\/[^\s]+$/i.test(value)) return value;
+    throw makeError('BAD_CTA', 'CTA 跳转地址只支持 index.html#order 这类站内地址或 https 链接');
+}
+
+function normalizeAnnouncementCta(cta) {
+    const value = cta || {};
+    const label = String(value.label || '').trim().slice(0, 20);
+    const href = String(value.href || '').trim();
+    if (!label && !href) return null;
+    if (!label) throw makeError('BAD_CTA', '填了跳转地址，也要填 CTA 文案');
+    if (!href) throw makeError('BAD_CTA', '填了 CTA 文案，也要填跳转地址');
+    return { label, href: normalizeAnnouncementHref(href) };
+}
+
+function normalizeAnnouncementItems(items) {
+    const list = Array.isArray(items) ? items : String(items || '').split(/\r?\n/);
+    return list
+        .map(item => String(item || '').trim().slice(0, 80))
+        .filter(Boolean)
+        .slice(0, 6);
+}
+
+function normalizeAnnouncement(input, existing) {
+    const value = input || {};
+    const base = existing || {};
+    const now = nowStamp();
+    const title = String(value.title == null ? base.title || '' : value.title).trim().slice(0, 30);
+    if (!title) throw makeError('BAD_ANNOUNCEMENT', '先写一个公告标题');
+
+    const items = normalizeAnnouncementItems(value.items == null ? base.items : value.items);
+    if (!items.length) throw makeError('BAD_ANNOUNCEMENT', '至少写一条更新内容');
+
+    const ctaValue = Object.prototype.hasOwnProperty.call(value, 'cta') ? value.cta : base.cta;
+
+    return {
+        id: base.id || String(value.id || `an_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`),
+        title,
+        summary: String(value.summary == null ? base.summary || '' : value.summary).trim().slice(0, 80),
+        items,
+        cta: normalizeAnnouncementCta(ctaValue),
+        status: base.status || 'draft',
+        version: base.version || null,
+        publishedAt: base.publishedAt || null,
+        createdAt: base.createdAt || now,
+        updatedAt: now
+    };
+}
+
+async function loadAnnouncementsDoc() {
+    const doc = await dbGetOrNull(ANNOUNCEMENTS_PATH, { fresh: true });
+    return {
+        items: doc && Array.isArray(doc.items) ? doc.items : [],
+        updatedAt: (doc && doc.updatedAt) || ''
+    };
+}
+
+// A create/delete followed immediately by another action can beat the
+// public read path by a fraction of a second. Retry once before reporting
+// "missing" so a fast double action in the admin UI is not a false error.
+async function loadAnnouncementsDocForAction(id) {
+    let doc = await loadAnnouncementsDoc();
+    if (!id || doc.items.some(item => String(item.id) === String(id))) return doc;
+    await new Promise(resolve => setTimeout(resolve, 600));
+    doc = await loadAnnouncementsDoc();
+    return doc;
+}
+
+async function saveAnnouncementsDoc(items) {
+    const doc = {
+        items: items.slice(0, ANNOUNCEMENT_LIMIT),
+        updatedAt: nowStamp()
+    };
+    await dbPut(ANNOUNCEMENTS_PATH, doc);
+    return doc;
+}
+
+async function listAnnouncements(options = {}) {
+    const doc = await loadAnnouncementsDoc();
+    const items = options.includeAll
+        ? doc.items
+        : doc.items.filter(item => item && item.status === 'published');
+    return items.slice().sort((a, b) =>
+        String(b.publishedAt || b.createdAt || '').localeCompare(String(a.publishedAt || a.createdAt || ''))
+    );
+}
+
+async function getAnnouncement(id) {
+    const doc = await loadAnnouncementsDoc();
+    return doc.items.find(item => String(item.id) === String(id)) || null;
+}
+
+async function createAnnouncement(input) {
+    const doc = await loadAnnouncementsDoc();
+    if (doc.items.length >= ANNOUNCEMENT_LIMIT) {
+        throw makeError('ANNOUNCEMENT_LIMIT', `最多保留 ${ANNOUNCEMENT_LIMIT} 条公告，先删掉旧的吧`);
+    }
+    const item = normalizeAnnouncement(input, null);
+    item.status = 'draft';
+    item.version = null;
+    item.publishedAt = null;
+    await saveAnnouncementsDoc([item, ...doc.items]);
+    return item;
+}
+
+async function updateAnnouncementContent(id, input) {
+    const doc = await loadAnnouncementsDocForAction(id);
+    const index = doc.items.findIndex(item => String(item.id) === String(id));
+    if (index < 0) throw makeError('ANNOUNCEMENT_MISSING', '找不到这条公告');
+    const item = normalizeAnnouncement(input, doc.items[index]);
+    const items = doc.items.slice();
+    items[index] = item;
+    await saveAnnouncementsDoc(items);
+    return item;
+}
+
+async function publishAnnouncement(id) {
+    const doc = await loadAnnouncementsDocForAction(id);
+    const index = doc.items.findIndex(item => String(item.id) === String(id));
+    if (index < 0) throw makeError('ANNOUNCEMENT_MISSING', '找不到这条公告');
+    const item = doc.items[index];
+    if (!['draft', 'offline'].includes(item.status)) {
+        throw makeError('BAD_ANNOUNCEMENT_STATE', '只有草稿或已下线公告可以发布');
+    }
+    const now = nowStamp();
+    const next = {
+        ...item,
+        status: 'published',
+        publishedAt: now,
+        version: stampToVersion(now),
+        updatedAt: now
+    };
+    const items = doc.items.slice();
+    items[index] = next;
+    await saveAnnouncementsDoc(items);
+    return next;
+}
+
+async function unpublishAnnouncement(id) {
+    const doc = await loadAnnouncementsDocForAction(id);
+    const index = doc.items.findIndex(item => String(item.id) === String(id));
+    if (index < 0) throw makeError('ANNOUNCEMENT_MISSING', '找不到这条公告');
+    const item = doc.items[index];
+    if (item.status !== 'published') {
+        throw makeError('BAD_ANNOUNCEMENT_STATE', '只有已发布公告可以下线');
+    }
+    const now = nowStamp();
+    const next = { ...item, status: 'offline', updatedAt: now };
+    const items = doc.items.slice();
+    items[index] = next;
+    await saveAnnouncementsDoc(items);
+    return next;
+}
+
+async function deleteAnnouncement(id) {
+    const doc = await loadAnnouncementsDocForAction(id);
+    const item = doc.items.find(item => String(item.id) === String(id));
+    if (!item) throw makeError('ANNOUNCEMENT_MISSING', '找不到这条公告');
+    if (item.status === 'published') {
+        throw makeError('BAD_ANNOUNCEMENT_STATE', '已发布公告要先下线才能删除');
+    }
+    await saveAnnouncementsDoc(doc.items.filter(entry => String(entry.id) !== String(id)));
+    return true;
 }
 
 /* ---------- coupons (kept for the existing weekly gift flow) ---------- */

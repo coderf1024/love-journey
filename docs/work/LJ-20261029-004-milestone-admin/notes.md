@@ -88,3 +88,10 @@
 - 不调用 `renderMilestones()`，所以不会把轮播重置到第一张；`state.memoryIndex` 保持不变。
 - 上传中按钮禁用并显示「上传中…」；失败 toast 提示、按钮恢复；未写真实 OSS（测试用 stub）。
 - 缓存 token `20261105-05`。
+
+## 2026-11-05 发布
+
+- 合并到 `main`：merge commit `3eeab64`；推送成功（SSH 443 兜底，`ssh://git@ssh.github.com:443/coderf1024/love-journey.git`）；远端 `main` 已确认到 `3eeab64`。
+- 发布缓存 token `20261105-05`；EdgeOne 主站和 GitHub Pages 由 push 自动部署。
+- AI 未做线上 smoke（项目约定由人验证）；待用户确认 `https://coderf.site` 的首页、管理端和小灶。
+- 发布后抽查 13 条带旧 `image` 的回忆；补图完成后移除用户端详情的临时「上传照片」入口。

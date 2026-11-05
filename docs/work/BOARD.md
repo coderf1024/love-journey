@@ -29,7 +29,7 @@
 | LJ-20261028-016 | 首页地图省份点亮 + 独立测试库 | done | `feat/LJ-20261028-016-map-province-lighting` | 已随 002 合并 main（`f77a17f`），发布 token `20261029-04` | 人 |
 | LJ-20261028-015 | 管理端关闭浏览器后免重新登录（localStorage + 7 天滑动、首屏不闪登录页） | done | `261028_space_fix`（已合入 main `434abfe`） | 已发布，线上 smoke 待复核 | 人 |
 | LJ-20261029-003 | 部署迁移：EdgeOne 主站 + GitHub Pages 备用（文档） | done | `chore/LJ-20261029-003-deploy-edgeone` | 已合并 main（文档提交 `02feaca`），文档发布 | 人 |
-| LJ-20261029-004 | 管理端里程碑配置 + 用户端封面展示 | accepted | `feat/LJ-20261029-004-milestone-admin` | 人已验收通过（2026-11-05）；合并 main 并推送，线上 smoke 由人确认 | 人 |
+| LJ-20261029-004 | 管理端里程碑配置 + 用户端封面展示 | done | `feat/LJ-20261029-004-milestone-admin` | 已合并 main（merge `3eeab64`）并推送；线上 smoke 由人确认，补图完成后移除临时入口 | 人 |
 
 ## 状态说明
 

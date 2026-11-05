@@ -13,12 +13,12 @@ let lastCityColumns = 0;
 
 // Self-hosted: cdn.jsdelivr.net is unreliable in WeChat / mainland mobile networks.
 const LIBS = {
-    echarts: 'assets/vendor/echarts.min.js?v=20261105-03',
-    qrcode: 'assets/vendor/qrcode.min.js?v=20261105-03'
+    echarts: 'assets/vendor/echarts.min.js?v=20261105-04',
+    qrcode: 'assets/vendor/qrcode.min.js?v=20261105-04'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261105-03';
-const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261105-03';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261105-04';
+const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261105-04';
 // First-paint fallback only. The live story document always wins once it loads.
 const LOVE_START_FALLBACK = '2020-12-20';
 
@@ -423,11 +423,6 @@ function formatDate(value, withTime) {
     return `${day} ${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
 }
 
-function dateYear(value) {
-    const date = parseDate(value);
-    return date ? date.getFullYear() : '';
-}
-
 function toast(message) {
     const el = $('toast');
     if (!el) return;
@@ -759,7 +754,6 @@ function startTimer() {
 /* ---------- milestones ---------- */
 
 function memoryCoverHTML(milestone, index, large) {
-    const year = dateYear(milestone.date);
     const variant = `v${index % 4}`;
     const motif = MOTIFS[index % MOTIFS.length];
     const image = String(milestone.image || '').trim();
@@ -769,7 +763,6 @@ function memoryCoverHTML(milestone, index, large) {
         html: `
             ${hasImage ? `<img class="memory-cover-img" src="${escapeHTML(image)}" alt="" loading="${large ? 'eager' : 'lazy'}" decoding="async" onerror="this.onerror=null;this.style.display='none';this.parentElement.classList.remove('has-image')">` : ''}
             <div class="memory-cover-text">
-                <span class="memory-year">${escapeHTML(year)}</span>
                 <span class="memory-motif" aria-hidden="true">${motif}</span>
             </div>
             ${!large ? `<span class="memory-date-chip">${escapeHTML(formatDate(milestone.date))}</span>` : ''}
@@ -880,6 +873,10 @@ function initCarousel() {
 const MEMORY_SWIPE_HINT_KEY = 'lj-memory-swipe-hint-seen';
 let memorySwipeHintTimer = null;
 
+function memorySwipeHintKey() {
+    return `${MEMORY_SWIPE_HINT_KEY}:${typeof dbRoot === 'function' ? dbRoot() : 'default'}`;
+}
+
 function memorySwipeHintSupported() {
     if (typeof window === 'undefined') return false;
     if (typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches) return true;
@@ -888,7 +885,7 @@ function memorySwipeHintSupported() {
 
 function memorySwipeHintSeen() {
     try {
-        return localStorage.getItem(MEMORY_SWIPE_HINT_KEY) === '1';
+        return localStorage.getItem(memorySwipeHintKey()) === '1';
     } catch (error) {
         return false;
     }
@@ -912,7 +909,7 @@ function dismissMemorySwipeHint() {
     if (hint) hint.hidden = true;
     clearTimeout(memorySwipeHintTimer);
     try {
-        localStorage.setItem(MEMORY_SWIPE_HINT_KEY, '1');
+        localStorage.setItem(memorySwipeHintKey(), '1');
     } catch (error) {}
 }
 
@@ -943,10 +940,6 @@ function renderMemoryDetail() {
     if (title) title.textContent = String(milestone.title || '').trim();
     if (desc) desc.textContent = String(milestone.description || '').trim();
 
-    const prev = $('memory-prev');
-    const next = $('memory-next');
-    if (prev) prev.disabled = state.memoryIndex <= 0;
-    if (next) next.disabled = state.memoryIndex >= state.milestones.length - 1;
 }
 
 function animateMemoryStep(direction) {
@@ -1027,11 +1020,16 @@ function initMemorySwipe() {
 }
 
 function initMemorySheet() {
-    const prev = $('memory-prev');
-    const next = $('memory-next');
-    if (prev) prev.addEventListener('click', () => stepMemory(-1));
-    if (next) next.addEventListener('click', () => stepMemory(1));
     initMemorySwipe();
+    document.addEventListener('keydown', event => {
+        const sheet = $('memory-sheet');
+        if (!sheet || !sheet.classList.contains('is-open')) return;
+        if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+        const target = event.target;
+        if (target && target.closest && target.closest('input, textarea, select, [contenteditable="true"]')) return;
+        event.preventDefault();
+        stepMemory(event.key === 'ArrowRight' ? 1 : -1);
+    });
 }
 
 /* ---------- timeline sheet ---------- */

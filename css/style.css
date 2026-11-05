@@ -6,14 +6,14 @@
 
 @font-face {
     font-family: 'Ma Shan Zheng';
-    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261105-03') format('woff2');    font-weight: 400;
+    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261105-04') format('woff2');    font-weight: 400;
     font-style: normal;
     font-display: swap;
 }
 
 @font-face {
     font-family: 'Noto Serif SC';
-    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261105-03') format('woff2');    font-weight: 700;
+    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261105-04') format('woff2');    font-weight: 700;
     font-style: normal;
     font-display: swap;
 }
@@ -88,7 +88,7 @@ body::after {
 }
 
 body::before {
-    background: url('../assets/texture-noise.png?v=20261105-03') repeat;    opacity: 0.06;
+    background: url('../assets/texture-noise.png?v=20261105-04') repeat;    opacity: 0.06;
     mix-blend-mode: multiply;
 }
 
@@ -560,7 +560,7 @@ select:focus-visible {
     content: '';
     position: absolute;
     inset: 0;
-    background: url('../assets/texture-noise.png?v=20261105-03') repeat;    opacity: 0.1;
+    background: url('../assets/texture-noise.png?v=20261105-04') repeat;    opacity: 0.1;
     mix-blend-mode: soft-light;
     pointer-events: none;
 }
@@ -733,12 +733,6 @@ select:focus-visible {
     object-fit: cover;
 }
 
-.memory-cover.has-image .memory-year,
-.memory-detail-cover.has-image .memory-year {
-    color: rgba(255, 255, 255, .94);
-    text-shadow: 0 1px 2px rgba(26, 18, 32, .72), 0 2px 16px rgba(26, 18, 32, .55);
-}
-
 .memory-cover.has-image .memory-motif,
 .memory-detail-cover.has-image .memory-motif {
     display: none;
@@ -757,18 +751,10 @@ select:focus-visible {
     inset: 0;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-end;
     padding: 16px;
     color: var(--ink);
     pointer-events: none;
-}
-
-.memory-year {
-    font-family: var(--font-display);
-    font-size: 2.6rem;
-    font-weight: 700;
-    line-height: 1;
-    color: rgba(43, 34, 49, 0.22);
 }
 
 .memory-motif {
@@ -1792,10 +1778,6 @@ select:focus-visible {
     padding: 24px;
 }
 
-.memory-detail-cover .memory-year {
-    font-size: 4rem;
-}
-
 .memory-detail-cover .memory-motif {
     width: 56px;
     height: 56px;
@@ -1834,7 +1816,7 @@ select:focus-visible {
     align-items: center;
     justify-content: center;
     gap: 9px;
-    margin: 22px 0 0;
+    margin: 22px 0 2px;
     color: var(--muted);
     font-family: var(--font-ui);
     font-size: 0.72rem;
@@ -1861,10 +1843,6 @@ select:focus-visible {
     animation: memory-swipe-right 1.4s ease-in-out 3;
 }
 
-.memory-swipe-hint:not([hidden]) + .memory-nav {
-    margin-top: 12px;
-}
-
 @keyframes memory-swipe-left {
     0%, 100% { opacity: 0.55; transform: translateX(0); }
     50% { opacity: 1; transform: translateX(-4px); }
@@ -1880,26 +1858,6 @@ select:focus-visible {
         animation: none !important;
         opacity: 0.8;
     }
-}
-
-.memory-nav {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-top: 28px;
-}
-
-.memory-nav button {
-    min-height: 46px;
-    color: var(--ink);
-    font-size: 0.86rem;
-    background: var(--paper-soft);
-    border: 1px solid var(--line);
-    border-radius: 999px;
-}
-
-.memory-nav button:disabled {
-    opacity: 0.35;
 }
 
 /* timeline */

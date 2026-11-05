@@ -65,7 +65,17 @@
 
 - 移动端详情在正文和按钮之间显示「‹ 左右滑动 ›」，箭头做两次轻摆；`aria-hidden="true"`，不影响读屏和按钮操作。
 - 只在触摸设备显示（`pointer: coarse` 或 `maxTouchPoints > 0`）；桌面端隐藏，按钮兜底。
-- 未滑动前每次打开详情都会显示；第一次横向滑动 ≥56px 后写入 `localStorage: lj-memory-swipe-hint-seen` 并永久隐藏。
+- 未滑动前每次打开详情都会显示；第一次横向滑动 ≥56px 后写入 `localStorage: lj-memory-swipe-hint-seen:<dbRoot>` 并永久隐藏。
 - `prefers-reduced-motion` 下箭头不摆动，提示文字仍显示。
 - 缓存 token `20261105-03`。
-- CDP 验证：第一次打开提示显示、箭头动画运行；左滑后提示隐藏且 localStorage 为 1；再次打开不显示；reduce 模式箭头动画为 none；320/390/1280 无横向溢出；console 无异常。
+- CDP 验证：第一次打开提示显示、箭头动画运行；左滑后提示隐藏且对应 dbRoot 的 localStorage 为 1；再次打开不显示；reduce 模式箭头动画为 none；320/390/1280 无横向溢出；console 无异常。
+
+## 2026-11-05 移除详情按钮和封面年份
+
+- 按人要求移除详情底部「上一段 / 下一段」按钮；`.memory-nav` 的 HTML/CSS/JS 绑定一并删除，`renderMemoryDetail` 不再维护 disabled 状态。
+- 桌面兜底改为键盘 ← / →：只在回忆详情 sheet 打开时生效，输入框聚焦时不拦截。
+- 移除 `.memory-year`：卡片和详情封面不再显示年份叠层；日期胶囊和详情正文的日期保留。
+- `.memory-cover-text` 只剩 motif，`justify-content` 改为 `flex-end`，无图封面 motif 仍在右下角；有图封面 motif 仍隐藏。
+- 详情正文 `.memory-detail-copy` 增加 `aria-live="polite" aria-atomic="true"`，滑动/键盘切换后读屏能读到新内容。
+- 缓存 token `20261105-04`。
+- CDP 验证：`.memory-nav` / `#memory-prev` / `#memory-next` 不存在；`.memory-year` 数量 0；无图 motif 距底/右 24px；滑动和键盘 ←/→ 正常；320/390/1280 无横向溢出；console 无异常。

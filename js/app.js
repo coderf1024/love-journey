@@ -13,12 +13,12 @@ let lastCityColumns = 0;
 
 // Self-hosted: cdn.jsdelivr.net is unreliable in WeChat / mainland mobile networks.
 const LIBS = {
-    echarts: 'assets/vendor/echarts.min.js?v=20261105-01',
-    qrcode: 'assets/vendor/qrcode.min.js?v=20261105-01'
+    echarts: 'assets/vendor/echarts.min.js?v=20261105-02',
+    qrcode: 'assets/vendor/qrcode.min.js?v=20261105-02'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261105-01';
-const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261105-01';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261105-02';
+const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261105-02';
 // First-paint fallback only. The live story document always wins once it loads.
 const LOVE_START_FALLBACK = '2020-12-20';
 
@@ -950,11 +950,46 @@ function stepMemory(direction) {
     animateMemoryStep(direction);
 }
 
+function initMemorySwipe() {
+    const surface = document.querySelector('#memory-sheet .sheet-scroll');
+    if (!surface) return;
+    let swipe = null;
+
+    surface.addEventListener('pointerdown', event => {
+        if (event.pointerType === 'mouse' || !event.isPrimary) return;
+        if (event.target.closest('button, a, input, textarea, select')) return;
+        swipe = { id: event.pointerId, x: event.clientX, y: event.clientY, horizontal: false };
+    });
+
+    surface.addEventListener('pointermove', event => {
+        if (!swipe || event.pointerId !== swipe.id) return;
+        const dx = event.clientX - swipe.x;
+        const dy = event.clientY - swipe.y;
+        if (!swipe.horizontal && Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy) * 1.15) {
+            swipe.horizontal = true;
+            try { surface.setPointerCapture(event.pointerId); } catch (error) {}
+        }
+        if (swipe.horizontal) event.preventDefault();
+    }, { passive: false });
+
+    surface.addEventListener('pointerup', event => {
+        if (!swipe || event.pointerId !== swipe.id) return;
+        const dx = event.clientX - swipe.x;
+        const horizontal = swipe.horizontal;
+        swipe = null;
+        if (!horizontal || Math.abs(dx) < 56) return;
+        stepMemory(dx < 0 ? 1 : -1);
+    });
+
+    surface.addEventListener('pointercancel', () => { swipe = null; });
+}
+
 function initMemorySheet() {
     const prev = $('memory-prev');
     const next = $('memory-next');
     if (prev) prev.addEventListener('click', () => stepMemory(-1));
     if (next) next.addEventListener('click', () => stepMemory(1));
+    initMemorySwipe();
 }
 
 /* ---------- timeline sheet ---------- */

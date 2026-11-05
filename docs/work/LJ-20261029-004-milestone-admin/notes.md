@@ -51,3 +51,12 @@
   - 快速连点先取消上一组动画再开始；`prefers-reduced-motion: reduce` 时直接切换、不播动画。
 - 缓存 token `20261105-01`；`index.html` 新增 `.memory-detail-copy` 包裹层。
 - CDP 验证：card box-shadow `none`、timeline-year `position: static`、next/prev keyframe 方向正确（±18/±12px）、reduced-motion 下动画数为 0、320/390/1280 无横向溢出、console 无异常。
+
+## 2026-11-05 移动端左右滑动
+
+- 回忆详情增加触摸滑动：左滑下一段、右滑上一段，沿用同一套方向感动画。
+- 用 Pointer Events + `#memory-sheet .sheet-scroll { touch-action: pan-y pinch-zoom; overflow-x: hidden; }`：竖向滑动交给正文滚动，横向位移超过 12px 且明显大于纵向才锁定为翻页；松手位移 ≥56px 才切换。
+- 从按钮/链接/输入框开始的触摸不拦截，避免误触；快速连点/连滑由 `stepMemory` 取消上一组动画。
+- 底部「上一段 / 下一段」按钮保留，作为无障碍、桌面和不习惯滑动用户的兜底。
+- 缓存 token `20261105-02`。
+- CDP 验证：左滑 index 0→1、右滑 1→0；竖滑和 30px 短滑不切换；按钮仍可用；320/390/1280 无横向溢出；console 无异常。

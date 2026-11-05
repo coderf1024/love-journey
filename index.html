@@ -15,9 +15,9 @@
     <link rel="apple-touch-icon" href="assets/icon-180.png">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="preconnect" href="https://love-config.oss-cn-beijing.aliyuncs.com" crossorigin>
-    <link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261105-02" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261105-02" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/style.css?v=20261105-02">
+    <link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261105-03" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261105-03" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="css/style.css?v=20261105-03">
 </head>
 <body>
     <header class="app-header" id="app-header">
@@ -320,6 +320,11 @@
                         <h2 class="memory-detail-title" id="memory-detail-title"></h2>
                         <p class="memory-detail-desc" id="memory-detail-desc"></p>
                     </div>
+                    <p class="memory-swipe-hint" id="memory-swipe-hint" hidden aria-hidden="true">
+                        <span class="memory-swipe-arrow is-left">‹</span>
+                        <span>左右滑动</span>
+                        <span class="memory-swipe-arrow is-right">›</span>
+                    </p>
                     <div class="memory-nav">
                         <button type="button" id="memory-prev">← 上一段</button>
                         <button type="button" id="memory-next">下一段 →</button>
@@ -498,10 +503,10 @@
 
     <audio id="bg-music" loop playsinline preload="none"></audio>
 
-    <script src="js/oss-config.js?v=20261105-02"></script>
-    <script src="js/crypto-utils.js?v=20261105-02"></script>
-    <script src="js/oss-utils.js?v=20261105-02"></script>
-    <script src="js/store.js?v=20261105-02"></script>
-    <script src="js/app.js?v=20261105-02"></script>
+    <script src="js/oss-config.js?v=20261105-03"></script>
+    <script src="js/crypto-utils.js?v=20261105-03"></script>
+    <script src="js/oss-utils.js?v=20261105-03"></script>
+    <script src="js/store.js?v=20261105-03"></script>
+    <script src="js/app.js?v=20261105-03"></script>
 </body>
 </html>

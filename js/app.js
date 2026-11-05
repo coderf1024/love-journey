@@ -13,12 +13,12 @@ let lastCityColumns = 0;
 
 // Self-hosted: cdn.jsdelivr.net is unreliable in WeChat / mainland mobile networks.
 const LIBS = {
-    echarts: 'assets/vendor/echarts.min.js?v=20261105-02',
-    qrcode: 'assets/vendor/qrcode.min.js?v=20261105-02'
+    echarts: 'assets/vendor/echarts.min.js?v=20261105-03',
+    qrcode: 'assets/vendor/qrcode.min.js?v=20261105-03'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261105-02';
-const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261105-02';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261105-03';
+const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261105-03';
 // First-paint fallback only. The live story document always wins once it loads.
 const LOVE_START_FALLBACK = '2020-12-20';
 
@@ -877,11 +877,52 @@ function initCarousel() {
 
 /* ---------- memory detail ---------- */
 
+const MEMORY_SWIPE_HINT_KEY = 'lj-memory-swipe-hint-seen';
+let memorySwipeHintTimer = null;
+
+function memorySwipeHintSupported() {
+    if (typeof window === 'undefined') return false;
+    if (typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches) return true;
+    return typeof navigator !== 'undefined' && Number(navigator.maxTouchPoints) > 0;
+}
+
+function memorySwipeHintSeen() {
+    try {
+        return localStorage.getItem(MEMORY_SWIPE_HINT_KEY) === '1';
+    } catch (error) {
+        return false;
+    }
+}
+
+function maybeShowMemorySwipeHint() {
+    const hint = $('memory-swipe-hint');
+    if (!hint) return;
+    if (!memorySwipeHintSupported() || memorySwipeHintSeen()) {
+        hint.hidden = true;
+        return;
+    }
+    hint.hidden = false;
+    hint.classList.remove('is-animating');
+    void hint.offsetWidth;
+    hint.classList.add('is-animating');
+}
+
+function dismissMemorySwipeHint() {
+    const hint = $('memory-swipe-hint');
+    if (hint) hint.hidden = true;
+    clearTimeout(memorySwipeHintTimer);
+    try {
+        localStorage.setItem(MEMORY_SWIPE_HINT_KEY, '1');
+    } catch (error) {}
+}
+
 function openMemory(index) {
     if (!state.milestones[index]) return;
     state.memoryIndex = index;
     renderMemoryDetail();
     openSheet('memory-sheet');
+    clearTimeout(memorySwipeHintTimer);
+    memorySwipeHintTimer = setTimeout(maybeShowMemorySwipeHint, 360);
 }
 
 function renderMemoryDetail() {
@@ -978,6 +1019,7 @@ function initMemorySwipe() {
         const horizontal = swipe.horizontal;
         swipe = null;
         if (!horizontal || Math.abs(dx) < 56) return;
+        dismissMemorySwipeHint();
         stepMemory(dx < 0 ? 1 : -1);
     });
 

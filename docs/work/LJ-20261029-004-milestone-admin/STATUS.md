@@ -15,7 +15,7 @@
 - 封面上传复用 `uploadBucketImage()`，测试环境 `uploads-test/milestones/`，生产 `uploads/milestones/`。
 - 用户端 `memoryCoverHTML` 读取 `image`：有图显示 4:3 照片，年份白色叠层、隐藏 motif；无图/加载失败回退 v0–v3 渐变 + motif。
 - 用户端卡片和详情共用同一套封面渲染；日期胶囊、详情正文、前后翻页保持不变。
-- 缓存 token bump 到 `20261105-02`（三页 + CSS/JS/OSS SDK 内引用）。
+- 缓存 token bump 到 `20261105-03`（三页 + CSS/JS/OSS SDK 内引用）。
 - 文档：data-model、CHANGELOG、CLAUDE、brief、plan 已同步。
 
 ### 2026-11-05 视觉微调
@@ -25,7 +25,8 @@
 - 回忆详情「上一段 / 下一段」加入方向感动画：封面从对应方向 18px + 1.02x 缩放淡入，正文从 12px 淡入（延迟 24ms），300ms；快速连点会取消上一段动画，`prefers-reduced-motion: reduce` 时跳过。
 - 新增 `.memory-detail-copy` 包裹日期/标题/描述，翻页时导航按钮保持稳定。
 - 回忆详情支持移动端左右滑动：左滑下一段、右滑上一段；竖向滚动和短滑不触发；按钮保留兜底。
-- 缓存 token `20261105-02`。
+- 触摸设备显示「‹ 左右滑动 ›」提示，第一次成功滑动后隐藏并记住；桌面端不显示。
+- 缓存 token `20261105-03`。
 
 ### 2026-11-04 合并 main
 

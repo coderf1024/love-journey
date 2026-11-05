@@ -15,9 +15,9 @@
     <link rel="apple-touch-icon" href="assets/icon-180.png">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="preconnect" href="https://love-config.oss-cn-beijing.aliyuncs.com" crossorigin>
-    <link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261105-04" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261105-04" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/style.css?v=20261105-04">
+    <link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261105-05" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261105-05" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="css/style.css?v=20261105-05">
 </head>
 <body>
     <header class="app-header" id="app-header">
@@ -320,6 +320,14 @@
                         <h2 class="memory-detail-title" id="memory-detail-title"></h2>
                         <p class="memory-detail-desc" id="memory-detail-desc"></p>
                     </div>
+                    <!-- TODO temporary: remove after milestone images are backfilled -->
+                    <button class="memory-upload" id="memory-upload" type="button">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M4 8.5h3l1.2-1.8h7.6L17 8.5h3v10H4Z"/><circle cx="12" cy="13.5" r="3"/>
+                        </svg>
+                        <span id="memory-upload-label">上传照片</span>
+                    </button>
+                    <input id="memory-upload-input" type="file" accept="image/*" hidden>
                     <p class="memory-swipe-hint" id="memory-swipe-hint" hidden aria-hidden="true">
                         <span class="memory-swipe-arrow is-left">‹</span>
                         <span>左右滑动</span>
@@ -499,10 +507,10 @@
 
     <audio id="bg-music" loop playsinline preload="none"></audio>
 
-    <script src="js/oss-config.js?v=20261105-04"></script>
-    <script src="js/crypto-utils.js?v=20261105-04"></script>
-    <script src="js/oss-utils.js?v=20261105-04"></script>
-    <script src="js/store.js?v=20261105-04"></script>
-    <script src="js/app.js?v=20261105-04"></script>
+    <script src="js/oss-config.js?v=20261105-05"></script>
+    <script src="js/crypto-utils.js?v=20261105-05"></script>
+    <script src="js/oss-utils.js?v=20261105-05"></script>
+    <script src="js/store.js?v=20261105-05"></script>
+    <script src="js/app.js?v=20261105-05"></script>
 </body>
 </html>

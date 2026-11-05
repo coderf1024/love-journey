@@ -56,6 +56,7 @@ love-journey/db/
 - 封面图上传到 `love-journey/uploads/milestones/`（测试库 `uploads-test/`），由管理端 `uploadBucketImage()` 压缩上传。
 - **用户端回忆卡片和详情读取 `image`**：有图时照片铺满 4:3 封面；没有图片或加载失败时回退 v0–v3 纯色渐变，不出现破图。
 - 管理端列表和编辑弹窗会显示封面缩略图/4:3 预览。
+- 用户端回忆详情有一个**临时**「上传照片」维护入口，直接把图片上传到 `uploads/milestones/`，并原地更新当前回忆的 `image`；用于前期补图，补完后应移除。
 
 ## space.json
 

@@ -79,3 +79,12 @@
 - 详情正文 `.memory-detail-copy` 增加 `aria-live="polite" aria-atomic="true"`，滑动/键盘切换后读屏能读到新内容。
 - 缓存 token `20261105-04`。
 - CDP 验证：`.memory-nav` / `#memory-prev` / `#memory-next` 不存在；`.memory-year` 数量 0；无图 motif 距底/右 24px；滑动和键盘 ←/→ 正常；320/390/1280 无横向溢出；console 无异常。
+
+## 2026-11-05 用户端临时补图入口
+
+- `.memory-detail-body` 增加 `margin-bottom: 50px`。
+- 详情正文下方加低调的「上传照片」文字按钮 + 相机图标（opacity .62），隐藏 file input `accept="image/*"`；只在详情 sheet 内可见，属于前期数据维护入口，后续应移除。
+- 上传流程：`uploadBucketImage(file, uploadsRoot()/milestones/)` → `dbGetOrNull(MILESTONES_PATH, { fresh: true })` 找当前记录（优先 id，其次 date+title）→ `dbPut` 整份写回 → 更新 `state.milestones[index].image` → 刷新当前详情封面和对应卡片 → 更新 localStorage 首屏缓存。
+- 不调用 `renderMilestones()`，所以不会把轮播重置到第一张；`state.memoryIndex` 保持不变。
+- 上传中按钮禁用并显示「上传中…」；失败 toast 提示、按钮恢复；未写真实 OSS（测试用 stub）。
+- 缓存 token `20261105-05`。

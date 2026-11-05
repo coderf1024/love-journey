@@ -13,12 +13,12 @@ let lastCityColumns = 0;
 
 // Self-hosted: cdn.jsdelivr.net is unreliable in WeChat / mainland mobile networks.
 const LIBS = {
-    echarts: 'assets/vendor/echarts.min.js?v=20261105-04',
-    qrcode: 'assets/vendor/qrcode.min.js?v=20261105-04'
+    echarts: 'assets/vendor/echarts.min.js?v=20261105-05',
+    qrcode: 'assets/vendor/qrcode.min.js?v=20261105-05'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261105-04';
-const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261105-04';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261105-05';
+const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261105-05';
 // First-paint fallback only. The live story document always wins once it loads.
 const LOVE_START_FALLBACK = '2020-12-20';
 
@@ -1019,8 +1019,110 @@ function initMemorySwipe() {
     surface.addEventListener('pointercancel', () => { swipe = null; });
 }
 
+function milestoneRecordMatches(item, milestone) {
+    if (!item || !milestone) return false;
+    if (milestone.id && item.id && String(item.id) === String(milestone.id)) return true;
+    return String(item.date || '') === String(milestone.date || '') &&
+        String(item.title || '') === String(milestone.title || '');
+}
+
+// Temporary maintenance entry: remove after milestone images are backfilled.
+async function updateMilestoneImageRecord(milestone, imageUrl) {
+    const doc = (await dbGetOrNull(MILESTONES_PATH, { fresh: true })) || { version: 1, items: [] };
+    const items = Array.isArray(doc.items) ? doc.items : [];
+    const target = items.find(item => milestoneRecordMatches(item, milestone));
+    if (!target) throw new Error('数据库里找不到这条回忆，请刷新后再试');
+    target.image = imageUrl;
+    await dbPut(MILESTONES_PATH, {
+        ...doc,
+        version: doc.version || 1,
+        updatedAt: nowStamp(),
+        items
+    });
+    return target;
+}
+
+function syncUserMilestoneCache(milestone, imageUrl) {
+    try {
+        if (typeof readAppDataCache !== 'function' || typeof writeAppDataCache !== 'function') return;
+        const cached = readAppDataCache();
+        if (!cached || !Array.isArray(cached.milestones)) return;
+        const target = cached.milestones.find(item => milestoneRecordMatches(item, milestone));
+        if (target) target.image = imageUrl;
+        writeAppDataCache(cached);
+    } catch (error) {
+        console.warn('回忆缓存更新失败:', error);
+    }
+}
+
+function refreshMemoryCard(milestone, index) {
+    const card = document.querySelector(`#milestones-container .memory-card[data-memory-index="${index}"]`);
+    if (!card) return;
+    const cover = card.querySelector('.memory-cover');
+    if (!cover) return;
+    const data = memoryCoverHTML(milestone, index, false);
+    cover.className = data.className;
+    cover.innerHTML = data.html;
+}
+
+async function handleMemoryUpload(event) {
+    const input = event.target;
+    const file = input.files && input.files[0];
+    if (input) input.value = '';
+    if (!file) return;
+
+    const index = state.memoryIndex;
+    const milestone = state.milestones[index];
+    if (!milestone) {
+        toast('先打开一条回忆');
+        return;
+    }
+    if (!String(file.type || '').startsWith('image/')) {
+        toast('只能上传图片文件');
+        return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+        toast('图片不能超过 20MB');
+        return;
+    }
+
+    const button = $('memory-upload');
+    const label = $('memory-upload-label');
+    const originalLabel = label ? label.textContent : '';
+    if (button) button.disabled = true;
+    if (label) label.textContent = '上传中…';
+
+    try {
+        if (typeof uploadBucketImage !== 'function') {
+            throw new Error('页面脚本版本不一致，请刷新一下');
+        }
+        const url = await uploadBucketImage(file, `${uploadsRoot()}/milestones/`);
+        await updateMilestoneImageRecord(milestone, url);
+        milestone.image = url;
+        syncUserMilestoneCache(milestone, url);
+        if (state.memoryIndex === index) renderMemoryDetail();
+        refreshMemoryCard(milestone, index);
+        toast('照片已更新');
+    } catch (error) {
+        console.error('回忆照片上传失败:', error);
+        toast(error.message || '上传失败，请重试');
+    } finally {
+        if (button) button.disabled = false;
+        if (label) label.textContent = originalLabel || '上传照片';
+    }
+}
+
+function initMemoryUpload() {
+    const button = $('memory-upload');
+    const input = $('memory-upload-input');
+    if (!button || !input) return;
+    button.addEventListener('click', () => input.click());
+    input.addEventListener('change', handleMemoryUpload);
+}
+
 function initMemorySheet() {
     initMemorySwipe();
+    initMemoryUpload();
     document.addEventListener('keydown', event => {
         const sheet = $('memory-sheet');
         if (!sheet || !sheet.classList.contains('is-open')) return;

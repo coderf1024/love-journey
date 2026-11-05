@@ -15,7 +15,7 @@
 - 封面上传复用 `uploadBucketImage()`，测试环境 `uploads-test/milestones/`，生产 `uploads/milestones/`。
 - 用户端 `memoryCoverHTML` 读取 `image`：有图显示 4:3 照片，年份白色叠层、隐藏 motif；无图/加载失败回退 v0–v3 渐变 + motif。
 - 用户端卡片和详情共用同一套封面渲染；日期胶囊、详情正文、前后翻页保持不变。
-- 缓存 token bump 到 `20261105-04`（三页 + CSS/JS/OSS SDK 内引用）。
+- 缓存 token bump 到 `20261105-05`（三页 + CSS/JS/OSS SDK 内引用）。
 - 文档：data-model、CHANGELOG、CLAUDE、brief、plan 已同步。
 
 ### 2026-11-05 视觉微调
@@ -28,6 +28,14 @@
 - 回忆封面移除年份叠层，日期胶囊和详情正文日期保留。
 - 触摸设备显示「‹ 左右滑动 ›」提示，第一次成功滑动后隐藏并记住；桌面端不显示。
 - 缓存 token `20261105-04`。
+
+### 2026-11-05 用户端补图入口
+
+- `.memory-detail-body` 增加 `margin-bottom: 50px`。
+- 回忆详情新增低调的「上传照片」入口（临时维护用）：`accept="image/*"` 选相册图片，上传到 `uploads/milestones/`，整份写 `content/milestones.json` 并更新当前回忆的 `image`。
+- 上传完成后只刷新当前详情封面和对应卡片，不重排、不重置 `state.memoryIndex` / 轮播位置；同时更新 localStorage 首屏缓存。
+- 上传中按钮禁用并显示「上传中…」；失败 toast 提示，按钮恢复。
+- 缓存 token `20261105-05`。
 
 ### 2026-11-04 合并 main
 

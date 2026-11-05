@@ -9,20 +9,18 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="管理端">
 <title>管理端 · 恋爱空间</title>
-<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261103-03" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261103-03" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261105-05" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261105-05" as="font" type="font/woff2" crossorigin>
 <style>
     @font-face {
         font-family: 'Ma Shan Zheng';
-        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261103-03') format('woff2');
-        font-weight: 400;
+        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261105-05') format('woff2');        font-weight: 400;
         font-style: normal;
         font-display: swap;
     }
     @font-face {
         font-family: 'Noto Serif SC';
-        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261103-03') format('woff2');
-        font-weight: 700;
+        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261105-05') format('woff2');        font-weight: 700;
         font-style: normal;
         font-display: swap;
     }
@@ -87,8 +85,7 @@
         pointer-events: none;
     }
     body.admin-body::before {
-        background: url('assets/texture-noise.png?v=20261103-03') repeat;
-        opacity: .06;
+        background: url('assets/texture-noise.png?v=20261105-05') repeat;        opacity: .06;
         mix-blend-mode: multiply;
     }
     body.admin-body::after {
@@ -605,6 +602,32 @@
     .menu-row-actions { display: flex; gap: 4px; }
     .menu-row-actions button { padding: 4px 7px; background: #fff; border: 1px solid var(--line); border-radius: 7px; color: var(--admin-muted); font-size: 9px; }
     .menu-row-actions .danger { color: var(--admin-stamp); }
+
+    /* milestones */
+    .milestone-toolbar { display: grid; gap: 8px; }
+    .milestone-search { width: 100%; }
+    .milestone-list { display: grid; gap: 7px; margin-top: 10px; }
+    .milestone-year { display: flex; align-items: baseline; gap: 6px; padding: 8px 2px 1px; color: var(--admin-muted); font-size: 9px; }
+    .milestone-year:first-child { padding-top: 0; }
+    .milestone-year b { color: var(--ink); font-family: var(--font-display); font-size: 13px; letter-spacing: .03em; }
+    .milestone-row { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 9px; background: var(--admin-soft); border: 1px solid var(--line); border-radius: 12px; text-align: left; }
+    .milestone-thumb { width: 56px; height: 42px; flex: 0 0 56px; display: grid; place-items: center; overflow: hidden; background: #f3eee7; border-radius: 8px; }
+    .milestone-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .milestone-thumb.is-empty { color: rgba(43, 34, 49, .55); font-size: 8px; font-weight: 700; letter-spacing: .06em; }
+    .milestone-thumb.v0 { background: linear-gradient(145deg, #ffe4ea, #ffc8d6); }
+    .milestone-thumb.v1 { background: linear-gradient(145deg, #e4f5ed, #c9ebdd); }
+    .milestone-thumb.v2 { background: linear-gradient(145deg, #fbeec4, #f5d585); }
+    .milestone-thumb.v3 { background: linear-gradient(145deg, #efe7f6, #ded2ec); }
+    .milestone-main { flex: 1; min-width: 0; display: grid; gap: 2px; }
+    .milestone-main b { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    .milestone-main small { overflow: hidden; color: var(--admin-muted); font-size: 8.5px; text-overflow: ellipsis; white-space: nowrap; }
+    .milestone-meta { display: grid; justify-items: end; gap: 2px; color: var(--admin-muted); font-size: 8px; white-space: nowrap; }
+    .milestone-meta time { font-variant-numeric: tabular-nums; }
+    .milestone-chev { color: #b3aca5; font-size: 14px; }
+    .photo-preview.milestone-preview { width: 100%; max-width: none; aspect-ratio: 4 / 3; cursor: zoom-in; }
+    .mile-tag { position: absolute; left: 8px; bottom: 7px; padding: 3px 7px; background: rgba(255, 253, 248, .92); border-radius: 999px; color: var(--ink); font-size: 8px; font-weight: 700; letter-spacing: .04em; }
+    .admin-readonly { display: flex; align-items: center; min-height: 39px; padding: 8px 11px; background: #f7f5f1; border: 1px solid var(--line); border-radius: 9px; color: var(--admin-muted); font-size: 10px; }
+    .form-note { padding: 8px 10px; background: #f4eee8; border: 1px dashed var(--line-strong); border-radius: 9px; color: var(--admin-muted); font-size: 9px; line-height: 1.55; }
     .dish-request-card { margin-bottom: 10px; }
     .dish-request-list { display: grid; gap: 7px; margin-top: 9px; }
     .dish-request-row { display: flex; align-items: center; gap: 10px; padding: 8px 9px; background: var(--admin-soft); border: 1px solid var(--line); border-radius: 12px; }
@@ -863,6 +886,7 @@
         <nav class="side-nav">
             <button class="side-item" type="button" data-view="system"><b>⋯</b>系统设置</button>
             <button class="side-item" type="button" data-view="menu"><b>✎</b>菜单</button>
+            <button class="side-item" type="button" data-view="milestones"><b>忆</b>岁月留痕</button>
             <button class="side-item" type="button" data-view="announcements"><b>告</b>更新公告</button>
             <button class="side-item" type="button" data-view="space"><b>空</b>空间资料</button>
         </nav>
@@ -967,6 +991,11 @@
                 <button class="setting-row" type="button" data-view="menu" style="width:100%; background:none; border:0; text-align:left">
                     <span class="setting-icon">菜</span>
                     <span class="setting-main"><b>菜单管理</b><small id="system-menu-count">14 道 · 12 道上架</small></span>
+                    <span class="admin-muted" style="margin-left:auto">›</span>
+                </button>
+                <button class="setting-row" type="button" data-view="milestones" style="width:100%; background:none; border:0; text-align:left">
+                    <span class="setting-icon">忆</span>
+                    <span class="setting-main"><b>岁月留痕</b><small id="system-milestone-count">41 条回忆 · 13 条有封面</small></span>
                     <span class="admin-muted" style="margin-left:auto">›</span>
                 </button>
                 <button class="setting-row" type="button" data-view="announcements" style="width:100%; background:none; border:0; text-align:left">
@@ -1094,6 +1123,21 @@
             </div>
         </section>
 
+        <section class="admin-view" data-panel="milestones" hidden>
+            <div class="view-head">
+                <div><p class="eyebrow">系统 · 岁月留痕</p><h1>岁月留痕</h1><p>按日期排序，最新的在前；封面会同步到用户端。</p></div>
+                <div class="head-actions"><button class="admin-btn primary sm" id="milestone-add" type="button">＋ 添加回忆</button></div>
+            </div>
+            <div class="admin-card">
+                <div class="milestone-toolbar">
+                    <input class="admin-input milestone-search" id="milestone-search" type="search" placeholder="搜标题 / 描述">
+                    <div class="filters" id="milestone-filters"></div>
+                    <p class="admin-small admin-muted" id="milestone-summary"></p>
+                </div>
+                <div class="milestone-list" id="milestone-list"></div>
+            </div>
+        </section>
+
         <section class="admin-view" data-panel="space" hidden>
             <div class="view-head"><div><p class="eyebrow">系统 · 空间资料</p><h1>空间资料</h1><p>用户端顶部和「我们」页都会读这里。</p></div></div>
             <div class="admin-card">
@@ -1190,6 +1234,45 @@
             <div class="admin-modal-foot">
                 <button class="admin-btn ghost" id="dish-cancel" type="button">取消</button>
                 <button class="admin-btn primary" id="dish-submit" type="submit">保存菜品</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="admin-modal" id="milestone-modal" aria-hidden="true">
+    <div class="admin-modal-backdrop" data-milestone-close></div>
+    <div class="admin-modal-card" role="dialog" aria-modal="true" aria-labelledby="milestone-form-title">
+        <div class="admin-modal-head">
+            <b id="milestone-form-title">添加回忆</b>
+            <button class="admin-modal-close" type="button" data-milestone-close aria-label="关闭">✕</button>
+        </div>
+        <form class="dish-form" id="milestone-form">
+            <div class="admin-modal-body">
+                <input id="milestone-id" type="hidden">
+                <div class="photo-field">
+                    <div class="photo-preview milestone-preview" id="milestone-image-preview">
+                        <span class="photo-placeholder"><b>＋</b>点击上传封面</span>
+                    </div>
+                    <div class="photo-upload-row">
+                        <input id="milestone-image-file" type="file" accept="image/*" hidden>
+                        <label class="photo-upload-label" id="milestone-image-upload-label" for="milestone-image-file">上传封面</label>
+                        <span class="photo-status" id="milestone-image-status">未选择</span>
+                    </div>
+                    <div class="admin-field"><label for="milestone-image">图片 URL（可选）</label><input class="admin-input" id="milestone-image" type="text" placeholder="上传后自动填写，也可以粘贴链接"></div>
+                    <div class="field-note">封面按 4:3 居中裁切；保存后用户端卡片和详情会显示这张图，没有图片时回退纯色封面。</div>
+                </div>
+                <div class="admin-two-col">
+                    <div class="admin-field"><label for="milestone-date">日期</label><input class="admin-input" id="milestone-date" type="date"></div>
+                    <div class="admin-field"><label>年份</label><div class="admin-readonly" id="milestone-year">由日期自动生成</div></div>
+                </div>
+                <div class="admin-field"><label for="milestone-title">标题</label><input class="admin-input" id="milestone-title" type="text" maxlength="60" required></div>
+                <div class="admin-field"><label for="milestone-description">描述</label><textarea class="admin-textarea" id="milestone-description" maxlength="500"></textarea></div>
+                <div class="form-note">日期留空会归入「旧时光」，排在最后。保存后按日期自动排序，不需要手动调整位置。</div>
+            </div>
+            <div class="admin-modal-foot">
+                <button class="admin-btn danger" id="milestone-delete" type="button">删除</button>
+                <button class="admin-btn ghost" id="milestone-cancel" type="button">取消</button>
+                <button class="admin-btn primary" id="milestone-submit" type="submit">保存</button>
             </div>
         </form>
     </div>
@@ -1316,11 +1399,10 @@
 
 <div class="admin-toast" id="message" role="status" aria-live="polite"></div>
 
-<script src="js/oss-config.js?v=20261103-03"></script>
-<script src="js/crypto-utils.js?v=20261103-03"></script>
-<script src="js/oss-utils.js?v=20261103-03"></script>
-<script src="js/store.js?v=20261103-03"></script>
-<script>
+<script src="js/oss-config.js?v=20261105-05"></script>
+<script src="js/crypto-utils.js?v=20261105-05"></script>
+<script src="js/oss-utils.js?v=20261105-05"></script>
+<script src="js/store.js?v=20261105-05"></script><script>
     const ORDER_LABEL = {
         pending: '待接单',
         accepted: '已接单',
@@ -1406,6 +1488,11 @@
     let cardsSegment = 'cards';
     let menuFilter = 'all';
     let menuQuery = '';
+    let milestoneQuery = '';
+    let milestoneFilter = 'all';
+    let milestoneImageUploading = false;
+    let milestoneImageUploadToken = 0;
+    let adminMilestoneImage = '';
     let dishTags = new Set();
     let dishGallery = [];
     let dishGalleryDragIndex = null;
@@ -1574,14 +1661,17 @@
             closeBarkTemplate();
             return;
         }
+        if ($('milestone-modal').classList.contains('is-open')) {
+            closeMilestoneModal();
+            return;
+        }
         if ($('dish-modal').classList.contains('is-open')) {
             closeDishModal();
         }
     });
 
     /* ---------- chrome / navigation ---------- */
-    const VIEW_TITLES = { home: '首页', orders: '订单', cards: '恋爱卡', system: '系统', menu: '菜单', space: '空间资料', announcements: '更新公告' };
-
+    const VIEW_TITLES = { home: '首页', orders: '订单', cards: '恋爱卡', system: '系统', menu: '菜单', milestones: '岁月留痕', space: '空间资料', announcements: '更新公告' };
     function renderChrome() {
         const name = spaceName();
         $('side-space-name').textContent = name;
@@ -1597,8 +1687,7 @@
             image.src = src;
         });
         $('home-name').textContent = adminName();
-        $('admin-back').hidden = !['menu', 'space', 'announcements'].includes(adminView);
-
+        $('admin-back').hidden = !['menu', 'milestones', 'space', 'announcements'].includes(adminView);
         const pending = ((adminData && adminData.orders) || []).filter(order => order.status === 'pending').length;
         document.querySelectorAll('[data-nav-badge="orders"]').forEach(badge => {
             badge.textContent = pending;
@@ -1624,16 +1713,17 @@
     }
 
     function switchView(view, options = {}) {
-        if (!['home', 'orders', 'cards', 'system', 'menu', 'space', 'announcements'].includes(view)) return;
+        if (!['home', 'orders', 'cards', 'system', 'menu', 'milestones', 'space', 'announcements'].includes(view)) return;
         if (view === 'cards' && options.segment) cardsSegment = options.segment;
         adminView = view;
         adminTab = ['home', 'orders', 'cards', 'system'].includes(view) ? view : 'system';
-        document.body.classList.toggle('admin-subpage', ['menu', 'space', 'announcements'].includes(view));
+        document.body.classList.toggle('admin-subpage', ['menu', 'milestones', 'space', 'announcements'].includes(view));
         if (view === 'home') renderHome();
         if (view === 'orders') renderOrders();
         if (view === 'cards') { renderCoupons(); renderWallet(); }
         if (view === 'system') renderSettings();
         if (view === 'menu') renderMenu();
+        if (view === 'milestones') renderMilestones();
         if (view === 'space') renderSpace();
         if (view === 'announcements') {
             renderAnnouncements();
@@ -1726,6 +1816,7 @@
         renderCoupons();
         renderWallet();
         renderMenu();
+        renderMilestones();
         renderSpace();
         renderSettings();
         renderAnnouncements();
@@ -2616,6 +2707,349 @@
         }
     }
 
+    /* ---------- milestones ---------- */
+    function milestoneImageOf(item) {
+        return String((item && item.image) || '').trim();
+    }
+
+    function milestoneDateLabel(value) {
+        const date = toDate(value);
+        return date ? `${pad2(date.getMonth() + 1)}.${pad2(date.getDate())}` : '无日期';
+    }
+
+    function milestoneYearLabel(value) {
+        const date = toDate(value);
+        return date ? String(date.getFullYear()) : '旧时光';
+    }
+
+    function sortedMilestones() {
+        return ((adminData && adminData.milestones) || [])
+            .map((item, index) => ({ item, index, date: toDate(item.date) }))
+            .sort((a, b) => {
+                if (!a.date && !b.date) return a.index - b.index;
+                if (!a.date) return 1;
+                if (!b.date) return -1;
+                return b.date - a.date || a.index - b.index;
+            });
+    }
+
+    function renderMilestoneCounts() {
+        const items = (adminData && adminData.milestones) || [];
+        const withImage = items.filter(item => milestoneImageOf(item)).length;
+        const label = `${items.length} 条回忆 · ${withImage} 条有封面`;
+        if ($('system-milestone-count')) $('system-milestone-count').textContent = label;
+        if ($('milestone-summary')) $('milestone-summary').textContent = `${label} · 封面同步到用户端`;
+    }
+
+    function milestoneThumbHTML(item, index) {
+        const image = milestoneImageOf(item);
+        if (!image) {
+            return `<span class="milestone-thumb is-empty v${index % 4}">无图</span>`;
+        }
+        return `<span class="milestone-thumb v${index % 4}"><img src="${esc(image)}" alt="" loading="lazy" onerror="this.style.display='none'"></span>`;
+    }
+
+    function renderMilestones() {
+        if (!adminData) return;
+        renderMilestoneCounts();
+
+        const all = (adminData.milestones || []);
+        const total = all.length;
+        const withImage = all.filter(item => milestoneImageOf(item)).length;
+        const filters = [
+            { id: 'all', label: '全部', count: total },
+            { id: 'image', label: '有封面', count: withImage },
+            { id: 'plain', label: '无封面', count: total - withImage }
+        ];
+        $('milestone-filters').innerHTML = filters.map(filter => `
+            <button class="filter-btn ${milestoneFilter === filter.id ? 'is-active' : ''}" type="button"
+                data-milestone-filter="${filter.id}">${filter.label} ${filter.count}</button>`).join('');
+
+        const query = milestoneQuery.trim().toLowerCase();
+        const shown = sortedMilestones().filter(({ item }) => {
+            const image = milestoneImageOf(item);
+            if (milestoneFilter === 'image' && !image) return false;
+            if (milestoneFilter === 'plain' && image) return false;
+            if (!query) return true;
+            return `${item.title || ''} ${item.description || ''}`.toLowerCase().includes(query);
+        });
+
+        if (!shown.length) {
+            $('milestone-list').innerHTML = total
+                ? '<div class="empty-state">没有符合条件的回忆。</div>'
+                : '<div class="empty-state">还没有回忆，点右上角「添加回忆」。</div>';
+            return;
+        }
+
+        const groups = new Map();
+        shown.forEach(entry => {
+            const year = milestoneYearLabel(entry.item.date);
+            if (!groups.has(year)) groups.set(year, []);
+            groups.get(year).push(entry);
+        });
+
+        let html = '';
+        groups.forEach((entries, year) => {
+            html += `<div class="milestone-year"><b>${esc(year)}</b><span>${entries.length} 条</span></div>`;
+            entries.forEach(({ item, index }) => {
+                const image = milestoneImageOf(item);
+                html += `
+                    <button class="milestone-row" type="button" data-milestone-index="${index}">
+                        ${milestoneThumbHTML(item, index)}
+                        <span class="milestone-main">
+                            <b>${esc(item.title || '未命名回忆')}</b>
+                            <small>${esc(item.description || '没有描述')}</small>
+                        </span>
+                        <span class="milestone-meta">
+                            <time>${esc(milestoneDateLabel(item.date))}</time>
+                            <span>${image ? '有封面' : '无封面'}</span>
+                        </span>
+                        <span class="milestone-chev">›</span>
+                    </button>`;
+            });
+        });
+        $('milestone-list').innerHTML = html;
+    }
+
+    function setMilestoneImageStatus(text, tone) {
+        const element = $('milestone-image-status');
+        element.textContent = text;
+        element.classList.toggle('is-success', tone === 'success');
+        element.classList.toggle('is-error', tone === 'error');
+    }
+
+    function renderMilestonePreview() {
+        const preview = $('milestone-image-preview');
+        const image = adminMilestoneImage;
+        if (!image) {
+            preview.innerHTML = '<span class="photo-placeholder"><b>＋</b>点击上传封面</span>';
+            return;
+        }
+        preview.innerHTML = `<img src="${esc(image)}" alt=""><span class="mile-tag">封面图 · 4:3</span>`;
+        const img = preview.querySelector('img');
+        if (img) {
+            img.onerror = () => {
+                preview.innerHTML = '<span class="photo-placeholder"><b>!</b>图片加载失败<br>请检查图片 URL</span>';
+            };
+        }
+    }
+
+    function syncMilestoneYear() {
+        const value = $('milestone-date').value;
+        $('milestone-year').textContent = value ? value.slice(0, 4) : '旧时光';
+    }
+
+    function openMilestoneModal(index) {
+        if (!adminData) return;
+        const isNew = index == null || index < 0;
+        const item = isNew ? {} : (adminData.milestones || [])[Number(index)];
+        if (!isNew && !item) return;
+
+        const dateValue = String(item.date || '').slice(0, 10);
+        adminMilestoneImage = milestoneImageOf(item);
+        $('milestone-form-title').textContent = isNew ? '添加回忆' : '编辑回忆';
+        $('milestone-id').value = isNew ? '' : String(index);
+        $('milestone-date').value = dateValue;
+        $('milestone-year').textContent = dateValue ? dateValue.slice(0, 4) : '旧时光';
+        $('milestone-title').value = item.title || '';
+        $('milestone-description').value = item.description || '';
+        $('milestone-image').value = adminMilestoneImage;
+        $('milestone-delete').hidden = isNew;
+        $('milestone-image-file').value = '';
+        $('milestone-submit').disabled = false;
+        $('milestone-image-upload-label').classList.remove('is-disabled');
+        setMilestoneImageStatus(adminMilestoneImage ? '已选择' : '未选择');
+        renderMilestonePreview();
+        $('milestone-modal').classList.add('is-open');
+        $('milestone-modal').setAttribute('aria-hidden', 'false');
+        document.body.classList.add('admin-modal-open');
+    }
+
+    function closeMilestoneModal() {
+        if (!$('milestone-modal').classList.contains('is-open')) return;
+        milestoneImageUploadToken++;
+        milestoneImageUploading = false;
+        $('milestone-submit').disabled = false;
+        $('milestone-image-upload-label').classList.remove('is-disabled');
+        $('milestone-modal').classList.remove('is-open');
+        $('milestone-modal').setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('admin-modal-open');
+        adminMilestoneImage = '';
+    }
+
+    async function handleMilestoneImageFile(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        if (!String(file.type || '').startsWith('image/')) {
+            setMilestoneImageStatus('只能上传图片文件', 'error');
+            event.target.value = '';
+            return;
+        }
+        if (file.size > 20 * 1024 * 1024) {
+            setMilestoneImageStatus('图片不能超过 20MB', 'error');
+            event.target.value = '';
+            return;
+        }
+        if (typeof uploadBucketImage !== 'function' || typeof uploadsRoot !== 'function') {
+            setMilestoneImageStatus('页面脚本版本不一致，请强制刷新一下', 'error');
+            event.target.value = '';
+            return;
+        }
+        milestoneImageUploading = true;
+        $('milestone-submit').disabled = true;
+        $('milestone-image-upload-label').classList.add('is-disabled');
+        setMilestoneImageStatus('压缩上传中…');
+        const token = ++milestoneImageUploadToken;
+        try {
+            const url = await uploadBucketImage(file, `${uploadsRoot()}/milestones/`);
+            if (token !== milestoneImageUploadToken) return;
+            adminMilestoneImage = url;
+            $('milestone-image').value = url;
+            renderMilestonePreview();
+            setMilestoneImageStatus('上传成功，保存后生效', 'success');
+        } catch (error) {
+            if (token !== milestoneImageUploadToken) return;
+            setMilestoneImageStatus(error.message || '上传失败，请重试', 'error');
+        } finally {
+            if (token === milestoneImageUploadToken) {
+                event.target.value = '';
+                milestoneImageUploading = false;
+                $('milestone-submit').disabled = false;
+                $('milestone-image-upload-label').classList.remove('is-disabled');
+            }
+        }
+    }
+
+    function syncMilestoneCache(items) {
+        // main 的首屏缓存把整份 loadAppData 存在 localStorage；管理端直接写
+        // milestones.json 时同步更新回忆，避免用户端先看到旧的一屏。
+        try {
+            if (typeof appCacheStorageKey !== 'function') return;
+            const key = appCacheStorageKey();
+            const raw = localStorage.getItem(key);
+            if (!raw) return;
+            const cached = JSON.parse(raw);
+            if (!cached || !cached.data) return;
+            cached.data.milestones = items;
+            localStorage.setItem(key, JSON.stringify(cached));
+        } catch (error) {
+            console.warn('回忆缓存更新失败:', error);
+        }
+    }
+
+    async function saveMilestonesAdmin(items) {
+        if (typeof dbGetOrNull !== 'function' || typeof dbPut !== 'function' ||
+            typeof nowStamp !== 'function' || typeof MILESTONES_PATH !== 'string') {
+            throw new Error('页面脚本版本不一致，请强制刷新一下');
+        }
+        const existing = (await dbGetOrNull(MILESTONES_PATH)) || {};
+        const used = new Set();
+        const stamp = Date.now().toString(36);
+        const normalized = (Array.isArray(items) ? items : []).map((item, index) => {
+            const title = String((item && item.title) || '').trim();
+            if (!title) throw new Error('标题不能为空');
+            let id = String((item && item.id) || '').trim();
+            if (!id || used.has(id)) id = `ms_${stamp}_${index}`;
+            used.add(id);
+            return {
+                ...item,
+                id,
+                date: String((item && item.date) || '').trim().slice(0, 10),
+                title: title.slice(0, 80),
+                description: String((item && item.description) || '').trim().slice(0, 500),
+                image: String((item && item.image) || '').trim().slice(0, 500)
+            };
+        });
+        const doc = {
+            ...existing,
+            version: existing.version || 1,
+            updatedAt: nowStamp(),
+            items: normalized
+        };
+        await dbPut(MILESTONES_PATH, doc);
+        return doc;
+    }
+
+    async function handleMilestoneSubmit(event) {
+        event.preventDefault();
+        if (!adminData) return;
+        if (milestoneImageUploading) {
+            showMessage('封面图还在上传，稍等一下', 'error');
+            return;
+        }
+        const indexValue = $('milestone-id').value;
+        const isNew = indexValue === '';
+        const title = $('milestone-title').value.trim();
+        if (!title) {
+            showMessage('标题不能为空', 'error');
+            $('milestone-title').focus();
+            return;
+        }
+        const items = (adminData.milestones || []).slice();
+        const entry = {
+            ...(isNew ? {} : (items[Number(indexValue)] || {})),
+            date: $('milestone-date').value || '',
+            title,
+            description: $('milestone-description').value.trim(),
+            image: ($('milestone-image').value || adminMilestoneImage || '').trim()
+        };
+        if (isNew) items.push(entry);
+        else items[Number(indexValue)] = entry;
+
+        const button = $('milestone-submit');
+        button.disabled = true;
+        try {
+            const saved = await saveMilestonesAdmin(items);
+            adminData.milestones = saved.items;
+            syncMilestoneCache(saved.items);
+            if (isNew) {
+                milestoneFilter = 'all';
+                milestoneQuery = '';
+                $('milestone-search').value = '';
+            }
+            renderMilestones();
+            closeMilestoneModal();
+            showMessage(isNew ? '回忆已添加' : '回忆已更新');
+        } catch (error) {
+            showMessage(error.message, 'error');
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+    async function deleteMilestoneFromModal() {
+        if (!adminData) return;
+        const indexValue = $('milestone-id').value;
+        if (indexValue === '') return;
+        const index = Number(indexValue);
+        const item = (adminData.milestones || [])[index];
+        if (!item) return;
+
+        const ok = await adminConfirm({
+            title: '删除这条回忆？',
+            message: `「${item.title || '未命名回忆'} · ${milestoneDateLabel(item.date)}」会从用户端立即移除。封面图片不会自动删除，仍保留在 OSS 上传目录里。`,
+            okText: '删除',
+            danger: true
+        });
+        if (!ok) return;
+
+        const items = (adminData.milestones || []).filter((_, position) => position !== index);
+        const button = $('milestone-delete');
+        button.disabled = true;
+        try {
+            const saved = await saveMilestonesAdmin(items);
+            adminData.milestones = saved.items;
+            syncMilestoneCache(saved.items);
+            renderMilestones();
+            closeMilestoneModal();
+            showMessage('回忆已删除');
+        } catch (error) {
+            showMessage(error.message, 'error');
+        } finally {
+            button.disabled = false;
+        }
+    }
+
     /* ---------- space ---------- */
     function setSpaceAvatarStatus(text, tone) {
         const element = $('space-avatar-status');
@@ -2957,6 +3391,7 @@
         document.querySelectorAll('[data-bark-event]').forEach(button => {
             setSwitch(button, (bark.events || {})[button.dataset.barkEvent] !== false);
         });
+        renderMilestoneCounts();
     }
 
     async function saveBarkSettings(showSuccess = true) {
@@ -3356,6 +3791,40 @@
         setMainImageValue(event.target.value);
     });
     $('dish-image-file').addEventListener('change', handleDishImageFile);
+
+    $('milestone-add').addEventListener('click', () => openMilestoneModal(-1));
+    $('milestone-search').addEventListener('input', event => {
+        milestoneQuery = event.target.value;
+        renderMilestones();
+    });
+    $('milestone-filters').addEventListener('click', event => {
+        const button = event.target.closest('[data-milestone-filter]');
+        if (!button) return;
+        milestoneFilter = button.dataset.milestoneFilter;
+        renderMilestones();
+    });
+    $('milestone-list').addEventListener('click', event => {
+        const row = event.target.closest('[data-milestone-index]');
+        if (row) openMilestoneModal(Number(row.dataset.milestoneIndex));
+    });
+    $('milestone-form').addEventListener('submit', handleMilestoneSubmit);
+    $('milestone-cancel').addEventListener('click', closeMilestoneModal);
+    document.querySelectorAll('[data-milestone-close]').forEach(button => {
+        button.addEventListener('click', closeMilestoneModal);
+    });
+    $('milestone-delete').addEventListener('click', deleteMilestoneFromModal);
+    $('milestone-image-file').addEventListener('change', handleMilestoneImageFile);
+    $('milestone-image').addEventListener('input', event => {
+        if (milestoneImageUploading) return;
+        adminMilestoneImage = event.target.value.trim();
+        setMilestoneImageStatus(adminMilestoneImage ? '已选择' : '未选择');
+        renderMilestonePreview();
+    });
+    $('milestone-date').addEventListener('input', syncMilestoneYear);
+    $('milestone-image-preview').addEventListener('click', () => {
+        const image = $('milestone-image-preview').querySelector('img');
+        if (image) openImageLightbox(image.src);
+    });
 
     $('space-avatar-file').addEventListener('change', handleSpaceAvatarFile);
     $('space-save').addEventListener('click', saveSpaceProfile);

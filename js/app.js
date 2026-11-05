@@ -13,12 +13,12 @@ let lastCityColumns = 0;
 
 // Self-hosted: cdn.jsdelivr.net is unreliable in WeChat / mainland mobile networks.
 const LIBS = {
-    echarts: 'assets/vendor/echarts.min.js?v=20261103-03',
-    qrcode: 'assets/vendor/qrcode.min.js?v=20261103-03'
+    echarts: 'assets/vendor/echarts.min.js?v=20261105-05',
+    qrcode: 'assets/vendor/qrcode.min.js?v=20261105-05'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261103-03';
-const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261103-03';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261105-05';
+const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261105-05';
 // First-paint fallback only. The live story document always wins once it loads.
 const LOVE_START_FALLBACK = '2020-12-20';
 
@@ -27,7 +27,6 @@ function fallbackStartDate() {
     const value = el && el.dataset ? el.dataset.start : '';
     return value || LOVE_START_FALLBACK;
 }
-
 const MINUTE = 60 * 1000;
 const ORDER_POLL_MS = 20 * 1000;
 const KITCHEN_STEPS = ['下单', '接单', '备菜', '制作', '出餐'];
@@ -424,11 +423,6 @@ function formatDate(value, withTime) {
     return `${day} ${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
 }
 
-function dateYear(value) {
-    const date = parseDate(value);
-    return date ? date.getFullYear() : '';
-}
-
 function toast(message) {
     const el = $('toast');
     if (!el) return;
@@ -760,14 +754,15 @@ function startTimer() {
 /* ---------- milestones ---------- */
 
 function memoryCoverHTML(milestone, index, large) {
-    const year = dateYear(milestone.date);
     const variant = `v${index % 4}`;
     const motif = MOTIFS[index % MOTIFS.length];
+    const image = String(milestone.image || '').trim();
+    const hasImage = !!image;
     return {
-        className: `memory-cover ${variant}`,
+        className: `memory-cover ${variant}${hasImage ? ' has-image' : ''}`,
         html: `
+            ${hasImage ? `<img class="memory-cover-img" src="${escapeHTML(image)}" alt="" loading="${large ? 'eager' : 'lazy'}" decoding="async" onerror="this.onerror=null;this.style.display='none';this.parentElement.classList.remove('has-image')">` : ''}
             <div class="memory-cover-text">
-                <span class="memory-year">${escapeHTML(year)}</span>
                 <span class="memory-motif" aria-hidden="true">${motif}</span>
             </div>
             ${!large ? `<span class="memory-date-chip">${escapeHTML(formatDate(milestone.date))}</span>` : ''}
@@ -875,11 +870,56 @@ function initCarousel() {
 
 /* ---------- memory detail ---------- */
 
+const MEMORY_SWIPE_HINT_KEY = 'lj-memory-swipe-hint-seen';
+let memorySwipeHintTimer = null;
+
+function memorySwipeHintKey() {
+    return `${MEMORY_SWIPE_HINT_KEY}:${typeof dbRoot === 'function' ? dbRoot() : 'default'}`;
+}
+
+function memorySwipeHintSupported() {
+    if (typeof window === 'undefined') return false;
+    if (typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches) return true;
+    return typeof navigator !== 'undefined' && Number(navigator.maxTouchPoints) > 0;
+}
+
+function memorySwipeHintSeen() {
+    try {
+        return localStorage.getItem(memorySwipeHintKey()) === '1';
+    } catch (error) {
+        return false;
+    }
+}
+
+function maybeShowMemorySwipeHint() {
+    const hint = $('memory-swipe-hint');
+    if (!hint) return;
+    if (!memorySwipeHintSupported() || memorySwipeHintSeen()) {
+        hint.hidden = true;
+        return;
+    }
+    hint.hidden = false;
+    hint.classList.remove('is-animating');
+    void hint.offsetWidth;
+    hint.classList.add('is-animating');
+}
+
+function dismissMemorySwipeHint() {
+    const hint = $('memory-swipe-hint');
+    if (hint) hint.hidden = true;
+    clearTimeout(memorySwipeHintTimer);
+    try {
+        localStorage.setItem(memorySwipeHintKey(), '1');
+    } catch (error) {}
+}
+
 function openMemory(index) {
     if (!state.milestones[index]) return;
     state.memoryIndex = index;
     renderMemoryDetail();
     openSheet('memory-sheet');
+    clearTimeout(memorySwipeHintTimer);
+    memorySwipeHintTimer = setTimeout(maybeShowMemorySwipeHint, 360);
 }
 
 function renderMemoryDetail() {
@@ -900,10 +940,38 @@ function renderMemoryDetail() {
     if (title) title.textContent = String(milestone.title || '').trim();
     if (desc) desc.textContent = String(milestone.description || '').trim();
 
-    const prev = $('memory-prev');
-    const next = $('memory-next');
-    if (prev) prev.disabled = state.memoryIndex <= 0;
-    if (next) next.disabled = state.memoryIndex >= state.milestones.length - 1;
+}
+
+function animateMemoryStep(direction) {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const cover = $('memory-detail-cover');
+    const copy = document.querySelector('#memory-sheet .memory-detail-copy');
+    const elements = [cover, copy].filter(Boolean);
+    if (!elements.length || typeof elements[0].animate !== 'function') return;
+
+    // Rapid taps cancel the previous transition instead of stacking it.
+    elements.forEach(element => {
+        if (typeof element.getAnimations === 'function') {
+            element.getAnimations().forEach(animation => animation.cancel());
+        }
+    });
+
+    const sign = direction < 0 ? -1 : 1;
+    const easing = 'cubic-bezier(.22, .8, .26, 1)';
+    if (cover) {
+        cover.animate([
+            { opacity: 0.35, transform: `translate3d(${sign * 18}px, 0, 0) scale(1.02)` },
+            { opacity: 1, transform: 'translate3d(0, 0, 0) scale(1)' }
+        ], { duration: 300, easing, fill: 'backwards' });
+    }
+    if (copy) {
+        copy.animate([
+            { opacity: 0, transform: `translate3d(${sign * 12}px, 0, 0)` },
+            { opacity: 1, transform: 'translate3d(0, 0, 0)' }
+        ], { duration: 300, easing, delay: 24, fill: 'backwards' });
+    }
 }
 
 function stepMemory(direction) {
@@ -913,13 +981,157 @@ function stepMemory(direction) {
     const scroll = document.querySelector('#memory-sheet .sheet-scroll');
     if (scroll) scroll.scrollTop = 0;
     renderMemoryDetail();
+    animateMemoryStep(direction);
+}
+
+function initMemorySwipe() {
+    const surface = document.querySelector('#memory-sheet .sheet-scroll');
+    if (!surface) return;
+    let swipe = null;
+
+    surface.addEventListener('pointerdown', event => {
+        if (event.pointerType === 'mouse' || !event.isPrimary) return;
+        if (event.target.closest('button, a, input, textarea, select')) return;
+        swipe = { id: event.pointerId, x: event.clientX, y: event.clientY, horizontal: false };
+    });
+
+    surface.addEventListener('pointermove', event => {
+        if (!swipe || event.pointerId !== swipe.id) return;
+        const dx = event.clientX - swipe.x;
+        const dy = event.clientY - swipe.y;
+        if (!swipe.horizontal && Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy) * 1.15) {
+            swipe.horizontal = true;
+            try { surface.setPointerCapture(event.pointerId); } catch (error) {}
+        }
+        if (swipe.horizontal) event.preventDefault();
+    }, { passive: false });
+
+    surface.addEventListener('pointerup', event => {
+        if (!swipe || event.pointerId !== swipe.id) return;
+        const dx = event.clientX - swipe.x;
+        const horizontal = swipe.horizontal;
+        swipe = null;
+        if (!horizontal || Math.abs(dx) < 56) return;
+        dismissMemorySwipeHint();
+        stepMemory(dx < 0 ? 1 : -1);
+    });
+
+    surface.addEventListener('pointercancel', () => { swipe = null; });
+}
+
+function milestoneRecordMatches(item, milestone) {
+    if (!item || !milestone) return false;
+    if (milestone.id && item.id && String(item.id) === String(milestone.id)) return true;
+    return String(item.date || '') === String(milestone.date || '') &&
+        String(item.title || '') === String(milestone.title || '');
+}
+
+// Temporary maintenance entry: remove after milestone images are backfilled.
+async function updateMilestoneImageRecord(milestone, imageUrl) {
+    const doc = (await dbGetOrNull(MILESTONES_PATH, { fresh: true })) || { version: 1, items: [] };
+    const items = Array.isArray(doc.items) ? doc.items : [];
+    const target = items.find(item => milestoneRecordMatches(item, milestone));
+    if (!target) throw new Error('数据库里找不到这条回忆，请刷新后再试');
+    target.image = imageUrl;
+    await dbPut(MILESTONES_PATH, {
+        ...doc,
+        version: doc.version || 1,
+        updatedAt: nowStamp(),
+        items
+    });
+    return target;
+}
+
+function syncUserMilestoneCache(milestone, imageUrl) {
+    try {
+        if (typeof readAppDataCache !== 'function' || typeof writeAppDataCache !== 'function') return;
+        const cached = readAppDataCache();
+        if (!cached || !Array.isArray(cached.milestones)) return;
+        const target = cached.milestones.find(item => milestoneRecordMatches(item, milestone));
+        if (target) target.image = imageUrl;
+        writeAppDataCache(cached);
+    } catch (error) {
+        console.warn('回忆缓存更新失败:', error);
+    }
+}
+
+function refreshMemoryCard(milestone, index) {
+    const card = document.querySelector(`#milestones-container .memory-card[data-memory-index="${index}"]`);
+    if (!card) return;
+    const cover = card.querySelector('.memory-cover');
+    if (!cover) return;
+    const data = memoryCoverHTML(milestone, index, false);
+    cover.className = data.className;
+    cover.innerHTML = data.html;
+}
+
+async function handleMemoryUpload(event) {
+    const input = event.target;
+    const file = input.files && input.files[0];
+    if (input) input.value = '';
+    if (!file) return;
+
+    const index = state.memoryIndex;
+    const milestone = state.milestones[index];
+    if (!milestone) {
+        toast('先打开一条回忆');
+        return;
+    }
+    if (!String(file.type || '').startsWith('image/')) {
+        toast('只能上传图片文件');
+        return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+        toast('图片不能超过 20MB');
+        return;
+    }
+
+    const button = $('memory-upload');
+    const label = $('memory-upload-label');
+    const originalLabel = label ? label.textContent : '';
+    if (button) button.disabled = true;
+    if (label) label.textContent = '上传中…';
+
+    try {
+        if (typeof uploadBucketImage !== 'function') {
+            throw new Error('页面脚本版本不一致，请刷新一下');
+        }
+        const url = await uploadBucketImage(file, `${uploadsRoot()}/milestones/`);
+        await updateMilestoneImageRecord(milestone, url);
+        milestone.image = url;
+        syncUserMilestoneCache(milestone, url);
+        if (state.memoryIndex === index) renderMemoryDetail();
+        refreshMemoryCard(milestone, index);
+        toast('照片已更新');
+    } catch (error) {
+        console.error('回忆照片上传失败:', error);
+        toast(error.message || '上传失败，请重试');
+    } finally {
+        if (button) button.disabled = false;
+        if (label) label.textContent = originalLabel || '上传照片';
+    }
+}
+
+function initMemoryUpload() {
+    const button = $('memory-upload');
+    const input = $('memory-upload-input');
+    if (!button || !input) return;
+    button.addEventListener('click', () => input.click());
+    input.addEventListener('change', handleMemoryUpload);
 }
 
 function initMemorySheet() {
-    const prev = $('memory-prev');
-    const next = $('memory-next');
-    if (prev) prev.addEventListener('click', () => stepMemory(-1));
-    if (next) next.addEventListener('click', () => stepMemory(1));
+    initMemorySwipe();
+    initMemoryUpload();
+    document.addEventListener('keydown', event => {
+        const sheet = $('memory-sheet');
+        if (!sheet || !sheet.classList.contains('is-open')) return;
+        if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+        const target = event.target;
+        if (target && target.closest && target.closest('input, textarea, select, [contenteditable="true"]')) return;
+        event.preventDefault();
+        stepMemory(event.key === 'ArrowRight' ? 1 : -1);
+    });
 }
 
 /* ---------- timeline sheet ---------- */

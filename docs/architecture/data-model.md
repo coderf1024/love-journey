@@ -34,6 +34,30 @@ love-journey/db/
 
 `{ "items": [{ "name": "北京", "date": "2020-12-20", "description": "…" }] }`，可选 `overseas: true` / `country: "韩国"`。首页地图按 `name` 归并到省份：同一省有多个城市时只点亮一次，颜色取最早访问的城市；境外城市不参与省份归并，用地图角落印章展示。现有数据没有 `overseas/country` 时，`js/app.js` 用内置境外名单兜底。
 
+## milestones.json
+
+```jsonc
+{
+  "version": 1,
+  "updatedAt": "2026-10-30 12:00:00",
+  "items": [{
+    "id": "ms_001",              // 旧数据已有；新增记录由管理端补 ms_<时间戳>_<序号>
+    "date": "2026-01-25",        // 可为空 → 用户端归入「旧时光」
+    "title": "新家",
+    "description": "…",
+    "image": "https://…/uploads/milestones/….jpg", // 可空，管理端封面
+    "order": 1                   // 历史字段，不参与展示排序
+  }]
+}
+```
+
+- 管理端「系统 → 岁月留痕」维护整份数组：新增、编辑、删除都整份写入，保存时补 `id`、`updatedAt`，只 trim 已知字段，保留其他字段。
+- 展示顺序由 `date` 倒序决定，`order` 不参与排序；无日期条目排最后。
+- 封面图上传到 `love-journey/uploads/milestones/`（测试库 `uploads-test/`），由管理端 `uploadBucketImage()` 压缩上传。
+- **用户端回忆卡片和详情读取 `image`**：有图时照片铺满 4:3 封面；没有图片或加载失败时回退 v0–v3 纯色渐变，不出现破图。
+- 管理端列表和编辑弹窗会显示封面缩略图/4:3 预览。
+- 用户端回忆详情有一个**临时**「上传照片」维护入口，直接把图片上传到 `uploads/milestones/`，并原地更新当前回忆的 `image`；用于前期补图，补完后应移除。
+
 ## space.json
 
 ```jsonc

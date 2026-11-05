@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理端 · 岁月留痕配置原型 · LJ-20261029-004</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+        --paper: #fbf6ec;
+        --paper-soft: #fffdf8;
+        --ink: #2b2231;
+        --ink-2: #453a4b;
+        --muted: #8d8782;
+        --stamp: #b94a63;
+        --stamp-deep: #9f3a52;
+        --line: rgba(43, 34, 49, .12);
+        --line-strong: rgba(43, 34, 49, .2);
+        --mint: #ddf1e8;
+        --lemon: #f6d478;
+        --shadow: 0 18px 34px -24px rgba(0, 0, 0, .45);
+        --font-display: "Noto Serif SC", "Songti SC", "STSong", "SimSun", serif;
+        --font-ui: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    body {
+        padding: 36px 26px 70px;
+        color: #232323;
+        background: #e9e7e3;
+        font-family: var(--font-ui);
+        -webkit-font-smoothing: antialiased;
+    }
+    button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+    .page-head { max-width: 1320px; margin: 0 auto 24px; }
+    .eyebrow { color: #8a7b78; font-size: 11px; font-weight: 700; letter-spacing: .2em; }
+    .page-head h1 { margin-top: 6px; font-size: 28px; letter-spacing: .01em; }
+    .page-head p { max-width: 900px; margin-top: 10px; color: #625c59; font-size: 14px; line-height: 1.75; }
+    .page-head p b { color: #2b2231; }
+    .scope-note { max-width: 900px; margin-top: 12px; padding: 9px 12px; background: #fff8e8; border: 1px dashed #d8b56b; border-radius: 10px; color: #8a6b2c; font-size: 11px; line-height: 1.6; }
+    .scope-note b { color: #6d5220; }
+    .legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 14px; color: #777; font-size: 11px; }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .dot { width: 8px; height: 8px; display: inline-block; border-radius: 999px; }
+    .dot.accent { background: var(--stamp); }
+    .dot.line { border: 1px solid #999; }
+    .dot.dash { border: 1px dashed #999; }
+
+    .ia { max-width: 1320px; margin: 0 auto 34px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .ia-card { padding: 13px 15px; background: #f6f3ee; border: 1px solid #d6d3ce; border-radius: 12px; }
+    .ia-card.wide { grid-column: 1 / -1; }
+    .ia-card b { display: block; margin-bottom: 5px; font-size: 12px; }
+    .ia-card p { color: #6b6560; font-size: 10.5px; line-height: 1.65; }
+    .ia-card p + p { margin-top: 4px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+    .chip { padding: 3px 8px; background: #fff; border: 1px solid #d6d3ce; border-radius: 999px; color: #6b6560; font-size: 9.5px; }
+    .chip.strong { background: #2b2231; border-color: #2b2231; color: #fff; }
+    .chip.accent { background: #f6e2e6; border-color: #dcb9c1; color: var(--stamp); }
+
+    .frames { max-width: 1320px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 36px 28px; align-items: flex-start; }
+    .frame-wrap { width: 320px; }
+    .frame-wrap h2 { margin-bottom: 9px; font-size: 13px; font-weight: 700; letter-spacing: .02em; }
+    .frame-wrap h2 em { margin-left: 5px; color: var(--stamp); font-style: normal; font-size: 10px; font-weight: 600; letter-spacing: .1em; }
+    .caption { margin-top: 8px; color: #8a837c; font-size: 10px; line-height: 1.6; }
+    .caption b { color: #5f5954; }
+
+    /* ---------- phone shell ---------- */
+    .phone { position: relative; width: 320px; height: 664px; display: flex; flex-direction: column; overflow: hidden; background: var(--paper-soft); border: 2px solid #2a2a2a; border-radius: 30px; box-shadow: var(--shadow); }
+    .statusbar { flex: 0 0 auto; display: flex; justify-content: space-between; padding: 9px 18px 4px; color: #8d8d8d; font-size: 9px; letter-spacing: .08em; }
+    .screen { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; padding: 8px 16px 12px; overflow: hidden; }
+    .screen.scroll { overflow-y: auto; scrollbar-width: none; }
+    .screen.scroll::-webkit-scrollbar { display: none; }
+
+    .m-topbar { min-height: 30px; display: flex; align-items: center; gap: 8px; }
+    .m-topbar h2 { font-size: 17px; letter-spacing: -.01em; }
+    .m-topbar .right { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+    .m-back { width: 24px; font-size: 21px; line-height: 1; color: #555; }
+    .admin-avatar { width: 30px; height: 30px; flex: 0 0 30px; display: grid; place-items: center; overflow: hidden; background: #f4d9dd; border: 1px solid #d9bcc1; border-radius: 999px; color: #a35163; font-size: 11px; font-weight: 700; }
+    .admin-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .icon-btn { position: relative; width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid #d6d3ce; border-radius: 999px; color: #625c59; font-size: 12px; }
+
+    .wf-label { color: #9a938e; font-size: 8px; font-weight: 700; letter-spacing: .14em; }
+    .admin-small { color: #8d8782; font-size: 9px; }
+    .admin-muted { color: var(--muted); }
+
+    .profile-row { display: flex; align-items: center; gap: 10px; padding: 12px; background: #f7f5f1; border: 1px solid #d6d3ce; border-radius: 13px; }
+    .profile-row .admin-avatar { width: 40px; height: 40px; flex-basis: 40px; }
+    .profile-main { flex: 1; min-width: 0; display: grid; gap: 2px; }
+    .profile-main b { font-size: 12px; }
+    .profile-main small { color: #8d8782; font-size: 9px; }
+    .profile-row .chev { color: #b3aca5; font-size: 14px; }
+
+    .section-head { display: flex; align-items: baseline; margin-top: 2px; }
+    .section-head b { font-size: 12px; }
+    .section-head span { margin-left: auto; color: #9a938e; font-size: 9px; }
+
+    .sys-group { overflow: hidden; background: #fff; border: 1px solid #d6d3ce; border-radius: 12px; }
+    .sys-row { position: relative; display: flex; align-items: center; gap: 9px; width: 100%; padding: 11px 12px; border-bottom: 1px dashed #e1ddd7; text-align: left; }
+    .sys-row:last-child { border-bottom: 0; }
+    .sys-icon { width: 26px; height: 26px; flex: 0 0 26px; display: grid; place-items: center; background: #f7f5f1; border: 1px solid #d6d3ce; border-radius: 7px; color: #8a837c; font-size: 9px; }
+    .sys-main { flex: 1; min-width: 0; display: grid; gap: 1px; }
+    .sys-main b { font-size: 10.5px; }
+    .sys-main small { color: #8d8782; font-size: 8.5px; }
+    .sys-row .chev { color: #b3aca5; font-size: 13px; }
+    .sys-row.is-new { background: #fff8f9; box-shadow: inset 3px 0 0 var(--stamp); }
+    .badge-new { padding: 1px 5px; background: #f6e2e6; border-radius: 999px; color: var(--stamp); font-size: 7px; font-weight: 700; }
+    .sys-note { padding: 9px 10px; background: #f4eee8; border: 1px dashed #c9c4bd; border-radius: 9px; color: #77706a; font-size: 8.5px; line-height: 1.55; }
+
+    .tabbar { flex: 0 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); padding: 7px 8px 9px; background: #fbf9f5; border-top: 1px solid #e1ddd7; }
+    .tab { position: relative; text-align: center; color: #948d87; font-size: 8.5px; }
+    .tab b { display: block; margin-bottom: 1px; font-size: 15px; font-weight: 400; line-height: 1.1; }
+    .tab.active { color: var(--stamp); }
+    .tab .badge { position: absolute; top: -2px; right: 20%; min-width: 13px; height: 13px; display: grid; place-items: center; padding: 0 3px; background: var(--stamp); border-radius: 999px; color: #fff; font-size: 7px; }
+
+    /* ---------- admin list ---------- */
+    .view-head { display: flex; align-items: flex-start; gap: 8px; }
+    .view-head > div { flex: 1; min-width: 0; }
+    .view-head .eyebrow { font-size: 8px; }
+    .view-head h1 { margin-top: 2px; font-family: var(--font-display); font-size: 22px; letter-spacing: -.01em; }
+    .view-head p { margin-top: 3px; color: #8d8782; font-size: 9px; line-height: 1.55; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 5px 10px; background: #fff; border: 1px solid #2a2a2a; border-radius: 999px; color: #2a2a2a; font-size: 9.5px; white-space: nowrap; }
+    .btn.dark { background: #2b2231; border-color: #2b2231; color: #fff; }
+    .btn.accent { background: var(--stamp); border-color: var(--stamp); color: #fff; }
+    .btn.ghost { border-color: #cfc9c1; color: #6b6560; }
+    .btn.sm { padding: 3px 8px; font-size: 8.5px; }
+    .btn.block { width: 100%; padding: 8px 10px; }
+    .btn.danger { border-color: #d9a9b3; color: var(--stamp-deep); background: #fff7f8; }
+
+    .toolbar { display: flex; align-items: center; gap: 7px; }
+    .search { flex: 1; display: flex; align-items: center; gap: 6px; padding: 6px 9px; background: #f7f5f1; border: 1px solid #d6d3ce; border-radius: 999px; color: #9a938e; font-size: 9px; }
+    .filters { display: flex; gap: 5px; }
+    .filter { flex: 0 0 auto; padding: 5px 9px; border: 1px solid #d6d3ce; border-radius: 999px; color: #77706a; font-size: 8.5px; white-space: nowrap; background: #fff; }
+    .filter.active { background: #2b2231; border-color: #2b2231; color: #fff; }
+    .filter .n { opacity: .65; }
+    .list-summary { display: flex; align-items: baseline; color: #8d8782; font-size: 8.5px; }
+    .list-summary b { margin-right: 3px; color: #232323; font-size: 10.5px; }
+    .list-summary span { margin-left: auto; }
+
+    .year-head { display: flex; align-items: baseline; padding: 2px 1px 0; }
+    .year-head b { font-family: var(--font-display); font-size: 13px; letter-spacing: .04em; }
+    .year-head span { margin-left: 5px; color: #9a938e; font-size: 8px; }
+    .year-head em { margin-left: auto; color: #b3aca5; font-size: 8px; font-style: normal; }
+
+    .memory-list { display: grid; gap: 6px; }
+    .memory-row { display: flex; align-items: center; gap: 9px; padding: 7px 8px; background: #fff; border: 1px solid #d6d3ce; border-radius: 11px; }
+    .memory-row + .memory-row { margin-top: 0; }
+    .thumb { position: relative; width: 54px; height: 41px; flex: 0 0 54px; overflow: hidden; background: #f3eee7; border-radius: 8px; }
+    .thumb svg { display: block; width: 100%; height: 100%; }
+    .thumb.grad.v0 { background: linear-gradient(145deg, #ffe4ea, #ffc8d6); }
+    .thumb.grad.v1 { background: linear-gradient(145deg, #e4f5ed, #c9ebdd); }
+    .thumb.grad.v2 { background: linear-gradient(145deg, #fbeec4, #f5d585); }
+    .thumb.grad.v3 { background: linear-gradient(145deg, #efe7f6, #ded2ec); }
+    .thumb.grad::after { content: "无图"; position: absolute; inset: 0; display: grid; place-items: center; color: rgba(43, 34, 49, .6); font-size: 8px; font-weight: 700; letter-spacing: .08em; }
+    .row-main { flex: 1; min-width: 0; display: grid; gap: 1px; }
+    .row-main b { overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+    .row-main small { overflow: hidden; color: #8d8782; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+    .row-meta { display: grid; justify-items: end; gap: 2px; }
+    .row-meta time { color: #8d8782; font-size: 7.5px; font-variant-numeric: tabular-nums; }
+    .row-meta span { color: #b3aca5; font-size: 7px; }
+    .row-edit { width: 24px; height: 24px; flex: 0 0 24px; display: grid; place-items: center; color: #b3aca5; font-size: 14px; }
+
+    .empty-hint { padding: 10px; background: #f4eee8; border: 1px dashed #c9c4bd; border-radius: 9px; color: #77706a; font-size: 8.5px; line-height: 1.55; }
+    .empty-hint b { color: #232323; }
+
+    /* ---------- bottom sheet / modal ---------- */
+    .phone .modal-backdrop { position: absolute; inset: 0; z-index: 4; background: rgba(24, 18, 27, .46); }
+    .bottom-sheet { position: absolute; z-index: 5; left: 0; right: 0; bottom: 0; top: 58px; display: flex; flex-direction: column; overflow: hidden; background: var(--paper-soft); border-radius: 20px 20px 0 0; box-shadow: 0 -20px 50px -24px rgba(0, 0, 0, .45); }
+    .sheet-head { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 13px 15px; border-bottom: 1px solid var(--line); }
+    .sheet-head b { font-family: var(--font-display); font-size: 15px; }
+    .sheet-head small { color: #9a938e; font-size: 8px; }
+    .sheet-close { width: 26px; height: 26px; margin-left: auto; display: grid; place-items: center; color: #8d8782; font-size: 12px; }
+    .sheet-body { flex: 1; min-height: 0; display: grid; align-content: start; gap: 9px; padding: 12px 15px 16px; overflow: auto; scrollbar-width: none; }
+    .sheet-body::-webkit-scrollbar { display: none; }
+    .sheet-foot { flex: 0 0 auto; display: flex; align-items: center; gap: 7px; padding: 10px 15px 14px; background: rgba(251, 246, 236, .97); border-top: 1px solid var(--line); }
+    .sheet-foot .btn { flex: 1; padding: 9px 10px; }
+    .sheet-foot .btn.delete { flex: 0 0 auto; }
+
+    .field { display: grid; gap: 4px; }
+    .field label { display: flex; align-items: baseline; gap: 4px; color: #77706a; font-size: 8.5px; }
+    .field label em { color: #aaa39c; font-size: 7.5px; font-style: normal; }
+    .input { padding: 7px 9px; background: #fff; border: 1px solid #d6d3ce; border-radius: 8px; color: #232323; font-size: 9.5px; }
+    .input.placeholder { color: #aaa39c; }
+    .textarea { height: 56px; padding: 7px 9px; background: #fff; border: 1px solid #d6d3ce; border-radius: 8px; color: #555; font-size: 9px; line-height: 1.55; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+
+    .photo-field { display: grid; gap: 6px; padding: 9px; background: #f7f5f1; border: 1px solid #d6d3ce; border-radius: 11px; }
+    .photo-preview { position: relative; aspect-ratio: 4 / 3; overflow: hidden; background: #f3eee7; border: 1px solid #d6d3ce; border-radius: 9px; }
+    .photo-preview svg { display: block; width: 100%; height: 100%; }
+    .photo-preview::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 55%, rgba(36, 27, 42, .35)); }
+    .photo-tag { position: absolute; left: 7px; bottom: 6px; z-index: 2; padding: 2px 6px; background: rgba(255, 253, 248, .92); border-radius: 999px; color: #453a4b; font-size: 7px; font-weight: 700; }
+    .photo-ring { position: absolute; inset: 8px; z-index: 2; border: 1px dashed rgba(255, 255, 255, .55); border-radius: 6px; pointer-events: none; }
+    .photo-tools { display: flex; align-items: center; gap: 6px; }
+    .photo-status { color: #447a6d; font-size: 8px; }
+    .photo-note { color: #9a938e; font-size: 7.5px; line-height: 1.5; }
+
+    .form-note { padding: 7px 9px; background: #f4eee8; border: 1px dashed #c9c4bd; border-radius: 8px; color: #77706a; font-size: 8px; line-height: 1.55; }
+    .form-note b { color: #453a4b; }
+
+    /* ---------- confirm dialog ---------- */
+    .confirm-backdrop { position: absolute; inset: 0; z-index: 6; display: grid; place-items: center; padding: 22px; background: rgba(24, 18, 27, .58); }
+    .confirm-card { width: 100%; padding: 17px 16px 14px; background: var(--paper-soft); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 24px 60px -20px rgba(0, 0, 0, .55); }
+    .confirm-icon { width: 30px; height: 30px; display: grid; place-items: center; margin-bottom: 8px; background: #fbe9ec; border-radius: 999px; color: var(--stamp); font-size: 13px; }
+    .confirm-card h3 { font-family: var(--font-display); font-size: 15px; }
+    .confirm-card p { margin-top: 5px; color: #77706a; font-size: 9px; line-height: 1.6; }
+    .confirm-card p b { color: #453a4b; }
+    .confirm-actions { display: flex; gap: 7px; margin-top: 14px; }
+    .confirm-actions .btn { flex: 1; padding: 8px 10px; }
+    .confirm-actions .btn.delete { background: var(--stamp); border-color: var(--stamp); color: #fff; }
+
+    /* ---------- user side ---------- */
+    .user-screen { background: var(--paper); }
+    .user-top { align-items: flex-start; padding-top: 2px; }
+    .user-brand { display: grid; gap: 1px; }
+    .user-brand b { font-family: var(--font-display); font-size: 15px; }
+    .user-brand small { color: #8d8782; font-size: 8px; }
+    .love-timer { padding: 11px 12px; background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 10px 26px -22px rgba(77, 48, 61, .5); }
+    .love-timer .wf-label { display: block; margin-bottom: 2px; }
+    .love-timer b { font-family: var(--font-display); font-size: 20px; letter-spacing: .02em; }
+    .love-timer b span { color: var(--stamp); }
+    .love-timer p { margin-top: 2px; color: #8d8782; font-size: 8px; }
+    .user-section-head { display: flex; align-items: baseline; padding: 0 1px; }
+    .user-section-head h3 { font-family: var(--font-display); font-size: 14px; }
+    .user-section-head span { margin-left: auto; color: var(--stamp); font-size: 8.5px; }
+
+    .carousel { display: flex; gap: 11px; margin: 0 -16px; padding: 0 16px 4px; overflow: hidden; }
+    .memory-card { flex: 0 0 232px; overflow: hidden; background: #fffdf8; border: 1px solid var(--line); border-radius: 20px; box-shadow: 0 16px 30px -26px rgba(77, 48, 61, .55); }
+    .cover { position: relative; aspect-ratio: 4 / 3; overflow: hidden; background: #f3ead9; }
+    .cover svg { display: block; width: 100%; height: 100%; }
+    .cover.grad.v0 { background: linear-gradient(145deg, #ffe4ea, #ffc8d6); }
+    .cover.grad.v1 { background: linear-gradient(145deg, #e4f5ed, #c9ebdd); }
+    .cover.grad.v2 { background: linear-gradient(145deg, #fbeec4, #f5d585); }
+    .cover.grad.v3 { background: linear-gradient(145deg, #efe7f6, #ded2ec); }
+    .cover-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(30, 22, 36, .04) 40%, rgba(30, 22, 36, .5) 100%); }
+    .cover-year { position: absolute; left: 12px; top: 10px; z-index: 2; color: #453a4b; font-family: var(--font-display); font-size: 22px; font-weight: 700; line-height: 1; }
+    .cover.photo .cover-year { color: rgba(255, 255, 255, .92); text-shadow: 0 1px 8px rgba(20, 14, 24, .35); }
+    .cover.grad .cover-year { color: rgba(43, 34, 49, .22); }
+    .motif { position: absolute; right: 12px; bottom: 12px; z-index: 2; width: 30px; height: 30px; color: rgba(43, 34, 49, .28); }
+    .motif svg { display: block; width: 100%; height: 100%; }
+    .date-chip { position: absolute; left: 10px; bottom: 9px; z-index: 2; padding: 3px 7px; background: rgba(255, 253, 248, .92); border-radius: 999px; color: var(--ink); font-size: 7.5px; font-weight: 700; letter-spacing: .05em; }
+    .memory-body { padding: 9px 11px 11px; }
+    .memory-body h3 { overflow: hidden; font-family: var(--font-display); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+    .memory-body p { display: -webkit-box; overflow: hidden; margin-top: 3px; color: #77706a; font-size: 8px; line-height: 1.5; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+    .carousel-meta { display: flex; align-items: center; gap: 8px; padding: 0 2px; }
+    .carousel-progress { flex: 1; height: 2px; overflow: hidden; background: rgba(43, 34, 49, .1); border-radius: 999px; }
+    .carousel-progress i { display: block; width: 18%; height: 100%; background: var(--stamp); }
+    .carousel-meta small { color: #8d8782; font-size: 7.5px; letter-spacing: .08em; }
+    .carousel-meta small b { color: var(--ink); }
+
+    .detail-cover { position: relative; aspect-ratio: 4 / 3; overflow: hidden; background: #f3ead9; }
+    .detail-cover svg { display: block; width: 100%; height: 100%; }
+    .detail-cover .cover-year { left: 16px; top: 14px; font-size: 34px; }
+    .detail-cover .date-chip { left: 14px; bottom: 12px; }
+    .detail-body { padding: 14px 15px 16px; }
+    .detail-date { color: var(--stamp); font-size: 8px; font-weight: 700; letter-spacing: .14em; }
+    .detail-body h2 { margin-top: 4px; font-family: var(--font-display); font-size: 21px; }
+    .detail-desc { margin-top: 7px; color: #625c59; font-size: 9.5px; line-height: 1.8; }
+    .memory-nav { display: flex; gap: 7px; margin-top: 16px; padding-top: 12px; border-top: 1px dashed #e1ddd7; }
+    .memory-nav span { flex: 1; padding: 6px 8px; text-align: center; border: 1px solid #d6d3ce; border-radius: 999px; color: #77706a; font-size: 8.5px; }
+    .memory-nav span.next { color: #453a4b; border-color: #b3aca5; }
+
+    /* ---------- desktop browser ---------- */
+    .browser-wrap { width: 1180px; max-width: 100%; }
+    .browser { overflow: hidden; background: #fdfdfb; border: 2px solid #2a2a2a; border-radius: 15px; box-shadow: var(--shadow); }
+    .browser-bar { display: flex; align-items: center; gap: 5px; height: 30px; padding: 0 11px; background: #f1eee8; border-bottom: 1px solid #d6d3ce; }
+    .browser-bar i { width: 8px; height: 8px; border: 1px solid #b3aca5; border-radius: 999px; }
+    .browser-url { flex: 1; max-width: 340px; margin-left: 7px; padding: 3px 9px; background: #fff; border: 1px solid #d6d3ce; border-radius: 999px; color: #9a938e; font-size: 8.5px; }
+    .web { display: flex; height: 646px; }
+    .web-sidebar { width: 204px; flex: 0 0 204px; display: flex; flex-direction: column; padding: 14px 10px 10px; background: #f7f5f1; border-right: 1px solid #d6d3ce; }
+    .side-brand { display: flex; align-items: center; gap: 8px; padding: 0 4px 12px; border-bottom: 1px dashed #d6d3ce; }
+    .side-brand b { font-size: 11px; }
+    .side-brand small { display: block; margin-top: 1px; color: #8d8782; font-size: 7.5px; }
+    .side-group { padding: 12px 9px 4px; color: #9a938e; font-size: 7.5px; font-weight: 700; letter-spacing: .14em; }
+    .side-nav { display: grid; gap: 2px; }
+    .side-item { display: flex; align-items: center; gap: 7px; padding: 7px 9px; border-radius: 8px; color: #756e67; font-size: 9.5px; text-align: left; }
+    .side-item b { width: 16px; text-align: center; font-size: 11px; font-weight: 400; }
+    .side-item.active { background: #2b2231; color: #fff; }
+    .web-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .web-topbar { display: flex; align-items: center; gap: 10px; padding: 12px 20px; border-bottom: 1px solid #e1ddd7; }
+    .web-topbar h3 { font-size: 15px; }
+    .web-topbar .crumb { color: #9a938e; font-size: 8.5px; }
+    .web-topbar .right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+    .web-body { flex: 1; min-height: 0; padding: 16px 20px 18px; overflow: hidden; display: flex; flex-direction: column; gap: 10px; }
+    .web-head { display: flex; align-items: flex-start; gap: 14px; }
+    .web-head > div { flex: 1; }
+    .web-head h1 { margin-top: 3px; font-family: var(--font-display); font-size: 23px; }
+    .web-head p { margin-top: 4px; color: #8d8782; font-size: 9px; }
+    .web-stats { display: flex; gap: 7px; }
+    .web-stat { min-width: 76px; padding: 8px 10px; background: #fff; border: 1px solid #d6d3ce; border-radius: 10px; text-align: right; }
+    .web-stat b { display: block; color: var(--stamp); font-size: 17px; line-height: 1.1; }
+    .web-stat span { color: #8d8782; font-size: 7.5px; }
+    .web-toolbar { display: flex; align-items: center; gap: 8px; padding: 8px 9px; background: #f7f5f1; border: 1px solid #d6d3ce; border-radius: 11px; }
+    .web-toolbar .search { max-width: 260px; background: #fff; }
+    .web-toolbar .spacer { flex: 1; }
+    .web-toolbar .summary { color: #8d8782; font-size: 8.5px; }
+    .web-toolbar .summary b { color: #232323; font-size: 10px; }
+    .web-list { flex: 1; min-height: 0; padding: 2px 14px 8px; background: #fff; border: 1px solid #d6d3ce; border-radius: 12px; overflow: hidden; }
+    .web-row { display: grid; grid-template-columns: 66px 86px 1fr 1.5fr 64px; align-items: center; gap: 10px; padding: 8px 2px; border-bottom: 1px dashed #e1ddd7; }
+    .web-row:last-child { border-bottom: 0; }
+    .web-row.head { padding-top: 11px; padding-bottom: 6px; color: #9a938e; font-size: 7.5px; border-bottom: 1px solid #d6d3ce; }
+    .web-year { display: flex; align-items: baseline; gap: 6px; padding: 10px 2px 3px; }
+    .web-year b { font-family: var(--font-display); font-size: 13px; }
+    .web-year span { color: #9a938e; font-size: 7.5px; }
+    .web-thumb { width: 66px; height: 50px; }
+    .web-title { overflow: hidden; font-size: 10px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+    .web-desc { overflow: hidden; color: #8d8782; font-size: 8.5px; text-overflow: ellipsis; white-space: nowrap; }
+    .web-date { color: #77706a; font-size: 8.5px; font-variant-numeric: tabular-nums; }
+    .web-actions { display: flex; justify-content: flex-end; gap: 5px; }
+    .web-actions .btn { padding: 3px 8px; font-size: 8px; }
+    .web-empty { color: #b3aca5; font-size: 8px; }
+
+    /* ---------- notes ---------- */
+    .notes-grid { max-width: 1320px; margin: 42px auto 0; display: grid; grid-template-columns: 1.1fr 1.1fr .8fr; gap: 14px; }
+    .note-card { padding: 17px 18px; background: #f6f3ee; border: 1px solid #d6d3ce; border-radius: 14px; }
+    .note-card h2 { margin-bottom: 8px; font-size: 14px; }
+    .note-card p, .note-card li { color: #625c59; font-size: 11px; line-height: 1.75; }
+    .note-card ul { margin: 6px 0 0 16px; }
+    .note-card code { padding: 1px 4px; background: #fff; border: 1px solid #d6d3ce; border-radius: 4px; font-size: 9.5px; }
+    .note-card .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 9px; }
+    .compare figure { display: grid; gap: 4px; }
+    .compare figcaption { color: #77706a; font-size: 8.5px; }
+    .mini-cover { position: relative; aspect-ratio: 4 / 3; overflow: hidden; border: 1px solid #d6d3ce; border-radius: 9px; }
+    .mini-cover svg { display: block; width: 100%; height: 100%; }
+    .mini-cover .cover-year { left: 8px; top: 7px; font-size: 18px; }
+    .mini-cover .date-chip { left: 7px; bottom: 6px; }
+    .note-card .qa { margin-top: 8px; padding: 8px 9px; background: #fff; border: 1px dashed #c9c4bd; border-radius: 8px; color: #77706a; font-size: 10px; line-height: 1.6; }
+    .note-card .qa b { color: #453a4b; }
+    .questions { max-width: 1320px; margin: 18px auto 0; padding: 18px 20px; background: #f6f3ee; border: 1px solid #d6d3ce; border-radius: 14px; }
+    .questions h2 { margin-bottom: 8px; font-size: 15px; }
+    .questions ol { margin-left: 18px; color: #625c59; font-size: 11px; line-height: 1.85; }
+    .questions li b { color: #2b2231; }
+
+    .svg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+    @media (max-width: 760px) {
+        body { padding: 22px 14px 50px; }
+        .ia { grid-template-columns: 1fr; }
+        .frames { justify-content: center; }
+        .page-head h1 { font-size: 23px; }
+        .browser-wrap { width: 100%; overflow-x: auto; }
+        .browser { min-width: 980px; }
+        .notes-grid { grid-template-columns: 1fr; }
+    }
+</style>
+</head>
+<body>
+
+<svg class="svg-defs" aria-hidden="true" focusable="false">
+    <defs>
+        <linearGradient id="gHome" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#f6c9a8"/><stop offset=".55" stop-color="#e39a8c"/><stop offset="1" stop-color="#7d5a74"/>
+        </linearGradient>
+        <linearGradient id="gSea" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#bfe3e2"/><stop offset=".5" stop-color="#7dc2c5"/><stop offset="1" stop-color="#327f88"/>
+        </linearGradient>
+        <linearGradient id="gCity" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#3f4a78"/><stop offset=".6" stop-color="#7d6a92"/><stop offset="1" stop-color="#d09586"/>
+        </linearGradient>
+        <linearGradient id="gCake" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#f9e2d2"/><stop offset="1" stop-color="#e0a9a8"/>
+        </linearGradient>
+        <linearGradient id="gMountain" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#dcd6ec"/><stop offset=".55" stop-color="#a8a6c9"/><stop offset="1" stop-color="#6f7b8f"/>
+        </linearGradient>
+
+        <symbol id="scene-home" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+            <rect width="400" height="300" fill="url(#gHome)"/>
+            <circle cx="310" cy="80" r="34" fill="#ffe7b8" opacity=".85"/>
+            <path d="M0 226 Q70 194 142 216 T286 210 T400 220 V300 H0Z" fill="#6e6a5c"/>
+            <path d="M0 252 Q104 226 204 246 T400 242 V300 H0Z" fill="#4e5248"/>
+            <path d="M116 220 L170 178 L224 220 V266 H116Z" fill="#3c343d"/>
+            <path d="M108 222 L170 172 L232 222" fill="none" stroke="#2c2630" stroke-width="10" stroke-linecap="round"/>
+            <rect x="158" y="224" width="26" height="26" rx="2" fill="#f7d488"/>
+            <path d="M285 244 V206" stroke="#3b3b32" stroke-width="6"/>
+            <circle cx="285" cy="196" r="24" fill="#5b6b52"/>
+            <circle cx="266" cy="206" r="15" fill="#66785b"/>
+            <path d="M88 96 q6 -6 12 0 M106 86 q6 -6 12 0" stroke="#5d4a56" stroke-width="2" fill="none"/>
+        </symbol>
+
+        <symbol id="scene-cake" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+            <rect width="400" height="300" fill="url(#gCake)"/>
+            <circle cx="74" cy="66" r="22" fill="#fff3dd" opacity=".55"/>
+            <circle cx="330" cy="54" r="16" fill="#fff3dd" opacity=".42"/>
+            <path d="M0 236 H400 V300 H0Z" fill="#b98182"/>
+            <path d="M0 236 H400 V246 H0Z" fill="#e7bfb6" opacity=".7"/>
+            <ellipse cx="200" cy="238" rx="92" ry="17" fill="#8f5f68" opacity=".28"/>
+            <rect x="140" y="180" width="120" height="58" rx="8" fill="#fff7ea"/>
+            <path d="M140 196 q15 10 30 0 t30 0 t30 0 t30 0 V180 H140Z" fill="#f4c2c8"/>
+            <path d="M140 205 q15 9 30 0 t30 0 t30 0 t30 0" fill="none" stroke="#f4c2c8" stroke-width="5"/>
+            <path d="M176 180 V160 M224 180 V160" stroke="#8a6b5a" stroke-width="4" stroke-linecap="round"/>
+            <path d="M176 154 q-4 -9 0 -16 M224 154 q4 -9 0 -16" fill="none" stroke="#f0a641" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="98" cy="190" r="13" fill="#df8f9d"/><circle cx="304" cy="196" r="10" fill="#e9b0a1"/>
+        </symbol>
+
+        <symbol id="scene-sea" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+            <rect width="400" height="300" fill="url(#gSea)"/>
+            <circle cx="302" cy="76" r="30" fill="#fff6cf" opacity=".9"/>
+            <path d="M0 170 H400 V300 H0Z" fill="#4b9aa2"/>
+            <path d="M0 190 q50 -10 100 0 t100 0 t100 0 t100 0 V300 H0Z" fill="#35828d"/>
+            <path d="M0 218 q56 -11 112 0 t112 0 t112 0 t64 0" fill="none" stroke="#bfe5e1" stroke-width="3" opacity=".55"/>
+            <path d="M0 246 q56 -11 112 0 t112 0 t112 0 t64 0" fill="none" stroke="#bfe5e1" stroke-width="2" opacity=".35"/>
+            <path d="M238 182 l34 -52 l30 52 Z" fill="#f7f1e0"/>
+            <path d="M272 182 V206" stroke="#5b4b45" stroke-width="4"/>
+            <path d="M250 208 h58 l-8 9 h-42Z" fill="#3b4c54"/>
+            <path d="M60 84 q6 -6 12 0 M84 74 q6 -6 12 0" stroke="#2f6c72" stroke-width="2" fill="none"/>
+        </symbol>
+
+        <symbol id="scene-city" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+            <rect width="400" height="300" fill="url(#gCity)"/>
+            <circle cx="318" cy="64" r="22" fill="#ffe8c8" opacity=".72"/>
+            <circle cx="318" cy="64" r="39" fill="none" stroke="#ffe8c8" stroke-width="1.5" opacity=".35"/>
+            <path d="M0 232 H400 V300 H0Z" fill="#292d4a"/>
+            <rect x="22" y="172" width="48" height="90" fill="#343a5c"/>
+            <rect x="78" y="140" width="60" height="122" fill="#2b3050"/>
+            <rect x="148" y="182" width="44" height="80" fill="#3b4266"/>
+            <rect x="200" y="118" width="64" height="144" fill="#262b48"/>
+            <rect x="274" y="164" width="48" height="98" fill="#333a5b"/>
+            <rect x="330" y="196" width="46" height="66" fill="#2c3150"/>
+            <g fill="#f6d478" opacity=".78">
+                <rect x="34" y="186" width="6" height="8"/><rect x="50" y="204" width="6" height="8"/><rect x="34" y="222" width="6" height="8"/>
+                <rect x="92" y="156" width="7" height="9"/><rect x="112" y="180" width="7" height="9"/><rect x="92" y="204" width="7" height="9"/>
+                <rect x="214" y="136" width="8" height="10"/><rect x="238" y="164" width="8" height="10"/><rect x="214" y="196" width="8" height="10"/>
+                <rect x="286" y="180" width="6" height="8"/><rect x="304" y="210" width="6" height="8"/><rect x="342" y="212" width="6" height="8"/>
+            </g>
+            <path d="M0 232 Q100 216 200 230 T400 226" fill="none" stroke="#b58a8e" stroke-width="2" opacity=".35"/>
+        </symbol>
+
+        <symbol id="scene-mountain" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+            <rect width="400" height="300" fill="url(#gMountain)"/>
+            <circle cx="80" cy="68" r="24" fill="#fff8e2" opacity=".7"/>
+            <path d="M-20 230 L90 104 L188 230Z" fill="#7d86a2"/>
+            <path d="M120 230 L248 78 L380 230Z" fill="#5f6b86"/>
+            <path d="M248 78 L286 128 L258 126 L244 148 L226 124 L212 130Z" fill="#f3f1f4" opacity=".9"/>
+            <path d="M0 232 H400 V300 H0Z" fill="#8fa0a8"/>
+            <path d="M0 244 q50 -8 100 0 t100 0 t100 0 t100 0" fill="none" stroke="#d8e4e4" stroke-width="2" opacity=".55"/>
+            <path d="M60 250 q60 -8 120 0 t120 0" fill="none" stroke="#eef4f3" stroke-width="1.5" opacity=".35"/>
+        </symbol>
+
+        <symbol id="motif-house" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 11 12 4l8 7"/><path d="M6 10v9h12v-9"/><path d="M10 19v-5h4v5"/>
+        </symbol>
+        <symbol id="motif-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20.5s-7.5-4.4-7.5-9.6A4.4 4.4 0 0 1 12 8a4.4 4.4 0 0 1 7.5 2.9c0 5.2-7.5 9.6-7.5 9.6Z"/>
+        </symbol>
+    </defs>
+</svg>
+
+<header class="page-head">
+    <p class="eyebrow">LJ-20261029-004 · 管理端 · 岁月留痕</p>
+    <h1>里程碑配置原型</h1>
+    <p>管理端新增「岁月留痕」维护：列表、编辑、删除和<b>封面图上传</b>。展示顺序仍按日期，不需要手动拖拽。</p>
+    <div class="scope-note"><b>范围更新 2026-10-30：</b>用户端已接入封面图展示：有图显示照片，没有图片或加载失败时回退纯色渐变。下面的用户端画面与当前实现一致。</div>
+    <div class="legend">
+        <span><i class="dot accent"></i>新增 / 本次改造</span>
+        <span><i class="dot line"></i>现有组件样式</span>
+        <span><i class="dot dash"></i>兜底状态 / 待确认</span>
+    </div>
+</header>
+
+<div class="ia">
+    <div class="ia-card">
+        <b>入口与导航</b>
+        <p>移动端从「系统 → 数据」进入，和菜单管理并列。桌面端同时在侧栏「系统」组增加「岁月留痕」，与菜单同级，避免每次都要先回系统页。</p>
+        <div class="chips"><span class="chip strong">系统</span><span class="chip accent">岁月留痕</span><span class="chip">返回系统</span></div>
+    </div>
+    <div class="ia-card">
+        <b>列表规则</b>
+        <p>按年份分组、年份内日期倒序；无日期条目归入「旧时光」排最后。支持搜标题/描述，以及「全部 / 有封面 / 无封面」筛选。</p>
+        <div class="chips"><span class="chip">41 条</span><span class="chip">13 张封面</span><span class="chip">硬删除 + 确认</span></div>
+    </div>
+    <div class="ia-card">
+        <b>编辑字段</b>
+        <p>日期、标题、描述、封面图。封面按 4:3 预览；日期可留空（归入旧时光）。保存后用户端按日期自动归位。</p>
+        <div class="chips"><span class="chip">封面 4:3</span><span class="chip">上传 / URL</span><span class="chip">无发布日期</span></div>
+    </div>
+    <div class="ia-card">
+        <b>用户端渲染</b>
+        <p>有图时照片铺满 4:3 封面，年份改为白色叠层，底部保留日期胶囊。无图或加载失败时回退 v0–v3 渐变和原来的 motif。</p>
+        <div class="chips"><span class="chip">卡片</span><span class="chip">时间线</span><span class="chip">详情大图</span></div>
+    </div>
+    <div class="ia-card wide">
+        <b>数据与图片</b>
+        <p>仍写整份 <code>content/milestones.json</code>：<code>items[]</code> 里每项保留 <code>id / date / title / description / image</code>，保存时补 <code>updatedAt</code>。上传复用现有压缩流程，写入 <code>uploads/milestones/</code>（测试环境自动落 <code>uploads-test/</code>）。旧记录只在编辑时补 <code>id</code>，不批量改写。</p>
+    </div>
+</div>
+
+<main class="frames">
+
+    <!-- 01 system entry -->
+    <section class="frame-wrap">
+        <h2>01 · 系统入口 <em>移动端</em></h2>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen scroll">
+                <div class="m-topbar">
+                    <h2>系统</h2>
+                    <div class="right"><span class="admin-avatar"><img src="../../assets/media/space-avatar.svg" alt=""></span></div>
+                </div>
+                <div class="profile-row">
+                    <span class="admin-avatar"><img src="../../assets/media/space-avatar.svg" alt=""></span>
+                    <span class="profile-main"><b>我们的时光</b><small>福福 &amp; 老李 · 空间资料</small></span>
+                    <span class="chev">›</span>
+                </div>
+                <div class="section-head"><b>数据</b><span>低频维护</span></div>
+                <div class="sys-group">
+                    <button class="sys-row" type="button">
+                        <span class="sys-icon">菜</span>
+                        <span class="sys-main"><b>菜单管理</b><small>14 道 · 12 道上架</small></span>
+                        <span class="chev">›</span>
+                    </button>
+                    <button class="sys-row is-new" type="button">
+                        <span class="sys-icon">忆</span>
+                        <span class="sys-main"><b>岁月留痕 <span class="badge-new">新</span></b><small>41 条回忆 · 13 条有封面</small></span>
+                        <span class="chev">›</span>
+                    </button>
+                </div>
+                <div class="section-head"><b>通知</b><span>Bark · 站外</span></div>
+                <div class="sys-group">
+                    <div class="sys-row">
+                        <span class="sys-icon">铃</span>
+                        <span class="sys-main"><b>Bark 推送</b><small>新单 / 接单 / 出餐</small></span>
+                        <span class="chip accent">已开</span>
+                    </div>
+                </div>
+                <div class="sys-note">回忆属于内容维护，不放进「经营」；和菜单一样低频，但修改后直接影响「我们」页。</div>
+            </div>
+            <div class="tabbar">
+                <span class="tab"><b>▦</b>首页</span>
+                <span class="tab"><b>☰</b>订单</span>
+                <span class="tab"><b>卡</b>恋爱卡</span>
+                <span class="tab active"><b>⋯</b>系统</span>
+            </div>
+        </div>
+        <p class="caption"><b>入口：</b>系统 → 数据 → 岁月留痕。入口行显示总条数和有封面数，能快速发现「还没配图」的回忆。</p>
+    </section>
+
+    <!-- 02 admin list -->
+    <section class="frame-wrap">
+        <h2>02 · 回忆列表 <em>按年份分组</em></h2>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen scroll">
+                <div class="m-topbar">
+                    <button class="m-back" type="button" aria-label="返回">‹</button>
+                    <h2>岁月留痕</h2>
+                    <div class="right"><button class="btn accent sm" type="button">＋ 添加</button></div>
+                </div>
+                <div class="view-head">
+                    <div>
+                        <p class="eyebrow">系统 · 岁月留痕</p>
+                        <h1>岁月留痕</h1>
+                        <p>按日期排序，最新的在前。用户端「全部回忆」共用这份数据。</p>
+                    </div>
+                </div>
+                <div class="toolbar">
+                    <span class="search">⌕ 搜标题 / 描述</span>
+                    <span class="btn ghost sm">刷新</span>
+                </div>
+                <div class="filters">
+                    <span class="filter active">全部 <span class="n">41</span></span>
+                    <span class="filter">有封面 <span class="n">13</span></span>
+                    <span class="filter">无封面 <span class="n">28</span></span>
+                </div>
+                <div class="list-summary"><b>41</b> 条回忆<span>13 张封面 · 28 条渐变</span></div>
+
+                <div class="year-head"><b>2026</b><span>3 条</span><em>最新在前</em></div>
+                <div class="memory-list">
+                    <div class="memory-row">
+                        <span class="thumb"><svg viewBox="0 0 400 300"><use href="#scene-home"/></svg></span>
+                        <span class="row-main"><b>新家</b><small>搬进新家的第一天，阳光落在客厅地板上。</small></span>
+                        <span class="row-meta"><time>01.25</time><span>有封面</span></span>
+                        <button class="row-edit" type="button" aria-label="编辑">›</button>
+                    </div>
+                    <div class="memory-row">
+                        <span class="thumb"><svg viewBox="0 0 400 300"><use href="#scene-city"/></svg></span>
+                        <span class="row-main"><b>第一次一起过年</b><small>一起包了饺子，窗外在放烟花。</small></span>
+                        <span class="row-meta"><time>02.17</time><span>有封面</span></span>
+                        <button class="row-edit" type="button" aria-label="编辑">›</button>
+                    </div>
+                    <div class="memory-row">
+                        <span class="thumb"><svg viewBox="0 0 400 300"><use href="#scene-sea"/></svg></span>
+                        <span class="row-main"><b>去海边</b><small>风很大，你把外套给了我。</small></span>
+                        <span class="row-meta"><time>10.03</time><span>有封面</span></span>
+                        <button class="row-edit" type="button" aria-label="编辑">›</button>
+                    </div>
+                </div>
+
+                <div class="year-head"><b>2025</b><span>2 条</span></div>
+                <div class="memory-list">
+                    <div class="memory-row">
+                        <span class="thumb"><svg viewBox="0 0 400 300"><use href="#scene-cake"/></svg></span>
+                        <span class="row-main"><b>领证</b><small>排队两小时，拍照五分钟。</small></span>
+                        <span class="row-meta"><time>05.20</time><span>有封面</span></span>
+                        <button class="row-edit" type="button" aria-label="编辑">›</button>
+                    </div>
+                    <div class="memory-row">
+                        <span class="thumb grad v1"></span>
+                        <span class="row-main"><b>搬家</b><small>第一次拥有只属于我们的厨房。</small></span>
+                        <span class="row-meta"><time>03.08</time><span>渐变</span></span>
+                        <button class="row-edit" type="button" aria-label="编辑">›</button>
+                    </div>
+                </div>
+
+                <div class="year-head"><b>2024</b><span>1 条</span></div>
+                <div class="memory-list">
+                    <div class="memory-row">
+                        <span class="thumb grad v2"></span>
+                        <span class="row-main"><b>第一次旅行</b><small>在火车上看了很久的云。</small></span>
+                        <span class="row-meta"><time>08.12</time><span>渐变</span></span>
+                        <button class="row-edit" type="button" aria-label="编辑">›</button>
+                    </div>
+                </div>
+
+                <div class="year-head"><b>旧时光</b><span>1 条</span></div>
+                <div class="memory-list">
+                    <div class="memory-row">
+                        <span class="thumb grad v0"></span>
+                        <span class="row-main"><b>我们认识的那天</b><small>没有记下具体日期，但记得那天的风。</small></span>
+                        <span class="row-meta"><time>无日期</time><span>渐变</span></span>
+                        <button class="row-edit" type="button" aria-label="编辑">›</button>
+                    </div>
+                </div>
+
+                <div class="empty-hint"><b>28 条没有封面。</b>可以逐条补图；没有图的回忆会继续显示原来的渐变卡片。</div>
+            </div>
+            <div class="tabbar">
+                <span class="tab"><b>▦</b>首页</span>
+                <span class="tab"><b>☰</b>订单</span>
+                <span class="tab"><b>卡</b>恋爱卡</span>
+                <span class="tab active"><b>⋯</b>系统</span>
+            </div>
+        </div>
+        <p class="caption"><b>列表：</b>年份分组，组内日期倒序；「旧时光」最后。点整行进入编辑，右侧小箭头是明确的可点击提示。</p>
+    </section>
+
+    <!-- 03 edit modal -->
+    <section class="frame-wrap">
+        <h2>03 · 编辑弹窗 <em>新增 / 修改</em></h2>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen scroll">
+                <div class="m-topbar"><button class="m-back" type="button">‹</button><h2>岁月留痕</h2><div class="right"><span class="btn accent sm">＋ 添加</span></div></div>
+                <div class="year-head"><b>2026</b><span>3 条</span></div>
+                <div class="memory-list">
+                    <div class="memory-row">
+                        <span class="thumb"><svg viewBox="0 0 400 300"><use href="#scene-home"/></svg></span>
+                        <span class="row-main"><b>新家</b><small>搬进新家的第一天，阳光落在客厅地板上。</small></span>
+                        <span class="row-meta"><time>01.25</time><span>有封面</span></span>
+                    </div>
+                    <div class="memory-row">
+                        <span class="thumb"><svg viewBox="0 0 400 300"><use href="#scene-city"/></svg></span>
+                        <span class="row-main"><b>第一次一起过年</b><small>一起包了饺子，窗外在放烟花。</small></span>
+                        <span class="row-meta"><time>02.17</time><span>有封面</span></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-backdrop"></div>
+            <div class="bottom-sheet">
+                <div class="sheet-head">
+                    <div><b>编辑回忆</b><br><small>新家 · 2026.01.25</small></div>
+                    <button class="sheet-close" type="button" aria-label="关闭">✕</button>
+                </div>
+                <div class="sheet-body">
+                    <div class="photo-field">
+                        <div class="photo-preview">
+                            <svg viewBox="0 0 400 300"><use href="#scene-home"/></svg>
+                            <span class="photo-ring"></span>
+                            <span class="photo-tag">封面图 · 4:3</span>
+                        </div>
+                        <div class="photo-tools">
+                            <span class="btn dark sm">更换照片</span>
+                            <span class="admin-small">从相册选择</span>
+                            <span class="photo-status">已选择</span>
+                        </div>
+                        <p class="photo-note">上传后居中裁切为 4:3；卡片和详情都用这一张。建议 1200 × 900 以上。</p>
+                    </div>
+                    <div class="field">
+                        <label>图片 URL <em>可选</em></label>
+                        <div class="input placeholder">上传后自动填写，也可以粘贴链接</div>
+                    </div>
+                    <div class="two-col">
+                        <div class="field">
+                            <label>日期 <em>可留空</em></label>
+                            <div class="input">2026-01-25</div>
+                        </div>
+                        <div class="field">
+                            <label>年份</label>
+                            <div class="input" style="color:#8d8782;background:#f7f5f1">由日期自动生成</div>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label>标题</label>
+                        <div class="input">新家</div>
+                    </div>
+                    <div class="field">
+                        <label>描述</label>
+                        <div class="textarea">搬进新家的第一天，阳光落在客厅的地板上。我们一起挑了第一盏灯。</div>
+                    </div>
+                    <div class="form-note"><b>排序：</b>保存后按日期自动归位，不需要手动调整顺序。日期留空会归入「旧时光」，排在最后。</div>
+                </div>
+                <div class="sheet-foot">
+                    <button class="btn delete danger sm" type="button">删除</button>
+                    <button class="btn ghost" type="button">取消</button>
+                    <button class="btn accent" type="button">保存</button>
+                </div>
+            </div>
+        </div>
+        <p class="caption"><b>弹窗：</b>移动端底部弹层、桌面端居中，和菜品编辑一致。删除放在左侧，避免误触保存。</p>
+    </section>
+
+    <!-- 04 delete confirm -->
+    <section class="frame-wrap">
+        <h2>04 · 删除确认 <em>硬删除</em></h2>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen scroll">
+                <div class="m-topbar"><button class="m-back" type="button">‹</button><h2>岁月留痕</h2><div class="right"><span class="btn accent sm">＋ 添加</span></div></div>
+                <div class="year-head"><b>2026</b><span>3 条</span></div>
+                <div class="memory-list">
+                    <div class="memory-row">
+                        <span class="thumb"><svg viewBox="0 0 400 300"><use href="#scene-home"/></svg></span>
+                        <span class="row-main"><b>新家</b><small>搬进新家的第一天，阳光落在客厅地板上。</small></span>
+                        <span class="row-meta"><time>01.25</time><span>有封面</span></span>
+                    </div>
+                    <div class="memory-row">
+                        <span class="thumb"><svg viewBox="0 0 400 300"><use href="#scene-city"/></svg></span>
+                        <span class="row-main"><b>第一次一起过年</b><small>一起包了饺子，窗外在放烟花。</small></span>
+                        <span class="row-meta"><time>02.17</time><span>有封面</span></span>
+                    </div>
+                </div>
+            </div>
+            <div class="confirm-backdrop">
+                <div class="confirm-card">
+                    <span class="confirm-icon">!</span>
+                    <h3>删除这条回忆？</h3>
+                    <p><b>「新家 · 2026.01.25」</b>会从用户端立即移除。封面图片不会自动删除，仍保留在 OSS 上传目录里。</p>
+                    <div class="confirm-actions">
+                        <button class="btn ghost" type="button">取消</button>
+                        <button class="btn delete" type="button">删除</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <p class="caption"><b>删除：</b>复用管理端现有确认框。文案明确「用户端立即移除」和「图片不自动删除」，避免误解。</p>
+    </section>
+
+    <!-- 05 user cards -->
+    <section class="frame-wrap">
+        <h2>05 · 用户端「我们」 <em>卡片有图 / 无图</em></h2>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen scroll user-screen">
+                <div class="m-topbar user-top">
+                    <div class="user-brand"><b>我们的时光</b><small>福福 &amp; 老李</small></div>
+                    <div class="right"><span class="icon-btn">♫</span><span class="admin-avatar"><img src="../../assets/media/space-avatar.svg" alt=""></span></div>
+                </div>
+                <div class="love-timer">
+                    <span class="wf-label">我们在一起</span>
+                    <b>2,135 <span>天</span></b>
+                    <p>2019.12.20 · 今天也要好好吃饭</p>
+                </div>
+                <div class="user-section-head"><h3>岁月留痕</h3><span>全部 41 ›</span></div>
+                <div class="carousel">
+                    <article class="memory-card">
+                        <div class="cover photo">
+                            <svg viewBox="0 0 400 300"><use href="#scene-home"/></svg>
+                            <span class="cover-scrim"></span>
+                            <span class="cover-year">2026</span>
+                            <span class="date-chip">2026.01.25</span>
+                        </div>
+                        <div class="memory-body">
+                            <h3>新家</h3>
+                            <p>搬进新家的第一天，阳光落在客厅的地板上。</p>
+                        </div>
+                    </article>
+                    <article class="memory-card">
+                        <div class="cover grad v1">
+                            <span class="cover-year">2025</span>
+                            <span class="motif"><svg viewBox="0 0 24 24"><use href="#motif-house"/></svg></span>
+                            <span class="date-chip">2025.03.08</span>
+                        </div>
+                        <div class="memory-body">
+                            <h3>搬家</h3>
+                            <p>第一次拥有只属于我们的厨房。</p>
+                        </div>
+                    </article>
+                </div>
+                <div class="carousel-meta">
+                    <span class="carousel-progress"><i></i></span>
+                    <small><b>01</b> / 41 · 左右滑动</small>
+                </div>
+                <div class="user-section-head"><h3>下一次见面</h3><span>10.24 ›</span></div>
+                <div class="love-timer">
+                    <span class="wf-label">下一餐</span>
+                    <b>周六 · 晚餐 20:00</b>
+                    <p>酸辣土豆丝 · 番茄炒蛋</p>
+                </div>
+            </div>
+            <div class="tabbar">
+                <span class="tab active"><b>♡</b>我们</span>
+                <span class="tab"><b>◴</b>小灶</span>
+                <span class="tab"><b>卡</b>恋爱卡</span>
+                <span class="tab"><b>◎</b>空间</span>
+            </div>
+        </div>
+        <p class="caption"><b>有图：</b>照片铺满封面，年份变白色叠层，底部保留日期胶囊。<b>无图：</b>下一张仍是原来的渐变 + motif，不出现空白。</p>
+    </section>
+
+    <!-- 06 user detail -->
+    <section class="frame-wrap">
+        <h2>06 · 用户端回忆详情 <em>大图</em></h2>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen" style="padding:0; gap:0;">
+                <div class="detail-cover">
+                    <svg viewBox="0 0 400 300"><use href="#scene-home"/></svg>
+                    <span class="cover-scrim"></span>
+                    <span class="cover-year">2026</span>
+                    <span class="date-chip">2026.01.25</span>
+                </div>
+                <div class="detail-body">
+                    <p class="detail-date">2026.01.25</p>
+                    <h2>新家</h2>
+                    <p class="detail-desc">搬进新家的第一天，阳光落在客厅的地板上。我们一起挑了第一盏灯，也第一次觉得「以后」有了具体的样子。</p>
+                    <div class="memory-nav">
+                        <span>← 上一段</span>
+                        <span class="next">下一段 →</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <p class="caption"><b>详情：</b>封面仍是 4:3 大图，年份和日期叠在照片上；正文在下方，前后翻页不变。</p>
+    </section>
+
+    <!-- 07 desktop -->
+    <section class="frame-wrap browser-wrap">
+        <h2>07 · 桌面端列表 <em>侧栏入口 + 整宽列表</em></h2>
+        <div class="browser">
+            <div class="browser-bar"><i></i><i></i><i></i><span class="browser-url">coderf.site/admin.html</span></div>
+            <div class="web">
+                <aside class="web-sidebar">
+                    <div class="side-brand">
+                        <span class="admin-avatar"><img src="../../assets/media/space-avatar.svg" alt=""></span>
+                        <div><b>管理端</b><small>我们的时光</small></div>
+                    </div>
+                    <div class="side-group">经营</div>
+                    <nav class="side-nav">
+                        <span class="side-item"><b>▦</b>首页</span>
+                        <span class="side-item"><b>☰</b>订单</span>
+                        <span class="side-item"><b>卡</b>恋爱卡</span>
+                        <span class="side-item"><b>币</b>恋爱币</span>
+                    </nav>
+                    <div class="side-group">系统</div>
+                    <nav class="side-nav">
+                        <span class="side-item"><b>⋯</b>系统设置</span>
+                        <span class="side-item"><b>✎</b>菜单</span>
+                        <span class="side-item active"><b>忆</b>岁月留痕</span>
+                        <span class="side-item"><b>空</b>空间资料</span>
+                    </nav>
+                </aside>
+                <div class="web-main">
+                    <div class="web-topbar">
+                        <span class="crumb">系统 /</span>
+                        <h3>岁月留痕</h3>
+                        <div class="right"><span class="btn ghost sm">刷新</span><span class="btn accent sm">＋ 添加回忆</span></div>
+                    </div>
+                    <div class="web-body">
+                        <div class="web-head">
+                            <div>
+                                <p class="eyebrow">系统 · 内容维护</p>
+                                <h1>岁月留痕</h1>
+                                <p>按日期排序，最新的在前；用户端轮播、「全部回忆」和详情都读这份数据。</p>
+                            </div>
+                            <div class="web-stats">
+                                <div class="web-stat"><b>41</b><span>总条数</span></div>
+                                <div class="web-stat"><b>13</b><span>有封面</span></div>
+                                <div class="web-stat"><b>28</b><span>渐变兜底</span></div>
+                            </div>
+                        </div>
+                        <div class="web-toolbar">
+                            <span class="search">⌕ 搜标题 / 描述</span>
+                            <span class="filter active">全部 <span class="n">41</span></span>
+                            <span class="filter">有封面 <span class="n">13</span></span>
+                            <span class="filter">无封面 <span class="n">28</span></span>
+                            <span class="spacer"></span>
+                            <span class="summary">显示 <b>7</b> / 41 条</span>
+                        </div>
+                        <div class="web-list">
+                            <div class="web-row head"><span>封面</span><span>日期</span><span>标题</span><span>描述</span><span style="text-align:right">操作</span></div>
+                            <div class="web-year"><b>2026</b><span>3 条</span></div>
+                            <div class="web-row">
+                                <span class="thumb web-thumb"><svg viewBox="0 0 400 300"><use href="#scene-home"/></svg></span>
+                                <span class="web-date">2026.01.25</span>
+                                <span class="web-title">新家</span>
+                                <span class="web-desc">搬进新家的第一天，阳光落在客厅的地板上。</span>
+                                <span class="web-actions"><span class="btn dark">编辑</span></span>
+                            </div>
+                            <div class="web-row">
+                                <span class="thumb web-thumb"><svg viewBox="0 0 400 300"><use href="#scene-city"/></svg></span>
+                                <span class="web-date">2026.02.17</span>
+                                <span class="web-title">第一次一起过年</span>
+                                <span class="web-desc">一起包了饺子，窗外在放烟花。</span>
+                                <span class="web-actions"><span class="btn dark">编辑</span></span>
+                            </div>
+                            <div class="web-row">
+                                <span class="thumb web-thumb"><svg viewBox="0 0 400 300"><use href="#scene-sea"/></svg></span>
+                                <span class="web-date">2025.10.03</span>
+                                <span class="web-title">去海边</span>
+                                <span class="web-desc">风很大，你把外套给了我。</span>
+                                <span class="web-actions"><span class="btn dark">编辑</span></span>
+                            </div>
+                            <div class="web-year"><b>2025</b><span>2 条</span></div>
+                            <div class="web-row">
+                                <span class="thumb web-thumb"><svg viewBox="0 0 400 300"><use href="#scene-cake"/></svg></span>
+                                <span class="web-date">2025.05.20</span>
+                                <span class="web-title">领证</span>
+                                <span class="web-desc">排队两小时，拍照五分钟。</span>
+                                <span class="web-actions"><span class="btn dark">编辑</span></span>
+                            </div>
+                            <div class="web-row">
+                                <span class="thumb web-thumb grad v1"></span>
+                                <span class="web-date">2025.03.08</span>
+                                <span class="web-title">搬家</span>
+                                <span class="web-desc">第一次拥有只属于我们的厨房。</span>
+                                <span class="web-actions"><span class="btn dark">编辑</span></span>
+                            </div>
+                            <div class="web-year"><b>2024</b><span>1 条</span></div>
+                            <div class="web-row">
+                                <span class="thumb web-thumb grad v2"></span>
+                                <span class="web-date">2024.08.12</span>
+                                <span class="web-title">第一次旅行</span>
+                                <span class="web-desc">在火车上看了很久的云。</span>
+                                <span class="web-actions"><span class="btn dark">编辑</span></span>
+                            </div>
+                            <div class="web-row">
+                                <span class="thumb web-thumb grad v0"></span>
+                                <span class="web-date">无日期</span>
+                                <span class="web-title">我们认识的那天</span>
+                                <span class="web-desc">没有记下具体日期，但记得那天的风。</span>
+                                <span class="web-actions"><span class="btn dark">编辑</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <p class="caption"><b>桌面端：</b>侧栏新增「岁月留痕」，和菜单同级；列表整宽展示封面、日期、标题、描述，编辑仍用同一个弹窗。</p>
+    </section>
+
+</main>
+
+<section class="notes-grid">
+    <div class="note-card">
+        <h2>图片上传与兜底</h2>
+        <p>上传复用菜品图的压缩流程（最长边 1600px、JPEG 0.82），写入 <code>uploads/milestones/</code>。封面按 4:3 居中裁切，卡片和详情共用。图片加载失败时只隐藏图片，下面的渐变和年份还在，不会出现破图图标。</p>
+        <div class="compare">
+            <figure>
+                <div class="mini-cover">
+                    <svg viewBox="0 0 400 300"><use href="#scene-home"/></svg>
+                    <span class="cover-scrim"></span>
+                    <span class="cover-year">2026</span>
+                    <span class="date-chip">2026.01.25</span>
+                </div>
+                <figcaption>有封面：照片 + 白色年份 + 日期</figcaption>
+            </figure>
+            <figure>
+                <div class="mini-cover cover grad v1">
+                    <span class="cover-year">2025</span>
+                    <span class="motif"><svg viewBox="0 0 24 24"><use href="#motif-house"/></svg></span>
+                    <span class="date-chip">2025.03.08</span>
+                </div>
+                <figcaption>无封面：原渐变 + motif 兜底</figcaption>
+            </figure>
+        </div>
+        <div class="qa"><b>旧数据提醒：</b>线上有 13 条回忆带旧 <code>image</code> 字段但当前不展示；实现后会自动恢复显示，需要逐条打开检查图片是否还有效。</div>
+    </div>
+
+    <div class="note-card">
+        <h2>数据与写入</h2>
+        <p>只写 <code>content/milestones.json</code> 一份文档，条数有界，整份读、整份写。保存时补 <code>updatedAt</code>，新记录生成 <code>ms_&lt;时间戳&gt;</code>，旧记录沿用已有 <code>ms_001</code> 形式 id。</p>
+        <ul>
+            <li>新增、编辑、删除都走同一个保存函数。</li>
+            <li>日期留空 → 归入「旧时光」，仍可编辑。</li>
+            <li>删除是硬删除；封面文件保留。</li>
+            <li>不做拖拽排序，展示顺序只由日期决定。</li>
+        </ul>
+    </div>
+
+    <div class="note-card">
+        <h2>本次不做</h2>
+        <ul>
+            <li>多图相册 / 详情图集</li>
+            <li>拖拽排序、置顶</li>
+            <li>回收站、草稿、定时发布</li>
+            <li>用户端提交或编辑回忆</li>
+            <li>Bark 通知、导出/导入</li>
+        </ul>
+    </div>
+</section>
+
+<section class="questions">
+    <h2>需要你确认</h2>
+    <ol>
+        <li><b>封面比例：</b>固定 4:3（和现有卡片、详情一致），上传后居中裁切。是否接受？如果希望保留原图比例，卡片会出现留白或裁切不一致。</li>
+        <li><b>单图还是多图：</b>原型按「一条回忆一张封面图」设计。如果详情需要多张照片轮播，需要额外加 <code>images[]</code> 和详情图集，工作量会增加。</li>
+        <li><b>删除策略：</b>硬删除 + 二次确认，不做回收站。是否可接受？</li>
+        <li><b>入口位置：</b>移动端放「系统 → 数据」，桌面端同时在侧栏「系统」组增加入口。是否合适，还是希望放到「经营」组？</li>
+        <li><b>旧图处理：</b>恢复展示后，13 条旧 <code>image</code> 会自动出现；是否需要在管理端加「图片失效」提示或批量清理入口？</li>
+    </ol>
+</section>
+
+</body>
+</html>

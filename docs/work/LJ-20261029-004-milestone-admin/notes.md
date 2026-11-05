@@ -39,3 +39,15 @@
 - 缓存 token 统一 bump 到 `20261104-01`（三页 + CSS/JS + `js/oss-utils.js` 的 `OSS_SDK_URL`）。
 - main 的首屏缓存会缓存整份 `loadAppData`；新增 `syncMilestoneCache()`，管理端保存/删除回忆后同步更新 localStorage 里的 `milestones`，避免用户端先看到旧一屏。
 - 合并后回归：管理端里程碑视图/弹窗/保存、更新公告空态、侧栏激活和返回按钮都正常；用户端有图/无图/坏图、详情、时间线、320/390/1280 正常；console 无报错。
+
+## 2026-11-05 视觉微调 + 翻页动画
+
+- `.memory-card` 去掉 `box-shadow`，`transition` 只保留 transform。
+- `.timeline-year` 去掉 `position: sticky / top / z-index`，保留原来的间距和背景；年份不再吸顶。
+- 详情翻页动画：
+  - 新增 `.memory-detail-copy` 包住日期/标题/描述，导航按钮不参与动画，避免点完按钮后按钮跟着跳。
+  - 下一段：封面从右 18px + scale 1.02、opacity .35 淡入；正文从右 12px、opacity 0 淡入，延迟 24ms；总时长 300ms。
+  - 上一段：方向镜像（-18px / -12px）。
+  - 快速连点先取消上一组动画再开始；`prefers-reduced-motion: reduce` 时直接切换、不播动画。
+- 缓存 token `20261105-01`；`index.html` 新增 `.memory-detail-copy` 包裹层。
+- CDP 验证：card box-shadow `none`、timeline-year `position: static`、next/prev keyframe 方向正确（±18/±12px）、reduced-motion 下动画数为 0、320/390/1280 无横向溢出、console 无异常。

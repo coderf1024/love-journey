@@ -2,7 +2,7 @@
 
 - 状态：in-review（实现完成，等待人工验收）
 - 分支：`feat/LJ-20261029-004-milestone-admin`
-- 最后更新：2026-11-04
+- 最后更新：2026-11-05
 - 当前负责人：人（验收）
 
 ## 已完成
@@ -15,8 +15,16 @@
 - 封面上传复用 `uploadBucketImage()`，测试环境 `uploads-test/milestones/`，生产 `uploads/milestones/`。
 - 用户端 `memoryCoverHTML` 读取 `image`：有图显示 4:3 照片，年份白色叠层、隐藏 motif；无图/加载失败回退 v0–v3 渐变 + motif。
 - 用户端卡片和详情共用同一套封面渲染；日期胶囊、详情正文、前后翻页保持不变。
-- 缓存 token bump 到 `20261104-01`（三页 + CSS/JS/OSS SDK 内引用）。
+- 缓存 token bump 到 `20261105-01`（三页 + CSS/JS/OSS SDK 内引用）。
 - 文档：data-model、CHANGELOG、CLAUDE、brief、plan 已同步。
+
+### 2026-11-05 视觉微调
+
+- `.memory-card` 去掉 `box-shadow`，同步去掉 box-shadow 过渡。
+- `.timeline-year` 去掉 `position: sticky / top / z-index`，年份不再吸顶。
+- 回忆详情「上一段 / 下一段」加入方向感动画：封面从对应方向 18px + 1.02x 缩放淡入，正文从 12px 淡入（延迟 24ms），300ms；快速连点会取消上一段动画，`prefers-reduced-motion: reduce` 时跳过。
+- 新增 `.memory-detail-copy` 包裹日期/标题/描述，翻页时导航按钮保持稳定。
+- 缓存 token `20261105-01`。
 
 ### 2026-11-04 合并 main
 

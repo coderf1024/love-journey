@@ -63,3 +63,15 @@
 | 24 | `syncMilestoneCache()` 更新 localStorage 中的 milestones | 通过 |
 
 - 合并后未向真实 OSS 写入；管理端保存/上传仍由人验收。
+
+## 2026-11-05 视觉微调验收
+
+| # | 检查 | 结果 |
+|---|---|---|
+| 25 | `.memory-card` 计算样式 `box-shadow: none` | 通过 |
+| 26 | `.timeline-year` 计算样式 `position: static`，不再吸顶 | 通过 |
+| 27 | 点「下一段」：封面 keyframe `translate3d(18px) scale(1.02)`，正文 `translate3d(12px)`，300ms / 延迟 24ms | 通过 |
+| 28 | 点「上一段」：方向镜像为 `-18px / -12px` | 通过 |
+| 29 | `prefers-reduced-motion: reduce` 时无动画，内容仍正常切换 | 通过 |
+| 30 | 320 / 390 / 1280 `scrollWidth === viewport`，console 无异常 | 通过 |
+| 31 | 缓存 token 统一为 `20261105-01` | 通过 |

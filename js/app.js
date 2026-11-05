@@ -13,12 +13,12 @@ let lastCityColumns = 0;
 
 // Self-hosted: cdn.jsdelivr.net is unreliable in WeChat / mainland mobile networks.
 const LIBS = {
-    echarts: 'assets/vendor/echarts.min.js?v=20261104-01',
-    qrcode: 'assets/vendor/qrcode.min.js?v=20261104-01'
+    echarts: 'assets/vendor/echarts.min.js?v=20261105-01',
+    qrcode: 'assets/vendor/qrcode.min.js?v=20261105-01'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261104-01';
-const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261104-01';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261105-01';
+const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261105-01';
 // First-paint fallback only. The live story document always wins once it loads.
 const LOVE_START_FALLBACK = '2020-12-20';
 
@@ -908,6 +908,38 @@ function renderMemoryDetail() {
     if (next) next.disabled = state.memoryIndex >= state.milestones.length - 1;
 }
 
+function animateMemoryStep(direction) {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const cover = $('memory-detail-cover');
+    const copy = document.querySelector('#memory-sheet .memory-detail-copy');
+    const elements = [cover, copy].filter(Boolean);
+    if (!elements.length || typeof elements[0].animate !== 'function') return;
+
+    // Rapid taps cancel the previous transition instead of stacking it.
+    elements.forEach(element => {
+        if (typeof element.getAnimations === 'function') {
+            element.getAnimations().forEach(animation => animation.cancel());
+        }
+    });
+
+    const sign = direction < 0 ? -1 : 1;
+    const easing = 'cubic-bezier(.22, .8, .26, 1)';
+    if (cover) {
+        cover.animate([
+            { opacity: 0.35, transform: `translate3d(${sign * 18}px, 0, 0) scale(1.02)` },
+            { opacity: 1, transform: 'translate3d(0, 0, 0) scale(1)' }
+        ], { duration: 300, easing, fill: 'backwards' });
+    }
+    if (copy) {
+        copy.animate([
+            { opacity: 0, transform: `translate3d(${sign * 12}px, 0, 0)` },
+            { opacity: 1, transform: 'translate3d(0, 0, 0)' }
+        ], { duration: 300, easing, delay: 24, fill: 'backwards' });
+    }
+}
+
 function stepMemory(direction) {
     const index = state.memoryIndex + direction;
     if (!state.milestones[index]) return;
@@ -915,6 +947,7 @@ function stepMemory(direction) {
     const scroll = document.querySelector('#memory-sheet .sheet-scroll');
     if (scroll) scroll.scrollTop = 0;
     renderMemoryDetail();
+    animateMemoryStep(direction);
 }
 
 function initMemorySheet() {

@@ -13,12 +13,12 @@ let lastCityColumns = 0;
 
 // Self-hosted: cdn.jsdelivr.net is unreliable in WeChat / mainland mobile networks.
 const LIBS = {
-    echarts: 'assets/vendor/echarts.min.js?v=20261105-05',
-    qrcode: 'assets/vendor/qrcode.min.js?v=20261105-05'
+    echarts: 'assets/vendor/echarts.min.js?v=20261106-01',
+    qrcode: 'assets/vendor/qrcode.min.js?v=20261106-01'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261105-05';
-const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261105-05';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261106-01';
+const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261106-01';
 // First-paint fallback only. The live story document always wins once it loads.
 const LOVE_START_FALLBACK = '2020-12-20';
 
@@ -984,6 +984,100 @@ function stepMemory(direction) {
     animateMemoryStep(direction);
 }
 
+/* ---------- photo viewer (memory original image) ---------- */
+const PHOTO_ZOOM = 2;
+
+function photoViewerOpen() {
+    const viewer = $('photo-viewer');
+    return !!viewer && !viewer.hidden;
+}
+
+function setPhotoZoom(zoomed, originX, originY) {
+    const viewer = $('photo-viewer');
+    const image = $('photo-viewer-img');
+    if (!viewer || !image) return;
+    viewer.classList.toggle('is-zoomed', zoomed);
+    image.style.transformOrigin = zoomed
+        ? `${originX == null ? 50 : originX}% ${originY == null ? 50 : originY}%`
+        : 'center center';
+    image.style.transform = zoomed ? `scale(${PHOTO_ZOOM})` : 'none';
+}
+
+function openPhotoViewer(src) {
+    const viewer = $('photo-viewer');
+    const image = $('photo-viewer-img');
+    if (!viewer || !image) return;
+    const url = String(src || '').trim();
+    if (!url) return;
+    setPhotoZoom(false);
+    image.onerror = () => {
+        image.onerror = null;
+        image.hidden = true;
+        if (!viewer.querySelector('.photo-viewer-error')) {
+            const note = document.createElement('p');
+            note.className = 'photo-viewer-error';
+            note.textContent = '图片加载失败，检查一下网络';
+            $('photo-viewer-stage').appendChild(note);
+        }
+    };
+    image.onload = () => { image.hidden = false; };
+    image.src = url;
+    viewer.hidden = false;
+    document.documentElement.classList.add('is-photo-viewer-open');
+}
+
+function closePhotoViewer() {
+    const viewer = $('photo-viewer');
+    const image = $('photo-viewer-img');
+    if (!viewer || viewer.hidden) return;
+    viewer.hidden = true;
+    document.documentElement.classList.remove('is-photo-viewer-open');
+    setPhotoZoom(false);
+    const note = viewer.querySelector('.photo-viewer-error');
+    if (note) note.remove();
+    if (image) {
+        image.onerror = null;
+        image.onload = null;
+        image.removeAttribute('src');
+        image.hidden = false;
+    }
+}
+
+function currentMemoryImage() {
+    const milestone = state.milestones[state.memoryIndex];
+    return String((milestone && milestone.image) || '').trim();
+}
+
+function initPhotoViewer() {
+    const viewer = $('photo-viewer');
+    const stage = $('photo-viewer-stage');
+    const image = $('photo-viewer-img');
+    const close = $('photo-viewer-close');
+    if (!viewer || !stage || !image) return;
+
+    if (close) close.addEventListener('click', closePhotoViewer);
+
+    // Tap the dark background to close; tap the photo to toggle zoom.
+    stage.addEventListener('click', event => {
+        if (event.target === stage) {
+            closePhotoViewer();
+            return;
+        }
+        if (event.target !== image) return;
+        const rect = image.getBoundingClientRect();
+        const x = rect.width ? ((event.clientX - rect.left) / rect.width) * 100 : 50;
+        const y = rect.height ? ((event.clientY - rect.top) / rect.height) * 100 : 50;
+        setPhotoZoom(!viewer.classList.contains('is-zoomed'), x, y);
+    });
+
+    document.addEventListener('keydown', event => {
+        if (event.key !== 'Escape' || !photoViewerOpen()) return;
+        event.preventDefault();
+        event.stopPropagation();
+        closePhotoViewer();
+    }, true);
+}
+
 function initMemorySwipe() {
     const surface = document.querySelector('#memory-sheet .sheet-scroll');
     if (!surface) return;
@@ -992,7 +1086,13 @@ function initMemorySwipe() {
     surface.addEventListener('pointerdown', event => {
         if (event.pointerType === 'mouse' || !event.isPrimary) return;
         if (event.target.closest('button, a, input, textarea, select')) return;
-        swipe = { id: event.pointerId, x: event.clientX, y: event.clientY, horizontal: false };
+        swipe = {
+            id: event.pointerId,
+            x: event.clientX,
+            y: event.clientY,
+            horizontal: false,
+            target: event.target
+        };
     });
 
     surface.addEventListener('pointermove', event => {
@@ -1009,9 +1109,25 @@ function initMemorySwipe() {
     surface.addEventListener('pointerup', event => {
         if (!swipe || event.pointerId !== swipe.id) return;
         const dx = event.clientX - swipe.x;
+        const dy = event.clientY - swipe.y;
         const horizontal = swipe.horizontal;
+        const target = swipe.target;
         swipe = null;
-        if (!horizontal || Math.abs(dx) < 56) return;
+
+        if (!horizontal) {
+            // A tap (not a drag) on the detail cover opens the original photo.
+            const moved = Math.hypot(dx, dy);
+            if (moved < 10 && target && target.closest && target.closest('#memory-detail-cover')) {
+                const cover = $('memory-detail-cover');
+                const src = cover && cover.querySelector('img');
+                if (cover && cover.classList.contains('has-image') && src) {
+                    openPhotoViewer(src.getAttribute('src'));
+                }
+            }
+            return;
+        }
+
+        if (Math.abs(dx) < 56) return;
         dismissMemorySwipeHint();
         stepMemory(dx < 0 ? 1 : -1);
     });
@@ -1123,9 +1239,11 @@ function initMemoryUpload() {
 function initMemorySheet() {
     initMemorySwipe();
     initMemoryUpload();
+    initPhotoViewer();
     document.addEventListener('keydown', event => {
         const sheet = $('memory-sheet');
         if (!sheet || !sheet.classList.contains('is-open')) return;
+        if (photoViewerOpen()) return;
         if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
         const target = event.target;
         if (target && target.closest && target.closest('input, textarea, select, [contenteditable="true"]')) return;

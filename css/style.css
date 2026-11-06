@@ -6,14 +6,14 @@
 
 @font-face {
     font-family: 'Ma Shan Zheng';
-    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261105-05') format('woff2');    font-weight: 400;
+    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261106-01') format('woff2');    font-weight: 400;
     font-style: normal;
     font-display: swap;
 }
 
 @font-face {
     font-family: 'Noto Serif SC';
-    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261105-05') format('woff2');    font-weight: 700;
+    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261106-01') format('woff2');    font-weight: 700;
     font-style: normal;
     font-display: swap;
 }
@@ -88,7 +88,7 @@ body::after {
 }
 
 body::before {
-    background: url('../assets/texture-noise.png?v=20261105-05') repeat;    opacity: 0.06;
+    background: url('../assets/texture-noise.png?v=20261106-01') repeat;    opacity: 0.06;
     mix-blend-mode: multiply;
 }
 
@@ -560,7 +560,7 @@ select:focus-visible {
     content: '';
     position: absolute;
     inset: 0;
-    background: url('../assets/texture-noise.png?v=20261105-05') repeat;    opacity: 0.1;
+    background: url('../assets/texture-noise.png?v=20261106-01') repeat;    opacity: 0.1;
     mix-blend-mode: soft-light;
     pointer-events: none;
 }
@@ -1758,6 +1758,81 @@ select:focus-visible {
     font-family: var(--font-ui);
     font-size: 0.72rem;
     color: var(--stamp);
+}
+
+/* photo viewer (memory original image) */
+.photo-viewer {
+    position: fixed;
+    inset: 0;
+    z-index: 460;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(16, 12, 20, 0.94);
+    overscroll-behavior: contain;
+    touch-action: none;
+}
+
+.photo-viewer[hidden] {
+    display: none;
+}
+
+.photo-viewer-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: calc(16px + var(--safe-top)) 12px calc(20px + var(--safe-bottom));
+    overflow: hidden;
+}
+
+.photo-viewer-img,
+#photo-viewer-img {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    transform-origin: center center;
+    transition: transform 0.22s ease;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+
+.photo-viewer.is-zoomed #photo-viewer-img {
+    cursor: zoom-out;
+}
+
+.photo-viewer-close {
+    position: absolute;
+    top: calc(14px + var(--safe-top));
+    right: 14px;
+    z-index: 2;
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 16px;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 999px;
+}
+
+.photo-viewer-error {
+    padding: 14px 18px;
+    color: rgba(255, 253, 248, 0.8);
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+}
+
+.memory-detail-cover.has-image {
+    cursor: zoom-in;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #photo-viewer-img { transition: none; }
 }
 
 /* memory detail */

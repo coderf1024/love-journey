@@ -985,22 +985,9 @@ function stepMemory(direction) {
 }
 
 /* ---------- photo viewer (memory original image) ---------- */
-const PHOTO_ZOOM = 2;
-
 function photoViewerOpen() {
     const viewer = $('photo-viewer');
     return !!viewer && !viewer.hidden;
-}
-
-function setPhotoZoom(zoomed, originX, originY) {
-    const viewer = $('photo-viewer');
-    const image = $('photo-viewer-img');
-    if (!viewer || !image) return;
-    viewer.classList.toggle('is-zoomed', zoomed);
-    image.style.transformOrigin = zoomed
-        ? `${originX == null ? 50 : originX}% ${originY == null ? 50 : originY}%`
-        : 'center center';
-    image.style.transform = zoomed ? `scale(${PHOTO_ZOOM})` : 'none';
 }
 
 function openPhotoViewer(src) {
@@ -1009,7 +996,6 @@ function openPhotoViewer(src) {
     if (!viewer || !image) return;
     const url = String(src || '').trim();
     if (!url) return;
-    setPhotoZoom(false);
     image.onerror = () => {
         image.onerror = null;
         image.hidden = true;
@@ -1032,7 +1018,6 @@ function closePhotoViewer() {
     if (!viewer || viewer.hidden) return;
     viewer.hidden = true;
     document.documentElement.classList.remove('is-photo-viewer-open');
-    setPhotoZoom(false);
     const note = viewer.querySelector('.photo-viewer-error');
     if (note) note.remove();
     if (image) {
@@ -1057,17 +1042,10 @@ function initPhotoViewer() {
 
     if (close) close.addEventListener('click', closePhotoViewer);
 
-    // Tap the dark background to close; tap the photo to toggle zoom.
+    // Tap the dark background to close; the photo itself is shown at its natural fit.
     stage.addEventListener('click', event => {
-        if (event.target === stage) {
-            closePhotoViewer();
-            return;
-        }
-        if (event.target !== image) return;
-        const rect = image.getBoundingClientRect();
-        const x = rect.width ? ((event.clientX - rect.left) / rect.width) * 100 : 50;
-        const y = rect.height ? ((event.clientY - rect.top) / rect.height) * 100 : 50;
-        setPhotoZoom(!viewer.classList.contains('is-zoomed'), x, y);
+        if (event.target !== stage) return;
+        closePhotoViewer();
     });
 
     document.addEventListener('keydown', event => {

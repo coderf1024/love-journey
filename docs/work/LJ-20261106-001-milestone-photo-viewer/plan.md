@@ -2,15 +2,15 @@
 
 ## 总体思路
 
-用户端新增一个独立的 `.photo-viewer` 全屏层（`position: fixed`），不放进 sheet 内部，避免受 sheet 滚动和 `touch-action` 影响。详情封面有 `img` 时允许点击；用「按下到抬起位移 < 10px」判定为点击，避免和左右滑动冲突。查看层里图片用 `object-fit: contain` 显示原图，双击在 1x / 2x 之间切换。
+用户端新增一个独立的 `.photo-viewer` 全屏层（`position: fixed`），不放进 sheet 内部，避免受 sheet 滚动和 `touch-action` 影响。详情封面有 `img` 时允许点击；用「按下到抬起位移 < 10px」判定为点击，避免和左右滑动冲突。查看层里图片用 `object-fit: contain` 按正常比例显示原图，不做缩放。
 
 ## 改动清单
 
 | 文件/模块 | 改动 |
 |---|---|
 | `index.html` | 新增 `#photo-viewer` 全屏查看层（图片 + 关闭按钮） |
-| `js/app.js` | 详情封面点击打开查看层；点击判定与滑动手势共存；Esc / 背景 / ✕ 关闭；双击缩放 |
-| `css/style.css` | `.photo-viewer` 样式、打开/关闭过渡、缩放状态 |
+| `js/app.js` | 详情封面点击打开查看层；点击判定与滑动手势共存；Esc / 背景 / ✕ 关闭 |
+| `css/style.css` | `.photo-viewer` 样式（全屏遮罩、原图 contain、关闭按钮） |
 | 缓存 token | `20261105-05` → `20261106-01` |
 | 文档 | `CHANGELOG.md`、`CLAUDE.md`、任务文档 |
 
@@ -21,11 +21,11 @@
 
 ## 分步任务
 
-- [ ] 1. 查看层 HTML + CSS。
-- [ ] 2. 点击打开：只在详情封面有图时生效，滑动不触发。
-- [ ] 3. 关闭：✕ / 背景 / Esc；关闭后索引不变。
-- [ ] 4. 双击缩放（1x / 2x）。
-- [ ] 5. 缓存 token、CHANGELOG、CLAUDE、任务文档。
+- [x] 1. 查看层 HTML + CSS。
+- [x] 2. 点击打开：只在详情封面有图时生效，滑动不触发。
+- [x] 3. 关闭：✕ / 背景 / Esc；关闭后索引不变。
+- [x] 4. 不做缩放（人确认）。
+- [x] 5. 缓存 token、CHANGELOG、CLAUDE、任务文档。
 
 ## 手动 QA 重点
 

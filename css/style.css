@@ -1793,15 +1793,9 @@ select:focus-visible {
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
-    transform-origin: center center;
-    transition: transform 0.22s ease;
     -webkit-user-select: none;
     user-select: none;
     -webkit-touch-callout: none;
-}
-
-.photo-viewer.is-zoomed #photo-viewer-img {
-    cursor: zoom-out;
 }
 
 .photo-viewer-close {
@@ -1829,10 +1823,6 @@ select:focus-visible {
 
 .memory-detail-cover.has-image {
     cursor: zoom-in;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    #photo-viewer-img { transition: none; }
 }
 
 /* memory detail */

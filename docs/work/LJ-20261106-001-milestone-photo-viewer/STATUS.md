@@ -1,6 +1,6 @@
 # LJ-20261106-001 · 状态
 
-- 状态：in-review（实现完成，等待人工验收）
+- 状态：accepted（人已验收通过，待合并 main）
 - 分支：`feat/LJ-20261106-001-milestone-photo-viewer`
 - 最后更新：2026-11-06
 - 当前负责人：人（验收）
@@ -16,10 +16,14 @@
 - 缓存 token `20261106-01`。
 - 文档：CHANGELOG、CLAUDE、data-model 已同步。
 
+## 人工验收
+
+- 2026-11-06：人确认验收通过（点开为正常比例原图、不缩放），可以合并 `main`。
+
 ## 未完成 / 下一步
 
-1. 人在本地 8888 验收（手机真机滑动手感 + 查看原图）。
-2. 通过后合并 `main` 并推送，做线上 smoke。
+1. 合并 `feat/LJ-20261106-001-milestone-photo-viewer` 到 `main` 并推送，等待 EdgeOne / GitHub Pages 部署。
+2. 用户自行在 `https://coderf.site` 做线上 smoke。
 
 ## 阻塞
 

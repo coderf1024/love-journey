@@ -30,7 +30,7 @@
 | LJ-20261028-015 | 管理端关闭浏览器后免重新登录（localStorage + 7 天滑动、首屏不闪登录页） | done | `261028_space_fix`（已合入 main `434abfe`） | 已发布，线上 smoke 待复核 | 人 |
 | LJ-20261029-003 | 部署迁移：EdgeOne 主站 + GitHub Pages 备用（文档） | done | `chore/LJ-20261029-003-deploy-edgeone` | 已合并 main（文档提交 `02feaca`），文档发布 | 人 |
 | LJ-20261029-004 | 管理端里程碑配置 + 用户端封面展示 | done | `feat/LJ-20261029-004-milestone-admin` | 已合并 main（merge `3eeab64`）并推送；线上 smoke 由人确认，补图完成后移除临时入口 | 人 |
-| LJ-20261106-001 | 回忆详情查看原图 | in-review | `feat/LJ-20261106-001-milestone-photo-viewer` | 人在 8888 验收：点封面看原图、1x/2x、✕/背景/Esc 关闭、滑动不误触；通过后合并 main | 人 |
+| LJ-20261106-001 | 回忆详情查看原图 | accepted | `feat/LJ-20261106-001-milestone-photo-viewer` | 人已验收通过（2026-11-06，正常比例不缩放）；合并 main 并推送，线上 smoke 由人确认 | 人 |
 
 ## 状态说明
 

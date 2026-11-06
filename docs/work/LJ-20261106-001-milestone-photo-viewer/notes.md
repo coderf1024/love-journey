@@ -16,3 +16,9 @@
 - 移除 `PHOTO_ZOOM` / `setPhotoZoom` / `.is-zoomed` 和图片 transform 过渡；查看层固定 `object-fit: contain`，点图片无任何缩放。
 - 关闭路径不变：✕ / 点深色背景 / Esc；无照片不响应；滑动不误触。
 - CDP 验证：打开后 `transform: none`，点图片后仍为 `none`；800×600 原图按 577×433 完整显示；点背景关闭；索引不变。
+
+## 2026-11-06 发布
+
+- 合并到 `main`：merge commit `b368b8e`；推送成功（SSH 443 兜底）；远端 `main` 已确认到 `b368b8e`。
+- 发布缓存 token `20261106-01`；EdgeOne 主站和 GitHub Pages 由 push 自动部署。
+- AI 未做线上 smoke（项目约定）；待用户确认 `https://coderf.site` 的回忆详情查看原图。

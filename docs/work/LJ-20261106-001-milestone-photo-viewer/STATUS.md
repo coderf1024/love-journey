@@ -1,12 +1,13 @@
 # LJ-20261106-001 · 状态
 
-- 状态：accepted（人已验收通过，待合并 main）
+- 状态：done（已合并 main 并推送；线上 smoke 由人确认）
 - 分支：`feat/LJ-20261106-001-milestone-photo-viewer`
 - 最后更新：2026-11-06
 - 当前负责人：人（验收）
 
 ## 已完成
 
+- 2026-11-06 合并 `main`（merge `b368b8e`）并推送；远端 `main` 已确认；EdgeOne / GitHub Pages 自动部署。
 - 用户端回忆详情点击封面照片打开全屏原图查看层 `#photo-viewer`。
 - 查看层用 `object-fit: contain` 按正常比例显示未裁切原图，不做缩放。
 - 关闭：✕、点深色背景、Esc；关闭后仍停留在当前回忆。
@@ -22,8 +23,7 @@
 
 ## 未完成 / 下一步
 
-1. 合并 `feat/LJ-20261106-001-milestone-photo-viewer` 到 `main` 并推送，等待 EdgeOne / GitHub Pages 部署。
-2. 用户自行在 `https://coderf.site` 做线上 smoke。
+1. 用户自行在 `https://coderf.site` 做线上 smoke（我们 → 岁月留痕 → 有照片的回忆 → 点封面看原图）。
 
 ## 阻塞
 

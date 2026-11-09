@@ -2,25 +2,25 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#fbf6ec">
 <link rel="preconnect" href="https://love-config.oss-cn-beijing.aliyuncs.com" crossorigin>
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="管理端">
 <title>管理端 · 恋爱空间</title>
-<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261106-01" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261106-01" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261109-01" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261109-01" as="font" type="font/woff2" crossorigin>
 <style>
     @font-face {
         font-family: 'Ma Shan Zheng';
-        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261106-01') format('woff2');        font-weight: 400;
+        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261109-01') format('woff2');        font-weight: 400;
         font-style: normal;
         font-display: swap;
     }
     @font-face {
         font-family: 'Noto Serif SC';
-        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261106-01') format('woff2');        font-weight: 700;
+        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261109-01') format('woff2');        font-weight: 700;
         font-style: normal;
         font-display: swap;
     }
@@ -75,6 +75,7 @@
         -webkit-font-smoothing: antialiased;
         -webkit-tap-highlight-color: transparent;
         overflow-x: hidden;
+        touch-action: manipulation;
     }
     body.admin-body::before,
     body.admin-body::after {
@@ -85,7 +86,7 @@
         pointer-events: none;
     }
     body.admin-body::before {
-        background: url('assets/texture-noise.png?v=20261106-01') repeat;        opacity: .06;
+        background: url('assets/texture-noise.png?v=20261109-01') repeat;        opacity: .06;
         mix-blend-mode: multiply;
     }
     body.admin-body::after {
@@ -225,6 +226,7 @@
         background: none;
         border: 0;
     }
+    .header-user-link { margin-left: auto; flex: 0 0 auto; }
     .admin-header-space {
         display: flex;
         align-items: center;
@@ -517,6 +519,49 @@
     .order-total small { margin-left: 3px; color: var(--admin-muted); font-size: 8px; font-weight: 400; }
     .order-actions { display: flex; gap: 5px; margin-left: auto; flex-wrap: wrap; justify-content: flex-end; }
 
+    /* order detail */
+    .detail-hero { padding: 14px; background: linear-gradient(135deg, #2b2231, #4a3545); border-radius: 16px; color: #fff; }
+    .detail-hero-label { color: rgba(255,255,255,.55); font-size: 8px; font-weight: 700; letter-spacing: .14em; }
+    .detail-hero > b { display: block; margin-top: 4px; font-family: var(--font-display); font-size: 17px; }
+    .detail-hero > p { margin-top: 3px; color: rgba(255,255,255,.65); font-size: 10px; }
+    .detail-hero-foot { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-top: 9px; border-top: 1px dashed rgba(255,255,255,.16); }
+    .detail-hero-foot > span:last-child { margin-left: auto; color: #f1cbd4; font-size: 9px; }
+    .detail-hero-foot .status-pill { background: rgba(255,255,255,.16); color: #fff; }
+    .detail-block { margin-top: 11px; padding: 12px 13px; background: var(--admin-soft); border: 1px solid var(--line); border-radius: 14px; }
+    .detail-block-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+    .detail-block-head b { font-size: 11px; }
+    .detail-block-head small { margin-left: auto; color: var(--admin-muted); font-size: 8.5px; }
+    .detail-items { display: grid; gap: 6px; }
+    .detail-item { display: flex; align-items: center; gap: 9px; }
+    .detail-item .order-item-photo { width: 44px; height: 44px; flex-basis: 44px; cursor: zoom-in; }
+    .detail-item-main { flex: 1; min-width: 0; display: grid; gap: 1px; }
+    .detail-item-main b { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    .detail-item-main small { color: var(--admin-muted); font-size: 8.5px; }
+    .detail-item-price { font-size: 11px; font-variant-numeric: tabular-nums; }
+    .served-photos { display: flex; flex-wrap: wrap; gap: 7px; }
+    .served-photo { position: relative; width: 84px; height: 84px; overflow: hidden; padding: 0; background: #f3eee7; border: 0; border-radius: 10px; }
+    .served-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .served-photo span { position: absolute; right: 4px; bottom: 4px; left: 4px; overflow: hidden; padding: 2px 5px; background: rgba(43,34,49,.62); border-radius: 999px; color: #fff; font-size: 7px; text-overflow: ellipsis; white-space: nowrap; }
+    .detail-note { margin: 0; padding: 8px 10px; background: #fff; border-left: 2px solid var(--petal-deep); color: #756e67; font-size: 10px; line-height: 1.6; }
+    .detail-extras { display: grid; gap: 4px; }
+    .detail-extras p { color: var(--admin-stamp); font-size: 9.5px; line-height: 1.5; }
+    .detail-pay { display: flex; align-items: baseline; gap: 8px; }
+    .detail-pay span { color: var(--admin-muted); font-size: 10px; }
+    .detail-pay b { margin-left: auto; font-size: 15px; }
+    .detail-pay-note { margin-top: 5px; color: var(--admin-muted); font-size: 9px; }
+    .detail-timeline { display: grid; gap: 0; margin: 0; padding: 0 0 0 14px; list-style: none; }
+    .detail-timeline li { position: relative; display: flex; align-items: baseline; gap: 8px; padding: 0 0 9px; font-size: 10px; }
+    .detail-timeline li::before { content: ""; position: absolute; left: -14px; top: 4px; width: 5px; height: 5px; background: var(--admin-stamp); border-radius: 999px; }
+    .detail-timeline li::after { content: ""; position: absolute; left: -12px; top: 11px; bottom: 0; width: 1px; background: var(--line); }
+    .detail-timeline li:last-child::after { display: none; }
+    .detail-timeline li small { margin-left: auto; color: var(--admin-muted); font-size: 8.5px; font-variant-numeric: tabular-nums; }
+    .order-detail-actions { position: sticky; bottom: calc(10px + env(safe-area-inset-bottom)); display: flex; gap: 7px; margin-top: 14px; padding: 9px; background: rgba(251, 246, 236, .92); border: 1px solid var(--line); border-radius: 14px; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+    .order-detail-actions .admin-btn { flex: 1; padding: 10px 12px; }
+    .order-detail-actions p { margin: auto; }
+    .order-card.is-openable { cursor: pointer; }
+    .order-card.is-openable:hover { border-color: var(--line-strong); }
+    .order-open-chev { margin-left: 4px; color: #b3aca5; font-size: 15px; line-height: 1; }
+
     /* cards + wallet */
     .cards-layout { display: grid; gap: 14px; }
     .seg-control { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 3px; background: #f1eee8; border: 1px solid var(--line); border-radius: 999px; }
@@ -573,7 +618,6 @@
     .setting-main b { font-size: 11px; }
     .setting-main small { color: var(--admin-muted); font-size: 9px; line-height: 1.45; }
     .setting-row > .admin-btn { margin-left: auto; }
-    .setting-row input[type="password"], .setting-row input[type="text"] { width: min(100%, 240px); margin-left: auto; }
     .admin-switch { position: relative; width: 34px; height: 20px; flex: 0 0 34px; padding: 2px; background: #d9d4ce; border: 0; border-radius: 999px; transition: background .18s ease; }
     .admin-switch i { display: block; width: 16px; height: 16px; background: #fff; border-radius: 999px; transition: transform .18s ease; }
     .admin-switch[aria-pressed="true"] { background: var(--admin-stamp); }
@@ -582,6 +626,13 @@
     .bark-key-box { flex: 1; display: grid; gap: 5px; min-width: 0; }
     .bark-key-actions { display: flex; gap: 5px; margin-left: auto; }
     .system-note { margin-top: 10px; padding: 10px 12px; background: #f4eee8; border: 1px dashed var(--line-strong); border-radius: 10px; color: var(--admin-muted); font-size: 9px; line-height: 1.6; }
+    .setting-row { width: 100%; background: none; border: 0; border-bottom: 1px dashed var(--line); text-align: left; }
+    .setting-chev { color: #b3aca5; font-size: 17px; line-height: 1; }
+    .setting-row .nav-badge { margin-left: 6px; min-width: 17px; height: 17px; display: grid; place-items: center; padding: 0 4px; background: #f6e2e6; border-radius: 999px; color: var(--admin-stamp); font-size: 9px; font-weight: 700; }
+    .bark-links { display: grid; gap: 8px; padding: 11px 13px 13px; border-bottom: 1px dashed var(--line); background: rgba(244, 238, 232, .45); }
+    .bark-links[hidden] { display: none; }
+    .bark-save-bottom { margin-top: 16px; }
+    .admin-field { min-width: 0; }
     .logout-btn { margin-top: 16px; }
 
     /* menu */
@@ -624,10 +675,57 @@
     .milestone-meta { display: grid; justify-items: end; gap: 2px; color: var(--admin-muted); font-size: 8px; white-space: nowrap; }
     .milestone-meta time { font-variant-numeric: tabular-nums; }
     .milestone-chev { color: #b3aca5; font-size: 14px; }
-    .photo-preview.milestone-preview { width: 100%; max-width: none; aspect-ratio: 4 / 3; cursor: zoom-in; }
+    /* 封面保持 4:3 大图，只限制宽度，避免整宽预览把标题/描述挤出首屏 */
+    .photo-preview.milestone-preview { width: min(100%, 266px); max-width: none; aspect-ratio: 4 / 3; cursor: zoom-in; }
+    .milestone-remove { padding: 6px 9px; background: #fff; border: 1px solid var(--line); border-radius: 8px; color: var(--admin-stamp); font-size: 9px; }
+    .milestone-remove[hidden] { display: none; }
+    .milestone-url { display: grid; gap: 5px; font-size: 9px; }
+    .milestone-url > summary { color: var(--admin-muted); cursor: pointer; list-style: none; }
+    .milestone-url > summary::-webkit-details-marker { display: none; }
+    .milestone-url > summary::before { content: "＋ "; }
+    .milestone-url[open] > summary::before { content: "− "; }
+    .date-picker-button {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        width: 100%;
+        padding: 9px 11px;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        color: var(--ink);
+        text-align: left;
+    }
+    .date-picker-icon { width: 24px; height: 24px; flex: 0 0 24px; display: grid; place-items: center; background: #f4e4e6; border-radius: 7px; color: var(--admin-stamp); font-size: 11px; }
+    .date-picker-main { flex: 1; min-width: 0; display: grid; gap: 1px; }
+    .date-picker-main b { font-size: 13px; font-variant-numeric: tabular-nums; }
+    .date-picker-main b.is-empty { color: var(--admin-muted); font-weight: 400; }
+    .date-picker-main small { color: var(--admin-muted); font-size: 9px; }
+    .date-picker-chev { color: #b3aca5; font-size: 18px; line-height: 1; }
+    .date-quick-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
+    .date-quick-row button { padding: 4px 10px; background: #fff; border: 1px solid var(--line); border-radius: 999px; color: var(--admin-muted); font-size: 9px; }
+    .milestone-delete-link { margin-right: auto; padding: 4px 2px; background: none; border: 0; color: var(--admin-stamp); font-size: 10px; }
+    .milestone-delete-link[hidden] { display: none; }
+    .cal-modal { z-index: 125; }
+    .cal-modal-card { width: min(100%, 380px); }
+    .cal-body { display: grid; gap: 9px; padding: 14px 16px 16px; }
+    .cal-year-row { display: flex; flex-wrap: wrap; gap: 5px; }
+    .cal-year-row button { padding: 4px 11px; background: #fff; border: 1px solid var(--line); border-radius: 999px; color: var(--admin-muted); font-size: 10px; }
+    .cal-year-row button.is-active { background: var(--admin-ink); border-color: var(--admin-ink); color: #fff; }
+    .cal-month-head { display: flex; align-items: center; gap: 6px; }
+    .cal-month-head b { flex: 1; text-align: center; font-size: 12px; }
+    .cal-weekdays,
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; text-align: center; }
+    .cal-weekdays span { color: var(--admin-muted); font-size: 8px; }
+    .cal-grid button { padding: 7px 0; background: none; border: 0; border-radius: 7px; color: var(--ink-2); font-size: 11px; font-variant-numeric: tabular-nums; }
+    .cal-grid button.is-mute { color: #c3bdb7; }
+    .cal-grid button.is-today { box-shadow: 0 0 0 1px var(--admin-stamp) inset; color: var(--admin-stamp); }
+    .cal-grid button.is-active { background: var(--admin-ink); color: #fff; }
     .mile-tag { position: absolute; left: 8px; bottom: 7px; padding: 3px 7px; background: rgba(255, 253, 248, .92); border-radius: 999px; color: var(--ink); font-size: 8px; font-weight: 700; letter-spacing: .04em; }
-    .admin-readonly { display: flex; align-items: center; min-height: 39px; padding: 8px 11px; background: #f7f5f1; border: 1px solid var(--line); border-radius: 9px; color: var(--admin-muted); font-size: 10px; }
     .form-note { padding: 8px 10px; background: #f4eee8; border: 1px dashed var(--line-strong); border-radius: 9px; color: var(--admin-muted); font-size: 9px; line-height: 1.55; }
+    .field-note { color: var(--admin-muted); font-size: 8.5px; line-height: 1.55; }
+    .hint-box { padding: 9px 10px; background: #f4eee8; border: 1px dashed var(--line-strong); border-radius: 9px; color: #77706a; font-size: 9px; line-height: 1.6; }
+    .hint-box b { color: var(--ink); }
     .dish-request-card { margin-bottom: 10px; }
     .dish-request-list { display: grid; gap: 7px; margin-top: 9px; }
     .dish-request-row { display: flex; align-items: center; gap: 10px; padding: 8px 9px; background: var(--admin-soft); border: 1px solid var(--line); border-radius: 12px; }
@@ -660,6 +758,11 @@
     .tag-picker { display: flex; flex-wrap: wrap; gap: 5px; }
     .tag-picker button { padding: 5px 9px; background: #fff; border: 1px solid var(--line); border-radius: 999px; color: var(--admin-muted); font-size: 9px; }
     .tag-picker button.is-on { background: #f4e9dc; border-color: #d6c3a7; color: #8a7351; }
+    .tag-picker button.is-off { opacity: .4; }
+    .tag-filters { margin-top: 6px; }
+    .tag-filter { font-size: 9px; }
+    .tag-filter.is-active { background: #f4e9dc; border-color: #d6c3a7; color: #8a7351; }
+    .tag-filter.is-clear { border-style: dashed; color: var(--admin-muted); }
     .form-switch-row { display: flex; align-items: center; padding: 7px 0; border-top: 1px dashed var(--line); font-size: 11px; }
     .form-switch-row .admin-switch { margin-left: auto; }
 
@@ -763,16 +866,21 @@
     .admin-toast.is-error { background: var(--admin-stamp); }
 
     @media (max-width: 899px) {
-        body.admin-body input[type="text"],
-        body.admin-body input[type="search"],
-        body.admin-body input[type="number"],
-        body.admin-body input[type="password"],
-        body.admin-body input[type="email"],
-        body.admin-body input[type="url"],
-        body.admin-body input[type="tel"],
-        body.admin-body textarea,
-        body.admin-body select {
+        /* iOS Safari 在“输入框计算字号 < 16px”时会自动放大整个页面，且收键盘后
+           不会缩回。所以输入控件保留 16px 计算字号，再缩放成 14px 视觉；
+           宽度反向补偿，视觉宽度仍是容器宽度的 100%。 */
+        body.admin-body .admin-input,
+        body.admin-body .admin-select,
+        body.admin-body .admin-textarea,
+        /* 钱包卡里的「最多可欠」也是输入框，同样按 16px 计算 + 缩放，
+           但它的视觉基准是 10px，所以缩放比例更小、宽度单独补偿。 */
+        body.admin-body .wallet-limit input {
+            width: 96px;
+            max-width: none;
+            padding: 8px 10px;
             font-size: 16px;
+            transform: scale(.8);
+            transform-origin: left center;
         }
 
         .view-head > div { display: none; }
@@ -884,10 +992,10 @@
         </nav>
         <div class="side-group">系统</div>
         <nav class="side-nav">
-            <button class="side-item" type="button" data-view="system"><b>⋯</b>系统设置</button>
-            <button class="side-item" type="button" data-view="menu"><b>✎</b>菜单</button>
+            <button class="side-item" type="button" data-view="menu"><b>✎</b>菜单<span class="nav-badge" data-nav-badge="menu" hidden>0</span></button>
             <button class="side-item" type="button" data-view="milestones"><b>忆</b>岁月留痕</button>
             <button class="side-item" type="button" data-view="announcements"><b>告</b>更新公告</button>
+            <button class="side-item" type="button" data-view="notification"><b>铃</b>通知</button>
             <button class="side-item" type="button" data-view="space"><b>空</b>空间资料</button>
         </nav>
         <div class="side-foot">
@@ -905,6 +1013,7 @@
             <span id="header-space-name">我们的时光</span>
             <span class="admin-avatar"><img id="header-avatar" src="assets/media/space-avatar.svg" alt=""></span>
         </div>
+        <button class="admin-btn ghost sm header-user-link" id="open-user-site" type="button" title="在新标签打开用户端">用户端 ↗</button>
     </header>
 
     <main class="admin-main">
@@ -934,6 +1043,15 @@
             </div>
             <div class="filters" id="order-filters"></div>
             <div id="orders-list"></div>
+        </section>
+
+        <section class="admin-view" data-panel="order-detail" hidden>
+            <div class="view-head">
+                <div><p class="eyebrow">经营 · 订单详情</p><h1 id="order-detail-title">订单详情</h1><p id="order-detail-sub"></p></div>
+                <div class="head-actions"><button class="admin-btn ghost sm" id="order-detail-refresh" type="button">刷新</button></div>
+            </div>
+            <div id="order-detail-body"></div>
+            <div class="order-detail-actions" id="order-detail-actions"></div>
         </section>
 
         <section class="admin-view" data-panel="cards" hidden>
@@ -980,41 +1098,66 @@
         </section>
 
         <section class="admin-view" data-panel="system" hidden>
-            <div class="view-head"><div><p class="eyebrow">系统 · 低频维护</p><h1>系统</h1><p>菜单、空间资料和站外通知都收在这里。</p></div></div>
-            <button class="system-profile" type="button" data-view="space" style="width:100%; text-align:left">
+            <div class="view-head"><div><p class="eyebrow">系统 · 导航</p><h1>系统</h1><p>内容、通知和空间资料都在这里进。</p></div></div>
+            <button class="system-profile" type="button" data-view="space">
                 <span class="admin-avatar"><img id="system-avatar" src="assets/media/space-avatar.svg" alt=""></span>
                 <span class="system-profile-main"><b id="system-space-name">我们的时光</b><small>福福 &amp; 老李 · 空间资料</small></span>
                 <span>›</span>
             </button>
-            <div class="section-title"><h2>数据</h2></div>
+            <div class="section-title"><h2>内容</h2></div>
             <div class="settings-group">
-                <button class="setting-row" type="button" data-view="menu" style="width:100%; background:none; border:0; text-align:left">
+                <button class="setting-row" type="button" data-view="menu">
                     <span class="setting-icon">菜</span>
                     <span class="setting-main"><b>菜单管理</b><small id="system-menu-count">14 道 · 12 道上架</small></span>
-                    <span class="admin-muted" style="margin-left:auto">›</span>
+                    <span class="nav-badge" data-nav-badge="menu" hidden>0</span>
+                    <span class="setting-chev">›</span>
                 </button>
-                <button class="setting-row" type="button" data-view="milestones" style="width:100%; background:none; border:0; text-align:left">
+                <button class="setting-row" type="button" data-view="milestones">
                     <span class="setting-icon">忆</span>
                     <span class="setting-main"><b>岁月留痕</b><small id="system-milestone-count">41 条回忆 · 13 条有封面</small></span>
-                    <span class="admin-muted" style="margin-left:auto">›</span>
+                    <span class="setting-chev">›</span>
                 </button>
-                <button class="setting-row" type="button" data-view="announcements" style="width:100%; background:none; border:0; text-align:left">
+                <button class="setting-row" type="button" data-view="announcements">
                     <span class="setting-icon">告</span>
                     <span class="setting-main"><b>更新公告</b><small id="system-announcement-count">0 条已发布 · 0 条草稿</small></span>
-                    <span class="admin-muted" style="margin-left:auto">›</span>
+                    <span class="setting-chev">›</span>
                 </button>
             </div>
-            <div class="section-title"><h2>通知</h2><span>Bark · 站外</span></div>
+            <div class="section-title"><h2>设置</h2></div>
+            <div class="settings-group">
+                <button class="setting-row" type="button" data-view="notification">
+                    <span class="setting-icon">铃</span>
+                    <span class="setting-main"><b>通知</b><small id="system-notification-summary">Bark 推送 · 未配置</small></span>
+                    <span class="setting-chev">›</span>
+                </button>
+                <button class="setting-row" type="button" data-view="space">
+                    <span class="setting-icon">空</span>
+                    <span class="setting-main"><b>空间资料</b><small>名称 / 头像 / 成员</small></span>
+                    <span class="setting-chev">›</span>
+                </button>
+            </div>
+            <div class="system-note">这一页只做导航；所有设置都在二级页里编辑和保存。需要处理的数量会显示在对应行右侧。</div>
+            <button class="admin-btn ghost block logout-btn" id="logout-btn" type="button">退出登录</button>
+        </section>
+
+        <section class="admin-view" data-panel="notification" hidden>
+            <div class="view-head">
+                <div><p class="eyebrow">系统 · 通知</p><h1>通知</h1><p>Bark 站外推送；只在管理端打开时发送，没有定时任务。</p></div>
+                <div class="head-actions"><button class="admin-btn primary sm" id="bark-save-top" type="button">保存</button></div>
+            </div>
             <div class="settings-group">
                 <div class="setting-row">
                     <span class="setting-icon">铃</span>
-                    <span class="setting-main"><b>Bark 推送</b><small>新单 / 接单 / 菜品申请 / 用户取消 / 开始制作 / 出餐</small></span>
+                    <span class="setting-main"><b>Bark 推送</b><small>总开关；关闭后所有事件都不发送</small></span>
                     <button class="admin-switch" id="bark-enabled" type="button" role="switch" aria-pressed="false" aria-label="启用 Bark 推送"><i></i></button>
                 </div>
+            </div>
+            <div class="section-title"><h2>推送密钥</h2><span>两把都要填</span></div>
+            <div class="settings-group">
                 <div class="setting-row bark-key-row">
                     <span class="setting-icon">用</span>
                     <div class="bark-key-box">
-                        <label class="admin-small" for="bark-user-key">用户密钥</label>
+                        <label class="admin-small" for="bark-user-key">用户密钥 · 接单 / 开始制作 / 出餐</label>
                         <input class="admin-input" id="bark-user-key" type="text" autocomplete="off" placeholder="接收接单 / 开始制作 / 出餐">
                     </div>
                     <div class="bark-key-actions">
@@ -1024,42 +1167,51 @@
                 <div class="setting-row bark-key-row">
                     <span class="setting-icon">管</span>
                     <div class="bark-key-box">
-                        <label class="admin-small" for="bark-admin-key">管理员密钥</label>
+                        <label class="admin-small" for="bark-admin-key">管理员密钥 · 新单 / 申请 / 取消 / 催单</label>
                         <input class="admin-input" id="bark-admin-key" type="text" autocomplete="off" placeholder="接收新单 / 取消 / 催一催">
                     </div>
                     <div class="bark-key-actions">
                         <button class="admin-btn sm" id="bark-test-admin" type="button">测试</button>
                     </div>
                 </div>
-                <div class="setting-row bark-key-row">
-                    <span class="setting-icon">链</span>
-                    <div class="bark-key-box">
-                        <label class="admin-small" for="link-user">用户端跳转地址</label>
-                        <input class="admin-input" id="link-user" type="url" placeholder="https://your-site/index.html">
-                    </div>
-                </div>
-                <div class="setting-row bark-key-row">
-                    <span class="setting-icon">链</span>
-                    <div class="bark-key-box">
-                        <label class="admin-small" for="link-admin">管理端跳转地址</label>
-                        <input class="admin-input" id="link-admin" type="url" placeholder="https://your-site/admin.html">
-                    </div>
-                </div>
                 <div class="setting-row">
-                    <span class="setting-icon">时</span>
-                    <span class="setting-main"><b>发送时机</b><small>默认全开，可单独关闭</small></span>
+                    <span class="setting-icon">链</span>
+                    <span class="setting-main"><b>点击跳转地址</b><small>Bark 通知点开后跳到哪里；留空用当前站点</small></span>
+                    <button class="admin-btn ghost sm" id="bark-links-toggle" type="button" aria-expanded="false">编辑</button>
                 </div>
-                <div class="setting-row">
-                    <span class="setting-icon">新</span>
-                    <span class="setting-main"><b>新单</b><small>用户下单时推给管理员</small></span>
-                    <button class="admin-btn ghost sm" type="button" data-bark-template="newOrder">模板</button>
-                    <button class="admin-switch" type="button" role="switch" data-bark-event="newOrder" aria-pressed="true" aria-label="新单通知"><i></i></button>
+                <div class="bark-links" id="bark-links-box" hidden>
+                    <div class="admin-field"><label for="link-user">用户端跳转地址</label><input class="admin-input" id="link-user" type="url" placeholder="https://your-site/index.html"></div>
+                    <div class="admin-field"><label for="link-admin">管理端跳转地址</label><input class="admin-input" id="link-admin" type="url" placeholder="https://your-site/admin.html"></div>
                 </div>
+            </div>
+            <div class="section-title"><h2>推给用户</h2><span>3 个事件</span></div>
+            <div class="settings-group">
                 <div class="setting-row">
                     <span class="setting-icon">接</span>
                     <span class="setting-main"><b>接单</b><small>接单时推给用户</small></span>
                     <button class="admin-btn ghost sm" type="button" data-bark-template="accepted">模板</button>
                     <button class="admin-switch" type="button" role="switch" data-bark-event="accepted" aria-pressed="true" aria-label="接单通知"><i></i></button>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-icon">制</span>
+                    <span class="setting-main"><b>开始制作</b><small>开始制作时推给用户</small></span>
+                    <button class="admin-btn ghost sm" type="button" data-bark-template="cooking">模板</button>
+                    <button class="admin-switch" type="button" role="switch" data-bark-event="cooking" aria-pressed="true" aria-label="开始制作通知"><i></i></button>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-icon">餐</span>
+                    <span class="setting-main"><b>出餐</b><small>出餐时推给用户</small></span>
+                    <button class="admin-btn ghost sm" type="button" data-bark-template="served">模板</button>
+                    <button class="admin-switch" type="button" role="switch" data-bark-event="served" aria-pressed="true" aria-label="出餐通知"><i></i></button>
+                </div>
+            </div>
+            <div class="section-title"><h2>推给我</h2><span>4 个事件</span></div>
+            <div class="settings-group">
+                <div class="setting-row">
+                    <span class="setting-icon">新</span>
+                    <span class="setting-main"><b>新单</b><small>用户下单时推给管理员</small></span>
+                    <button class="admin-btn ghost sm" type="button" data-bark-template="newOrder">模板</button>
+                    <button class="admin-switch" type="button" role="switch" data-bark-event="newOrder" aria-pressed="true" aria-label="新单通知"><i></i></button>
                 </div>
                 <div class="setting-row">
                     <span class="setting-icon">菜</span>
@@ -1074,34 +1226,22 @@
                     <button class="admin-switch" type="button" role="switch" data-bark-event="userCancel" aria-pressed="true" aria-label="用户取消通知"><i></i></button>
                 </div>
                 <div class="setting-row">
-                    <span class="setting-icon">制</span>
-                    <span class="setting-main"><b>开始制作</b><small>开始制作时推给用户</small></span>
-                    <button class="admin-btn ghost sm" type="button" data-bark-template="cooking">模板</button>
-                    <button class="admin-switch" type="button" role="switch" data-bark-event="cooking" aria-pressed="true" aria-label="开始制作通知"><i></i></button>
-                </div>
-                <div class="setting-row">
-                    <span class="setting-icon">餐</span>
-                    <span class="setting-main"><b>出餐</b><small>出餐时推给用户</small></span>
-                    <button class="admin-btn ghost sm" type="button" data-bark-template="served">模板</button>
-                    <button class="admin-switch" type="button" role="switch" data-bark-event="served" aria-pressed="true" aria-label="出餐通知"><i></i></button>
-                </div>
-                <div class="setting-row">
                     <span class="setting-icon">催</span>
-                    <span class="setting-main"><b>催一催</b><small>用户端按钮 · 与密钥一起保存</small></span>
-                    <button class="admin-switch" id="nudge-enabled" type="button" role="switch" aria-pressed="false" aria-label="启用催一催"><i></i></button>
-                </div>
-                <div class="setting-row">
-                    <span class="setting-icon">催</span>
-                    <span class="setting-main"><b>催一催通知</b><small>用户催单时推给管理员</small></span>
+                    <span class="setting-main"><b>催一催</b><small>用户催单时推给管理员</small></span>
                     <button class="admin-btn ghost sm" type="button" data-bark-template="nudge">模板</button>
                     <button class="admin-switch" type="button" role="switch" data-bark-event="nudge" aria-pressed="true" aria-label="催一催通知"><i></i></button>
                 </div>
+            </div>
+            <div class="section-title"><h2>用户端</h2><span>功能开关</span></div>
+            <div class="settings-group">
                 <div class="setting-row">
-                    <button class="admin-btn primary block" id="bark-save" type="button">保存通知设置</button>
+                    <span class="setting-icon">催</span>
+                    <span class="setting-main"><b>催一催按钮</b><small>关闭后用户端隐藏，服务端也会拒绝</small></span>
+                    <button class="admin-switch" id="nudge-enabled" type="button" role="switch" aria-pressed="false" aria-label="启用催一催"><i></i></button>
                 </div>
             </div>
-            <div class="system-note">Bark 不做定时任务，只在订单事件发生的页面里直接发送。用户密钥接收「接单 / 开始制作 / 出餐」，管理员密钥接收「新单 / 菜品申请 / 用户取消 / 催一催」；两把密钥都保存在 OSS 的 space.settings.bark。通知图标使用空间头像。催一催默认关闭，和密钥一起保存后生效。</div>
-            <button class="admin-btn ghost block logout-btn" id="logout-btn" type="button">退出登录</button>
+            <div class="system-note">用户密钥接收「接单 / 开始制作 / 出餐」，管理员密钥接收「新单 / 菜品申请 / 用户取消 / 催一催」；两把密钥都保存在 OSS 的 space.settings.bark。通知图标使用空间头像。</div>
+            <button class="admin-btn primary block bark-save-bottom" id="bark-save" type="button">保存通知设置</button>
         </section>
 
         <section class="admin-view" data-panel="menu" hidden>
@@ -1117,6 +1257,7 @@
                 <div class="menu-toolbar">
                     <input class="admin-input menu-search" id="menu-search" type="search" placeholder="搜菜名 / 标签">
                     <div class="filters" id="menu-filters"></div>
+                    <div class="filters tag-filters" id="menu-tag-filters"></div>
                     <p class="admin-small admin-muted" id="menu-summary"></p>
                 </div>
                 <div class="menu-list" id="menu-list"></div>
@@ -1256,25 +1397,66 @@
                     <div class="photo-upload-row">
                         <input id="milestone-image-file" type="file" accept="image/*" hidden>
                         <label class="photo-upload-label" id="milestone-image-upload-label" for="milestone-image-file">上传封面</label>
+                        <button class="milestone-remove" id="milestone-image-remove" type="button" hidden>移除</button>
                         <span class="photo-status" id="milestone-image-status">未选择</span>
                     </div>
-                    <div class="admin-field"><label for="milestone-image">图片 URL（可选）</label><input class="admin-input" id="milestone-image" type="text" placeholder="上传后自动填写，也可以粘贴链接"></div>
+                    <details class="milestone-url">
+                        <summary>用图片链接</summary>
+                        <div class="admin-field"><input class="admin-input" id="milestone-image" type="text" placeholder="粘贴图片链接，或直接上传"></div>
+                    </details>
                     <div class="field-note">封面按 4:3 居中裁切；保存后用户端卡片和详情会显示这张图，没有图片时回退纯色封面。</div>
                 </div>
-                <div class="admin-two-col">
-                    <div class="admin-field"><label for="milestone-date">日期</label><input class="admin-input" id="milestone-date" type="date"></div>
-                    <div class="admin-field"><label>年份</label><div class="admin-readonly" id="milestone-year">由日期自动生成</div></div>
+                <div class="admin-field">
+                    <label>日期</label>
+                    <input type="hidden" id="milestone-date">
+                    <button class="date-picker-button" id="milestone-date-button" type="button" aria-haspopup="dialog">
+                        <span class="date-picker-icon" aria-hidden="true">▦</span>
+                        <span class="date-picker-main">
+                            <b id="milestone-date-label">未设置</b>
+                            <small id="milestone-date-hint">归入「旧时光」，排在最后</small>
+                        </span>
+                        <span class="date-picker-chev" aria-hidden="true">›</span>
+                    </button>
+                    <div class="date-quick-row" id="milestone-date-quick">
+                        <button type="button" data-milestone-quick="today">今天</button>
+                        <button type="button" data-milestone-quick="yesterday">昨天</button>
+                        <button type="button" data-milestone-quick="clear">不填</button>
+                    </div>
                 </div>
                 <div class="admin-field"><label for="milestone-title">标题</label><input class="admin-input" id="milestone-title" type="text" maxlength="60" required></div>
                 <div class="admin-field"><label for="milestone-description">描述</label><textarea class="admin-textarea" id="milestone-description" maxlength="500"></textarea></div>
-                <div class="form-note">日期留空会归入「旧时光」，排在最后。保存后按日期自动排序，不需要手动调整位置。</div>
+                <div class="form-note">保存后按日期自动排序，不需要手动调整位置。</div>
             </div>
             <div class="admin-modal-foot">
-                <button class="admin-btn danger" id="milestone-delete" type="button">删除</button>
+                <button class="milestone-delete-link" id="milestone-delete" type="button">删除这条回忆</button>
                 <button class="admin-btn ghost" id="milestone-cancel" type="button">取消</button>
                 <button class="admin-btn primary" id="milestone-submit" type="submit">保存</button>
             </div>
         </form>
+    </div>
+</div>
+
+<div class="admin-modal cal-modal" id="milestone-calendar" aria-hidden="true">
+    <div class="admin-modal-backdrop" data-calendar-close></div>
+    <div class="admin-modal-card cal-modal-card" role="dialog" aria-modal="true" aria-labelledby="calendar-title">
+        <div class="admin-modal-head">
+            <b id="calendar-title">选择日期</b>
+            <button class="admin-modal-close" type="button" data-calendar-close aria-label="关闭">✕</button>
+        </div>
+        <div class="cal-body">
+            <div class="cal-year-row" id="calendar-years"></div>
+            <div class="cal-month-head">
+                <button class="admin-btn ghost sm" id="calendar-prev" type="button" aria-label="上个月">‹</button>
+                <b id="calendar-month-label">2026 年 11 月</b>
+                <button class="admin-btn ghost sm" id="calendar-next" type="button" aria-label="下个月">›</button>
+            </div>
+            <div class="cal-weekdays"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+            <div class="cal-grid" id="calendar-grid"></div>
+        </div>
+        <div class="admin-modal-foot">
+            <button class="admin-btn ghost" id="calendar-clear" type="button">清空日期</button>
+            <button class="admin-btn primary" id="calendar-today" type="button">今天</button>
+        </div>
     </div>
 </div>
 
@@ -1399,10 +1581,10 @@
 
 <div class="admin-toast" id="message" role="status" aria-live="polite"></div>
 
-<script src="js/oss-config.js?v=20261106-01"></script>
-<script src="js/crypto-utils.js?v=20261106-01"></script>
-<script src="js/oss-utils.js?v=20261106-01"></script>
-<script src="js/store.js?v=20261106-01"></script><script>
+<script src="js/oss-config.js?v=20261109-01"></script>
+<script src="js/crypto-utils.js?v=20261109-01"></script>
+<script src="js/oss-utils.js?v=20261109-01"></script>
+<script src="js/store.js?v=20261109-01"></script><script>
     const ORDER_LABEL = {
         pending: '待接单',
         accepted: '已接单',
@@ -1428,7 +1610,8 @@
         served: { status: 'completed', label: '完成' }
     };
     const MENU_TIMES = [40, 60, 90, 120];
-    const MENU_TAGS = ['下饭', '香辣', '酸甜'];
+    const MENU_TAGS = ['下饭', '香辣', '酸甜', '咸鲜', '拿手菜', '酱香', '暖胃', '红烧'];
+    const MENU_TAG_MAX = 2;
     const WALLET_ICONS = {
         grant: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="8" width="17" height="12" rx="2.5"/><path d="M3.5 12h17M12 8v12M8 8c-1.8-2.4 1.4-4.6 4-1.5 2.6-3.1 5.8-.9 4 1.5"/></svg>',
         order: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5h16a8 8 0 0 1-16 0Z"/><path d="M8 7.3c0-1.4 1-1.9 1-3M12 7.3c0-1.4 1-1.9 1-3M16 7.3c0-1.4 1-1.9 1-3"/><path d="M5 19h14"/></svg>',
@@ -1484,6 +1667,13 @@
     let adminTab = 'home';
     let adminPollTimer = null;
     let orderFilter = 'all';
+    let menuTagFilter = '';
+    let orderDetailId = null;
+    let orderDetailReturn = 'orders';
+    let orderDetailData = null;
+    let calendarViewYear = 0;
+    let calendarViewMonth = 0;
+    let calendarSelected = '';
     let couponFilter = 'available';
     let cardsSegment = 'cards';
     let menuFilter = 'all';
@@ -1555,6 +1745,22 @@
         const members = (adminData && adminData.space && adminData.space.members) || [];
         const admin = members.find(member => member.role === 'admin');
         return (admin && admin.name) || '老李';
+    }
+
+    // 用户端入口：线上用 space.settings.links.user；本地/测试库用相对地址并带上 env，
+    // 避免在测试库里点开却跳到线上数据。
+    function userSiteUrl() {
+        const links = ((adminData && adminData.space && adminData.space.settings) || {}).links || {};
+        const isLocal = typeof isTestEnv === 'function' && isTestEnv();
+        if (!isLocal && links.user) return links.user;
+        const url = new URL('index.html', location.href);
+        const env = new URLSearchParams(location.search).get('env');
+        if (env) url.searchParams.set('env', env);
+        return url.href;
+    }
+
+    function openUserSite() {
+        window.open(userSiteUrl(), '_blank', 'noopener');
     }
 
     function spaceAvatar() {
@@ -1661,6 +1867,10 @@
             closeBarkTemplate();
             return;
         }
+        if ($('milestone-calendar').classList.contains('is-open')) {
+            closeMilestoneCalendar();
+            return;
+        }
         if ($('milestone-modal').classList.contains('is-open')) {
             closeMilestoneModal();
             return;
@@ -1671,7 +1881,8 @@
     });
 
     /* ---------- chrome / navigation ---------- */
-    const VIEW_TITLES = { home: '首页', orders: '订单', cards: '恋爱卡', system: '系统', menu: '菜单', milestones: '岁月留痕', space: '空间资料', announcements: '更新公告' };
+    const VIEW_TITLES = { home: '首页', orders: '订单', cards: '恋爱卡', system: '系统', menu: '菜单', milestones: '岁月留痕', space: '空间资料', announcements: '更新公告', notification: '通知', 'order-detail': '订单详情' };
+    const SUB_VIEWS = ['menu', 'milestones', 'space', 'announcements', 'notification', 'order-detail'];
     function renderChrome() {
         const name = spaceName();
         $('side-space-name').textContent = name;
@@ -1687,17 +1898,24 @@
             image.src = src;
         });
         $('home-name').textContent = adminName();
-        $('admin-back').hidden = !['menu', 'milestones', 'space', 'announcements'].includes(adminView);
+        $('admin-back').hidden = !SUB_VIEWS.includes(adminView);
         const pending = ((adminData && adminData.orders) || []).filter(order => order.status === 'pending').length;
         document.querySelectorAll('[data-nav-badge="orders"]').forEach(badge => {
             badge.textContent = pending;
             badge.hidden = pending <= 0;
         });
+        const pendingRequests = pendingDishRequests().length;
+        document.querySelectorAll('[data-nav-badge="menu"]').forEach(badge => {
+            badge.textContent = pendingRequests;
+            badge.hidden = pendingRequests <= 0;
+        });
 
+        // 订单详情属于「订单」的子页，导航高亮跟着回落到订单
+        const highlight = adminView === 'order-detail' ? 'orders' : adminView;
         document.querySelectorAll('[data-view]').forEach(button => {
             const view = button.dataset.view;
             const segment = button.dataset.cardsSegment;
-            const active = view === adminView && (!segment || segment === cardsSegment);
+            const active = view === highlight && (!segment || segment === cardsSegment);
             button.classList.toggle('is-active', active);
         });
         document.querySelectorAll('[data-panel]').forEach(panel => {
@@ -1713,11 +1931,11 @@
     }
 
     function switchView(view, options = {}) {
-        if (!['home', 'orders', 'cards', 'system', 'menu', 'milestones', 'space', 'announcements'].includes(view)) return;
+        if (!['home', 'orders', 'cards', 'system', 'menu', 'milestones', 'space', 'announcements', 'notification', 'order-detail'].includes(view)) return;
         if (view === 'cards' && options.segment) cardsSegment = options.segment;
         adminView = view;
         adminTab = ['home', 'orders', 'cards', 'system'].includes(view) ? view : 'system';
-        document.body.classList.toggle('admin-subpage', ['menu', 'milestones', 'space', 'announcements'].includes(view));
+        document.body.classList.toggle('admin-subpage', SUB_VIEWS.includes(view));
         if (view === 'home') renderHome();
         if (view === 'orders') renderOrders();
         if (view === 'cards') { renderCoupons(); renderWallet(); }
@@ -1729,6 +1947,8 @@
             renderAnnouncements();
             if (adminData && !Array.isArray(adminData.announcements)) refreshAdminAnnouncements();
         }
+        if (view === 'notification') renderSettings();
+        if (view === 'order-detail') renderOrderDetail();
         renderChrome();
         window.scrollTo({ top: 0, behavior: 'auto' });
     }
@@ -1835,6 +2055,7 @@
             renderWallet();
             renderDishRequests();
             renderChrome();
+            if (adminView === 'order-detail') loadOrderDetail();
         } catch (error) {
             console.warn('刷新订单失败:', error);
         }
@@ -1872,6 +2093,32 @@
         return `距离开饭还有 ${Math.max(1, minutes)} 分钟`;
     }
 
+    // 「需要你处理」= 所有没完单的订单 + 待审核菜品申请。
+    // 已接单只在饭点当天提醒，避免提前几天接的单天天挂在首页。
+    function sameDay(value) {
+        const date = toDate(value);
+        if (!date) return false;
+        const now = new Date();
+        return date.getFullYear() === now.getFullYear() &&
+            date.getMonth() === now.getMonth() &&
+            date.getDate() === now.getDate();
+    }
+
+    function homeAttentionOrders() {
+        return ((adminData && adminData.orders) || [])
+            .filter(order => {
+                if (!ADMIN_ORDER_ACTIVE.includes(order.status)) return false;
+                if (order.status === 'accepted') return sameDay(order.scheduledFor);
+                return true;
+            })
+            .slice()
+            .sort((a, b) => {
+                const rank = { pending: 0, accepted: 1, prepping: 2, cooking: 3, served: 4 };
+                return (rank[a.status] ?? 9) - (rank[b.status] ?? 9) ||
+                    String(a.scheduledFor || '').localeCompare(String(b.scheduledFor || ''));
+            });
+    }
+
     function renderHome() {
         if (!adminData) return;
         const active = activeOrders();
@@ -1888,20 +2135,18 @@
                <div class="next-meal-foot"><span>本周暂无饭点</span><button class="admin-btn sm" type="button" data-go-orders>查看订单 →</button></div>`;
 
         const dishTodos = pendingDishRequests();
-        const todos = ((adminData.orders) || [])
-            .filter(order => ['pending', 'served'].includes(order.status) || (overdue(order) && ADMIN_ORDER_ACTIVE.includes(order.status)))
-            .slice()
-            .sort((a, b) => {
-                const rank = { pending: 0, served: 1 };
-                return (rank[a.status] || 2) - (rank[b.status] || 2) ||
-                    String(a.scheduledFor || '').localeCompare(String(b.scheduledFor || ''));
-            });
+        const todos = homeAttentionOrders();
         const orderRows = todos.map(order => {
             const nextStatus = NEXT_STATUS[order.status];
             const label = nextStatus ? nextStatus.label : '去处理';
-            return `<div class="todo-row">
-                <span class="todo-mark">${order.status === 'served' ? '餐' : '订'}</span>
-                <span class="todo-main"><b>${ORDER_LABEL[order.status]}</b><small>${esc(slotText(order))} · ${esc(itemsText(order))}${overdue(order) ? ' · 已过时间' : ''}</small></span>
+            const mark = { pending: '订', accepted: '接', prepping: '备', cooking: '制', served: '餐' }[order.status] || '订';
+            const extras = [];
+            if (waitText(order)) extras.push(waitText(order));
+            if (overdue(order)) extras.push('已过时间');
+            if (order.lastNudgeAt) extras.push('用户催过');
+            return `<div class="todo-row${overdue(order) || order.lastNudgeAt ? ' is-late' : ''}">
+                <span class="todo-mark">${mark}</span>
+                <span class="todo-main"><b>${ORDER_LABEL[order.status]} · ${esc(itemsText(order))}</b><small>${esc(slotText(order))} · ${esc(extras.join(' · '))}</small></span>
                 ${nextStatus ? `<button class="admin-btn dark sm" type="button" data-home-next="${esc(order.id)}" data-next-status="${nextStatus.status}">${label}</button>` : `<span class="admin-small admin-muted">去订单处理</span>`}
             </div>`;
         }).join('');
@@ -2002,12 +2247,14 @@
             extras.push(`用户说：${order.thanks.note}${reward > 0 ? ` · 已返 ${reward} 币` : ''}`);
         }
         if (order.cancelled && order.cancelled.reason) extras.push(`取消原因：${order.cancelled.reason}`);
-        return `<article class="order-card">
+        // 整卡可点开详情；卡片里的按钮点击通过 closest 判断，不会误触发
+        return `<article class="order-card is-openable" data-order-open="${esc(order.id)}" role="button" tabindex="0" aria-label="查看订单 ${esc(order.id)} 详情">
             <div class="order-card-top">
                 <b class="order-id">${esc(order.id)}</b>
                 ${order.status === 'cancelled'
                     ? '<span class="status-text">已取消</span>'
                     : `<span class="status-pill ${esc(order.status)}">${ORDER_LABEL[order.status] || order.status}</span>`}
+                <span class="order-open-chev" aria-hidden="true">›</span>
             </div>
             <p class="order-slot">${esc(slotText(order))} · 下单 ${esc(formatDate(order.placedAt))}${waitText(order) ? ` · ${waitText(order)}` : ''}</p>
             <div class="order-items">${((order.items) || []).map(item => `
@@ -2035,6 +2282,7 @@
             await setOrderStatus(id, status, { by: 'admin' });
             showMessage(`订单 ${id} 已更新为「${ORDER_LABEL[status]}」`);
             await refreshAdminOrders();
+            if (adminView === 'order-detail') await loadOrderDetail(id);
         } catch (error) {
             showMessage(error.message, 'error');
             if (button) button.disabled = false;
@@ -2054,6 +2302,7 @@
             await cancelOrder(id, { by: 'admin', reason: '' });
             showMessage(`订单 ${id} 已取消，恋爱币已退回`);
             await refreshAdminOrders();
+            if (adminView === 'order-detail') await loadOrderDetail(id);
         } catch (error) {
             showMessage(error.message, 'error');
             if (button) button.disabled = false;
@@ -2068,10 +2317,138 @@
                 return;
             }
             const cancel = event.target.closest('[data-order-cancel]');
-            if (cancel) cancelAdminOrder(cancel.dataset.orderCancel, cancel);
+            if (cancel) {
+                cancelAdminOrder(cancel.dataset.orderCancel, cancel);
+                return;
+            }
             const review = event.target.closest('[data-review-dish]');
-            if (review) openDishRequestReview(review.dataset.reviewDish);
+            if (review) {
+                openDishRequestReview(review.dataset.reviewDish);
+                return;
+            }
+            // 按钮/链接不触发详情，其余空白处或卡片本身都可以
+            if (event.target.closest('button, a')) return;
+            const card = event.target.closest('[data-order-open]');
+            if (card) openOrderDetail(card.dataset.orderOpen, adminView);
         });
+        container.addEventListener('keydown', event => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            const card = event.target.closest('[data-order-open]');
+            if (!card || event.target !== card) return;
+            event.preventDefault();
+            openOrderDetail(card.dataset.orderOpen, adminView);
+        });
+    }
+
+    /* ---------- order detail ---------- */
+    async function openOrderDetail(id, from) {
+        if (!id) return;
+        orderDetailId = id;
+        orderDetailReturn = from === 'home' ? 'home' : 'orders';
+        const summary = ((adminData && adminData.orders) || []).find(order => String(order.id) === String(id));
+        orderDetailData = summary ? { ...summary } : null;
+        switchView('order-detail');
+        await loadOrderDetail(id);
+    }
+
+    async function loadOrderDetail(id) {
+        const target = id || orderDetailId;
+        if (!target) return;
+        try {
+            const order = await getOrder(target);
+            if (!order || String(order.id) !== String(orderDetailId)) return;
+            orderDetailData = order;
+            renderOrderDetail();
+        } catch (error) {
+            console.warn('加载订单详情失败:', error);
+            renderOrderDetail();
+        }
+    }
+
+    function servedPhotosHTML(items) {
+        const photos = (items || []).filter(item => item && item.servedImage);
+        if (!photos.length) return '';
+        return `<div class="detail-block">
+            <div class="detail-block-head"><b>本次出餐</b><small>点图看大图</small></div>
+            <div class="served-photos">${photos.map(item => `
+                <button class="served-photo" type="button" data-image-preview="${esc(item.servedImage)}" aria-label="查看${esc(item.name)}成品图">
+                    <img src="${esc(item.servedImage)}" alt="${esc(item.name)}成品图">
+                    <span>${esc(item.name)}</span>
+                </button>`).join('')}</div>
+        </div>`;
+    }
+
+    function renderOrderDetail() {
+        const order = orderDetailData;
+        const body = $('order-detail-body');
+        const actions = $('order-detail-actions');
+        if (!order || !body) return;
+        $('order-detail-title').textContent = order.id;
+        $('order-detail-sub').textContent = `${slotText(order)} · ${ORDER_LABEL[order.status] || order.status}`;
+        const next = NEXT_STATUS[order.status];
+        const history = Array.isArray(order.statusHistory) ? order.statusHistory : [];
+        const payment = order.payment || {};
+        const extras = [];
+        if (order.nudges && order.nudges.length) {
+            extras.push(`用户催过 ${order.nudges.length} 次 · 最后一次 ${formatDate(order.nudges[order.nudges.length - 1].at)}`);
+        }
+        if (order.thanks) {
+            extras.push(`用户答谢：${order.thanks.note}${Number(order.thanks.reward) > 0 ? ` · 已返 ${order.thanks.reward} 币` : ''}`);
+        }
+        if (order.cancelled && order.cancelled.reason) extras.push(`取消原因：${order.cancelled.reason}`);
+
+        body.innerHTML = `
+            <div class="detail-hero">
+                <span class="detail-hero-label">预约饭点</span>
+                <b>${esc(slotText(order))}</b>
+                <p>下单 ${esc(formatDate(order.placedAt))}${waitText(order) ? ` · ${esc(waitText(order))}` : ''}</p>
+                <div class="detail-hero-foot">
+                    ${order.status === 'cancelled'
+                        ? '<span class="status-text">已取消</span>'
+                        : `<span class="status-pill ${esc(order.status)}">${ORDER_LABEL[order.status] || order.status}</span>`}
+                    <span>${esc(countdownText(order.scheduledFor))}</span>
+                </div>
+            </div>
+            <div class="detail-block">
+                <div class="detail-block-head"><b>菜品</b><small>${(order.items || []).length} 道</small></div>
+                <div class="detail-items">${(order.items || []).map(item => `
+                    <div class="detail-item">
+                        ${photoHTML(item, 'order-item-photo', true)}
+                        <span class="detail-item-main"><b>${esc(item.name)}</b><small>${item.prepMinutes ? `约 ${item.prepMinutes} 分钟` : ''}</small></span>
+                        <span class="detail-item-price">${item.price} 币</span>
+                    </div>`).join('')}</div>
+            </div>
+            ${servedPhotosHTML(order.items)}
+            ${order.note ? `<div class="detail-block"><div class="detail-block-head"><b>用户备注</b></div><p class="detail-note">“${esc(order.note)}”</p></div>` : ''}
+            ${extras.length ? `<div class="detail-block"><div class="detail-block-head"><b>提醒</b></div><div class="detail-extras">${extras.map(text => `<p>${esc(text)}</p>`).join('')}</div></div>` : ''}
+            <div class="detail-block">
+                <div class="detail-block-head"><b>支付</b><small>${payment.refundedAt ? '已退款' : '已支付'}</small></div>
+                <div class="detail-pay">
+                    <span>合计</span>
+                    <b>${order.total} 币</b>
+                </div>
+                ${payment.balanceAfter != null ? `<p class="detail-pay-note">支付后余额 ${payment.balanceAfter} 币</p>` : ''}
+            </div>
+            <div class="detail-block">
+                <div class="detail-block-head"><b>状态记录</b><small>${history.length} 条</small></div>
+                <ol class="detail-timeline">
+                    ${history.length ? history.map(entry => `
+                        <li><span>${ORDER_LABEL[entry.status] || entry.status}</span><small>${esc(formatDate(entry.at))}${entry.by === 'user' ? ' · 用户' : entry.by === 'admin' ? ' · 管理端' : ''}</small></li>
+                    `).join('') : '<li><span>还没有状态记录</span></li>'}
+                </ol>
+            </div>`;
+
+        const buttons = [];
+        if (next) {
+            buttons.push(`<button class="admin-btn dark" type="button" data-detail-next="${esc(order.id)}" data-next-status="${next.status}">${next.label}</button>`);
+        }
+        if (ADMIN_ORDER_ACTIVE.includes(order.status)) {
+            buttons.push(`<button class="admin-btn danger" type="button" data-detail-cancel="${esc(order.id)}">${order.status === 'pending' ? '拒单退款' : '取消退款'}</button>`);
+        }
+        actions.innerHTML = buttons.length
+            ? buttons.join('')
+            : '<p class="admin-small admin-muted">这一单已经结束，没有可执行的操作。</p>';
+        actions.hidden = false;
     }
 
     /* ---------- serving photos ---------- */
@@ -2174,6 +2551,7 @@
             closeServeModal();
             adminData = await loadAdminData();
             renderAll();
+            if (adminView === 'order-detail' && String(orderDetailId) === String(orderId)) await loadOrderDetail(orderId);
         } catch (error) {
             showMessage(error.message, 'error');
             button.disabled = false;
@@ -2355,11 +2733,21 @@
             <button class="filter-btn ${menuFilter === filter.id ? 'is-active' : ''}" type="button"
                 data-menu-filter="${filter.id}">${filter.label} ${filter.count}</button>`).join('');
 
+        const tagCounts = new Map();
+        MENU_TAGS.forEach(tag => {
+            tagCounts.set(tag, dishes.filter(dish => (dish.tags || []).includes(tag)).length);
+        });
+        $('menu-tag-filters').innerHTML = MENU_TAGS.map(tag => `
+            <button class="filter-btn tag-filter ${menuTagFilter === tag ? 'is-active' : ''}" type="button"
+                data-menu-tag="${tag}">${tag} ${tagCounts.get(tag) || 0}</button>`).join('') +
+            (menuTagFilter ? '<button class="filter-btn tag-filter is-clear" type="button" data-menu-tag="">清除</button>' : '');
+
         const query = menuQuery.trim().toLowerCase();
         const shown = dishes.filter(dish => {
             const matchesCategory = menuFilter === 'all' || String(dish.categoryId) === String(menuFilter);
+            const matchesTag = !menuTagFilter || (dish.tags || []).includes(menuTagFilter);
             const haystack = `${dish.name} ${(dish.tags || []).join(' ')} ${dish.description || ''}`.toLowerCase();
-            return matchesCategory && (!query || haystack.includes(query));
+            return matchesCategory && matchesTag && (!query || haystack.includes(query));
         });
 
         $('menu-list').innerHTML = shown.length ? shown.map(dish => `
@@ -2385,8 +2773,13 @@
     }
 
     function renderTagPicker() {
-        $('dish-tags').innerHTML = MENU_TAGS.map(tag => `
-            <button type="button" class="${dishTags.has(tag) ? 'is-on' : ''}" data-dish-tag="${tag}">${tag}</button>`).join('');
+        const full = dishTags.size >= MENU_TAG_MAX;
+        $('dish-tags').innerHTML = MENU_TAGS.map(tag => {
+            const on = dishTags.has(tag);
+            const disabled = !on && full;
+            return `<button type="button" class="${on ? 'is-on' : ''}${disabled ? ' is-off' : ''}" data-dish-tag="${tag}"
+                ${disabled ? 'aria-disabled="true"' : ''}>${tag}</button>`;
+        }).join('');
     }
 
     function setAvailableSwitch(value) {
@@ -2493,7 +2886,7 @@
         $('dish-time').value = String(nearestTime(dish.prepMinutes));
         $('dish-description').value = dish.description || '';
         $('dish-ingredients').value = dish.ingredients || '';
-        dishTags = new Set((dish.tags || []).filter(tag => MENU_TAGS.includes(tag)));
+        dishTags = new Set((dish.tags || []).filter(tag => MENU_TAGS.includes(tag)).slice(0, MENU_TAG_MAX));
         renderTagPicker();
         dishGallery = dishImages(dish);
         $('dish-image').value = dish.image || dishGallery[0] || '';
@@ -2834,9 +3227,76 @@
         }
     }
 
-    function syncMilestoneYear() {
-        const value = $('milestone-date').value;
-        $('milestone-year').textContent = value ? value.slice(0, 4) : '旧时光';
+    const CAL_WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+
+    function syncMilestoneDate(value) {
+        const text = String(value || '').slice(0, 10);
+        $('milestone-date').value = text;
+        const date = toDate(text);
+        const label = $('milestone-date-label');
+        const hint = $('milestone-date-hint');
+        label.classList.toggle('is-empty', !date);
+        if (!date) {
+            label.textContent = '未设置';
+            hint.textContent = '归入「旧时光」，排在最后';
+            return;
+        }
+        label.textContent = `${date.getFullYear()} · ${pad2(date.getMonth() + 1)} · ${pad2(date.getDate())}`;
+        hint.textContent = `${CAL_WEEKDAYS[date.getDay()]} · 会排到 ${date.getFullYear()} 年`;
+    }
+
+    function openMilestoneCalendar() {
+        const current = toDate($('milestone-date').value) || new Date();
+        calendarSelected = $('milestone-date').value ? String($('milestone-date').value).slice(0, 10) : '';
+        calendarViewYear = current.getFullYear();
+        calendarViewMonth = current.getMonth();
+        renderMilestoneCalendar();
+        $('milestone-calendar').classList.add('is-open');
+        $('milestone-calendar').setAttribute('aria-hidden', 'false');
+    }
+
+    function closeMilestoneCalendar() {
+        $('milestone-calendar').classList.remove('is-open');
+        $('milestone-calendar').setAttribute('aria-hidden', 'true');
+    }
+
+    function renderMilestoneCalendar() {
+        const today = new Date();
+        const years = [];
+        for (let year = today.getFullYear() + 1; year >= today.getFullYear() - 12; year--) years.push(year);
+        $('calendar-years').innerHTML = years.map(year =>
+            `<button type="button" class="${year === calendarViewYear ? 'is-active' : ''}" data-calendar-year="${year}">${year}</button>`).join('');
+        $('calendar-month-label').textContent = `${calendarViewYear} 年 ${calendarViewMonth + 1} 月`;
+
+        const first = new Date(calendarViewYear, calendarViewMonth, 1);
+        const offset = (first.getDay() + 6) % 7; // 周一开头
+        const start = new Date(calendarViewYear, calendarViewMonth, 1 - offset);
+        const todayKey = `${today.getFullYear()}-${pad2(today.getMonth() + 1)}-${pad2(today.getDate())}`;
+        const cells = [];
+        for (let i = 0; i < 42; i++) {
+            const day = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+            const key = `${day.getFullYear()}-${pad2(day.getMonth() + 1)}-${pad2(day.getDate())}`;
+            const classes = [
+                day.getMonth() === calendarViewMonth ? '' : 'is-mute',
+                key === todayKey ? 'is-today' : '',
+                key === calendarSelected ? 'is-active' : ''
+            ].filter(Boolean).join(' ');
+            cells.push(`<button type="button" class="${classes}" data-calendar-day="${key}" aria-label="${key}">${day.getDate()}</button>`);
+        }
+        $('calendar-grid').innerHTML = cells.join('');
+    }
+
+    function shiftMilestoneCalendar(months) {
+        const next = new Date(calendarViewYear, calendarViewMonth + months, 1);
+        calendarViewYear = next.getFullYear();
+        calendarViewMonth = next.getMonth();
+        renderMilestoneCalendar();
+    }
+
+    function pickMilestoneDay(key) {
+        calendarSelected = key;
+        syncMilestoneDate(key);
+        closeMilestoneCalendar();
     }
 
     function openMilestoneModal(index) {
@@ -2849,8 +3309,7 @@
         adminMilestoneImage = milestoneImageOf(item);
         $('milestone-form-title').textContent = isNew ? '添加回忆' : '编辑回忆';
         $('milestone-id').value = isNew ? '' : String(index);
-        $('milestone-date').value = dateValue;
-        $('milestone-year').textContent = dateValue ? dateValue.slice(0, 4) : '旧时光';
+        syncMilestoneDate(dateValue);
         $('milestone-title').value = item.title || '';
         $('milestone-description').value = item.description || '';
         $('milestone-image').value = adminMilestoneImage;
@@ -2858,6 +3317,7 @@
         $('milestone-image-file').value = '';
         $('milestone-submit').disabled = false;
         $('milestone-image-upload-label').classList.remove('is-disabled');
+        $('milestone-image-remove').hidden = !adminMilestoneImage;
         setMilestoneImageStatus(adminMilestoneImage ? '已选择' : '未选择');
         renderMilestonePreview();
         $('milestone-modal').classList.add('is-open');
@@ -2866,6 +3326,7 @@
     }
 
     function closeMilestoneModal() {
+        closeMilestoneCalendar();
         if (!$('milestone-modal').classList.contains('is-open')) return;
         milestoneImageUploadToken++;
         milestoneImageUploading = false;
@@ -2907,6 +3368,7 @@
             $('milestone-image').value = url;
             renderMilestonePreview();
             setMilestoneImageStatus('上传成功，保存后生效', 'success');
+            $('milestone-image-remove').hidden = false;
         } catch (error) {
             if (token !== milestoneImageUploadToken) return;
             setMilestoneImageStatus(error.message || '上传失败，请重试', 'error');
@@ -3392,6 +3854,25 @@
             setSwitch(button, (bark.events || {})[button.dataset.barkEvent] !== false);
         });
         renderMilestoneCounts();
+        renderNotificationSummary();
+    }
+
+    // 系统导航页的「通知」行摘要：让大厨不点进去也能判断推送是否正常。
+    function renderNotificationSummary() {
+        const summary = $('system-notification-summary');
+        if (!summary) return;
+        const settings = (adminData && adminData.space && adminData.space.settings) || {};
+        const bark = settings.bark || {};
+        const enabled = !!(bark.userKey || bark.adminKey || bark.key) && bark.enabled !== false;
+        if (!enabled) {
+            summary.textContent = 'Bark 推送 · 未开启';
+            return;
+        }
+        const events = bark.events || {};
+        const names = { newOrder: '新单', accepted: '接单', dishRequest: '申请', userCancel: '取消', cooking: '制作', served: '出餐', nudge: '催单' };
+        const on = Object.keys(names).filter(key => events[key] !== false);
+        const nudge = settings.nudgeEnabled === true ? '催一催开' : '催一催关';
+        summary.textContent = `Bark 已开启 · ${on.length} 个事件（${on.map(key => names[key]).join('/')}）· ${nudge}`;
     }
 
     async function saveBarkSettings(showSuccess = true) {
@@ -3619,7 +4100,13 @@
     });
     $('logout-btn').addEventListener('click', handleLogout);
     $('logout-side').addEventListener('click', handleLogout);
-    $('admin-back').addEventListener('click', () => switchView('system'));
+    $('admin-back').addEventListener('click', () => {
+        if (adminView === 'order-detail') {
+            switchView(orderDetailReturn);
+            return;
+        }
+        switchView('system');
+    });
 
     document.querySelectorAll('[data-view]').forEach(button => {
         button.addEventListener('click', () => switchView(button.dataset.view, {
@@ -3658,6 +4145,24 @@
     });
     bindOrderActions($('orders-list'));
     bindOrderActions($('home-todos'));
+    $('order-detail-body').addEventListener('click', event => {
+        const preview = event.target.closest('[data-image-preview]');
+        if (preview) openImageLightbox(preview.dataset.imagePreview);
+    });
+    $('order-detail-actions').addEventListener('click', event => {
+        const next = event.target.closest('[data-detail-next]');
+        if (next) {
+            changeOrderStatus(next.dataset.detailNext, next.dataset.nextStatus, next);
+            return;
+        }
+        const cancel = event.target.closest('[data-detail-cancel]');
+        if (cancel) cancelAdminOrder(cancel.dataset.detailCancel, cancel);
+    });
+    $('order-detail-refresh').addEventListener('click', async () => {
+        await loadOrderDetail();
+        showMessage('订单已刷新');
+    });
+    $('open-user-site').addEventListener('click', openUserSite);
     $('home-next-meal').addEventListener('click', event => {
         if (event.target.closest('[data-go-orders]')) switchView('orders');
     });
@@ -3703,6 +4208,13 @@
         const button = event.target.closest('[data-menu-filter]');
         if (!button) return;
         menuFilter = button.dataset.menuFilter;
+        renderMenu();
+    });
+    $('menu-tag-filters').addEventListener('click', event => {
+        const button = event.target.closest('[data-menu-tag]');
+        if (!button) return;
+        const tag = button.dataset.menuTag;
+        menuTagFilter = menuTagFilter === tag ? '' : tag;
         renderMenu();
     });
     $('menu-list').addEventListener('click', handleMenuClick);
@@ -3779,8 +4291,15 @@
         const button = event.target.closest('[data-dish-tag]');
         if (!button) return;
         const tag = button.dataset.dishTag;
-        if (dishTags.has(tag)) dishTags.delete(tag);
-        else dishTags.add(tag);
+        if (dishTags.has(tag)) {
+            dishTags.delete(tag);
+        } else {
+            if (dishTags.size >= MENU_TAG_MAX) {
+                showMessage(`最多选 ${MENU_TAG_MAX} 个标签`, 'error');
+                return;
+            }
+            dishTags.add(tag);
+        }
         renderTagPicker();
     });
     $('dish-available').addEventListener('click', () => {
@@ -3818,9 +4337,53 @@
         if (milestoneImageUploading) return;
         adminMilestoneImage = event.target.value.trim();
         setMilestoneImageStatus(adminMilestoneImage ? '已选择' : '未选择');
+        $('milestone-image-remove').hidden = !adminMilestoneImage;
         renderMilestonePreview();
     });
-    $('milestone-date').addEventListener('input', syncMilestoneYear);
+    $('milestone-date-button').addEventListener('click', openMilestoneCalendar);
+    $('milestone-date-quick').addEventListener('click', event => {
+        const button = event.target.closest('[data-milestone-quick]');
+        if (!button) return;
+        const kind = button.dataset.milestoneQuick;
+        if (kind === 'clear') {
+            syncMilestoneDate('');
+            return;
+        }
+        const date = new Date();
+        if (kind === 'yesterday') date.setDate(date.getDate() - 1);
+        syncMilestoneDate(`${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`);
+    });
+    $('milestone-image-remove').addEventListener('click', () => {
+        adminMilestoneImage = '';
+        $('milestone-image').value = '';
+        $('milestone-image-remove').hidden = true;
+        setMilestoneImageStatus('已移除');
+        renderMilestonePreview();
+    });
+    $('calendar-prev').addEventListener('click', () => shiftMilestoneCalendar(-1));
+    $('calendar-next').addEventListener('click', () => shiftMilestoneCalendar(1));
+    $('calendar-years').addEventListener('click', event => {
+        const button = event.target.closest('[data-calendar-year]');
+        if (!button) return;
+        calendarViewYear = Number(button.dataset.calendarYear);
+        renderMilestoneCalendar();
+    });
+    $('calendar-grid').addEventListener('click', event => {
+        const button = event.target.closest('[data-calendar-day]');
+        if (button) pickMilestoneDay(button.dataset.calendarDay);
+    });
+    $('calendar-today').addEventListener('click', () => {
+        const today = new Date();
+        pickMilestoneDay(`${today.getFullYear()}-${pad2(today.getMonth() + 1)}-${pad2(today.getDate())}`);
+    });
+    $('calendar-clear').addEventListener('click', () => {
+        calendarSelected = '';
+        syncMilestoneDate('');
+        closeMilestoneCalendar();
+    });
+    document.querySelectorAll('[data-calendar-close]').forEach(button => {
+        button.addEventListener('click', closeMilestoneCalendar);
+    });
     $('milestone-image-preview').addEventListener('click', () => {
         const image = $('milestone-image-preview').querySelector('img');
         if (image) openImageLightbox(image.src);
@@ -3830,6 +4393,13 @@
     $('space-save').addEventListener('click', saveSpaceProfile);
 
     $('bark-save').addEventListener('click', handleBarkSave);
+    $('bark-save-top').addEventListener('click', handleBarkSave);
+    $('bark-links-toggle').addEventListener('click', () => {
+        const box = $('bark-links-box');
+        const next = box.hidden;
+        box.hidden = !next;
+        $('bark-links-toggle').setAttribute('aria-expanded', String(next));
+    });
     $('bark-test-user').addEventListener('click', () => handleBarkTest('user', $('bark-test-user')));
     $('bark-test-admin').addEventListener('click', () => handleBarkTest('admin', $('bark-test-admin')));
     $('bark-enabled').addEventListener('click', () => {

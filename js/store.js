@@ -33,7 +33,9 @@ const ORDER_STATUS = {
 
 const WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 const DISH_TIME_OPTIONS = [40, 60, 90, 120];
-const DISH_TAG_OPTIONS = ['下饭', '香辣', '酸甜'];
+// 每个菜最多 2 个标签：用户端卡片和详情都只展示这 2 个，多选没有展示位。
+const DISH_TAG_OPTIONS = ['下饭', '香辣', '酸甜', '咸鲜', '拿手菜', '酱香', '暖胃', '红烧'];
+const DISH_TAG_MAX = 2;
 const DEFAULT_SERVING = {
     slots: [
         { id: 'sat-lunch', day: 6, time: '12:00', label: '午餐', emoji: '☀️' },
@@ -1072,6 +1074,14 @@ async function thankChef(orderId, note) {
         reward,
         rewardTxId
     };
+    // 答谢即完成：用户点「谢谢大厨」等同于「吃好啦」，订单直接在这一次写入里
+    // 变成 completed，避免首页「需要你处理」长期挂着 served。
+    if (order.status === 'served') {
+        order.status = 'completed';
+        order.completedAt = now;
+        if (!Array.isArray(order.statusHistory)) order.statusHistory = [];
+        order.statusHistory.push({ status: 'completed', at: now, by: 'user' });
+    }
     order.updatedAt = now;
     await orderCollection.save(orderId, order);
 
@@ -1169,7 +1179,7 @@ function normalizeDishTags(tags) {
         : String(tags || '').split(/[,，、\s]+/);
     return [...new Set(list
         .map(tag => String(tag).trim())
-        .filter(tag => DISH_TAG_OPTIONS.includes(tag)))];
+        .filter(tag => DISH_TAG_OPTIONS.includes(tag)))].slice(0, DISH_TAG_MAX);
 }
 
 async function upsertDish(input) {

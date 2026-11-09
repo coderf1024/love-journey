@@ -40,3 +40,13 @@
 - 版本 token：待实现后 bump
 - 发布时间：—
 - 线上验证：—
+
+## 实现记录（2026-11-09）
+
+- 系统页改成导航后，`renderSettings()` 仍然一次渲染通知页的所有控件；`renderNotificationSummary()` 只读 `space.settings`，不额外请求。
+- 订单详情从首页待办进入时返回首页，从订单列表进入时返回订单；`orderDetailReturn` 记录来源。
+- 订单详情打开时，15s 轮询（`refreshAdminOrders`）会顺带刷新详情，避免详情停在旧状态。
+- 移动端输入控件的缩放方案：`font-size:16px` + `scale(.875)` + `width:114.2857%`；`transform-origin: left top`。钱包卡的「最多可欠」单独用 `scale(.8)` + `96px`。
+- 标签字用 `--font-ui`，不属于显示字体；`build-fonts.sh` 现在整行排除 `DISH_TAG_OPTIONS` / `MENU_TAGS`。
+- 回忆日历是手写的：年列表从「今年 + 1」往前 12 年；月视图周一开头，42 格；今天有描边，选中是深色实心。
+- `thankChef` 多写 completed 仍在同一次 `orderCollection.save` 内，不增加写次数；`statusHistory` 加了数组保护。

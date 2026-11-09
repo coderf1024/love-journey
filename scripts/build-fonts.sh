@@ -79,6 +79,12 @@ SYMBOLS = '∞♡✶✈‹›→←✕♥·'
 ASCII = {chr(code) for code in range(32, 127)}
 
 
+import re
+
+# 标签常量整行排除（标签用系统 UI 字体，不走显示字体子集）
+TAG_CONST_LINES = re.compile(r'^.*(DISH_TAG_OPTIONS|MENU_TAGS).*$', re.M)
+
+
 def add(chars, value):
     for ch in str(value or ''):
         if ch.isprintable():
@@ -118,6 +124,9 @@ for name in [
         text = pathlib.Path(name).read_text(encoding='utf-8')
     except OSError:
         continue
+    # 菜品标签（DISH_TAG_OPTIONS / MENU_TAGS）用 --font-ui 系统无衬线渲染，
+    # 不消耗显示字体；排除常量行，避免以后加标签时把它们塞进子集。
+    text = TAG_CONST_LINES.sub('', text)
     for ch in text:
         if ord(ch) < 128 or '一' <= ch <= '鿿' or ch in PUNCT:
             static.add(ch)

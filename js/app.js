@@ -13,12 +13,12 @@ let lastCityColumns = 0;
 
 // Self-hosted: cdn.jsdelivr.net is unreliable in WeChat / mainland mobile networks.
 const LIBS = {
-    echarts: 'assets/vendor/echarts.min.js?v=20261106-01',
-    qrcode: 'assets/vendor/qrcode.min.js?v=20261106-01'
+    echarts: 'assets/vendor/echarts.min.js?v=20261109-01',
+    qrcode: 'assets/vendor/qrcode.min.js?v=20261109-01'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261106-01';
-const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261106-01';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261109-01';
+const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261109-01';
 // First-paint fallback only. The live story document always wins once it loads.
 const LOVE_START_FALLBACK = '2020-12-20';
 
@@ -2448,7 +2448,8 @@ async function handleOrderAction(action) {
                 const updated = await thankChef(order.id);
                 await syncOrderState();
                 const reward = updated && updated.thanks ? Number(updated.thanks.reward) || 0 : 0;
-                toast(reward > 0 ? `已谢谢大厨，+${reward} 恋爱币` : '已经告诉大厨啦');
+                // 「谢谢大厨」现在也把订单完成（答谢即完成），提示里说清这一餐已结束
+                toast(reward > 0 ? `一餐圆满，+${reward} 恋爱币` : '一餐圆满，已经告诉大厨啦');
             } finally {
                 state.thanksBusy = false;
             }

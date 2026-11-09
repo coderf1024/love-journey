@@ -2,55 +2,56 @@
 
 ## 总体思路
 
-全部改动落在 `admin.html`（结构 + 内联 CSS + 内联脚本），只在被确认的情况下动 `js/app.js`（谢谢大厨完成订单）和 `js/store.js`（标签白名单）。`adminView` 增加两个二级页：`notification`、`order-detail`，沿用现有「隐藏 tabbar + 左上返回」的子页模式。
+改动集中在 `admin.html`（结构 + 内联 CSS + 内联脚本）；用户端只动 `js/store.js`（标签白名单 + 答谢即完成）和 `js/app.js`（谢谢大厨 toast）。`adminView` 新增两个二级页 `notification`、`order-detail`，沿用现有「隐藏 tabbar + 左上返回」的子页模式。
 
 ## 改动清单
 
 | 文件/模块 | 改动 |
 |---|---|
-| `admin.html` 导航 | 系统页改成导航行；新增 `data-panel="notification"`；`VIEW_TITLES` 增加「通知」；`switchView` 白名单增加 `notification`、`order-detail`；桌面侧栏把「系统设置」换成「通知」并去掉重复入口 |
-| `admin.html` 首页 | 顶部导航加「用户端 ↗」；快捷操作从 3 格改 4 格；`renderHome()` 的 todos 过滤改为 `ADMIN_ORDER_ACTIVE`（含 accepted/prepping/cooking）+ 超时 + 菜品申请；`NEXT_STATUS` 已覆盖全部状态，直接复用 |
-| `admin.html` 用户端链接 | 新增 `userSiteUrl()`：`space.settings.links.user` 优先；本地/测试库用相对 `index.html` 并保留当前 `?env`；统一给顶部按钮和快捷格用 |
-| `admin.html` 通知页 | 把 `system` 面板里的 Bark 区块整体迁到 `notification` 面板并分组（推送与密钥 / 推给用户 / 推给我 / 用户端）；`renderSettings()`、`saveBarkSettings()`、模板弹窗、测试按钮的 id 全部保持不变，只挪 DOM |
-| `admin.html` 字号 | `@media (max-width:899px)` 的输入框 16px 改为 14px；新增 `:focus { font-size: 16px }`，避免 iOS 聚焦缩放；桌面端保持 13px |
-| `admin.html` 回忆弹窗 | `.photo-preview.milestone-preview` 从整宽 4:3 改成 84×63 缩略图行；日期从 `input[type=date]` 改为只读按钮 + 自绘日历弹层（年切换 / 月视图 / 今天 / 清空）；年份只读框改成日期下方说明；删除按钮移到正文底部文字链接，仍走 `adminConfirm` |
-| `admin.html` 订单详情 | `orderCardHTML` 增加 `data-order-open`；新增 `renderOrderDetail()` / `openOrderDetail()`；详情展示菜品、`servedImage`、备注、支付、催单、`statusHistory`；底部操作条复用 `changeOrderStatus` / `cancelAdminOrder` |
-| `js/store.js` | `DISH_TAG_OPTIONS` 扩展（最终名单待人确认）；`admin.html` 的 `MENU_TAGS` 同步 |
-| `js/app.js` | 仅当确认方案 A：`thankChef` 成功后调 `completeOrder`；否则不动 |
-| `index.html` / `css/style.css` | 缓存版本 bump（只改 admin 时仍需 bump `admin.html` 内的 `?v=`） |
-| `scripts/build-fonts.sh` | 新增标签文案后跑一次字体子集 |
+| `admin.html` 导航 | 系统页改成导航行（内容 / 设置）；新增 `data-panel="notification"`、`data-panel="order-detail"`；`VIEW_TITLES` 增加两项；`SUB_VIEWS` 统一维护子页列表；桌面侧栏去掉「系统设置」换成「通知」；订单详情时导航高亮回落到「订单」 |
+| `admin.html` 首页 | 顶部新增「用户端 ↗」（`#open-user-site`）；`homeAttentionOrders()` 统一待办口径；accepted 用 `sameDay()` 过滤；超时/催单标红；`userSiteUrl()` 处理测试库相对地址 |
+| `admin.html` 通知页 | Bark 整块迁到 `notification` 面板并分组（推送与密钥 / 推给用户 / 推给我 / 用户端）；跳转地址收进折叠块；顶部与底部各一个保存按钮；`renderNotificationSummary()` 供系统导航页显示摘要 |
+| `admin.html` 输入字号 | 移动端 `.admin-input/.admin-select/.admin-textarea` 16px 计算字号 + `scale(.875)` + `width:114.2857%`；`viewport` 加 `maximum-scale=1, user-scalable=no`；`touch-action: manipulation`；桌面 13px 不变 |
+| `admin.html` 回忆弹窗 | 封面 `width:min(100%,266px)` 保持 4:3；日期改整行按钮 + 自绘日历 `#milestone-calendar`；`syncMilestoneDate` / `renderMilestoneCalendar` / `pickMilestoneDay`；图片 URL 进 `<details>`；删除改为底部文字链接 |
+| `admin.html` 订单详情 | `orderCardHTML` 加 `data-order-open` 和 `›`；`openOrderDetail` / `loadOrderDetail` / `renderOrderDetail`；详情样式（hero / 菜品 / 出餐图 / 备注 / 提醒 / 支付 / 时间线 / 底部操作条） |
+| `admin.html` 菜单 | `MENU_TAGS` 扩到 8 个、`MENU_TAG_MAX = 2`；标签选择器选满置灰；菜单新增 `#menu-tag-filters`，与分类、搜索 AND |
+| `js/store.js` | `DISH_TAG_OPTIONS` 扩到 8；新增 `DISH_TAG_MAX`；`normalizeDishTags()` 末尾 `.slice(0, 2)`；`thankChef()` 在 served 时同时写 completed |
+| `js/app.js` | 谢谢大厨 toast 改为「一餐圆满…」 |
+| `scripts/build-fonts.sh` | 排除 `DISH_TAG_OPTIONS` / `MENU_TAGS` 常量行（标签用 UI 字体） |
+| 全局 | 缓存 token `20261106-01` → `20261109-01`（三个页面 + CSS + app.js + oss-utils + CLAUDE） |
 
 ## 数据结构 / 兼容 / 迁移
 
 - 不新增字段、不改文档结构。
-- 标签扩展是白名单扩展：`normalizeDishTags()` 会过滤白名单外的值，因此「只加不减」；旧菜品的三个旧标签继续有效。
-- 标签上限 2 个在 `normalizeDishTags()` 末尾 `.slice(0, 2)`；只读核对线上 29 道菜，最多 2 个标签，无数据被截断。
-- 订单详情只读既有 `statusHistory` / `payment` / `nudges` / `thanks` 字段，无需新写入。
-- 回忆日期仍存 `YYYY-MM-DD` 字符串；清空就是 `''`，与现有「旧时光」行为一致。
+- 标签是白名单扩展：`normalizeDishTags()` 过滤白名单外的值，只加不减；线上 29 道菜最多 2 个标签（只读核对），加 2 个上限不会截断数据。
+- 订单详情只读既有 `statusHistory` / `payment` / `nudges` / `thanks`，无新写入。
+- 回忆日期仍是 `YYYY-MM-DD`；清空为 `''`，与「旧时光」行为一致。
+- `thankChef` 在 served 时多写一次 `completed` 状态，仍在同一次 `orderCollection.save` 里，不增加写次数。
 
 ## 分步任务
 
-- [x] 1. 人已确认 8 项方案（2026-11-09）+ 标签上限 2 个；原型更新为 v3。
-- [ ] 1b. 人从 D 段选择输入字号方案 A / B / C。
-- [ ] 2. 导航：系统 → 导航页 + 通知二级页 + 桌面侧栏。
-- [ ] 3. 首页：用户端入口 + 待办口径 + 排序/标红。
-- [ ] 4. 订单详情二级页 + 卡片入口 + 操作条 + 系统导航行角标。
-- [ ] 5. 输入字号调整（按 D 段选型；方案 A 为 16px 计算 + scale(.875) + width:114.29%）。
-- [ ] 6. 回忆弹窗重排 + 自绘日历。
-- [ ] 7. 标签白名单扩展到 8 个 + `normalizeDishTags()` 截断到 2 个 + 菜单按标签筛选 + 用户端只展示 2 个的回归。
-- [ ] 8. 缓存版本 bump、字体子集、QA、文档更新。
+- [x] 1. 人确认 8 项方案 + 标签上限 2 个 + 输入字号方案 A（2026-11-09）。
+- [x] 2. 导航：系统导航页 + 通知二级页 + 桌面侧栏 + 角标。
+- [x] 3. 首页：用户端入口 + 待办口径 + 排序/标红。
+- [x] 4. 订单详情二级页 + 卡片入口 + 操作条。
+- [x] 5. 输入字号：16px 计算 + 缩放 + viewport。
+- [x] 6. 回忆弹窗重排 + 自绘日历。
+- [x] 7. 标签扩展到 8 个 + 上限 2 + 菜单标签筛选。
+- [x] 8. 缓存版本 bump、字体子集、文档更新；QA 待人工。
 
 ## 手动 QA 重点
 
-- 320 / 390 / 1280 三档宽度：系统导航页、通知页、首页、订单详情、回忆弹窗无横向溢出。
-- 登录后刷新是否保持登录；二级页返回是否回到来源页。
-- 通知设置保存 / 测试推送 / 模板编辑在迁移 DOM 后仍正常。
-- 出餐流程（拍照 → 确认出餐）在详情页触发时行为与列表一致。
+- 320 / 390 / 1280：系统导航页、通知页、首页、订单详情、回忆弹窗、菜单标签行无横向溢出。
+- 登录后刷新保持登录；二级页返回回到来源页；详情页 20s 轮询保持最新。
+- 通知设置保存 / 测试推送 / 模板编辑在迁 DOM 后仍正常（id 未变）。
+- 出餐流程在详情页触发时与列表一致（拍照 → 确认出餐 → 详情刷新）。
 - 回忆日期：选日期、清空、跨年、旧数据（无日期）编辑保存。
-- 标签：旧菜品打开编辑不被清空；新标签保存后用户端详情能显示。
+- 标签：旧菜品编辑不被清空；新标签保存后用户端详情显示。
+- **iOS 真机**：聚焦输入不放大、收键盘不跳、文字清晰、光标对齐。
 
 ## 风险与回滚
 
-- 通知设置整块迁移 DOM 时若漏 id，会让保存/测试静默失效 —— 迁移后用 `grep` 对照所有 `bark-*` / `link-*` id。
-- 自绘日历替代原生 `input[type=date]` 后，如需回退直接恢复原生控件即可，无数据变化。
-- 回滚方式：本次只动 `admin.html`（+ 可选的 `js/app.js` / `js/store.js`），`git revert` 单个提交即可。
+- 输入缩放方案在个别 iOS 版本可能文字发虚、光标偏移 → 回退方案 B（`.admin-input` 保持 16px，只收紧内边距/圆角）。改的是移动端媒体查询里的一段 CSS，不动结构。
+- 通知设置整块迁移已核对全部 `bark-*` / `link-*` id。
+- 自绘日历替代原生 `input[type=date]` 后如需回退，恢复原生控件即可，无数据变化。
+- `thankChef` 多写 completed 属于行为变更；如需回退删掉那 5 行即可。

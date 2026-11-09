@@ -279,6 +279,23 @@
     .cal-year-row span { padding: 4px 9px; background: #fff; border: 1px solid #d6d3ce; border-radius: 999px; color: #77706a; font-size: 8.5px; }
     .cal-year-row span.on { background: #2b2231; border-color: #2b2231; color: #fff; }
 
+    /* explanation */
+    .explain-card { padding: 16px 18px; background: #fff; border: 1px solid #d6d3ce; border-radius: 13px; max-width: 1000px; }
+    .explain-card h3 { font-size: 14px; }
+    .explain-card p { margin-top: 7px; color: #5f5954; font-size: 11.5px; line-height: 1.75; }
+    .explain-card p b { color: #2b2231; }
+    .explain-card code { padding: 1px 4px; background: #f4eee8; border-radius: 4px; color: #8a6b2c; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; }
+    .mechanism { display: grid; gap: 7px; margin-top: 12px; }
+    .mechanism-row { display: flex; align-items: center; gap: 12px; padding: 9px 11px; border: 1px solid #e1ddd7; border-radius: 10px; background: #faf8f4; }
+    .mechanism-row.ok { border-color: #cbe3da; background: #f5fbf8; }
+    .mechanism-row.bad { border-color: #eccdd3; background: #fff6f7; }
+    .mech-label { flex: 0 0 84px; color: #77706a; font-size: 9.5px; }
+    .mech-input { flex: 0 0 120px; display: block; padding: 5px 8px; background: #fff; border: 1px solid #d6d3ce; border-radius: 7px; color: #232323; }
+    .mech-result { flex: 1; color: #6b6560; font-size: 10px; line-height: 1.55; }
+    .mech-result b { color: #b94a63; }
+    .mechanism-row.ok .mech-result b { color: #447a6d; }
+    .explain-foot { margin-top: 11px; padding-top: 10px; border-top: 1px dashed #e1ddd7; }
+
     /* tags */
     .tag-picker { display: flex; flex-wrap: wrap; gap: 5px; }
     .tag-picker span { padding: 4px 9px; background: #fff; border: 1px solid #d6d3ce; border-radius: 999px; color: #77706a; font-size: 9px; }
@@ -387,10 +404,10 @@
 
 <header class="page-head">
     <p class="eyebrow">LJ-20261109-001 · ADMIN UX</p>
-    <h1>管理端体验优化 · 原型 v2</h1>
-    <p>这版已按你的确认更新：答谢即完成、已接单只在饭点当日进待办、用户端入口只放顶部、订单详情用二级页、输入框全局 14px 并禁止缩放、回忆保留大图、8 个菜品标签、系统角标和菜单标签筛选。原型里的文案、数字、按钮都是示意，不是线上数据。</p>
+    <h1>管理端体验优化 · 原型 v3</h1>
+    <p>这版按你最新的两点补充：<b>标签最多选 2 个</b>（和用户卡显示数一致），<b>酱香和红烧都保留</b>。D 段重写了「为什么 16px 不放大、改成 14px 会放大」的说明。原型里的文案、数字、按钮都是示意，不是线上数据。</p>
     <div class="scope-note">
-        <b>本版已定：</b>①「谢谢大厨」= 完成订单（方案 A）；② 已接单只在饭点当天出现在「需要你处理」；③ 用户端入口只放顶部右侧；④ 订单详情做二级页；⑤ 输入框全局 14px + 禁止缩放；⑥ 回忆保留 4:3 大图；⑦ 标签共 8 个：下饭 / 香辣 / 酸甜 / 咸鲜 / 拿手菜 / 酱香 / 暖胃 / 红烧；⑧ 做系统角标 + 菜单按标签筛选。
+        <b>本版已定：</b>①「谢谢大厨」= 完成订单；② 已接单只在饭点当天进待办；③ 用户端入口只放顶部右侧；④ 订单详情二级页；⑤ 输入视觉 14px + 禁止缩放；⑥ 回忆保留 4:3 大图；⑦ 标签 8 个，<b>每个菜最多选 2 个</b>；⑧ 系统角标 + 菜单按标签筛选。
     </div>
     <div class="legend">
         <span><i class="dot accent"></i>改动点</span>
@@ -403,10 +420,10 @@
     <div class="ia-card"><b>1 · 首页打开用户端</b><p>只放顶部右侧「用户端 ↗」；有 `space.settings.links.user` 用它，本地测试库用相对 `index.html` 并保留 `?env`。</p></div>
     <div class="ia-card"><b>2 · 需要你处理 = 未完单</b><p>待接单 / 备菜中 / 制作中 / 已出餐 + 超时订单 + 菜品申请；已接单只在<b>饭点当天</b>出现；已完成、已取消不出现。</p></div>
     <div class="ia-card"><b>3 · 系统只做导航</b><p>Bark 从系统页抽成独立二级页「通知」，系统页只保留导航行；桌面侧栏同步。</p></div>
-    <div class="ia-card"><b>4 · 输入字号</b><p>视觉全局 14px；输入框保持 16px 计算字号再缩放，避开 iOS 聚焦放大，见 D 段。</p></div>
+    <div class="ia-card"><b>4 · 输入字号</b><p>视觉 14px；但 iOS 在计算字号 &lt;16px 时会自动放大页面，所以要用「16px 计算 + 缩放」，原因见 D 段。</p></div>
     <div class="ia-card"><b>5 · 新增回忆移动端</b><p><b>保留 4:3 大图</b>（限高，点开看原图）；日期换成整行日期按钮 + 日历弹层，保存条固定。</p></div>
     <div class="ia-card"><b>6 · 订单详情</b><p>订单卡片整卡可点开二级详情：菜品、出餐图、备注、支付、状态时间线、操作。</p></div>
-    <div class="ia-card"><b>7 · 菜品标签扩展</b><p>标签 3 个扩到 <b>8 个</b>（新增咸鲜 / 拿手菜 / 酱香 / 暖胃 / 红烧）；用户卡只显示前两个。</p></div>
+    <div class="ia-card"><b>7 · 菜品标签扩展</b><p>标签 3 个扩到 <b>8 个</b>（新增咸鲜 / 拿手菜 / 酱香 / 暖胃 / 红烧）；每个菜<b>最多选 2 个</b>，和用户卡显示数一致。</p></div>
     <div class="ia-card"><b>补充建议</b><p>已采纳：系统行处理角标、菜单按标签筛选。其余（详情页内出餐、催单置顶、桌面入口、列表缩略图）见 G 段。</p></div>
 </section>
 
@@ -777,7 +794,21 @@
 
 <div class="section-divider"></div>
 
-<h2 class="block-head">D · 输入字号：全局 14px + 禁止缩放 <span>对应第 4 条 · 已确认方案 B</span></h2>
+<h2 class="block-head">D · 输入字号：为什么 16px 不放大、14px 会放大 <span>对应第 4 条</span></h2>
+
+<section class="spec">
+    <div class="explain-card">
+        <h3>机制：iOS 看的是「计算字号」，不是你想显示多大</h3>
+        <p>Safari 有一条硬规则：<b>聚焦到计算 font-size &lt; 16px 的输入框时，自动把整个页面放大</b>（大约 1.14 倍），并且<b>键盘收起后不会自动缩回</b>，只能手动捏合回来。它判断的是 CSS 计算出来的字号，不看你的视觉意图。</p>
+        <div class="mechanism">
+            <div class="mechanism-row ok"><span class="mech-label">现在</span><span class="mech-input" style="font-size:16px">每周按摩卡</span><span class="mech-result">计算字号 16px → <b>不放大</b></span></div>
+            <div class="mechanism-row bad"><span class="mech-label">直接改 14px</span><span class="mech-input" style="font-size:14px">每周按摩卡</span><span class="mech-result">计算字号 14px → <b>页面被放大，收键盘也不回</b></span></div>
+            <div class="mechanism-row ok"><span class="mech-label">方案 A</span><span class="mech-input" style="font-size:16px;transform:scale(.875);transform-origin:left center">每周按摩卡</span><span class="mech-result">计算字号 16px（不放大），渲染缩到 14px → <b>看起来小，也不放大</b></span></div>
+        </div>
+        <p class="explain-foot">所以：<b>你要的 14px 可以直接写</b>，代价是 iOS 上聚焦会放大；要同时拿到「小字号」和「不放大」，就得让计算字号保持 16px，再把渲染缩下来。这跟 viewport 无关 —— <code>user-scalable=no</code> 在 iOS 10+ 的 Safari 里被忽略，挡不住这条规则。</p>
+    </div>
+</section>
+
 <main class="frames">
 
     <section class="frame-wrap">
@@ -794,14 +825,14 @@
                     <div class="form-field" style="margin-top:8px"><label>备注</label><div class="input" style="font-size:16px;padding:8px 9px">零花钱</div></div>
                     <div class="form-field" style="margin-top:8px"><label>描述</label><div class="input" style="font-size:16px;padding:8px 9px;min-height:46px">多放一点葱花，谢谢</div></div>
                 </div>
-                <div class="hint-box">当前 CSS：`@media (max-width:899px)` 把所有 input/textarea/select 强制 16px，比周围 9–11px 的正文大出一截。</div>
+                <div class="hint-box">现状是「凑够 16px 所以不放大」，不是你想要的字号。真正的问题是<b>输入框比 10–11px 的正文和标签大出一截</b>。</div>
             </div>
         </div>
-        <p class="frame-note">16px 原本是为了绕开 iOS 聚焦放大，但代价是<b>输入框比页面其他文字大很多</b>，表单显得笨重。</p>
+        <p class="frame-note">这就是为什么现在是 16px：不是为了好看，是为了绕开放大规则。</p>
     </section>
 
     <section class="frame-wrap">
-        <h3>D2 · 改后<em>全局 14px</em></h3>
+        <h3>D2 · 方案 A<em>16px 计算 · 14px 视觉</em></h3>
         <div class="phone" style="height:auto">
             <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
             <div class="screen">
@@ -814,21 +845,21 @@
                     <div class="form-field" style="margin-top:8px"><label>备注</label><div class="input" style="font-size:14px;padding:8px 9px">零花钱</div></div>
                     <div class="form-field" style="margin-top:8px"><label>描述</label><div class="input" style="font-size:14px;padding:8px 9px;min-height:46px">多放一点葱花，谢谢</div></div>
                 </div>
-                <div class="hint-box">视觉输入 14px / 标签 10px / 正文 10–11px / 按钮 11px。桌面端仍是 13px。聚焦不改变布局，页面不缩放。</div>
+                <div class="hint-box">视觉：输入 14px / 标签 10px / 正文 10–11px。桌面端 13px 不变。聚焦时布局不动、页面不放大、收键盘也不变。</div>
             </div>
         </div>
-        <p class="frame-note">视觉直接落到 14px，<b>不再用“聚焦切 16px”的临时手段</b>；iOS 放大问题由 D3 的「计算字号 16px + 缩放」解决，所以不会出现“关掉键盘回不去”的情况。</p>
+        <p class="frame-note">实现：移动端输入控件 <code>font-size:16px</code> + <code>transform: scale(.875); transform-origin: left center</code> + <code>width: 114.29%</code> 补偿宽度。计算字号仍是 16px，所以 Safari 不放大。</p>
     </section>
 
     <section class="frame-wrap" style="width: 660px; max-width: 100%;">
-        <h3>D3 · 怎么做到「14px 视觉 + 不放大」<em>需要真机确认</em></h3>
+        <h3>D3 · 三个选择<em>请选一个</em></h3>
         <div class="opt-grid">
-            <div class="opt-card recommend"><h4>① 视觉 14px，计算字号仍 16px<em>推荐</em></h4><p>iOS 判断是否放大只看<b>输入框的计算 font-size</b>。输入框保持 <code>font-size: 16px</code>（不触发放大），再用 <code>transform: scale(0.875)</code> + <code>width: 114.29%</code> 把视觉缩到 14px。布局不跳、字号不放大、也不会有“关键盘回不去”。</p></div>
-            <div class="opt-card"><h4>② viewport 关缩放<em>只对部分浏览器有效</em></h4><p><code>maximum-scale=1, user-scalable=no</code> 在 iOS 10+ Safari 会被忽略（它只管输入聚焦放大之外的手势），但在微信内嵌 WebView / 部分安卓上有效。<b>可以加，但不能只靠它。</b></p></div>
-            <div class="opt-card"><h4>③ 禁双击 / 捏合<em>兜底</em></h4><p><code>touch-action: manipulation</code> 去掉双击放大；<code>gesturestart</code> 阻止捏合。只禁页面缩放，输入框内的选词、光标拖动不受影响。</p></div>
-            <div class="opt-card"><h4>④ 回退方案</h4><p>若 ① 在某个 iOS 版本上出现文字发虚或光标错位，回退成「聚焦瞬间 16px、失焦回 14px」；页面只在聚焦时轻微位移，不会持续放大。</p></div>
+            <div class="opt-card recommend"><h4>方案 A · 16px 计算 + 缩放<em>推荐</em></h4><p>视觉 14px，页面不放大，收键盘不回缩。代价：需要真机确认文字清晰度和光标对齐；个别 iOS 版本缩放后光标可能偏 1–2px。</p></div>
+            <div class="opt-card"><h4>方案 B · 保持 16px，只收紧外观<em>最稳</em></h4><p>不动字号，减少内边距（9→8px）、圆角（10→8px）和行高，字号仍是 16px。零风险，但“字大”的观感还在。</p></div>
+            <div class="opt-card"><h4>方案 C · 直接 14px，接受放大</h4><p>一行 CSS 搞定、字体最清晰；代价是 iOS 上每次聚焦页面放大，键盘收起后要手动捏合回来 —— 就是你担心的那个问题。</p></div>
+            <div class="opt-card"><h4>只在桌面减小</h4><p>桌面端本来就 13px；这条只处理移动端。平板（≥900px）按桌面走，不受影响。</p></div>
         </div>
-        <div class="hint-box" style="margin-top:10px"><b>验收方式（真机）：</b>聚焦任意输入框 → 页面不放大、键盘收起后布局不变；双指捏合 → 不缩放；输入框内长按选词、光标拖动正常；文字不模糊、光标位置与实际文字对齐。</div>
+        <div class="hint-box" style="margin-top:10px"><b>我的建议：</b>先上方案 A，真机试一次；如果觉得文字发虚或光标偏，直接切方案 B（只改 CSS 一行，不动结构）。<b>方案 C 不建议</b>，你已经明确说不想要“关掉键盘回不去”。</div>
     </section>
 
 </main>
@@ -960,7 +991,7 @@
             </table>
         </div>
         <p class="frame-note" style="max-width:980px">实现只改 <b>`DISH_TAG_OPTIONS`</b>（`js/store.js`）和 `admin.html` 的 `MENU_TAGS`，两边必须同序。旧菜品的三个标签继续有效，因为 `normalizeDishTags()` 只保留白名单内的值 —— <b>只加不减</b>，删除任何一个都会让线上旧菜丢标签。加完跑一次字体子集，否则“酱 / 鲜 / 胃”等新字会回退宋体。</p>
-        <div class="hint-box" style="margin-top:9px">「酱香」和「红烧」会有重叠（红烧肉既是酱香也是红烧）。如果觉得重复，可以只保留「红烧」或只保留「酱香」，你定。</div>
+        <div class="hint-box" style="margin-top:9px">「酱香」和「红烧」都保留（已确认），两者语义有重叠，一道红烧肉可以两个都选 —— 正好用满 2 个标签。</div>
     </div>
 
     <div class="frames" style="margin-top:18px">
@@ -971,15 +1002,15 @@
                 <div class="screen" style="padding-bottom:16px">
                     <div class="m-topbar"><h2>编辑菜品</h2></div>
                     <div class="form-field"><label>菜名</label><div class="input" style="font-size:14px;padding:8px 9px">红烧肉</div></div>
-                    <div class="form-field"><label>标签（非必选，多选）</label>
+                    <div class="form-field"><label>标签（非必选，最多 2 个）</label>
                         <div class="tag-picker">
-                            <span class="on">下饭</span><span>香辣</span><span>酸甜</span><span>咸鲜</span><span class="on">拿手菜</span><span class="on">酱香</span><span>暖胃</span><span class="on">红烧</span>
+                            <span class="on">下饭</span><span>香辣</span><span>酸甜</span><span>咸鲜</span><span>拿手菜</span><span class="on">酱香</span><span>暖胃</span><span>红烧</span>
                         </div>
                     </div>
-                    <div class="form-note">用户端菜品卡只显示前 2 个（按选择顺序）；详情页显示全部。选择器扩展后仍可多选，不做数量限制。</div>
+                    <div class="form-note">选满 2 个后，其余标签变灰不可点；再点已选的可以取消。用户卡和详情页都只展示这 2 个。</div>
                 </div>
             </div>
-            <p class="frame-note">选择器从 3 个变 8 个，一行放下 5–6 个，390 宽换两行。选中态沿用现有配色（米色底 + 棕字）。</p>
+            <p class="frame-note">选择器从 3 个变 8 个，一行放下 5–6 个，390 宽换两行。选中态沿用现有配色（米色底 + 棕字）。选满 2 个后其余置灰，避免选了个不显示的。<b>现有 29 道菜里最多只有 2 个标签，所以加限制不会改动任何线上数据。</b></p>
         </section>
 
         <section class="frame-wrap">
@@ -1003,10 +1034,10 @@
                         <span class="meta"><b>可乐鸡翅</b><small>60 分钟</small><span class="tags"><span>拿手菜</span><span>咸鲜</span></span></span>
                         <span class="price">28</span>
                     </div>
-                    <div class="hint-box">用户端卡片仍只取 `tags.slice(0, 2)`，所以建议把最重要的两个先选。详情页展示全部标签。</div>
+                    <div class="hint-box">用户端卡片和详情都只显示这 2 个；后台菜单列表、筛选也按这 2 个走，不再出现“选了但不显示”的情况。</div>
                 </div>
             </div>
-            <p class="frame-note">新增标签不影响旧菜：没有标签的菜照常显示，编辑保存时只保留白名单内的值。</p>
+            <p class="frame-note">新增标签不影响旧菜：没有标签的菜照常显示，编辑保存时只保留白名单内的值。标签上限 2 个在 `normalizeDishTags()` 里一并截断，线上现有菜品最多就是 2 个，不会被截掉。</p>
         </section>
 
         <section class="frame-wrap">
@@ -1061,7 +1092,7 @@
 
 <footer class="page-head" style="margin-top:34px;padding-top:16px;border-top:1px solid #d3cfc9">
     <p class="eyebrow">下一步</p>
-    <p style="margin-top:6px;color:#625c59;font-size:12px;line-height:1.75">这版是 <b>v2</b>，已把你的 8 条确认全部画进原型。看完若无异议，我按 <code>docs/work/LJ-20261109-001-admin-ux/plan.md</code> 开始改 <code>admin.html</code>，并在实现后用真机验证禁止缩放。</p>
+    <p style="margin-top:6px;color:#625c59;font-size:12px;line-height:1.75">这版是 <b>v3</b>：标签上限改成 2 个，D 段补了「为什么 16px 不放大、14px 会放大」的说明。看完后请回一句 D 段选 A / B / C，我就按 <code>docs/work/LJ-20261109-001-admin-ux/plan.md</code> 开始改 <code>admin.html</code>。</p>
 </footer>
 
 </body>

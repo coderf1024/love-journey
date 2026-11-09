@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理端体验优化原型 · 首页快捷入口 / 系统导航 / 通知二级 / 订单详情 · LJ-20261109-001</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+        --paper: #fbf6ec;
+        --paper-soft: #fffdf8;
+        --ink: #2b2231;
+        --ink-2: #453a4b;
+        --muted: #8d8782;
+        --stamp: #b94a63;
+        --stamp-deep: #9f3a52;
+        --line: rgba(43, 34, 49, .12);
+        --line-strong: rgba(43, 34, 49, .2);
+        --mint: #ddf1e8;
+        --lemon: #f6d478;
+        --font-display: "Noto Serif SC", "Songti SC", "STSong", "SimSun", serif;
+        --font-ui: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    body {
+        padding: 36px 26px 80px;
+        color: #232323;
+        background: #e9e7e3;
+        font-family: var(--font-ui);
+        -webkit-font-smoothing: antialiased;
+    }
+    button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+    img { display: block; }
+    .page-head { max-width: 1320px; margin: 0 auto 26px; }
+    .eyebrow { color: #8a7b78; font-size: 11px; font-weight: 700; letter-spacing: .2em; }
+    .page-head h1 { margin-top: 6px; font-size: 28px; letter-spacing: .01em; }
+    .page-head p { max-width: 960px; margin-top: 10px; color: #625c59; font-size: 14px; line-height: 1.75; }
+    .page-head p b { color: #2b2231; }
+    .scope-note { max-width: 960px; margin-top: 12px; padding: 10px 13px; background: #fff8e8; border: 1px dashed #d8b56b; border-radius: 10px; color: #8a6b2c; font-size: 11.5px; line-height: 1.65; }
+    .scope-note b { color: #6d5220; }
+    .legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 14px; color: #777; font-size: 11px; }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .dot { width: 8px; height: 8px; display: inline-block; border-radius: 999px; }
+    .dot.accent { background: var(--stamp); }
+    .dot.line { border: 1px solid #999; }
+    .dot.dash { border: 1px dashed #999; }
+
+    .ia { max-width: 1320px; margin: 0 auto 34px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .ia-card { padding: 13px 15px; background: #f6f3ee; border: 1px solid #d6d3ce; border-radius: 12px; }
+    .ia-card.wide { grid-column: 1 / -1; }
+    .ia-card b { display: block; margin-bottom: 5px; font-size: 12px; }
+    .ia-card p { color: #6b6560; font-size: 10.5px; line-height: 1.65; }
+    .ia-card p + p { margin-top: 4px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+    .chip { padding: 3px 8px; background: #fff; border: 1px solid #d6d3ce; border-radius: 999px; color: #6b6560; font-size: 9.5px; }
+    .chip.strong { background: #2b2231; border-color: #2b2231; color: #fff; }
+    .chip.accent { background: #f6e2e6; border-color: #dcb9c1; color: var(--stamp); }
+
+    h2.block-head { max-width: 1320px; margin: 0 auto 14px; padding-top: 8px; font-size: 18px; letter-spacing: .01em; }
+    h2.block-head span { margin-left: 8px; color: var(--stamp); font-size: 11px; font-weight: 600; letter-spacing: .12em; }
+    h2.block-head + .frames { margin-top: 0; }
+    .section-divider { max-width: 1320px; height: 1px; margin: 38px auto 26px; background: #d3cfc9; }
+
+    .frames { display: flex; flex-wrap: wrap; gap: 36px 28px; align-items: flex-start; max-width: 1320px; margin: 0 auto; }
+    .frame-wrap { width: 320px; }
+    .frame-wrap h3 { margin-bottom: 8px; font-size: 13px; font-weight: 700; letter-spacing: .02em; }
+    .frame-wrap h3 em { margin-left: 5px; color: var(--stamp); font-style: normal; font-size: 10px; font-weight: 600; letter-spacing: .1em; }
+    .frame-note { margin: 8px 2px 0; color: #6f6862; font-size: 10.5px; line-height: 1.65; }
+    .frame-note b { color: #2b2231; }
+
+    .phone { width: 320px; height: 660px; display: flex; flex-direction: column; overflow: hidden; background: #fdfdfb; border: 2px solid #2a2a2a; border-radius: 26px; box-shadow: 0 18px 34px -22px rgba(0, 0, 0, .45); }
+    .statusbar { flex: 0 0 auto; display: flex; justify-content: space-between; padding: 9px 18px 4px; color: #8d8d8d; font-size: 9px; letter-spacing: .08em; }
+    .screen { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; padding: 8px 14px 12px; overflow: hidden; }
+    .screen.scroll { overflow-y: auto; scrollbar-width: none; }
+    .screen.scroll::-webkit-scrollbar { display: none; }
+
+    .m-topbar { display: flex; align-items: center; gap: 8px; min-height: 30px; }
+    .m-topbar h2 { font-size: 17px; letter-spacing: -.01em; }
+    .m-topbar .right { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+    .m-topbar .sub { display: grid; gap: 1px; }
+    .m-topbar .sub b { font-size: 12px; }
+    .m-topbar .sub small { color: #8d8782; font-size: 9px; }
+    .avatar-sm { width: 30px; height: 30px; flex: 0 0 30px; display: grid; place-items: center; overflow: hidden; background: #f4d9dd; border: 1px solid #d9bcc1; border-radius: 999px; color: #a35163; font-size: 11px; font-weight: 700; }
+    .avatar-sm img { width: 100%; height: 100%; object-fit: cover; }
+    .icon-btn { position: relative; width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid #d6d3ce; border-radius: 999px; color: #625c59; font-size: 12px; background: #fff; }
+    .back-btn { width: 24px; font-size: 18px; line-height: 1; color: #555; }
+
+    .greet { padding: 3px 1px 0; }
+    .greet h3 { font-size: 20px; letter-spacing: -.02em; }
+    .greet p { margin-top: 2px; color: #8d8782; font-size: 10px; }
+    .next-meal { padding: 12px 13px; color: #fff; background: #2b2231; border-radius: 15px; }
+    .next-meal .wf-label { color: rgba(255,255,255,.55); }
+    .next-meal b { display: block; margin-top: 3px; font-size: 15px; }
+    .next-meal p { margin-top: 2px; color: rgba(255,255,255,.68); font-size: 10px; }
+    .next-foot { display: flex; align-items: center; margin-top: 9px; }
+    .next-foot > span:first-child { color: #f0c7ce; font-size: 9.5px; }
+    .next-foot .btn { margin-left: auto; }
+    .btn.light { background: #fff; border-color: #fff; color: #2b2231; }
+
+    .wf-label { color: #9a938e; font-size: 8px; font-weight: 700; letter-spacing: .14em; }
+    .section-head { display: flex; align-items: baseline; margin-top: 1px; }
+    .section-head b { font-size: 12px; }
+    .section-head span { margin-left: auto; color: #9a938e; font-size: 9px; }
+    .todo { display: grid; gap: 6px; }
+    .todo-row { display: flex; align-items: center; gap: 8px; padding: 8px 9px; background: #fff; border: 1px solid #d6d3ce; border-radius: 10px; }
+    .todo-icon { width: 24px; height: 24px; flex: 0 0 24px; display: grid; place-items: center; background: #f4e4e6; border-radius: 7px; color: #b94a63; font-size: 10px; }
+    .todo-icon.calm { background: #ecebe7; color: #7b746d; }
+    .todo-icon.ready { background: #e3efeb; color: #447a6d; }
+    .todo-main { flex: 1; min-width: 0; display: grid; gap: 1px; }
+    .todo-main b { font-size: 10px; }
+    .todo-main small { color: #8d8782; font-size: 8.5px; }
+    .todo-row .btn { padding: 4px 8px; font-size: 9px; }
+    .todo-row.is-late { border-color: #dcb9c1; background: #fff8f9; }
+
+    .quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .quick.two { grid-template-columns: repeat(2, 1fr); }
+    .quick button { padding: 9px 4px; background: #f7f5f1; border: 1px dashed #c9c4bd; border-radius: 10px; color: #625c59; font-size: 9.5px; }
+    .quick button b { display: block; margin-bottom: 2px; font-size: 14px; font-weight: 400; }
+    .quick button.is-new { border-style: solid; border-color: #2b2231; background: #fff; }
+
+    .tabbar { flex: 0 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); padding: 7px 8px 9px; border-top: 1px solid #e1ddd7; background: #fbf9f5; }
+    .tab { position: relative; text-align: center; color: #948d87; font-size: 8.5px; }
+    .tab b { display: block; margin-bottom: 1px; font-size: 15px; font-weight: 400; line-height: 1.1; }
+    .tab.active { color: #b94a63; }
+    .tab .badge { position: absolute; top: -2px; right: 16%; min-width: 13px; height: 13px; display: grid; place-items: center; padding: 0 3px; background: #b94a63; border-radius: 999px; color: #fff; font-size: 7px; }
+
+    .card { padding: 10px 11px; background: #f7f5f1; border: 1px solid #d6d3ce; border-radius: 12px; }
+    .card.white { background: #fff; }
+    .card + .card { margin-top: 7px; }
+    .order-top { display: flex; align-items: center; gap: 6px; }
+    .order-top b { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9.5px; letter-spacing: -.02em; }
+    .order-top .pill { margin-left: auto; }
+    .order-top .chev { color: #b3aca5; font-size: 13px; margin-left: 2px; }
+    .wait { display: flex; align-items: center; gap: 4px; margin-top: 3px; color: #b94a63; font-size: 8.5px; }
+    .wait::before { content: ""; width: 4px; height: 4px; background: #b94a63; border-radius: 999px; }
+    .item { display: flex; align-items: center; gap: 7px; margin-top: 7px; }
+    .item img { width: 38px; height: 38px; flex: 0 0 38px; object-fit: cover; border-radius: 8px; }
+    .item .item-main { flex: 1; min-width: 0; display: grid; gap: 1px; }
+    .item .item-main b { font-size: 10px; }
+    .item .item-main small { color: #8d8782; font-size: 8px; }
+    .item em { color: #8d8782; font-size: 8.5px; font-style: normal; }
+    .note { margin-top: 7px; padding: 6px 8px; background: #fff; border-left: 2px solid #d9bcc1; color: #77706a; font-size: 9px; line-height: 1.5; }
+    .order-foot { display: flex; align-items: center; margin-top: 8px; padding-top: 7px; border-top: 1px dashed #d6d3ce; }
+    .order-foot > b { font-size: 11px; }
+    .order-foot .actions { display: flex; gap: 5px; margin-left: auto; }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 3px; padding: 5px 10px; background: #fff; border: 1px solid #2a2a2a; border-radius: 999px; color: #2a2a2a; font-size: 9.5px; white-space: nowrap; }
+    .btn.dark { background: #2b2231; border-color: #2b2231; color: #fff; }
+    .btn.accent { background: #b94a63; border-color: #b94a63; color: #fff; }
+    .btn.ghost { border-color: #cfc9c1; color: #6b6560; }
+    .btn.danger { border-color: #dcb9c1; color: #b94a63; }
+    .btn.block { width: 100%; padding: 8px 10px; }
+    .btn.sm { padding: 3px 8px; font-size: 8.5px; }
+
+    .pill { display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 999px; font-size: 8px; white-space: nowrap; }
+    .pill.accent { background: #f6e2e6; color: #b94a63; }
+    .pill.warm { background: #f4eadb; color: #8a7351; }
+    .pill.orange { background: #f8e4d7; color: #b36a3b; }
+    .pill.green { background: #e3efeb; color: #447a6d; }
+    .pill.dark { background: #2b2231; color: #fff; }
+    .status-text { color: #9a938e; font-size: 8px; white-space: nowrap; }
+
+    .filters { display: flex; gap: 5px; overflow: hidden; }
+    .filter { flex: 0 0 auto; padding: 5px 10px; border: 1px solid #d6d3ce; border-radius: 999px; color: #77706a; font-size: 9px; white-space: nowrap; }
+    .filter.active { background: #2b2231; border-color: #2b2231; color: #fff; }
+
+    .slot-hero { padding: 12px 13px; background: #f7f5f1; border: 1px solid #d6d3ce; border-radius: 13px; }
+    .slot-hero .wf-label { display: block; margin-bottom: 3px; }
+    .slot-hero b { display: block; font-size: 16px; }
+    .slot-hero p { margin-top: 2px; color: #8d8782; font-size: 9px; }
+    .slot-hero .countdown { margin-top: 8px; padding-top: 7px; border-top: 1px dashed #d6d3ce; color: #b94a63; font-size: 9.5px; }
+
+    .detail-items { overflow: hidden; background: #fff; border: 1px solid #d6d3ce; border-radius: 11px; }
+    .detail-item { display: flex; align-items: center; gap: 7px; padding: 8px 10px; border-bottom: 1px dashed #e1ddd7; }
+    .detail-item:last-child { border-bottom: 0; }
+    .detail-item img { width: 32px; height: 32px; flex: 0 0 32px; object-fit: cover; border-radius: 7px; }
+    .detail-item span { flex: 1; min-width: 0; }
+    .detail-item span b { display: block; margin-bottom: 1px; font-size: 10px; }
+    .detail-item span small { display: block; color: #8d8782; font-size: 8px; }
+    .detail-item > b { font-size: 9.5px; }
+    .pay-row { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #f7f5f1; border: 1px solid #d6d3ce; border-radius: 10px; font-size: 9.5px; }
+    .pay-row b { margin-left: auto; font-size: 11px; }
+    .pay-row small { color: #8d8782; font-size: 8px; }
+
+    .served-block { display: grid; gap: 5px; padding: 9px 10px; background: #fff; border: 1px solid #d6d3ce; border-radius: 11px; }
+    .served-block > b { font-size: 9.5px; }
+    .served-block small { color: #8d8782; font-size: 8px; }
+    .served-photos { display: flex; gap: 6px; }
+    .served-photos span { width: 64px; height: 64px; overflow: hidden; border-radius: 8px; background: #f3eee7; font-size: 18px; display: grid; place-items: center; }
+    .served-photos img { width: 100%; height: 100%; object-fit: cover; }
+
+    .timeline { padding: 8px 10px 4px; background: #fff; border: 1px solid #d6d3ce; border-radius: 11px; }
+    .timeline-row { position: relative; display: flex; padding: 0 0 9px 13px; font-size: 9px; }
+    .timeline-row::before { content: ""; position: absolute; left: 0; top: 4px; width: 5px; height: 5px; background: #b94a63; border-radius: 999px; }
+    .timeline-row::after { content: ""; position: absolute; left: 2px; top: 10px; bottom: 0; width: 1px; background: #e1ddd7; }
+    .timeline-row:last-child::after { display: none; }
+    .timeline-row span { flex: 1; }
+    .timeline-row small { color: #8d8782; font-size: 8px; font-variant-numeric: tabular-nums; }
+
+    .action-bar { flex: 0 0 auto; display: flex; gap: 7px; padding: 9px 14px 12px; border-top: 1px solid #e1ddd7; background: #fbf9f5; }
+    .action-bar .btn { flex: 1; padding: 8px 10px; }
+
+    .group { overflow: hidden; background: #f7f5f1; border: 1px solid #d6d3ce; border-radius: 12px; }
+    .group-row { display: flex; align-items: center; gap: 9px; padding: 11px 12px; border-bottom: 1px dashed #d6d3ce; font-size: 10px; }
+    .group-row:last-child { border-bottom: 0; }
+    .group-icon { width: 24px; height: 24px; flex: 0 0 24px; display: grid; place-items: center; background: #fff; border: 1px solid #d6d3ce; border-radius: 7px; color: #8a837c; font-size: 9px; }
+    .group-row .g-main { flex: 1; min-width: 0; display: grid; gap: 1px; }
+    .group-row .g-main b { font-size: 10.5px; }
+    .group-row .g-main small { color: #8d8782; font-size: 8.5px; }
+    .group-row .chev { color: #b3aca5; font-size: 13px; }
+    .group-title { padding: 10px 2px 5px; color: #9a938e; font-size: 8px; font-weight: 700; letter-spacing: .14em; }
+    .profile-card { display: flex; align-items: center; gap: 10px; padding: 12px; background: #f7f5f1; border: 1px solid #d6d3ce; border-radius: 13px; }
+    .profile-card .avatar-sm { width: 42px; height: 42px; flex-basis: 42px; }
+    .profile-card b { font-size: 13px; }
+    .profile-card small { display: block; margin-top: 2px; color: #8d8782; font-size: 8.5px; }
+    .profile-card .chev { margin-left: auto; color: #b3aca5; }
+
+    .switch { width: 30px; height: 17px; flex: 0 0 30px; margin-left: auto; padding: 2px; background: #d6d3ce; border-radius: 999px; }
+    .switch i { display: block; width: 13px; height: 13px; background: #fff; border-radius: 999px; }
+    .switch.on { background: #b94a63; }
+    .switch.on i { margin-left: 13px; }
+    .row-actions { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+
+    .form-field { display: grid; gap: 4px; }
+    .form-field label { color: #77706a; font-size: 8.5px; }
+    .input { padding: 7px 9px; background: #fff; border: 1px solid #d6d3ce; border-radius: 8px; color: #232323; font-size: 9.5px; }
+    .input.placeholder { color: #aaa39c; }
+    .input.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: -.02em; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+    .form-note { padding: 7px 9px; background: #f4eee8; border: 1px dashed #c9c4bd; border-radius: 8px; color: #77706a; font-size: 8.5px; line-height: 1.55; }
+    .hint-box { padding: 9px 10px; background: #f4eee8; border: 1px dashed #c9c4bd; border-radius: 9px; color: #77706a; font-size: 8.5px; line-height: 1.55; }
+    .hint-box b { color: #232323; }
+    .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .stat { padding: 8px 4px; text-align: center; background: #f7f5f1; border: 1px solid #d6d3ce; border-radius: 10px; }
+    .stat b { display: block; font-size: 16px; }
+    .stat span { color: #8d8782; font-size: 8px; }
+    .stat:first-child b { color: #b94a63; }
+
+    /* milestone old layout */
+    .photo-upload { height: 150px; display: grid; place-items: center; background: #f7f5f1; border: 1px dashed #b7b1aa; border-radius: 11px; color: #9a938e; font-size: 9px; text-align: center; }
+    .photo-upload b { display: block; margin-bottom: 2px; font-size: 18px; font-weight: 400; }
+    .readonly { display: flex; align-items: center; min-height: 30px; padding: 6px 9px; background: #f2efea; border: 1px solid #d6d3ce; border-radius: 8px; color: #8d8782; font-size: 9px; }
+    .upload-row { display: flex; align-items: center; gap: 6px; }
+    .upload-row .status { color: #8d8782; font-size: 8px; }
+
+    /* milestone new layout */
+    .cover-row { display: flex; align-items: center; gap: 10px; padding: 9px; background: #fff; border: 1px solid #d6d3ce; border-radius: 11px; }
+    .cover-thumb { width: 84px; height: 63px; flex: 0 0 84px; display: grid; place-items: center; overflow: hidden; background: linear-gradient(145deg, #ffe4ea, #ffc8d6); border-radius: 8px; color: rgba(43,34,49,.5); font-size: 8px; }
+    .cover-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .cover-main { flex: 1; min-width: 0; display: grid; gap: 4px; }
+    .cover-main small { color: #8d8782; font-size: 8px; line-height: 1.45; }
+    .cover-actions { display: flex; align-items: center; gap: 6px; }
+    .cover-actions .link { color: #b94a63; font-size: 8.5px; }
+    .date-button { display: flex; align-items: center; gap: 8px; padding: 9px 10px; background: #fff; border: 1px solid #d6d3ce; border-radius: 9px; }
+    .date-button .cal { width: 22px; height: 22px; display: grid; place-items: center; background: #f4e4e6; border-radius: 6px; color: #b94a63; font-size: 10px; }
+    .date-button .date-main { flex: 1; display: grid; gap: 1px; }
+    .date-button .date-main b { font-size: 11px; font-variant-numeric: tabular-nums; }
+    .date-button .date-main small { color: #8d8782; font-size: 8px; }
+    .date-quick { display: flex; gap: 4px; }
+    .date-quick span { padding: 3px 7px; background: #fff; border: 1px solid #d6d3ce; border-radius: 999px; color: #77706a; font-size: 8px; }
+    .textarea-3 { min-height: 56px; }
+    .sheet { flex: 0 0 auto; padding: 12px 14px 14px; background: #fbf9f5; border-top: 1px solid #e1ddd7; display: grid; gap: 8px; }
+    .more-link { margin-top: 2px; color: #b94a63; font-size: 8.5px; text-align: center; }
+
+    /* calendar sheet */
+    .cal-sheet { flex: 1; min-height: 0; overflow: auto; display: grid; gap: 9px; padding: 10px 14px 12px; background: #fbf9f5; border-top: 1px solid #e1ddd7; }
+    .cal-head { display: flex; align-items: center; gap: 8px; }
+    .cal-head b { font-size: 12px; }
+    .cal-head span { margin-left: auto; color: #8d8782; font-size: 9px; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; text-align: center; }
+    .cal-grid .dow { color: #9a938e; font-size: 7.5px; }
+    .cal-grid .day { padding: 6px 0; border-radius: 7px; color: #453a4b; font-size: 9px; font-variant-numeric: tabular-nums; }
+    .cal-grid .day.mute { color: #c3bdb7; }
+    .cal-grid .day.on { background: #2b2231; color: #fff; }
+    .cal-grid .day.today { box-shadow: 0 0 0 1px #b94a63 inset; color: #b94a63; }
+    .cal-year-row { display: flex; align-items: center; gap: 6px; }
+    .cal-year-row span { padding: 4px 9px; background: #fff; border: 1px solid #d6d3ce; border-radius: 999px; color: #77706a; font-size: 8.5px; }
+    .cal-year-row span.on { background: #2b2231; border-color: #2b2231; color: #fff; }
+
+    /* tags */
+    .tag-picker { display: flex; flex-wrap: wrap; gap: 5px; }
+    .tag-picker span { padding: 4px 9px; background: #fff; border: 1px solid #d6d3ce; border-radius: 999px; color: #77706a; font-size: 9px; }
+    .tag-picker span.on { background: #f4e9dc; border-color: #d6c3a7; color: #8a7351; }
+    .tag-picker span.new { border-style: dashed; border-color: #b94a63; color: #b94a63; }
+    .tags { display: flex; flex-wrap: wrap; gap: 4px; }
+    .tags span { padding: 1px 5px; background: #f4e9dc; border-radius: 999px; color: #8a7351; font-size: 7px; }
+    .user-dish-card { display: flex; align-items: center; gap: 8px; padding: 9px; background: #fff; border: 1px solid #d6d3ce; border-radius: 11px; }
+    .user-dish-card .thumb { width: 52px; height: 52px; flex: 0 0 52px; overflow: hidden; border-radius: 9px; background: #f3eee7; }
+    .user-dish-card .thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .user-dish-card .meta { flex: 1; min-width: 0; display: grid; gap: 3px; }
+    .user-dish-card .meta b { font-size: 10.5px; }
+    .user-dish-card .meta small { color: #8d8782; font-size: 8px; }
+    .user-dish-card .price { font-size: 11px; font-weight: 700; }
+
+    /* spec / tables / suggestion cards */
+    .spec { width: 100%; max-width: 1320px; margin: 0 auto; }
+    .spec + .spec { margin-top: 12px; }
+    .table-card { overflow: hidden; background: #fff; border: 1px solid #d6d3ce; border-radius: 12px; }
+    .table-card table { width: 100%; border-collapse: collapse; font-size: 10.5px; }
+    .table-card th, .table-card td { padding: 8px 10px; border-bottom: 1px solid #ece8e2; text-align: left; vertical-align: top; }
+    .table-card th { background: #f7f5f1; color: #77706a; font-size: 9px; font-weight: 700; letter-spacing: .04em; white-space: nowrap; }
+    .table-card tr:last-child td { border-bottom: 0; }
+    .table-card td b { color: #2b2231; }
+    .table-card td code { padding: 1px 4px; background: #f4eee8; border-radius: 4px; color: #8a6b2c; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9px; }
+    .opt-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .opt-card { padding: 12px 14px; background: #fff; border: 1px solid #d6d3ce; border-radius: 12px; }
+    .opt-card.recommend { border-color: #b94a63; box-shadow: 0 0 0 1px #b94a63 inset; }
+    .opt-card h4 { font-size: 11.5px; }
+    .opt-card h4 em { margin-left: 5px; color: #b94a63; font-style: normal; font-size: 8.5px; letter-spacing: .08em; }
+    .opt-card p { margin-top: 5px; color: #6b6560; font-size: 9.5px; line-height: 1.65; }
+    .suggest-list { display: grid; gap: 8px; }
+    .suggest-row { display: flex; gap: 10px; padding: 11px 13px; background: #fff; border: 1px solid #d6d3ce; border-radius: 11px; }
+    .suggest-row .pri { flex: 0 0 46px; color: #b94a63; font-size: 9px; font-weight: 700; letter-spacing: .06em; }
+    .suggest-row .s-main { flex: 1; min-width: 0; }
+    .suggest-row .s-main b { font-size: 11px; }
+    .suggest-row .s-main p { margin-top: 3px; color: #6b6560; font-size: 9.5px; line-height: 1.6; }
+    .suggest-row .cost { flex: 0 0 auto; color: #8d8782; font-size: 8.5px; }
+
+    .browser-wrap { width: 1180px; max-width: 100%; }
+    .browser-wrap h3 { margin-bottom: 8px; font-size: 13px; font-weight: 700; }
+    .browser-wrap h3 em { margin-left: 5px; color: #b94a63; font-style: normal; font-size: 10px; letter-spacing: .1em; }
+    .browser { overflow: hidden; background: #fdfdfb; border: 2px solid #2a2a2a; border-radius: 15px; box-shadow: 0 18px 34px -24px rgba(0, 0, 0, .45); }
+    .browser-bar { display: flex; align-items: center; gap: 5px; height: 30px; padding: 0 11px; background: #f1eee8; border-bottom: 1px solid #d6d3ce; }
+    .browser-bar i { width: 8px; height: 8px; border: 1px solid #b3aca5; border-radius: 999px; }
+    .browser-url { flex: 1; max-width: 330px; margin-left: 7px; padding: 3px 9px; background: #fff; border: 1px solid #d6d3ce; border-radius: 999px; color: #9a938e; font-size: 8.5px; }
+    .web { display: flex; height: 620px; }
+    .sidebar { width: 200px; flex: 0 0 200px; display: flex; flex-direction: column; padding: 14px 10px 10px; background: #f7f5f1; border-right: 1px solid #d6d3ce; }
+    .side-brand { display: flex; align-items: center; gap: 8px; padding: 0 4px 12px; border-bottom: 1px dashed #d6d3ce; }
+    .side-brand .avatar-sm { width: 30px; height: 30px; flex-basis: 30px; }
+    .side-brand b { font-size: 11px; }
+    .side-brand small { display: block; margin-top: 1px; color: #8d8782; font-size: 7.5px; }
+    .side-label { padding: 12px 8px 4px; color: #9a938e; font-size: 8px; font-weight: 700; letter-spacing: .14em; }
+    .side-nav { display: grid; gap: 2px; }
+    .side-item { position: relative; display: flex; align-items: center; gap: 7px; padding: 7px 9px; border-radius: 8px; color: #756e67; font-size: 9.5px; }
+    .side-item b { width: 16px; text-align: center; font-size: 11px; font-weight: 400; }
+    .side-item.active { background: #2b2231; color: #fff; }
+    .side-item .count { margin-left: auto; min-width: 15px; height: 15px; display: grid; place-items: center; padding: 0 3px; background: #b94a63; border-radius: 999px; color: #fff; font-size: 7px; }
+    .web-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .web-topbar { display: flex; align-items: center; gap: 10px; padding: 12px 20px; border-bottom: 1px solid #e1ddd7; }
+    .web-topbar h4 { font-size: 15px; }
+    .web-topbar .crumb { color: #9a938e; font-size: 8.5px; }
+    .web-topbar .right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+    .web-body { flex: 1; min-height: 0; overflow: auto; padding: 15px 20px 20px; }
+    .web-cols { display: grid; grid-template-columns: 1.1fr .9fr; gap: 12px; align-items: start; }
+    .web-card { padding: 12px 13px; background: #fff; border: 1px solid #d6d3ce; border-radius: 11px; }
+    .web-card + .web-card { margin-top: 10px; }
+    .web-card-head { display: flex; align-items: baseline; margin-bottom: 7px; }
+    .web-card-head b { font-size: 11px; }
+    .web-card-head span { margin-left: auto; color: #9a938e; font-size: 8px; }
+    .web-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px dashed #e1ddd7; font-size: 9.5px; }
+    .web-row:last-child { border-bottom: 0; }
+    .web-row .g-main { flex: 1; min-width: 0; display: grid; gap: 1px; }
+    .web-row .g-main b { font-size: 10px; }
+    .web-row .g-main small { color: #8d8782; font-size: 8px; }
+    .web-row .input { width: 210px; }
+    .web-row .switch { margin-left: 0; }
+
+    @media (max-width: 900px) {
+        body { padding: 20px 14px 60px; }
+        .ia { grid-template-columns: 1fr 1fr; }
+        .frames { justify-content: center; }
+        .opt-grid { grid-template-columns: 1fr; }
+        .page-head h1 { font-size: 23px; }
+    }
+    @media (max-width: 560px) {
+        .ia { grid-template-columns: 1fr; }
+        .frame-wrap, .phone { width: 100% !important; max-width: 100%; }
+        .phone { height: 620px !important; }
+        .browser-wrap { width: 100% !important; }
+        .browser { overflow-x: auto; }
+        .browser .web { min-width: 860px; }
+    }
+    @media (max-width: 700px) {
+        .frame-wrap { width: 100%; max-width: 100%; }
+        .table-card { overflow-x: auto; }
+        .table-card table { min-width: 540px; }
+        .table-card th { white-space: normal; }
+        .spec, .suggest-list, .page-head, .ia, .frames { max-width: 100%; }
+    }
+    html { overflow-x: hidden; }
+    body { overflow-x: hidden; max-width: 100%; }
+</style>
+</head>
+<body>
+
+<header class="page-head">
+    <p class="eyebrow">LJ-20261109-001 · ADMIN UX</p>
+    <h1>管理端体验优化 · 原型 v1</h1>
+    <p>这版原型只覆盖你提的 7 条需求，外加我补充的几条建议。<b>先看原型，确认后我再改代码。</b>原型里的文案、数字、按钮都是示意，不是线上数据。</p>
+    <div class="scope-note">
+        <b>需要你确认的 3 件事：</b>① 首页「需要你处理」的状态范围（我按「所有没完单的订单」做）；②「谢谢大厨」是否直接算完单（原型按“答谢即完成”画）；③ 通知二级菜单的入口和分组是否合你的习惯。
+    </div>
+    <div class="legend">
+        <span><i class="dot accent"></i>改动点</span>
+        <span><i class="dot line"></i>现有结构</span>
+        <span><i class="dot dash"></i>待确认</span>
+    </div>
+</header>
+
+<section class="ia">
+    <div class="ia-card"><b>1 · 首页快捷打开用户端</b><p>首页顶部和快捷操作都放「用户端 ↗」；有 `space.settings.links.user` 用它，本地测试库用相对 `index.html` 并保留 `?env`。</p></div>
+    <div class="ia-card"><b>2 · 需要你处理 = 所有未完单</b><p>待接单 / 已接单 / 备菜中 / 制作中 / 已出餐 + 超时订单 + 菜品申请；已完成、已取消不出现。</p></div>
+    <div class="ia-card"><b>3 · 系统只做导航</b><p>Bark 从系统页抽成独立二级页「通知」，系统页只保留导航行；桌面侧栏同步。</p></div>
+    <div class="ia-card"><b>4 · 输入字号</b><p>移动端输入框从 16px 收到 14px，聚焦时临时 16px 以避开 iOS 自动放大。</p></div>
+    <div class="ia-card"><b>5 · 新增回忆移动端</b><p>封面改成缩略图行、日期换成整行日期按钮 + 日历弹层，保存条固定。</p></div>
+    <div class="ia-card"><b>6 · 订单详情</b><p>订单卡片整卡可点开二级详情：菜品、出餐图、备注、支付、状态时间线、操作。</p></div>
+    <div class="ia-card"><b>7 · 菜品标签扩展</b><p>3 个 → 候选 10 个（新增微辣 / 咸鲜 / 清淡 / 解腻 / 暖胃 / 冰爽 / 拿手菜）；用户卡只显示前两个。</p></div>
+    <div class="ia-card"><b>补充建议</b><p>详情页内直接出餐/取消、催单和超时置顶、菜单按标签筛选、系统页汇总角标等，见最后一段。</p></div>
+</section>
+
+<h2 class="block-head">A · 信息架构：系统只做导航，通知独立二级 <span>对应第 3 条</span></h2>
+<main class="frames">
+
+    <section class="frame-wrap">
+        <h3>A1 · 系统（现在）<em>低频维护 · 一长条</em></h3>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen scroll">
+                <div class="m-topbar"><h2>系统</h2></div>
+                <div class="profile-card"><span class="avatar-sm"><img src="../../assets/media/space-avatar.svg" alt=""></span><div><b>我们的时光</b><small>福福 &amp; 老李 · 空间资料</small></div><span class="chev">›</span></div>
+                <div class="group-title">数据</div>
+                <div class="group">
+                    <div class="group-row"><span class="group-icon">菜</span><span class="g-main"><b>菜单管理</b><small>14 道 · 12 道上架</small></span><span class="chev">›</span></div>
+                    <div class="group-row"><span class="group-icon">忆</span><span class="g-main"><b>岁月留痕</b><small>41 条回忆 · 13 条有封面</small></span><span class="chev">›</span></div>
+                    <div class="group-row"><span class="group-icon">告</span><span class="g-main"><b>更新公告</b><small>1 条已发布 · 0 条草稿</small></span><span class="chev">›</span></div>
+                </div>
+                <div class="group-title">通知</div>
+                <div class="group">
+                    <div class="group-row"><span class="group-icon">铃</span><span class="g-main"><b>Bark 推送</b><small>新单 / 接单 / 菜品申请 / 用户取消 / 开始制作 / 出餐</small></span><span class="switch on"><i></i></span></div>
+                    <div class="group-row"><span class="group-icon">用</span><div class="form-field" style="flex:1"><label>用户密钥</label><div class="input mono placeholder">28 位密钥</div></div><span class="btn sm">测试</span></div>
+                    <div class="group-row"><span class="group-icon">管</span><div class="form-field" style="flex:1"><label>管理员密钥</label><div class="input mono placeholder">28 位密钥</div></div><span class="btn sm">测试</span></div>
+                    <div class="group-row"><span class="group-icon">链</span><div class="form-field" style="flex:1"><label>用户端跳转地址</label><div class="input">https://coderf.site/index.html</div></div></div>
+                    <div class="group-row"><span class="group-icon">链</span><div class="form-field" style="flex:1"><label>管理端跳转地址</label><div class="input">https://coderf.site/admin.html</div></div></div>
+                    <div class="group-row"><span class="group-icon">时</span><span class="g-main"><b>发送时机</b><small>默认全开，可单独关闭</small></span></div>
+                    <div class="group-row"><span class="group-icon">新</span><span class="g-main"><b>新单</b><small>用户下单时推给管理员</small></span><span class="btn sm">模板</span><span class="switch on"><i></i></span></div>
+                    <div class="group-row"><span class="group-icon">接</span><span class="g-main"><b>接单</b><small>接单时推给用户</small></span><span class="btn sm">模板</span><span class="switch on"><i></i></span></div>
+                    <div class="group-row"><span class="group-icon">菜</span><span class="g-main"><b>菜品申请</b><small>用户提交「我想吃」时推给管理员</small></span><span class="btn sm">模板</span><span class="switch on"><i></i></span></div>
+                    <div class="group-row"><span class="group-icon">消</span><span class="g-main"><b>用户取消</b><small>用户取消预约时推给管理员</small></span><span class="btn sm">模板</span><span class="switch on"><i></i></span></div>
+                    <div class="group-row"><span class="group-icon">制</span><span class="g-main"><b>开始制作</b><small>开始制作时推给用户</small></span><span class="btn sm">模板</span><span class="switch on"><i></i></span></div>
+                    <div class="group-row"><span class="group-icon">餐</span><span class="g-main"><b>出餐</b><small>出餐时推给用户</small></span><span class="btn sm">模板</span><span class="switch on"><i></i></span></div>
+                    <div class="group-row"><span class="group-icon">催</span><span class="g-main"><b>催一催</b><small>用户端按钮 · 与密钥一起保存</small></span><span class="switch"><i></i></span></div>
+                    <div class="group-row"><span class="group-icon">催</span><span class="g-main"><b>催一催通知</b><small>用户催单时推给管理员</small></span><span class="btn sm">模板</span><span class="switch on"><i></i></span></div>
+                    <div class="group-row"><span class="btn dark block">保存通知设置</span></div>
+                </div>
+                <div class="hint-box">Bark 不做定时任务，只在订单事件发生的页面里直接发送。</div>
+                <div class="btn ghost block">退出登录</div>
+            </div>
+            <nav class="tabbar">
+                <span class="tab"><b>▦</b>首页</span><span class="tab"><b>☰</b>订单<span class="badge">2</span></span><span class="tab"><b>卡</b>恋爱卡</span><span class="tab active"><b>⋯</b>系统</span>
+            </nav>
+        </div>
+        <p class="frame-note">问题：系统页从“空间资料”一路滚到 Bark 模板，<b>导航和表单混在一起</b>，找一个设置要滚很久；Bark 的密钥、事件、模板全挤在一屏里，误触风险也高。</p>
+    </section>
+
+    <section class="frame-wrap">
+        <h3>A2 · 系统（改后）<em>只做导航</em></h3>
+        <div class="phone" style="height:700px">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen scroll">
+                <div class="m-topbar"><h2>系统</h2></div>
+                <div class="profile-card"><span class="avatar-sm"><img src="../../assets/media/space-avatar.svg" alt=""></span><div><b>我们的时光</b><small>福福 &amp; 老李 · 空间资料</small></div><span class="chev">›</span></div>
+                <div class="group-title">内容</div>
+                <div class="group">
+                    <div class="group-row"><span class="group-icon">菜</span><span class="g-main"><b>菜单管理</b><small>14 道 · 12 道上架</small></span><span class="chev">›</span></div>
+                    <div class="group-row"><span class="group-icon">忆</span><span class="g-main"><b>岁月留痕</b><small>41 条回忆 · 13 条有封面</small></span><span class="chev">›</span></div>
+                    <div class="group-row"><span class="group-icon">告</span><span class="g-main"><b>更新公告</b><small>1 条已发布 · 0 条草稿</small></span><span class="chev">›</span></div>
+                </div>
+                <div class="group-title">设置</div>
+                <div class="group">
+                    <div class="group-row"><span class="group-icon">铃</span><span class="g-main"><b>通知</b><small>Bark · 已开启 · 7 个事件开启 · 催一催关</small></span><span class="pill green">正常</span><span class="chev">›</span></div>
+                    <div class="group-row"><span class="group-icon">空</span><span class="g-main"><b>空间资料</b><small>名称 / 头像 / 成员</small></span><span class="chev">›</span></div>
+                </div>
+                <div class="hint-box">系统一级页只放入口和一行摘要，所有表单都在二级页里编辑和保存。</div>
+                <button class="btn ghost block">退出登录</button>
+            </div>
+            <nav class="tabbar">
+                <span class="tab"><b>▦</b>首页</span><span class="tab"><b>☰</b>订单<span class="badge">2</span></span><span class="tab"><b>卡</b>恋爱卡</span><span class="tab active"><b>⋯</b>系统</span>
+            </nav>
+        </div>
+        <p class="frame-note">系统页变成 6 行导航：内容 3 项 + 设置 2 项 + 退出。通知行直接显示状态摘要，<b>不用点进去就知道推送是否正常</b>。角标：待审核菜品申请等需要处理的数字会出现在对应行右侧。</p>
+    </section>
+
+    <section class="frame-wrap">
+        <h3>A3 · 通知（新二级页）<em>移动端</em></h3>
+        <div class="phone" style="height:780px">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen scroll">
+                <div class="m-topbar"><span class="back-btn">‹</span><h2>通知</h2><div class="right"><span class="btn sm">保存</span></div></div>
+                <div class="card white" style="display:flex;align-items:center;gap:9px;padding:11px 12px">
+                    <span class="todo-icon ready" style="width:28px;height:28px;flex-basis:28px">铃</span>
+                    <span class="g-main" style="flex:1"><b style="font-size:11px">Bark 推送</b><small style="color:#8d8782;font-size:8.5px">只在管理端打开时发送，没有定时任务</small></span>
+                    <span class="switch on"><i></i></span>
+                </div>
+                <div class="group-title">推送密钥</div>
+                <div class="group">
+                    <div class="group-row"><span class="group-icon">用</span><div class="form-field" style="flex:1"><label>用户密钥 · 接单 / 开始制作 / 出餐</label><div class="input mono">••••••••••••</div></div><span class="btn sm">测试</span></div>
+                    <div class="group-row"><span class="group-icon">管</span><div class="form-field" style="flex:1"><label>管理员密钥 · 新单 / 申请 / 取消 / 催单</label><div class="input mono">••••••••••••</div></div><span class="btn sm">测试</span></div>
+                </div>
+                <div class="group-title">推给用户 <span style="letter-spacing:0;font-weight:400">（3 个事件）</span></div>
+                <div class="group">
+                    <div class="group-row"><span class="group-icon">接</span><span class="g-main"><b>接单</b><small>接单时推给用户</small></span><span class="btn sm">模板</span><span class="switch on"><i></i></span></div>
+                    <div class="group-row"><span class="group-icon">制</span><span class="g-main"><b>开始制作</b><small>开始制作时推给用户</small></span><span class="btn sm">模板</span><span class="switch on"><i></i></span></div>
+                    <div class="group-row"><span class="group-icon">餐</span><span class="g-main"><b>出餐</b><small>出餐时推给用户</small></span><span class="btn sm">模板</span><span class="switch on"><i></i></span></div>
+                </div>
+                <div class="group-title">推给我 <span style="letter-spacing:0;font-weight:400">（4 个事件）</span></div>
+                <div class="group">
+                    <div class="group-row"><span class="group-icon">新</span><span class="g-main"><b>新单</b><small>用户下单时推给管理员</small></span><span class="btn sm">模板</span><span class="switch on"><i></i></span></div>
+                    <div class="group-row"><span class="group-icon">菜</span><span class="g-main"><b>菜品申请</b><small>用户提交「我想吃」时推给管理员</small></span><span class="btn sm">模板</span><span class="switch on"><i></i></span></div>
+                    <div class="group-row"><span class="group-icon">消</span><span class="g-main"><b>用户取消</b><small>用户取消预约时推给管理员</small></span><span class="btn sm">模板</span><span class="switch on"><i></i></span></div>
+                    <div class="group-row"><span class="group-icon">催</span><span class="g-main"><b>催一催</b><small>用户催单时推给管理员</small></span><span class="btn sm">模板</span><span class="switch on"><i></i></span></div>
+                </div>
+                <div class="group-title">用户端</div>
+                <div class="group">
+                    <div class="group-row"><span class="group-icon">催</span><span class="g-main"><b>催一催按钮</b><small>关闭后用户端隐藏，服务端也会拒绝</small></span><span class="switch"><i></i></span></div>
+                    <div class="group-row"><span class="group-icon">链</span><span class="g-main"><b>点击跳转地址</b><small>用户端 / 管理端 · 留空用当前站点</small></span><span class="chev">›</span></div>
+                </div>
+                <div class="hint-box">密钥、事件开关和「催一催」仍然一次保存，保存后立即生效。</div>
+            </div>
+            <div class="sheet"><button class="btn dark block">保存通知设置</button></div>
+        </div>
+        <p class="frame-note">通知页按“<b>密钥 → 推给用户 → 推给我 → 用户端功能</b>”四段排；事件按收件人分组，比现在的 7 行流水账更容易核对。跳转地址收进折叠行，低频不改。</p>
+    </section>
+
+    <section class="frame-wrap browser-wrap">
+        <h3>A4 · 通知（桌面端）<em>侧栏同步</em></h3>
+        <div class="browser">
+            <div class="browser-bar"><i></i><i></i><i></i><span class="browser-url">coderf.site/admin.html</span></div>
+            <div class="web">
+                <aside class="sidebar">
+                    <div class="side-brand"><span class="avatar-sm"><img src="../../assets/media/space-avatar.svg" alt=""></span><div><b>管理端</b><small>我们的时光</small></div></div>
+                    <div class="side-label">经营</div>
+                    <div class="side-nav">
+                        <div class="side-item"><b>▦</b>首页</div>
+                        <div class="side-item"><b>☰</b>订单<span class="count">2</span></div>
+                        <div class="side-item"><b>卡</b>恋爱卡</div>
+                        <div class="side-item"><b>币</b>恋爱币</div>
+                    </div>
+                    <div class="side-label">系统</div>
+                    <div class="side-nav">
+                        <div class="side-item"><b>菜</b>菜单</div>
+                        <div class="side-item"><b>忆</b>岁月留痕</div>
+                        <div class="side-item"><b>告</b>更新公告</div>
+                        <div class="side-item active"><b>铃</b>通知</div>
+                        <div class="side-item"><b>空</b>空间资料</div>
+                    </div>
+                </aside>
+                <div class="web-main">
+                    <div class="web-topbar"><h4>通知</h4><span class="crumb">系统 · Bark 推送</span><div class="right"><span class="btn dark">保存通知设置</span></div></div>
+                    <div class="web-body">
+                        <div class="web-cols">
+                            <div>
+                                <div class="web-card">
+                                    <div class="web-card-head"><b>推送与密钥</b><span>只在页面打开时发送</span></div>
+                                    <div class="web-row"><span class="g-main"><b>Bark 推送</b><small>总开关</small></span><span class="switch on"><i></i></span></div>
+                                    <div class="web-row"><span class="g-main"><b>用户密钥</b><small>接单 / 开始制作 / 出餐</small></span><div class="input mono placeholder">28 位密钥</div><span class="btn sm">测试</span></div>
+                                    <div class="web-row"><span class="g-main"><b>管理员密钥</b><small>新单 / 申请 / 取消 / 催单</small></span><div class="input mono placeholder">28 位密钥</div><span class="btn sm">测试</span></div>
+                                    <div class="web-row"><span class="g-main"><b>点击跳转地址</b><small>用户端 / 管理端，留空用当前站点</small></span><span class="btn sm">编辑</span></div>
+                                </div>
+                                <div class="web-card">
+                                    <div class="web-card-head"><b>用户端</b><span>功能开关</span></div>
+                                    <div class="web-row"><span class="g-main"><b>催一催按钮</b><small>关闭后用户端隐藏，nudgeOrder 也会拒绝</small></span><span class="switch"><i></i></span></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="web-card">
+                                    <div class="web-card-head"><b>推给用户</b><span>3 个事件</span></div>
+                                    <div class="web-row"><span class="g-main"><b>接单</b><small>接单时推给用户</small></span><span class="btn sm">模板</span><span class="switch on"><i></i></span></div>
+                                    <div class="web-row"><span class="g-main"><b>开始制作</b><small>开始制作时推给用户</small></span><span class="btn sm">模板</span><span class="switch on"><i></i></span></div>
+                                    <div class="web-row"><span class="g-main"><b>出餐</b><small>出餐时推给用户</small></span><span class="btn sm">模板</span><span class="switch on"><i></i></span></div>
+                                </div>
+                                <div class="web-card">
+                                    <div class="web-card-head"><b>推给我</b><span>4 个事件</span></div>
+                                    <div class="web-row"><span class="g-main"><b>新单</b><small>用户下单时</small></span><span class="btn sm">模板</span><span class="switch on"><i></i></span></div>
+                                    <div class="web-row"><span class="g-main"><b>菜品申请</b><small>用户提交「我想吃」时</small></span><span class="btn sm">模板</span><span class="switch on"><i></i></span></div>
+                                    <div class="web-row"><span class="g-main"><b>用户取消</b><small>用户取消预约时</small></span><span class="btn sm">模板</span><span class="switch on"><i></i></span></div>
+                                    <div class="web-row"><span class="g-main"><b>催一催</b><small>用户催单时</small></span><span class="btn sm">模板</span><span class="switch on"><i></i></span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <p class="frame-note">桌面侧栏去掉重复的「系统设置」入口，把「通知」放进系统分组；两栏布局让密钥和事件同屏对照。移动端底部 tab 仍叫「系统」，进去是导航页。</p>
+    </section>
+
+</main>
+
+<div class="section-divider"></div>
+
+<h2 class="block-head">B · 首页：快捷打开用户端 + 需要你处理的范围 <span>对应第 1、2 条</span></h2>
+<main class="frames">
+
+    <section class="frame-wrap">
+        <h3>B1 · 首页（改后）<em>快捷入口 + 全量待办</em></h3>
+        <div class="phone" style="height:780px">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen scroll">
+                <div class="m-topbar">
+                    <span class="avatar-sm"><img src="../../assets/media/space-avatar.svg" alt=""></span>
+                    <div class="sub"><b>管理端</b><small>我们的时光</small></div>
+                    <div class="right"><button class="btn sm">用户端 ↗</button><span class="avatar-sm" style="width:26px;height:26px;flex-basis:26px"><img src="../../assets/media/space-avatar.svg" alt=""></span></div>
+                </div>
+                <div class="greet"><h3>下午好，老李</h3><p>11.09 周日 · 下一餐已预约</p></div>
+                <div class="next-meal">
+                    <span class="wf-label">下一餐</span>
+                    <b>11.09 周日 · 晚餐 20:00</b>
+                    <p>距离开饭还有 3 小时 20 分</p>
+                    <div class="next-foot"><span>饭点前 1 小时截止预约</span><span class="btn light">查看订单 →</span></div>
+                </div>
+                <div class="section-head"><b>需要你处理</b><span>5 件</span></div>
+                <div class="todo">
+                    <div class="todo-row"><span class="todo-icon">菜</span><span class="todo-main"><b>我想吃：可乐鸡翅</b><small>11.09 10:12 · 等你审核</small></span><span class="btn dark sm">去审核</span></div>
+                    <div class="todo-row"><span class="todo-icon">订</span><span class="todo-main"><b>待接单 · 酸辣土豆丝</b><small>11.09 晚餐 · 已等 12 分钟</small></span><span class="btn dark sm">接单</span></div>
+                    <div class="todo-row"><span class="todo-icon calm">备</span><span class="todo-main"><b>备菜中 · 番茄炒蛋</b><small>11.10 午餐 · 可以开始下锅了</small></span><span class="btn sm">开始制作</span></div>
+                    <div class="todo-row is-late"><span class="todo-icon">制</span><span class="todo-main"><b>制作中 · 蛋炒饭</b><small>11.09 午餐 · 已过预约时间 20 分钟</small></span><span class="btn dark sm">出餐</span></div>
+                    <div class="todo-row"><span class="todo-icon ready">餐</span><span class="todo-main"><b>已出餐 · 等用户确认</b><small>11.09 午餐 · 也可以直接完成</small></span><span class="btn sm">完成</span></div>
+                </div>
+                <div class="section-head"><b>本周</b><span>只读概览</span></div>
+                <div class="stat-row">
+                    <div class="stat"><b>3</b><span>预约饭点</span></div>
+                    <div class="stat"><b>2</b><span>本周完成</span></div>
+                    <div class="stat"><b>482</b><span>用户余额</span></div>
+                </div>
+                <div class="section-head"><b>快捷操作</b></div>
+                <div class="quick">
+                    <button><b>币</b>发恋爱币</button>
+                    <button><b>卡</b>发恋爱卡</button>
+                    <button><b>＋</b>添加菜品</button>
+                    <button class="is-new"><b>↗</b>用户端</button>
+                </div>
+            </div>
+            <nav class="tabbar">
+                <span class="tab active"><b>▦</b>首页</span><span class="tab"><b>☰</b>订单<span class="badge">4</span></span><span class="tab"><b>卡</b>恋爱卡</span><span class="tab"><b>⋯</b>系统</span>
+            </nav>
+        </div>
+        <p class="frame-note">「用户端 ↗」放两处：<b>顶部右侧</b>（桌面/双手时快）和<b>快捷操作第 4 格</b>（单手拇指区）。地址优先用 `space.settings.links.user`；本地测试库用相对 `index.html` + 当前 `?env`，不会跳到线上。</p>
+    </section>
+
+    <section class="frame-wrap">
+        <h3>B2 · 需要你处理 · 状态规则<em>清单口径</em></h3>
+        <div class="table-card">
+            <table>
+                <thead><tr><th>状态</th><th>首页出现</th><th>主按钮</th><th>说明</th></tr></thead>
+                <tbody>
+                    <tr><td><b>待接单</b> pending</td><td>是</td><td>接单</td><td>顺带显示已等分钟数；超 30 分钟标红</td></tr>
+                    <tr><td><b>已接单</b> accepted</td><td>是</td><td>开始备菜</td><td>已接单但还没动，提醒别忘</td></tr>
+                    <tr><td><b>备菜中</b> prepping</td><td>是</td><td>开始制作</td><td>—</td></tr>
+                    <tr><td><b>制作中</b> cooking</td><td>是</td><td>出餐</td><td>超过预约时间标「已过时间」</td></tr>
+                    <tr><td><b>已出餐</b> served</td><td>是</td><td>完成</td><td>等用户「吃好啦 / 谢谢大厨」；你也可以直接完成</td></tr>
+                    <tr><td><b>已完成</b> completed</td><td>否</td><td>—</td><td>不打扰</td></tr>
+                    <tr><td><b>已取消</b> cancelled</td><td>否</td><td>—</td><td>不打扰</td></tr>
+                    <tr><td><b>我想吃</b> 待审核</td><td>是</td><td>去审核</td><td>和订单待办放同一清单，审核类排最前</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="frame-note">口径就是你说的「只要没完单就展示」。当前实现只收了 pending / served / 超时订单，<b>accept / prepping / cooking 会漏掉</b>。排序：菜品申请 → 待接单 → 按饭点时间升序。</p>
+        <div class="hint-box" style="margin-top:9px"><b>完单有两条路：</b>用户点「吃好啦」或「谢谢大厨」，你在后台点「完成」。已完成订单不再出现在待办；三种方式都写 `statusHistory`。</div>
+    </section>
+
+    <section class="frame-wrap">
+        <h3>B3 · 用户端完单按钮<em>待你拍板</em></h3>
+        <div class="phone" style="height:auto">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen" style="gap:9px;padding-bottom:16px">
+                <div class="m-topbar"><h2>小灶 · 已出餐</h2></div>
+                <div class="card white">
+                    <div class="order-top"><b>20261109-1200-01</b><span class="pill green">已出餐</span></div>
+                    <div class="item"><img src="../../assets/media/dishes/potato.jpg" alt=""><span class="item-main"><b>酸辣土豆丝</b><small>快手菜 · 约 40 分钟</small></span><em>×1</em></div>
+                    <div class="served-block" style="margin-top:7px;border:0;padding:0;background:none">
+                        <b>本次出餐</b>
+                        <div class="served-photos"><span><img src="../../assets/media/dishes/potato.jpg" alt=""></span></div>
+                    </div>
+                </div>
+                <div class="opt-card recommend" style="padding:10px 12px"><h4>方案 A · 答谢即完成<em>推荐</em></h4>
+                    <p>「谢谢大厨 +10 币」直接完成订单；「吃好啦」也完成但不返币。用户只要点过答谢，首页就不会再挂着 served。</p>
+                    <div style="display:flex;gap:6px;margin-top:8px"><span class="btn accent" style="flex:1">谢谢大厨 · +10 币</span><span class="btn ghost" style="flex:1">吃好啦</span></div>
+                </div>
+                <div class="opt-card" style="padding:10px 12px"><h4>方案 B · 保持现状</h4>
+                    <p>「谢谢大厨」只返币、不完成；只有「吃好啦」或后台「完成」才结束订单。首页 served 待办会多挂一会儿。</p>
+                    <div style="display:flex;gap:6px;margin-top:8px"><span class="btn" style="flex:1">谢谢大厨 · +10 币</span><span class="btn dark" style="flex:1">吃好啦</span></div>
+                </div>
+            </div>
+        </div>
+        <p class="frame-note">你说的「完单两种方式」我理解成方案 A：<b>答谢 = 完成</b>。这样首页 served 不会长期挂着；已完成状态里仍保留没点过的「谢谢大厨」入口，返币只发一次（`thanks_&lt;orderId&gt;` 幂等）。</p>
+    </section>
+
+</main>
+
+<div class="section-divider"></div>
+
+<h2 class="block-head">C · 订单可点开看详情 <span>对应第 6 条</span></h2>
+<main class="frames">
+
+    <section class="frame-wrap">
+        <h3>C1 · 订单列表<em>整卡可点</em></h3>
+        <div class="phone" style="height:720px">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen scroll">
+                <div class="m-topbar"><h2>订单</h2><div class="right"><span class="btn sm">刷新</span></div></div>
+                <div class="filters"><span class="filter active">全部 7</span><span class="filter">待接单 2</span><span class="filter">进行中 3</span><span class="filter">已完成 1</span><span class="filter">已取消 1</span></div>
+                <div class="section-head" style="margin-top:2px"><b>11.09 周日 · 晚餐 20:00</b><span>2 单</span></div>
+                <div class="card white">
+                    <div class="order-top"><b>20261109-2000-01</b><span class="pill accent">待接单</span><span class="chev">›</span></div>
+                    <div class="wait">已等 12 分钟</div>
+                    <div class="item"><img src="../../assets/media/dishes/potato.jpg" alt=""><span class="item-main"><b>酸辣土豆丝</b><small>快手菜 · 18 币</small></span><em>×1</em></div>
+                    <div class="note">“少辣，多放醋”</div>
+                    <div class="order-foot"><b>18 币</b><span class="actions"><span class="btn ghost">取消退款</span><span class="btn dark">接单</span></span></div>
+                </div>
+                <div class="card">
+                    <div class="order-top"><b>20261109-2000-02</b><span class="pill warm">备菜中</span><span class="chev">›</span></div>
+                    <div class="item"><img src="../../assets/media/dishes/tomato-egg.jpg" alt=""><span class="item-main"><b>番茄炒蛋</b><small>快手菜 · 20 币</small></span><em>×1</em></div>
+                    <div class="order-foot"><b>20 币</b><span class="actions"><span class="btn dark">开始制作</span></span></div>
+                </div>
+                <div class="section-head"><b>11.09 周日 · 午餐 12:00</b><span>已出餐</span></div>
+                <div class="card">
+                    <div class="order-top"><b>20261109-1200-01</b><span class="pill green">已出餐</span><span class="chev">›</span></div>
+                    <div class="item"><img src="../../assets/media/dishes/fried-rice.jpg" alt=""><span class="item-main"><b>蛋炒饭</b><small>快手菜 · 12 币</small></span><em>×1</em></div>
+                    <div class="order-foot"><b>12 币</b><span class="actions"><span class="btn">完成</span></span></div>
+                </div>
+            </div>
+            <nav class="tabbar">
+                <span class="tab"><b>▦</b>首页</span><span class="tab active"><b>☰</b>订单<span class="badge">2</span></span><span class="tab"><b>卡</b>恋爱卡</span><span class="tab"><b>⋯</b>系统</span>
+            </nav>
+        </div>
+        <p class="frame-note">点卡片任意空白处（不是按钮）进详情，右上加一个 `›` 作为提示；底部操作按钮保持原样，点按钮不会误进详情。</p>
+    </section>
+
+    <section class="frame-wrap">
+        <h3>C2 · 订单详情<em>二级页</em></h3>
+        <div class="phone" style="height:760px">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen scroll">
+                <div class="m-topbar"><span class="back-btn">‹</span><h2>订单详情</h2><div class="right"><span class="pill green">已出餐</span></div></div>
+                <div class="slot-hero">
+                    <span class="wf-label">预约饭点</span>
+                    <b>11.09 周日 · 午餐 12:00</b>
+                    <p>20261109-1200-01 · 下单于 11.08 21:04:12</p>
+                    <div class="countdown" style="color:#8d8782">出餐于 11.09 12:06:40 · 等用户确认</div>
+                </div>
+                <div class="detail-items">
+                    <div class="detail-item"><img src="../../assets/media/dishes/potato.jpg" alt=""><span><b>酸辣土豆丝</b><small>快手菜 · 约 40 分钟</small></span><b>18 币</b></div>
+                    <div class="detail-item"><img src="../../assets/media/dishes/tomato-egg.jpg" alt=""><span><b>番茄炒蛋</b><small>快手菜 · 约 40 分钟</small></span><b>20 币</b></div>
+                </div>
+                <div class="served-block">
+                    <b>本次出餐</b>
+                    <small>每道菜的成品图 · 点开看大图</small>
+                    <div class="served-photos">
+                        <span><img src="../../assets/media/dishes/potato.jpg" alt=""></span>
+                        <span><img src="../../assets/media/dishes/tomato-egg.jpg" alt=""></span>
+                    </div>
+                </div>
+                <div class="note">“少辣，多放醋；米饭多一点。”</div>
+                <div class="pay-row"><span>合计 · 已支付</span><small>余额 482</small><b>38 币</b></div>
+                <div class="hint-box">用户催过 1 次 · 最后 12:01；用户备注仅此一条。</div>
+                <div class="section-head"><b>状态记录</b><span>完整时间</span></div>
+                <div class="timeline">
+                    <div class="timeline-row"><span>待接单</span><small>11.08 21:04:12</small></div>
+                    <div class="timeline-row"><span>已接单</span><small>11.08 21:05:30</small></div>
+                    <div class="timeline-row"><span>备菜中</span><small>11.09 11:20:02</small></div>
+                    <div class="timeline-row"><span>制作中</span><small>11.09 11:42:18</small></div>
+                    <div class="timeline-row"><span>已出餐</span><small>11.09 12:06:40</small></div>
+                </div>
+            </div>
+            <div class="action-bar"><span class="btn danger">取消退款</span><span class="btn dark">完成</span></div>
+        </div>
+        <p class="frame-note">详情页把卡片里放不下的内容摊开：每道菜价格、出餐快照、备注、支付与余额、催单、完整状态时间线。底部操作条跟随状态（接单 → 备菜 → 制作 → 出餐 → 完成），<b>「出餐」仍进入拍照弹窗</b>，取消退款放左侧次级。</p>
+    </section>
+
+    <section class="frame-wrap">
+        <h3>C3 · 详情入口的两种做法<em>取舍</em></h3>
+        <div class="opt-card recommend"><h4>方案 A · 二级页<em>推荐</em></h4><p>详情做成管理端二级页（和 菜单 / 岁月留痕 一样：隐藏 tabbar、左上返回）。移动端空间大，能放时间线和出餐图；桌面端也能复用。</p></div>
+        <div class="opt-card" style="margin-top:9px"><h4>方案 B · 弹层</h4><p>点卡片弹出底部 sheet，关闭回到列表。实现快，但长时间线、出餐大图在手机上会被压缩，后续加操作容易挤。</p></div>
+        <p class="frame-note">我选 A：结构上 `adminView` 增加 `order-detail`，和现有子页一致；列表和首页待办都能跳进来，返回时回到来源页。</p>
+    </section>
+
+</main>
+
+<div class="section-divider"></div>
+
+<h2 class="block-head">D · 管理端输入字号 <span>对应第 4 条</span></h2>
+<main class="frames">
+
+    <section class="frame-wrap">
+        <h3>D1 · 现在<em>移动端强制 16px</em></h3>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen">
+                <div class="m-topbar"><h2>发恋爱卡</h2></div>
+                <div class="card white">
+                    <div class="two-col">
+                        <div class="form-field"><label>时长</label><div class="input" style="font-size:16px;padding:8px 9px">5 分钟</div></div>
+                        <div class="form-field"><label>名称</label><div class="input" style="font-size:16px;padding:8px 9px">每周按摩卡</div></div>
+                    </div>
+                    <div class="form-field" style="margin-top:8px"><label>备注</label><div class="input" style="font-size:16px;padding:8px 9px">零花钱</div></div>
+                    <div class="form-field" style="margin-top:8px"><label>描述</label><div class="input" style="font-size:16px;padding:8px 9px;min-height:46px">多放一点葱花，谢谢</div></div>
+                </div>
+                <div class="hint-box">当前 CSS：`@media (max-width:899px)` 把所有 input/textarea/select 强制 16px，比周围 9–11px 的正文大出一截。</div>
+            </div>
+        </div>
+        <p class="frame-note">16px 是为了绕开 iOS 聚焦自动放大，但代价是<b>输入框比页面其他文字大很多</b>，表单显得笨重。</p>
+    </section>
+
+    <section class="frame-wrap">
+        <h3>D2 · 方案 A<em>平时 14px · 聚焦 16px</em></h3>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen">
+                <div class="m-topbar"><h2>发恋爱卡</h2></div>
+                <div class="card white">
+                    <div class="two-col">
+                        <div class="form-field"><label>时长</label><div class="input" style="font-size:14px;padding:8px 9px">5 分钟</div></div>
+                        <div class="form-field"><label>名称</label><div class="input" style="font-size:14px;padding:8px 9px">每周按摩卡</div></div>
+                    </div>
+                    <div class="form-field" style="margin-top:8px"><label>备注</label><div class="input" style="font-size:14px;padding:8px 9px">零花钱</div></div>
+                    <div class="form-field" style="margin-top:8px"><label>描述</label><div class="input" style="font-size:14px;padding:8px 9px;min-height:46px">多放一点葱花，谢谢</div></div>
+                </div>
+                <div class="hint-box">输入框 14px；<b>聚焦瞬间切到 16px</b>，Safari 判断焦点字号时不缩放。失焦回到 14px。桌面端仍是 13px。</div>
+            </div>
+        </div>
+        <p class="frame-note">标签维持 10px，按钮 11px，输入 14px 后层级更顺。若聚焦切字号在真机上有跳动，退回方案 B。</p>
+    </section>
+
+    <section class="frame-wrap" style="width: 660px; max-width: 100%;">
+        <h3>D3 · 三种做法<em>请选一个</em></h3>
+        <div class="opt-grid">
+            <div class="opt-card recommend"><h4>方案 A · 14px + 聚焦 16px<em>推荐</em></h4><p>视觉最小；iOS 聚焦不放大。风险：部分 iOS 版本聚焦时仍有轻微位移，需要真机确认。</p></div>
+            <div class="opt-card"><h4>方案 B · 全局 14px</h4><p>最简单、无跳变；代价是 iOS 聚焦会自动放大页面，关闭键盘后需要手动缩回。</p></div>
+            <div class="opt-card"><h4>方案 C · 保持 16px，只收紧外观</h4><p>不动字号，减少内边距、圆角和行高，让输入框看起来轻一点。最稳，但你反馈的“字大”还在。</p></div>
+            <div class="opt-card"><h4>统一字号表</h4><p>输入 14px / 标签 10px / 正文 10–11px / 按钮 11px / 弹窗标题 16px。只改输入相关，不动全局排版。</p></div>
+        </div>
+    </section>
+
+</main>
+
+<div class="section-divider"></div>
+
+<h2 class="block-head">E · 新增回忆：移动端布局 + 日期选择 <span>对应第 5 条</span></h2>
+<main class="frames">
+
+    <section class="frame-wrap">
+        <h3>E1 · 现在<em>封面太大</em></h3>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen">
+                <div class="m-topbar"><span class="back-btn">‹</span><h2>添加回忆</h2><div class="right"><span class="btn sm">保存</span></div></div>
+                <div class="photo-upload"><div><b>＋</b>点击上传封面<br><span style="font-size:8px">4:3</span></div></div>
+                <div class="upload-row"><span class="btn sm">上传封面</span><span class="status">未选择</span></div>
+                <div class="form-field"><label>图片 URL</label><div class="input" style="font-size:16px;padding:8px 9px">https://…</div></div>
+                <div class="two-col">
+                    <div class="form-field"><label>日期</label><div class="input" style="font-size:16px;padding:8px 9px">2026/11/09</div></div>
+                    <div class="form-field"><label>年份</label><div class="readonly">2026</div></div>
+                </div>
+                <div class="form-field"><label>标题</label><div class="input" style="font-size:16px;padding:8px 9px">第一次去海边</div></div>
+                <div class="form-field"><label>描述</label><div class="input" style="font-size:16px;padding:8px 9px;min-height:42px">风很大，但很开心</div></div>
+            </div>
+            <div class="action-bar"><span class="btn danger">删除</span><span class="btn ghost">取消</span><span class="btn dark">保存</span></div>
+        </div>
+        <p class="frame-note">问题：4:3 预览占掉半屏，<b>标题和描述被挤到键盘后面</b>；日期和“年份”只读框并排，年份框长得像输入框却很鸡肋；删除按钮和保存并排，容易误触。</p>
+    </section>
+
+    <section class="frame-wrap">
+        <h3>E2 · 改后<em>缩略图 + 整行日期</em></h3>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen">
+                <div class="m-topbar"><span class="back-btn">‹</span><h2>添加回忆</h2><div class="right"><span class="btn sm">保存</span></div></div>
+                <div class="cover-row">
+                    <span class="cover-thumb"><img src="../../assets/media/dishes/tomato-soup.jpg" alt=""></span>
+                    <div class="cover-main">
+                        <b style="font-size:10px">封面 · 4:3</b>
+                        <small>点缩略图看大图；不传也可以保存</small>
+                        <div class="cover-actions"><span class="btn sm">更换封面</span><span class="link">移除</span></div>
+                    </div>
+                </div>
+                <div class="date-button">
+                    <span class="cal">▦</span>
+                    <span class="date-main"><b>2026 · 11 · 09</b><small>星期日 · 会自动排到 2026 年</small></span>
+                    <span class="chev" style="color:#b3aca5">›</span>
+                </div>
+                <div class="date-quick"><span>今天</span><span>昨天</span><span>不填（旧时光）</span></div>
+                <div class="form-field"><label>标题</label><div class="input" style="font-size:14px;padding:8px 9px">第一次去海边</div></div>
+                <div class="form-field"><label>描述</label><div class="input textarea-3" style="font-size:14px;padding:8px 9px">风很大，但很开心</div></div>
+                <div class="more-link">删除这条回忆</div>
+            </div>
+            <div class="sheet"><button class="btn dark block">保存回忆</button></div>
+        </div>
+        <p class="frame-note">封面收成 84×63 缩略图行，标题和描述一屏可见；日期是一整行按钮，点开日历；「年份」不再是独立输入框，只作为日期下方的解释；删除降级成正文底部文字链接，执行时仍走确认框。</p>
+    </section>
+
+    <section class="frame-wrap">
+        <h3>E3 · 日期选择器<em>日历弹层</em></h3>
+        <div class="phone">
+            <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+            <div class="screen" style="padding-bottom:0">
+                <div class="m-topbar"><span class="back-btn">‹</span><h2>添加回忆</h2><div class="right"><span class="btn sm">保存</span></div></div>
+                <div class="cover-row" style="opacity:.45">
+                    <span class="cover-thumb"></span>
+                    <div class="cover-main"><b style="font-size:10px">封面 · 4:3</b><small>点缩略图看大图</small></div>
+                </div>
+                <div class="date-button" style="opacity:.45"><span class="cal">▦</span><span class="date-main"><b>2026 · 11 · 09</b><small>星期日</small></span></div>
+            </div>
+            <div class="cal-sheet">
+                <div class="cal-head"><b>选择日期</b><span>2026 年</span><span class="btn sm">完成</span></div>
+                <div class="cal-year-row"><span>2024</span><span>2025</span><span class="on">2026</span><span>2027</span></div>
+                <div class="cal-head" style="margin-top:2px"><span class="btn sm">‹</span><b style="flex:1;text-align:center">11 月</b><span class="btn sm">›</span></div>
+                <div class="cal-grid">
+                    <span class="dow">一</span><span class="dow">二</span><span class="dow">三</span><span class="dow">四</span><span class="dow">五</span><span class="dow">六</span><span class="dow">日</span>
+                    <span class="day mute">26</span><span class="day mute">27</span><span class="day mute">28</span><span class="day mute">29</span><span class="day mute">30</span><span class="day mute">31</span><span class="day">1</span>
+                    <span class="day">2</span><span class="day">3</span><span class="day">4</span><span class="day">5</span><span class="day">6</span><span class="day">7</span><span class="day">8</span>
+                    <span class="day on">9</span><span class="day">10</span><span class="day">11</span><span class="day">12</span><span class="day">13</span><span class="day">14</span><span class="day">15</span>
+                    <span class="day">16</span><span class="day">17</span><span class="day">18</span><span class="day">19</span><span class="day">20</span><span class="day">21</span><span class="day">22</span>
+                    <span class="day">23</span><span class="day">24</span><span class="day">25</span><span class="day">26</span><span class="day">27</span><span class="day">28</span><span class="day">29</span>
+                    <span class="day">30</span><span class="day mute">1</span><span class="day mute">2</span><span class="day mute">3</span><span class="day mute">4</span><span class="day mute">5</span><span class="day mute">6</span>
+                </div>
+                <div class="date-quick"><span>今天</span><span>清空日期</span></div>
+            </div>
+        </div>
+        <p class="frame-note">自绘日历弹层替代原生 `input type=date`：<b>年份切换 + 月视图 + 今天/清空</b>，空日期直接显示「未设置 · 归入旧时光」。原生日期在 iOS 上是滚轮、字号不可控，而且没有空状态文案。</p>
+    </section>
+
+    <section class="frame-wrap browser-wrap" style="width: 720px">
+        <h3>E4 · 桌面端弹窗<em>两栏</em></h3>
+        <div class="browser">
+            <div class="browser-bar"><i></i><i></i><i></i><span class="browser-url">coderf.site/admin.html · 岁月留痕</span></div>
+            <div style="display:grid;grid-template-columns:200px 1fr;gap:14px;padding:16px;background:#fbf6ec">
+                <div style="display:grid;gap:6px;align-content:start">
+                    <div class="photo-upload" style="height:132px"><div><b>＋</b>上传封面<br><span style="font-size:8px">4:3</span></div></div>
+                    <div class="upload-row"><span class="btn sm">更换封面</span><span class="link" style="color:#b94a63;font-size:8.5px">移除</span></div>
+                </div>
+                <div style="display:grid;gap:8px;align-content:start">
+                    <div class="form-field"><label>日期</label><div class="date-button" style="padding:8px 10px"><span class="cal">▦</span><span class="date-main"><b>2026 · 11 · 09</b><small>星期日</small></span><span class="chev" style="color:#b3aca5">›</span></div></div>
+                    <div class="form-field"><label>标题</label><div class="input" style="font-size:13px;padding:8px 9px">第一次去海边</div></div>
+                    <div class="form-field"><label>描述</label><div class="input" style="font-size:13px;padding:8px 9px;min-height:64px">风很大，但很开心</div></div>
+                    <div style="display:flex;gap:6px;justify-content:flex-end"><span class="btn ghost">取消</span><span class="btn dark">保存回忆</span></div>
+                </div>
+            </div>
+        </div>
+        <p class="frame-note">桌面弹窗本来就够宽：封面在左、字段在右，日期同样用日历弹层；保存按钮统一放右下，删除只保留文字入口。</p>
+    </section>
+
+</main>
+
+<div class="section-divider"></div>
+
+<h2 class="block-head">F · 菜品标签扩展 <span>对应第 7 条</span></h2>
+<section class="spec">
+    <div class="frame-wrap" style="width:100%">
+        <h3>F1 · 候选标签<em>挑你要的，我再加</em></h3>
+        <div class="table-card">
+            <table>
+                <thead><tr><th>分组</th><th>标签</th><th>说明</th><th>状态</th></tr></thead>
+                <tbody>
+                    <tr><td><b>现有</b></td><td>下饭 / 香辣 / 酸甜</td><td>已经在线上数据里，不能删，否则编辑菜品时会被 normalize 掉</td><td><span class="pill green">保留</span></td></tr>
+                    <tr><td><b>辣度</b></td><td>微辣</td><td>和“香辣”区分力度，用户选菜时更好判断</td><td><span class="pill accent">建议加</span></td></tr>
+                    <tr><td><b>口味</b></td><td>咸鲜</td><td>不辣、不酸的日常菜（蒸蛋、清炒）</td><td><span class="pill accent">建议加</span></td></tr>
+                    <tr><td><b>口味</b></td><td>清淡</td><td>少油少盐，晚饭/肠胃不舒服时选</td><td><span class="pill accent">建议加</span></td></tr>
+                    <tr><td><b>体感</b></td><td>解腻</td><td>配硬菜、汤、凉菜</td><td><span class="pill accent">建议加</span></td></tr>
+                    <tr><td><b>体感</b></td><td>暖胃</td><td>汤羹、粥、面，天气冷时用</td><td><span class="pill accent">建议加</span></td></tr>
+                    <tr><td><b>体感</b></td><td>冰爽</td><td>凉菜、甜品、冷饮</td><td><span class="pill accent">建议加</span></td></tr>
+                    <tr><td><b>场景</b></td><td>拿手菜</td><td>你做得最有把握的那几道，适合当推荐</td><td><span class="pill accent">建议加</span></td></tr>
+                    <tr><td><b>场景</b></td><td>下酒</td><td>夜宵、配酒</td><td><span class="pill warm">可选</span></td></tr>
+                    <tr><td><b>场景</b></td><td>一锅出</td><td>炖菜、焖饭，省事</td><td><span class="pill warm">可选</span></td></tr>
+                    <tr><td><b>场景</b></td><td>甜品</td><td>如果菜单以后有甜品</td><td><span class="pill warm">可选</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="frame-note" style="max-width:980px">实现上只改 <b>`DISH_TAG_OPTIONS`</b>（`js/store.js`）和 `admin.html` 里的 `MENU_TAGS`，再加标签转义/字体子集。用户端菜品卡本来就只显示前 2 个标签，建议按“口味 → 体感 → 场景”的顺序存，保证最重要的两个先露出。</p>
+    </div>
+
+    <div class="frames" style="margin-top:18px">
+        <section class="frame-wrap">
+            <h3>F2 · 管理端标签选择器<em>10 个候选</em></h3>
+            <div class="phone" style="height:auto">
+                <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+                <div class="screen" style="padding-bottom:16px">
+                    <div class="m-topbar"><h2>编辑菜品</h2></div>
+                    <div class="form-field"><label>菜名</label><div class="input" style="font-size:14px;padding:8px 9px">酸辣土豆丝</div></div>
+                    <div class="form-field"><label>标签（最多选 3 个，按选择顺序展示）</label>
+                        <div class="tag-picker">
+                            <span class="on">下饭</span><span class="on">香辣</span><span>酸甜</span><span class="new">微辣</span><span>咸鲜</span><span>清淡</span><span>解腻</span><span>暖胃</span><span>冰爽</span><span class="new">拿手菜</span>
+                        </div>
+                    </div>
+                    <div class="form-note">用户端菜品卡只显示前 2 个；第 3 个只在详情页出现。拖动可调整顺序（后续可加）。</div>
+                </div>
+            </div>
+            <p class="frame-note">先按当前实现保持“多选不限”；如果标签加多了，建议同时限 3 个，避免用户卡挤爆。这个可以下一步再定。</p>
+        </section>
+
+        <section class="frame-wrap">
+            <h3>F3 · 用户端展示<em>前 2 个</em></h3>
+            <div class="phone" style="height:auto">
+                <div class="statusbar"><span>9:41</span><span>▮▮▮ ◔ ▰</span></div>
+                <div class="screen" style="padding-bottom:16px">
+                    <div class="m-topbar"><h2>小灶 · 快手菜</h2></div>
+                    <div class="user-dish-card">
+                        <span class="thumb"><img src="../../assets/media/dishes/potato.jpg" alt=""></span>
+                        <span class="meta"><b>酸辣土豆丝</b><small>40 分钟</small><span class="tags"><span>下饭</span><span>香辣</span></span></span>
+                        <span class="price">18</span>
+                    </div>
+                    <div class="user-dish-card">
+                        <span class="thumb"><img src="../../assets/media/dishes/pear-soup.jpg" alt=""></span>
+                        <span class="meta"><b>冰糖雪梨</b><small>60 分钟</small><span class="tags"><span>清淡</span><span>暖胃</span></span></span>
+                        <span class="price">12</span>
+                    </div>
+                    <div class="user-dish-card">
+                        <span class="thumb"><img src="../../assets/media/dishes/cola-wings.jpg" alt=""></span>
+                        <span class="meta"><b>可乐鸡翅</b><small>60 分钟</small><span class="tags"><span>拿手菜</span><span>咸鲜</span></span></span>
+                        <span class="price">28</span>
+                    </div>
+                    <div class="hint-box">文案上标签只是辅助，不替代描述；建议每个菜最多 3 个，主图上的标签仍只在详情页展开。</div>
+                </div>
+            </div>
+            <p class="frame-note">新增标签不会影响旧菜：没有标签的菜照常显示，编辑保存时只保留白名单内的值。加标签后需要跑一次字体子集，否则新字会回退宋体。</p>
+        </section>
+    </div>
+</section>
+
+<div class="section-divider"></div>
+
+<h2 class="block-head">G · 我补充的几条 <span>可做可不做</span></h2>
+<section class="spec">
+    <div class="suggest-list">
+        <div class="suggest-row"><span class="pri">P1</span><span class="s-main"><b>详情页内直接出餐 / 取消</b><p>订单详情底部操作条复用现有 `changeOrderStatus` / `cancelAdminOrder`，出餐仍走拍照弹窗；不用回列表再操作。</p></span><span class="cost">小</span></div>
+        <div class="suggest-row"><span class="pri">P1</span><span class="s-main"><b>催单和超时置顶</b><p>「需要你处理」里用户催过单或已过预约时间的订单标红并排前面；现在只有 pending 显示等待时长。</p></span><span class="cost">小</span></div>
+        <div class="suggest-row"><span class="pri">P2</span><span class="s-main"><b>系统行加处理角标</b><p>待审核菜品申请数量挂在「菜单管理」行，待接单数量挂在「订单」；系统页扫一眼知道哪里有事。</p></span><span class="cost">小</span></div>
+        <div class="suggest-row"><span class="pri">P2</span><span class="s-main"><b>菜单按标签筛选</b><p>标签加多以后，菜单列表可以点标签快速筛（复用现有 filters 样式），方便挑“拿手菜”或“清淡”。</p></span><span class="cost">中</span></div>
+        <div class="suggest-row"><span class="pri">P2</span><span class="s-main"><b>桌面端首页把「用户端」放页头</b><p>手机快捷格 + 桌面页头按钮共用同一个链接函数；桌面侧栏底部也放一条「打开用户端 ↗」。</p></span><span class="cost">小</span></div>
+        <div class="suggest-row"><span class="pri">P3</span><span class="s-main"><b>订单列表显示菜品缩略图</b><p>卡片里加一行本次出餐图或菜品首图，扫列表时不用点开就知道是什么菜。</p></span><span class="cost">中</span></div>
+    </div>
+    <div class="hint-box" style="margin-top:12px"><b>不建议现在做：</b>把系统做成多级嵌套超过两层、给管理端加独立登录账号、把 Bark 改成服务端定时任务（需要后端，当前没有）。</div>
+</section>
+
+</body>
+</html>

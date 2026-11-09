@@ -205,7 +205,7 @@
         backdrop-filter: blur(14px);
         border-bottom: 1px solid var(--line);
     }
-    .admin-header-title { display: grid; gap: 1px; min-width: 0; }
+    .admin-header-title { display: grid; gap: 1px; min-width: 0; margin-right: auto; }
     .admin-header-title small { color: var(--admin-muted); font-size: 9px; letter-spacing: .12em; }
     .admin-header-title b {
         overflow: hidden;
@@ -226,12 +226,14 @@
         background: none;
         border: 0;
     }
+    /* 用户端按钮靠右，头像是最后一个元素，贴到最右侧 */
     .header-user-link { margin-left: auto; flex: 0 0 auto; }
     .admin-header-space {
         display: flex;
         align-items: center;
         gap: 7px;
-        margin-left: auto;
+        margin-left: 6px;
+        flex: 0 0 auto;
         color: var(--admin-muted);
         font-size: 10px;
         white-space: nowrap;
@@ -519,48 +521,105 @@
     .order-total small { margin-left: 3px; color: var(--admin-muted); font-size: 8px; font-weight: 400; }
     .order-actions { display: flex; gap: 5px; margin-left: auto; flex-wrap: wrap; justify-content: flex-end; }
 
-    /* order detail */
-    .detail-hero { padding: 14px; background: linear-gradient(135deg, #2b2231, #4a3545); border-radius: 16px; color: #fff; }
-    .detail-hero-label { color: rgba(255,255,255,.55); font-size: 8px; font-weight: 700; letter-spacing: .14em; }
-    .detail-hero > b { display: block; margin-top: 4px; font-family: var(--font-display); font-size: 17px; }
-    .detail-hero > p { margin-top: 3px; color: rgba(255,255,255,.65); font-size: 10px; }
-    .detail-hero-foot { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-top: 9px; border-top: 1px dashed rgba(255,255,255,.16); }
-    .detail-hero-foot > span:last-child { margin-left: auto; color: #f1cbd4; font-size: 9px; }
-    .detail-hero-foot .status-pill { background: rgba(255,255,255,.16); color: #fff; }
-    .detail-block { margin-top: 11px; padding: 12px 13px; background: var(--admin-soft); border: 1px solid var(--line); border-radius: 14px; }
-    .detail-block-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
-    .detail-block-head b { font-size: 11px; }
-    .detail-block-head small { margin-left: auto; color: var(--admin-muted); font-size: 8.5px; }
-    .detail-items { display: grid; gap: 6px; }
-    .detail-item { display: flex; align-items: center; gap: 9px; }
-    .detail-item .order-item-photo { width: 44px; height: 44px; flex-basis: 44px; cursor: zoom-in; }
-    .detail-item-main { flex: 1; min-width: 0; display: grid; gap: 1px; }
-    .detail-item-main b { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
-    .detail-item-main small { color: var(--admin-muted); font-size: 8.5px; }
-    .detail-item-price { font-size: 11px; font-variant-numeric: tabular-nums; }
-    .served-photos { display: flex; flex-wrap: wrap; gap: 7px; }
-    .served-photo { position: relative; width: 84px; height: 84px; overflow: hidden; padding: 0; background: #f3eee7; border: 0; border-radius: 10px; }
+    /* order detail — 管理端工作台风格：浅底数据卡 + 分隔线，不用用户端的深色 hero 和大圆角 */
+    .od-summary {
+        overflow: hidden;
+        background: var(--admin-soft);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+    }
+    .od-summary-head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 11px 13px;
+        border-bottom: 1px solid var(--line);
+        background: #faf7f2;
+    }
+    .od-summary-head .order-id { font-size: 11px; }
+    .od-summary-head .status-pill { margin-left: auto; }
+    .od-facts {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+    }
+    .od-fact { padding: 9px 13px; border-bottom: 1px dashed var(--line); }
+    .od-fact:nth-child(odd) { border-right: 1px dashed var(--line); }
+    .od-fact dt { color: var(--admin-muted); font-size: 8.5px; letter-spacing: .04em; }
+    .od-fact dd { margin-top: 2px; color: var(--ink); font-size: 11.5px; font-variant-numeric: tabular-nums; }
+    .od-fact dd.is-alert { color: var(--admin-stamp); }
+    .od-fact dd .unit { margin-left: 2px; color: var(--admin-muted); font-size: 9px; }
+
+    .od-layout { display: grid; gap: 12px; margin-top: 12px; align-items: start; }
+    .od-col { display: grid; gap: 12px; min-width: 0; }
+
+    .od-panel { overflow: hidden; background: var(--admin-soft); border: 1px solid var(--line); border-radius: 12px; }
+    .od-panel-head { display: flex; align-items: baseline; gap: 8px; padding: 10px 13px; border-bottom: 1px solid var(--line); background: #faf7f2; }
+    .od-panel-head b { font-size: 10.5px; letter-spacing: .02em; }
+    .od-panel-head small { margin-left: auto; color: var(--admin-muted); font-size: 8.5px; }
+
+    .od-item { display: flex; align-items: center; gap: 9px; padding: 9px 13px; border-bottom: 1px dashed var(--line); }
+    .od-item:last-child { border-bottom: 0; }
+    .od-item .order-item-photo { width: 38px; height: 38px; flex: 0 0 38px; border-radius: 7px; cursor: zoom-in; }
+    .od-item-main { flex: 1; min-width: 0; display: grid; gap: 1px; }
+    .od-item-main b { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    .od-item-main small { color: var(--admin-muted); font-size: 8.5px; }
+    .od-item-price { color: var(--ink-2); font-size: 10.5px; font-variant-numeric: tabular-nums; }
+    .od-item-total { display: flex; align-items: baseline; gap: 8px; padding: 10px 13px; background: #faf7f2; border-top: 1px solid var(--line); }
+    .od-item-total span { color: var(--admin-muted); font-size: 9px; }
+    .od-item-total b { margin-left: auto; font-size: 13px; font-variant-numeric: tabular-nums; }
+
+    .od-photos { display: flex; flex-wrap: wrap; gap: 7px; padding: 11px 13px; }
+    .served-photo { position: relative; width: 78px; height: 78px; overflow: hidden; padding: 0; background: #f3eee7; border: 1px solid var(--line); border-radius: 7px; }
     .served-photo img { width: 100%; height: 100%; object-fit: cover; }
-    .served-photo span { position: absolute; right: 4px; bottom: 4px; left: 4px; overflow: hidden; padding: 2px 5px; background: rgba(43,34,49,.62); border-radius: 999px; color: #fff; font-size: 7px; text-overflow: ellipsis; white-space: nowrap; }
-    .detail-note { margin: 0; padding: 8px 10px; background: #fff; border-left: 2px solid var(--petal-deep); color: #756e67; font-size: 10px; line-height: 1.6; }
-    .detail-extras { display: grid; gap: 4px; }
-    .detail-extras p { color: var(--admin-stamp); font-size: 9.5px; line-height: 1.5; }
-    .detail-pay { display: flex; align-items: baseline; gap: 8px; }
-    .detail-pay span { color: var(--admin-muted); font-size: 10px; }
-    .detail-pay b { margin-left: auto; font-size: 15px; }
-    .detail-pay-note { margin-top: 5px; color: var(--admin-muted); font-size: 9px; }
-    .detail-timeline { display: grid; gap: 0; margin: 0; padding: 0 0 0 14px; list-style: none; }
-    .detail-timeline li { position: relative; display: flex; align-items: baseline; gap: 8px; padding: 0 0 9px; font-size: 10px; }
-    .detail-timeline li::before { content: ""; position: absolute; left: -14px; top: 4px; width: 5px; height: 5px; background: var(--admin-stamp); border-radius: 999px; }
-    .detail-timeline li::after { content: ""; position: absolute; left: -12px; top: 11px; bottom: 0; width: 1px; background: var(--line); }
-    .detail-timeline li:last-child::after { display: none; }
-    .detail-timeline li small { margin-left: auto; color: var(--admin-muted); font-size: 8.5px; font-variant-numeric: tabular-nums; }
-    .order-detail-actions { position: sticky; bottom: calc(10px + env(safe-area-inset-bottom)); display: flex; gap: 7px; margin-top: 14px; padding: 9px; background: rgba(251, 246, 236, .92); border: 1px solid var(--line); border-radius: 14px; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
-    .order-detail-actions .admin-btn { flex: 1; padding: 10px 12px; }
-    .order-detail-actions p { margin: auto; }
+    .served-photo span { position: absolute; right: 3px; bottom: 3px; left: 3px; overflow: hidden; padding: 1px 5px; background: rgba(43,34,49,.6); border-radius: 4px; color: #fff; font-size: 7px; text-overflow: ellipsis; white-space: nowrap; }
+
+    .od-note { margin: 0; padding: 10px 13px; color: #6e665f; font-size: 10.5px; line-height: 1.65; }
+    .od-alerts { display: grid; }
+    .od-alerts p { display: flex; gap: 6px; padding: 8px 13px; border-bottom: 1px dashed var(--line); color: var(--admin-stamp); font-size: 9.5px; line-height: 1.55; }
+    .od-alerts p:last-child { border-bottom: 0; }
+    .od-alerts p::before { content: "!"; flex: 0 0 12px; height: 12px; margin-top: 2px; display: grid; place-items: center; background: #f6e2e6; border-radius: 4px; font-size: 8px; font-weight: 700; }
+
+    .od-pay-row { display: flex; align-items: baseline; gap: 8px; padding: 9px 13px; border-bottom: 1px dashed var(--line); font-size: 10px; }
+    .od-pay-row span { color: var(--admin-muted); }
+    .od-pay-row b { margin-left: auto; font-size: 10.5px; font-variant-numeric: tabular-nums; }
+    .od-pay-row:last-child { border-bottom: 0; }
+
+    .od-timeline { margin: 0; padding: 0; list-style: none; }
+    .od-timeline li { position: relative; display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: baseline; padding: 8px 13px 8px 26px; border-bottom: 1px dashed var(--line); font-size: 10px; }
+    .od-timeline li:last-child { border-bottom: 0; }
+    .od-timeline li::before { content: ""; position: absolute; left: 14px; top: 13px; width: 5px; height: 5px; background: #cdc6bf; border-radius: 999px; }
+    .od-timeline li.is-latest::before { background: var(--admin-stamp); box-shadow: 0 0 0 3px rgba(185, 74, 99, .14); }
+    .od-timeline li b { font-weight: 500; }
+    .od-timeline li small { color: var(--admin-muted); font-size: 8.5px; font-variant-numeric: tabular-nums; text-align: right; }
+    .od-timeline li small i { display: block; color: #b3aca5; font-size: 8px; font-style: normal; }
+
+    .od-actionbar {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin-top: 12px;
+        padding: 10px 12px;
+        background: var(--admin-soft);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+    }
+    .od-actionbar > span:first-child { color: var(--admin-muted); font-size: 9px; }
+    .od-actionbar-btns { display: flex; gap: 6px; margin-left: auto; }
+    .od-actionbar .admin-btn { padding: 8px 14px; }
+    .od-actionbar p { margin: 0; }
+    .od-actionbar[hidden] { display: none; }
+
     .order-card.is-openable { cursor: pointer; }
     .order-card.is-openable:hover { border-color: var(--line-strong); }
     .order-open-chev { margin-left: 4px; color: #b3aca5; font-size: 15px; line-height: 1; }
+
+    @media (min-width: 900px) {
+        .od-facts { grid-template-columns: repeat(4, 1fr); }
+        .od-fact:nth-child(odd) { border-right: 1px dashed var(--line); }
+        .od-fact:nth-child(4n) { border-right: 0; }
+        .od-layout { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
+    }
 
     /* cards + wallet */
     .cards-layout { display: grid; gap: 14px; }
@@ -609,7 +668,7 @@
     .system-profile-main { flex: 1; min-width: 0; }
     .system-profile-main b { display: block; overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
     .system-profile-main small { color: var(--admin-muted); font-size: 9px; }
-    .system-profile > span { color: var(--admin-muted); font-size: 18px; }
+    .system-profile > span.system-profile-note { color: #b3aca5; font-size: 8.5px; letter-spacing: .06em; }
     .settings-group { overflow: hidden; background: var(--admin-soft); border: 1px solid var(--line); border-radius: 14px; }
     .setting-row { display: flex; align-items: center; gap: 10px; padding: 12px 13px; border-bottom: 1px dashed var(--line); }
     .setting-row:last-child { border-bottom: 0; }
@@ -755,6 +814,28 @@
     .photo-status { color: var(--admin-muted); font-size: 8px; }
     .photo-status.is-success { color: #447a6d; }
     .photo-status.is-error { color: var(--admin-stamp); }
+    .dish-field-row { display: grid; gap: 9px; }
+    .dish-switch-field .form-switch-row { min-height: 34px; border-top: 0; padding: 4px 0; }
+    .dish-switch-field .form-switch-row .admin-small { color: var(--admin-ink); font-size: 11px; }
+
+    /* 菜品编辑里的分段选择：不用原生 select，避免各端样式不一致 */
+    .choice-row { display: flex; flex-wrap: wrap; gap: 5px; }
+    .choice-row button {
+        flex: 1 1 0;
+        min-width: 0;
+        padding: 7px 6px;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        color: var(--admin-muted);
+        font-size: 10px;
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+    .choice-row button.is-on { background: #f4e9dc; border-color: #d6c3a7; color: #8a7351; font-weight: 700; }
+    .choice-row button b { display: block; font-size: 12px; font-weight: 700; line-height: 1.2; }
+    .choice-row button small { display: block; margin-top: 1px; font-size: 7.5px; letter-spacing: .02em; }
+    .choice-row button:disabled { opacity: .45; }
     .tag-picker { display: flex; flex-wrap: wrap; gap: 5px; }
     .tag-picker button { padding: 5px 9px; background: #fff; border: 1px solid var(--line); border-radius: 999px; color: var(--admin-muted); font-size: 9px; }
     .tag-picker button.is-on { background: #f4e9dc; border-color: #d6c3a7; color: #8a7351; }
@@ -871,12 +952,17 @@
            宽度反向补偿，视觉宽度仍是容器宽度的 100%。 */
         body.admin-body .admin-input,
         body.admin-body .admin-select,
-        body.admin-body .admin-textarea,
+        body.admin-body .admin-textarea {
+            width: 114.2857%;
+            max-width: none;
+            font-size: 16px;
+            transform: scale(.875);
+            transform-origin: left top;
+        }
         /* 钱包卡里的「最多可欠」也是输入框，同样按 16px 计算 + 缩放，
            但它的视觉基准是 10px，所以缩放比例更小、宽度单独补偿。 */
         body.admin-body .wallet-limit input {
             width: 96px;
-            max-width: none;
             padding: 8px 10px;
             font-size: 16px;
             transform: scale(.8);
@@ -886,6 +972,10 @@
         .view-head > div { display: none; }
         .view-head:not(:has(.head-actions)) { display: none; }
         .view-head { margin: 0 0 8px; }
+        /* 移动端头部长：标题 + 用户端按钮 + 头像；空间名收起来，头像保持最右 */
+        .admin-header-space #header-space-name { display: none; }
+        .admin-header-space { margin-left: 4px; }
+        .header-user-link { padding: 5px 9px; font-size: 10px; }
     }
 
     @media (min-width: 900px) {
@@ -1009,11 +1099,11 @@
             <small>管理端</small>
             <b id="admin-page-title">首页</b>
         </div>
+        <button class="admin-btn ghost sm header-user-link" id="open-user-site" type="button" title="在新标签打开用户端">用户端 ↗</button>
         <div class="admin-header-space">
             <span id="header-space-name">我们的时光</span>
             <span class="admin-avatar"><img id="header-avatar" src="assets/media/space-avatar.svg" alt=""></span>
         </div>
-        <button class="admin-btn ghost sm header-user-link" id="open-user-site" type="button" title="在新标签打开用户端">用户端 ↗</button>
     </header>
 
     <main class="admin-main">
@@ -1051,7 +1141,7 @@
                 <div class="head-actions"><button class="admin-btn ghost sm" id="order-detail-refresh" type="button">刷新</button></div>
             </div>
             <div id="order-detail-body"></div>
-            <div class="order-detail-actions" id="order-detail-actions"></div>
+            <div class="od-actionbar" id="order-detail-actions"></div>
         </section>
 
         <section class="admin-view" data-panel="cards" hidden>
@@ -1067,9 +1157,11 @@
                     <div class="admin-card">
                         <div class="cards-stats" id="coupon-stats"></div>
                         <div class="section-title" style="margin-top:14px"><h2>发放一张</h2><span>手动补发</span></div>
-                        <div class="admin-two-col">
-                            <div class="admin-field"><label>时长</label><select class="admin-select" id="coupon-duration"><option value="5">5 分钟</option><option value="10">10 分钟</option><option value="15">15 分钟</option><option value="20">20 分钟</option><option value="30">30 分钟</option></select></div>
-                            <div class="admin-field"><label>名称</label><input class="admin-input" id="coupon-title" type="text" placeholder="每周按摩卡"></div>
+                        <div class="admin-field"><label>名称</label><input class="admin-input" id="coupon-title" type="text" placeholder="每周按摩卡"></div>
+                        <div class="admin-field" style="margin-top:9px">
+                            <label>时长</label>
+                            <input type="hidden" id="coupon-duration">
+                            <div class="choice-row" id="coupon-duration-picker" role="radiogroup" aria-label="时长"></div>
                         </div>
                         <button class="admin-btn accent block" id="coupon-issue" type="button" style="margin-top:9px">发放恋爱卡</button>
                     </div>
@@ -1099,11 +1191,11 @@
 
         <section class="admin-view" data-panel="system" hidden>
             <div class="view-head"><div><p class="eyebrow">系统 · 导航</p><h1>系统</h1><p>内容、通知和空间资料都在这里进。</p></div></div>
-            <button class="system-profile" type="button" data-view="space">
+            <div class="system-profile">
                 <span class="admin-avatar"><img id="system-avatar" src="assets/media/space-avatar.svg" alt=""></span>
-                <span class="system-profile-main"><b id="system-space-name">我们的时光</b><small>福福 &amp; 老李 · 空间资料</small></span>
-                <span>›</span>
-            </button>
+                <span class="system-profile-main"><b id="system-space-name">我们的时光</b><small id="system-member-line">福福 &amp; 老李</small></span>
+                <span class="system-profile-note">只读</span>
+            </div>
             <div class="section-title"><h2>内容</h2></div>
             <div class="settings-group">
                 <button class="setting-row" type="button" data-view="menu">
@@ -1360,13 +1452,24 @@
                     <div class="field-note">出餐成品图会自动追加到这里；可拖动排序、设为主图、删除。数量不限。</div>
                 </div>
                 <div class="admin-field"><label for="dish-name">菜名</label><input class="admin-input" id="dish-name" type="text" required></div>
-                <div class="admin-two-col">
-                    <div class="admin-field"><label for="dish-category">分类</label><select class="admin-select" id="dish-category"></select></div>
-                    <div class="admin-field"><label for="dish-price">价格（币）</label><input class="admin-input" id="dish-price" type="number" min="0" step="1" required></div>
+                <div class="dish-field-row">
+                    <div class="admin-field">
+                        <label>分类</label>
+                        <input type="hidden" id="dish-category">
+                        <div class="choice-row" id="dish-category-picker" role="radiogroup" aria-label="分类"></div>
+                    </div>
+                    <div class="admin-field dish-price-field"><label for="dish-price">价格（币）</label><input class="admin-input" id="dish-price" type="number" min="0" step="1" required></div>
                 </div>
-                <div class="admin-two-col">
-                    <div class="admin-field"><label for="dish-time">预计时间</label><select class="admin-select" id="dish-time"><option value="40">40 分钟</option><option value="60">60 分钟</option><option value="90">90 分钟</option><option value="120">120 分钟</option></select></div>
-                    <div class="admin-field"><label>上架</label><div class="form-switch-row" style="border:0;padding:0"><span class="admin-small admin-muted" id="dish-available-label">已上架</span><button class="admin-switch" id="dish-available" type="button" role="switch" aria-pressed="true" aria-label="上架"><i></i></button></div></div>
+                <div class="dish-field-row">
+                    <div class="admin-field">
+                        <label>预计时间</label>
+                        <input type="hidden" id="dish-time">
+                        <div class="choice-row" id="dish-time-picker" role="radiogroup" aria-label="预计时间"></div>
+                    </div>
+                    <div class="admin-field dish-switch-field">
+                        <label>上架</label>
+                        <div class="form-switch-row"><span class="admin-small" id="dish-available-label">已上架</span><button class="admin-switch" id="dish-available" type="button" role="switch" aria-pressed="true" aria-label="上架"><i></i></button></div>
+                    </div>
                 </div>
                 <div class="admin-field"><label>标签（非必选）</label><div class="tag-picker" id="dish-tags"></div></div>
                 <div class="admin-field"><label for="dish-description">描述（非必填）</label><textarea class="admin-textarea" id="dish-description"></textarea></div>
@@ -1595,6 +1698,8 @@
         cancelled: '已取消'
     };
     const ADMIN_ORDER_ACTIVE = ['pending', 'accepted', 'prepping', 'cooking', 'served'];
+    // 出餐（served）之后不再允许取消退款：菜已经端上桌了，只能完成。
+    const ADMIN_CANCELABLE = ['pending', 'accepted', 'prepping', 'cooking'];
     const ORDER_FILTERS = [
         { id: 'all', label: '全部' },
         { id: 'pending', label: '待接单' },
@@ -1610,6 +1715,7 @@
         served: { status: 'completed', label: '完成' }
     };
     const MENU_TIMES = [40, 60, 90, 120];
+    const COUPON_DURATIONS = [5, 10, 15, 20, 30];
     const MENU_TAGS = ['下饭', '香辣', '酸甜', '咸鲜', '拿手菜', '酱香', '暖胃', '红烧'];
     const MENU_TAG_MAX = 2;
     const WALLET_ICONS = {
@@ -1888,6 +1994,12 @@
         $('side-space-name').textContent = name;
         $('header-space-name').textContent = name;
         $('system-space-name').textContent = name;
+        const memberLine = $('system-member-line');
+        if (memberLine) {
+            const members = ((adminData && adminData.space && adminData.space.members) || [])
+                .map(member => member.name).filter(Boolean);
+            memberLine.textContent = members.length ? members.join(' & ') : '空间资料在「设置 → 空间资料」里编辑';
+        }
         $('admin-page-title').textContent = adminView === 'cards' && cardsSegment === 'coins'
             ? '恋爱币' : (VIEW_TITLES[adminView] || '首页');
         document.title = `${name} · 管理端`;
@@ -2069,6 +2181,18 @@
             .sort((a, b) => String(a.scheduledFor || '').localeCompare(String(b.scheduledFor || '')));
     }
 
+    // 「下一餐」：优先取还没到点的最近一单；都过点了就取最近那单（提示已超时）。
+    function nextMealOrder() {
+        const active = activeOrders();
+        const now = Date.now();
+        const upcoming = active.filter(order => {
+            const at = toDate(order.scheduledFor);
+            return at && at.getTime() >= now;
+        });
+        if (upcoming.length) return upcoming[0];
+        return active.length ? active[active.length - 1] : null;
+    }
+
     function overdue(order) {
         const at = toDate(order.scheduledFor);
         return at && at.getTime() < Date.now() && !['completed', 'cancelled'].includes(order.status);
@@ -2108,7 +2232,9 @@
         return ((adminData && adminData.orders) || [])
             .filter(order => {
                 if (!ADMIN_ORDER_ACTIVE.includes(order.status)) return false;
-                if (order.status === 'accepted') return sameDay(order.scheduledFor);
+                // 已接单：只在饭点当天提醒；但饭点已经过去还没开工的也要留着，
+                // 否则过期订单会从待办里消失、永远没人处理。
+                if (order.status === 'accepted') return sameDay(order.scheduledFor) || overdue(order);
                 return true;
             })
             .slice()
@@ -2122,7 +2248,7 @@
     function renderHome() {
         if (!adminData) return;
         const active = activeOrders();
-        const next = active[0];
+        const next = nextMealOrder();
         $('home-date').textContent = `${todayLine()} · ${next ? '下一餐已预约' : '还没有饭点'}`;
         $('home-next-meal').innerHTML = next
             ? `<span class="next-meal-label">下一餐</span>
@@ -2237,7 +2363,7 @@
         if (next) {
             actions.push(`<button class="admin-btn primary sm" type="button" data-order-next="${esc(order.id)}" data-next-status="${next.status}">${next.label}</button>`);
         }
-        if (ADMIN_ORDER_ACTIVE.includes(order.status)) {
+        if (ADMIN_CANCELABLE.includes(order.status)) {
             actions.push(`<button class="admin-btn danger sm" type="button" data-order-cancel="${esc(order.id)}">${order.status === 'pending' ? '拒单退款' : '取消退款'}</button>`);
         }
         const extras = [];
@@ -2383,72 +2509,125 @@
         const body = $('order-detail-body');
         const actions = $('order-detail-actions');
         if (!order || !body) return;
-        $('order-detail-title').textContent = order.id;
-        $('order-detail-sub').textContent = `${slotText(order)} · ${ORDER_LABEL[order.status] || order.status}`;
+        const statusLabel = ORDER_LABEL[order.status] || order.status;
+        $('order-detail-title').textContent = '订单详情';
+        $('order-detail-sub').textContent = `${order.id} · ${slotText(order)}`;
+
         const next = NEXT_STATUS[order.status];
         const history = Array.isArray(order.statusHistory) ? order.statusHistory : [];
         const payment = order.payment || {};
-        const extras = [];
+        const items = order.items || [];
+        const itemCount = items.reduce((sum, item) => sum + 1, 0);
+        const alerts = [];
+        // 只有「还没做完，但饭点已经过了」才提醒；已完成 / 已取消 / 还没到点都不提示
+        if (overdue(order) && ['prepping', 'cooking'].includes(order.status)) {
+            alerts.push('已过预约时间，还没出餐');
+        }
         if (order.nudges && order.nudges.length) {
-            extras.push(`用户催过 ${order.nudges.length} 次 · 最后一次 ${formatDate(order.nudges[order.nudges.length - 1].at)}`);
+            const last = order.nudges[order.nudges.length - 1];
+            alerts.push(`用户催过 ${order.nudges.length} 次 · 最后一次 ${esc(formatDate(last.at))}`);
         }
         if (order.thanks) {
-            extras.push(`用户答谢：${order.thanks.note}${Number(order.thanks.reward) > 0 ? ` · 已返 ${order.thanks.reward} 币` : ''}`);
+            const reward = Number(order.thanks.reward) || 0;
+            alerts.push(`用户答谢：${esc(order.thanks.note)}${reward > 0 ? ` · 已返 ${reward} 币` : ''}`);
         }
-        if (order.cancelled && order.cancelled.reason) extras.push(`取消原因：${order.cancelled.reason}`);
+        if (order.cancelled && order.cancelled.reason) alerts.push(`取消原因：${esc(order.cancelled.reason)}`);
+        if (order.cancelled && order.cancelled.refundId) alerts.push(`退款流水：${esc(order.cancelled.refundId)}`);
+
+        const facts = [
+            ['预约饭点', esc(slotText(order)), ''],
+            ['下单时间', esc(formatDate(order.placedAt)), ''],
+            ['菜品', `${itemCount} 道`, ''],
+            ['当前状态', esc(statusLabel), '']
+        ];
+
+        const servedPhotos = items.filter(item => item && item.servedImage);
 
         body.innerHTML = `
-            <div class="detail-hero">
-                <span class="detail-hero-label">预约饭点</span>
-                <b>${esc(slotText(order))}</b>
-                <p>下单 ${esc(formatDate(order.placedAt))}${waitText(order) ? ` · ${esc(waitText(order))}` : ''}</p>
-                <div class="detail-hero-foot">
+            <div class="od-summary">
+                <div class="od-summary-head">
+                    <b class="order-id">${esc(order.id)}</b>
                     ${order.status === 'cancelled'
                         ? '<span class="status-text">已取消</span>'
-                        : `<span class="status-pill ${esc(order.status)}">${ORDER_LABEL[order.status] || order.status}</span>`}
-                    <span>${esc(countdownText(order.scheduledFor))}</span>
+                        : `<span class="status-pill ${esc(order.status)}">${esc(statusLabel)}</span>`}
                 </div>
+                <dl class="od-facts">
+                    ${facts.map(([label, value, tone]) => `
+                        <div class="od-fact">
+                            <dt>${label}</dt>
+                            <dd class="${tone}">${value}</dd>
+                        </div>`).join('')}
+                </dl>
             </div>
-            <div class="detail-block">
-                <div class="detail-block-head"><b>菜品</b><small>${(order.items || []).length} 道</small></div>
-                <div class="detail-items">${(order.items || []).map(item => `
-                    <div class="detail-item">
-                        ${photoHTML(item, 'order-item-photo', true)}
-                        <span class="detail-item-main"><b>${esc(item.name)}</b><small>${item.prepMinutes ? `约 ${item.prepMinutes} 分钟` : ''}</small></span>
-                        <span class="detail-item-price">${item.price} 币</span>
-                    </div>`).join('')}</div>
-            </div>
-            ${servedPhotosHTML(order.items)}
-            ${order.note ? `<div class="detail-block"><div class="detail-block-head"><b>用户备注</b></div><p class="detail-note">“${esc(order.note)}”</p></div>` : ''}
-            ${extras.length ? `<div class="detail-block"><div class="detail-block-head"><b>提醒</b></div><div class="detail-extras">${extras.map(text => `<p>${esc(text)}</p>`).join('')}</div></div>` : ''}
-            <div class="detail-block">
-                <div class="detail-block-head"><b>支付</b><small>${payment.refundedAt ? '已退款' : '已支付'}</small></div>
-                <div class="detail-pay">
-                    <span>合计</span>
-                    <b>${order.total} 币</b>
+
+            <div class="od-layout">
+                <div class="od-col">
+                    <div class="od-panel">
+                        <div class="od-panel-head"><b>菜品明细</b><small>点图看大图</small></div>
+                        ${items.length ? items.map(item => `
+                            <div class="od-item">
+                                ${photoHTML(item, 'order-item-photo', true)}
+                                <span class="od-item-main">
+                                    <b>${esc(item.name)}</b>
+                                    <small>${item.prepMinutes ? `预计 ${item.prepMinutes} 分钟` : ''}</small>
+                                </span>
+                                <span class="od-item-price">${item.price} 币</span>
+                            </div>`).join('') : '<p class="od-note">这一单没有菜品记录。</p>'}
+                        <div class="od-item-total"><span>合计 · ${payment.refundedAt ? '已退款' : '已支付'}</span><b>${order.total} 币</b></div>
+                    </div>
+
+                    ${servedPhotos.length ? `<div class="od-panel">
+                        <div class="od-panel-head"><b>本次出餐</b><small>${servedPhotos.length} 张 · 点图看大图</small></div>
+                        <div class="od-photos">${servedPhotos.map(item => `
+                            <button class="served-photo" type="button" data-image-preview="${esc(item.servedImage)}" aria-label="查看${esc(item.name)}成品图">
+                                <img src="${esc(item.servedImage)}" alt="${esc(item.name)}成品图">
+                                <span>${esc(item.name)}</span>
+                            </button>`).join('')}</div>
+                    </div>` : ''}
+
+                    ${order.note ? `<div class="od-panel">
+                        <div class="od-panel-head"><b>用户备注</b></div>
+                        <p class="od-note">“${esc(order.note)}”</p>
+                    </div>` : ''}
+
+                    ${alerts.length ? `<div class="od-panel">
+                        <div class="od-panel-head"><b>需要留意</b></div>
+                        <div class="od-alerts">${alerts.map(text => `<p>${text}</p>`).join('')}</div>
+                    </div>` : ''}
                 </div>
-                ${payment.balanceAfter != null ? `<p class="detail-pay-note">支付后余额 ${payment.balanceAfter} 币</p>` : ''}
-            </div>
-            <div class="detail-block">
-                <div class="detail-block-head"><b>状态记录</b><small>${history.length} 条</small></div>
-                <ol class="detail-timeline">
-                    ${history.length ? history.map(entry => `
-                        <li><span>${ORDER_LABEL[entry.status] || entry.status}</span><small>${esc(formatDate(entry.at))}${entry.by === 'user' ? ' · 用户' : entry.by === 'admin' ? ' · 管理端' : ''}</small></li>
-                    `).join('') : '<li><span>还没有状态记录</span></li>'}
-                </ol>
+
+                <div class="od-col">
+                    <div class="od-panel">
+                        <div class="od-panel-head"><b>支付</b></div>
+                        <div class="od-pay-row"><span>订单金额</span><b>${order.total} 币</b></div>
+                        <div class="od-pay-row"><span>支付状态</span><b>${payment.refundedAt ? '已退款' : '已支付'}</b></div>
+                        ${payment.balanceAfter != null ? `<div class="od-pay-row"><span>支付后余额</span><b>${payment.balanceAfter} 币</b></div>` : ''}
+                        ${payment.transactionId ? `<div class="od-pay-row"><span>交易号</span><b>${esc(payment.transactionId)}</b></div>` : ''}
+                    </div>
+
+                    <div class="od-panel">
+                        <div class="od-panel-head"><b>状态记录</b><small>${history.length} 条</small></div>
+                        <ol class="od-timeline">
+                            ${history.length ? history.map((entry, index) => `
+                                <li class="${index === history.length - 1 ? 'is-latest' : ''}">
+                                    <b>${esc(ORDER_LABEL[entry.status] || entry.status)}</b>
+                                    <small>${esc(formatDate(entry.at))}<i>${entry.by === 'user' ? '用户' : entry.by === 'admin' ? '管理端' : ''}</i></small>
+                                </li>`).join('') : '<li><b>还没有状态记录</b><small></small></li>'}
+                        </ol>
+                    </div>
+                </div>
             </div>`;
 
         const buttons = [];
         if (next) {
-            buttons.push(`<button class="admin-btn dark" type="button" data-detail-next="${esc(order.id)}" data-next-status="${next.status}">${next.label}</button>`);
+            buttons.push(`<button class="admin-btn primary" type="button" data-detail-next="${esc(order.id)}" data-next-status="${next.status}">${next.label}</button>`);
         }
-        if (ADMIN_ORDER_ACTIVE.includes(order.status)) {
+        if (ADMIN_CANCELABLE.includes(order.status)) {
             buttons.push(`<button class="admin-btn danger" type="button" data-detail-cancel="${esc(order.id)}">${order.status === 'pending' ? '拒单退款' : '取消退款'}</button>`);
         }
         actions.innerHTML = buttons.length
-            ? buttons.join('')
+            ? `<span>当前状态：${esc(statusLabel)}</span><span class="od-actionbar-btns">${buttons.join('')}</span>`
             : '<p class="admin-small admin-muted">这一单已经结束，没有可执行的操作。</p>';
-        actions.hidden = false;
     }
 
     /* ---------- serving photos ---------- */
@@ -2559,8 +2738,18 @@
     }
 
     /* ---------- coupons ---------- */
+    function renderCouponDurationPicker() {
+        const current = String(parseInt($('coupon-duration').value, 10) || COUPON_DURATIONS[0]);
+        $('coupon-duration-picker').innerHTML = COUPON_DURATIONS.map(minutes => `
+            <button type="button" role="radio" aria-checked="${String(minutes) === current}"
+                class="${String(minutes) === current ? 'is-on' : ''}"
+                data-choice-duration="${minutes}"><b>${minutes}</b><small>分钟</small></button>`).join('');
+    }
+
     function renderCoupons() {
         if (!adminData) return;
+        if (!$('coupon-duration').value) $('coupon-duration').value = String(COUPON_DURATIONS[0]);
+        renderCouponDurationPicker();
         const coupons = (adminData.coupons || []).slice().sort((a, b) => Number(b.id) - Number(a.id));
         const available = coupons.filter(coupon => coupon.status === 'available').length;
         const used = coupons.filter(coupon => coupon.status === 'used').length;
@@ -2716,11 +2905,7 @@
         $('system-menu-count').textContent = `${dishes.length} 道 · ${dishes.filter(dish => dish.available !== false).length} 道上架`;
         $('menu-summary').textContent = `${dishes.length} 道菜 · ${dishes.filter(dish => dish.available !== false).length} 道上架`;
 
-        const select = $('dish-category');
-        const current = select.value;
-        select.innerHTML = (menu.categories || []).map(category =>
-            `<option value="${esc(category.id)}">${esc(category.name)}</option>`).join('');
-        if (current && [...select.options].some(option => option.value === current)) select.value = current;
+        renderDishChoicePickers();
 
         const filters = [{ id: 'all', label: '全部', count: dishes.length }].concat(
             (menu.categories || []).map(category => ({
@@ -2770,6 +2955,21 @@
 
         renderTagPicker();
         renderDishRequests();
+    }
+
+    function renderDishChoicePickers() {
+        const categories = ((adminData && adminData.menu && adminData.menu.categories) || []);
+        const currentCategory = $('dish-category').value
+            || (categories[0] && String(categories[0].id)) || '';
+        $('dish-category-picker').innerHTML = categories.map(category => `
+            <button type="button" role="radio" aria-checked="${String(category.id) === String(currentCategory)}"
+                class="${String(category.id) === String(currentCategory) ? 'is-on' : ''}"
+                data-choice-category="${esc(category.id)}">${esc(category.name)}</button>`).join('');
+        const currentTime = String(nearestTime($('dish-time').value || MENU_TIMES[0]));
+        $('dish-time-picker').innerHTML = MENU_TIMES.map(minutes => `
+            <button type="button" role="radio" aria-checked="${String(minutes) === currentTime}"
+                class="${String(minutes) === currentTime ? 'is-on' : ''}"
+                data-choice-time="${minutes}">${minutes}′</button>`).join('');
     }
 
     function renderTagPicker() {
@@ -2858,7 +3058,15 @@
         $('dish-submit').disabled = dishImageUploading;
     }
 
+    function syncDishChoiceValues() {
+        const categories = ((adminData && adminData.menu && adminData.menu.categories) || []);
+        if (!$('dish-category').value && categories.length) $('dish-category').value = String(categories[0].id);
+        if (!$('dish-time').value) $('dish-time').value = String(MENU_TIMES[0]);
+        renderDishChoicePickers();
+    }
+
     function openDishModal() {
+        syncDishChoiceValues();
         $('dish-modal').classList.add('is-open');
         $('dish-modal').setAttribute('aria-hidden', 'false');
         document.body.classList.add('admin-modal-open');
@@ -2881,7 +3089,7 @@
         clearDishRequestMode();
         $('dish-id').value = dish.id;
         $('dish-name').value = dish.name || '';
-        $('dish-category').value = dish.categoryId || '';
+        $('dish-category').value = dish.categoryId != null ? String(dish.categoryId) : '';
         $('dish-price').value = dish.price ?? '';
         $('dish-time').value = String(nearestTime(dish.prepMinutes));
         $('dish-description').value = dish.description || '';
@@ -2904,7 +3112,7 @@
         $('dish-id').value = '';
         $('dish-name').value = '';
         $('dish-price').value = '';
-        $('dish-time').value = '40';
+        $('dish-time').value = String(MENU_TIMES[0]);
         $('dish-description').value = '';
         $('dish-ingredients').value = '';
         dishTags = new Set();
@@ -2927,9 +3135,10 @@
         pendingDishRequestId = request.id;
         $('dish-id').value = '';
         $('dish-name').value = request.name || '';
-        if ($('dish-category').options.length) $('dish-category').selectedIndex = 0;
+        const firstCategory = ((adminData.menu && adminData.menu.categories) || [])[0];
+        $('dish-category').value = firstCategory ? String(firstCategory.id) : '';
         $('dish-price').value = '';
-        $('dish-time').value = '40';
+        $('dish-time').value = String(MENU_TIMES[0]);
         $('dish-description').value = '';
         $('dish-ingredients').value = '';
         dishTags = new Set();
@@ -4188,6 +4397,12 @@
     });
 
     $('coupon-issue').addEventListener('click', issueCoupon);
+    $('coupon-duration-picker').addEventListener('click', event => {
+        const button = event.target.closest('[data-choice-duration]');
+        if (!button) return;
+        $('coupon-duration').value = button.dataset.choiceDuration;
+        renderCouponDurationPicker();
+    });
     $('coupon-filters').addEventListener('click', event => {
         const button = event.target.closest('[data-coupon-filter]');
         if (!button) return;
@@ -4287,6 +4502,18 @@
     });
     $('dish-gallery').addEventListener('dragend', () => { dishGalleryDragIndex = null; });
 
+    $('dish-category-picker').addEventListener('click', event => {
+        const button = event.target.closest('[data-choice-category]');
+        if (!button) return;
+        $('dish-category').value = button.dataset.choiceCategory;
+        renderDishChoicePickers();
+    });
+    $('dish-time-picker').addEventListener('click', event => {
+        const button = event.target.closest('[data-choice-time]');
+        if (!button) return;
+        $('dish-time').value = button.dataset.choiceTime;
+        renderDishChoicePickers();
+    });
     $('dish-tags').addEventListener('click', event => {
         const button = event.target.closest('[data-dish-tag]');
         if (!button) return;

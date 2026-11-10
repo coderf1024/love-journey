@@ -577,13 +577,13 @@
         padding: 2px 2px 11px;
         border-bottom: 1px dashed var(--line-strong);
     }
-    .od-head-main { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 3px; }
-    .od-head-main h1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-family: var(--font-display); font-size: 15px; font-weight: 700; line-height: 1.35; }
+    .od-head-main { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 10px; }
+    .od-head-main h1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-family: var(--font-display); font-size: 18.5px; font-weight: 700; line-height: 1.35; }
     .od-head-status { display: inline-flex; }
     .od-head-status .status-pill { padding: 3px 8px; font-size: 9px; }
     .od-head-status .status-text { font-size: 9.5px; }
     .od-context-main { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
-    .od-context-label { flex: 0 0 auto; color: var(--admin-muted); font-size: 9px; letter-spacing: .04em; }
+    .od-context-label { flex: 0 0 auto; color: var(--admin-muted); font-size: 9.5px; letter-spacing: .04em; }
     .od-context-main .order-id { min-width: 0; overflow: hidden; color: var(--ink-2); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
     .od-actions { display: flex; align-items: stretch; gap: 6px; flex: 0 0 auto; }
     .od-actions:empty { display: none; }
@@ -592,7 +592,7 @@
     @media (max-width: 559px) {
         /* 手机不换行：左边信息缩小让位，右边两个按钮上下叠放、各占一半高度 */
         .od-head { gap: 10px; padding-bottom: 10px; }
-        .od-head-main h1 { font-size: 13.5px; gap: 6px; }
+        .od-head-main h1 { gap: 6px; }
         .od-head-status .status-pill { padding: 2px 7px; font-size: 8.5px; }
         .od-context-main .order-id { font-size: 9px; }
         .od-context-label { font-size: 8.5px; }
@@ -748,6 +748,7 @@
     .date-picker-chev { color: #b3aca5; font-size: 18px; line-height: 1; }
     .date-quick-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
     .date-quick-row button { padding: 4px 10px; background: #fff; border: 1px solid var(--line); border-radius: 999px; color: var(--admin-muted); font-size: 9px; }
+    .field-required { margin-left: 4px; color: var(--admin-stamp); font-size: 8.5px; letter-spacing: 0; }
     .milestone-delete-link { margin-right: auto; padding: 4px 2px; background: none; border: 0; color: var(--admin-stamp); font-size: 10px; }
     .milestone-delete-link[hidden] { display: none; }
     .cal-modal { z-index: 125; }
@@ -1500,20 +1501,19 @@
                     <div class="field-note">封面按 4:3 居中裁切；保存后用户端卡片和详情会显示这张图，没有图片时回退纯色封面。</div>
                 </div>
                 <div class="admin-field">
-                    <label>日期</label>
+                    <label for="milestone-date-button">日期 <span class="field-required">必填</span></label>
                     <input type="hidden" id="milestone-date">
                     <button class="date-picker-button" id="milestone-date-button" type="button" aria-haspopup="dialog">
                         <span class="date-picker-icon" aria-hidden="true">▦</span>
                         <span class="date-picker-main">
-                            <b id="milestone-date-label">未设置</b>
-                            <small id="milestone-date-hint">归入「旧时光」，排在最后</small>
+                            <b id="milestone-date-label" class="is-empty">选择日期</b>
+                            <small id="milestone-date-hint">决定这条回忆排在哪个年份</small>
                         </span>
                         <span class="date-picker-chev" aria-hidden="true">›</span>
                     </button>
                     <div class="date-quick-row" id="milestone-date-quick">
                         <button type="button" data-milestone-quick="today">今天</button>
                         <button type="button" data-milestone-quick="yesterday">昨天</button>
-                        <button type="button" data-milestone-quick="clear">不填</button>
                     </div>
                 </div>
                 <div class="admin-field"><label for="milestone-title">标题</label><input class="admin-input" id="milestone-title" type="text" maxlength="60" required></div>
@@ -1547,7 +1547,7 @@
             <div class="cal-grid" id="calendar-grid"></div>
         </div>
         <div class="admin-modal-foot">
-            <button class="admin-btn ghost" id="calendar-clear" type="button">清空日期</button>
+            <button class="admin-btn ghost" id="calendar-cancel" type="button" data-calendar-close>取消</button>
             <button class="admin-btn primary" id="calendar-today" type="button">今天</button>
         </div>
     </div>
@@ -3293,7 +3293,8 @@
 
     function milestoneYearLabel(value) {
         const date = toDate(value);
-        return date ? String(date.getFullYear()) : '旧时光';
+        // 日期现在是必填；这个兜底只用于历史数据里没有日期的记录
+        return date ? String(date.getFullYear()) : '未填日期';
     }
 
     function sortedMilestones() {
@@ -3418,8 +3419,8 @@
         const hint = $('milestone-date-hint');
         label.classList.toggle('is-empty', !date);
         if (!date) {
-            label.textContent = '未设置';
-            hint.textContent = '归入「旧时光」，排在最后';
+            label.textContent = '选择日期';
+            hint.textContent = '决定这条回忆排在哪个年份';
             return;
         }
         label.textContent = `${date.getFullYear()} · ${pad2(date.getMonth() + 1)} · ${pad2(date.getDate())}`;
@@ -3622,6 +3623,12 @@
         }
         const indexValue = $('milestone-id').value;
         const isNew = indexValue === '';
+        const date = $('milestone-date').value;
+        if (!date) {
+            showMessage('请先选择日期', 'error');
+            $('milestone-date-button').focus();
+            return;
+        }
         const title = $('milestone-title').value.trim();
         if (!title) {
             showMessage('标题不能为空', 'error');
@@ -3631,7 +3638,7 @@
         const items = (adminData.milestones || []).slice();
         const entry = {
             ...(isNew ? {} : (items[Number(indexValue)] || {})),
-            date: $('milestone-date').value || '',
+            date: date,
             title,
             description: $('milestone-description').value.trim(),
             image: ($('milestone-image').value || adminMilestoneImage || '').trim()
@@ -4542,10 +4549,6 @@
         const button = event.target.closest('[data-milestone-quick]');
         if (!button) return;
         const kind = button.dataset.milestoneQuick;
-        if (kind === 'clear') {
-            syncMilestoneDate('');
-            return;
-        }
         const date = new Date();
         if (kind === 'yesterday') date.setDate(date.getDate() - 1);
         syncMilestoneDate(`${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`);
@@ -4572,11 +4575,6 @@
     $('calendar-today').addEventListener('click', () => {
         const today = new Date();
         pickMilestoneDay(`${today.getFullYear()}-${pad2(today.getMonth() + 1)}-${pad2(today.getDate())}`);
-    });
-    $('calendar-clear').addEventListener('click', () => {
-        calendarSelected = '';
-        syncMilestoneDate('');
-        closeMilestoneCalendar();
     });
     document.querySelectorAll('[data-calendar-close]').forEach(button => {
         button.addEventListener('click', closeMilestoneCalendar);

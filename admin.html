@@ -908,6 +908,11 @@
     .serve-upload { display:none; }
     .serve-progress { color: var(--admin-muted); font-size: 9px; text-align: right; }
     .serve-progress b { color: var(--admin-stamp); }
+    .dish-gallery-head { display: flex; align-items: baseline; gap: 8px; }
+    .dish-gallery-head label { color: var(--admin-muted); font-size: 10px; }
+    .gallery-hint { color: #a9a29b; font-weight: 400; }
+    .dish-gallery-head .photo-status { margin-left: auto; }
+
     .dish-gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
     .dish-gallery-item { position: relative; aspect-ratio: 1; overflow: hidden; background: #f3eee7; border: 1px solid var(--line); border-radius: 9px; cursor: grab; }
     .dish-gallery-item.is-main { border-color: var(--admin-ink); box-shadow: 0 0 0 1px var(--admin-ink) inset; }
@@ -1466,20 +1471,18 @@
                     <span class="dish-request-banner-main"><b>来自用户的「我想吃」</b><small id="dish-request-banner-text"></small></span>
                     <button class="admin-btn ghost sm" id="dish-request-reject" type="button">不采纳</button>
                 </div>
-                <div class="photo-field">
-                    <input id="dish-image-file" type="file" accept="image/*" hidden>
-                    <div class="photo-preview" id="dish-image-preview"></div>
-                    <span class="photo-status" id="dish-image-status">未选择</span>
-                    <details class="photo-url" id="dish-image-url-box">
-                        <summary>用图片链接</summary>
-                        <div class="admin-field"><input class="admin-input" id="dish-image" type="text" placeholder="粘贴图片链接，或直接上传"></div>
-                    </details>
-                </div>
                 <div class="admin-field">
-                    <label>图片集 <span style="color:#a9a29b;font-weight:400">第一张即主图</span></label>
+                    <div class="dish-gallery-head">
+                        <label>图片集 <span class="gallery-hint">第一张即主图</span></label>
+                        <span class="photo-status" id="dish-image-status">未选择</span>
+                    </div>
                     <input id="dish-gallery-file" type="file" accept="image/*" multiple hidden>
                     <div class="dish-gallery" id="dish-gallery"></div>
-                    <div class="field-note">可以一次选多张；出餐成品图也会自动追加到这里。可拖动排序、设为主图、删除，数量不限。</div>
+                    <details class="photo-url" id="dish-image-url-box">
+                        <summary>用图片链接</summary>
+                        <div class="admin-field"><input class="admin-input" id="dish-image" type="text" placeholder="粘贴图片链接，或点上面的 ＋ 上传"></div>
+                    </details>
+                    <div class="field-note">可以一次选多张；出餐成品图也会自动追加到这里。点图片看大图，可拖动排序、设为主图、删除，数量不限。</div>
                 </div>
                 <div class="admin-field"><label for="dish-name">菜名</label><input class="admin-input" id="dish-name" type="text" required></div>
                 <div class="dish-field-row">
@@ -3011,16 +3014,6 @@
         if (box) box.open = !!String($('dish-image').value || '').trim();
     }
 
-    function setDishImagePreview(url) {
-        const value = String(url || '').trim();
-        const preview = $('dish-image-preview');
-        if (value) {
-            preview.outerHTML = `<div class="photo-preview" id="dish-image-preview" data-image-preview="${esc(value)}"><img src="${esc(value)}" alt=""></div>`;
-            return;
-        }
-        preview.outerHTML = `<label class="photo-preview is-upload" id="dish-image-preview" for="dish-image-file"><span class="photo-placeholder"><b>＋</b>点击上传菜品照片</span></label>`;
-    }
-
     function renderDishGallery() {
         const container = $('dish-gallery');
         if (!container) return;
@@ -3068,7 +3061,6 @@
                 // 图集为空时同时补上主图预览；已有主图就不动它
                 if (dishGallery.length === 1) {
                     $('dish-image').value = url;
-                    setDishImagePreview(url);
                     syncDishUrlBox();
                 }
                 renderDishGallery();
@@ -3085,7 +3077,6 @@
     function syncMainImageFromGallery() {
         const main = dishGallery[0] || '';
         $('dish-image').value = main;
-        setDishImagePreview(main);
         setDishImageStatus(main ? '已填写图片' : '未选择');
     }
 
@@ -3099,7 +3090,6 @@
             dishGallery.shift();
         }
         $('dish-image').value = dishGallery[0] || '';
-        setDishImagePreview(dishGallery[0] || '');
         setDishImageStatus(dishGallery[0] ? '已填写图片' : '未选择');
         renderDishGallery();
     }
@@ -3114,7 +3104,6 @@
 
     function setDishImageUploading(uploading) {
         dishImageUploading = !!uploading;
-        $('dish-image-file').disabled = dishImageUploading;
         $('dish-gallery-file').disabled = dishImageUploading;
         $('dish-gallery').classList.toggle('is-busy', dishImageUploading);
         $('dish-submit').disabled = dishImageUploading;
@@ -3161,7 +3150,6 @@
         dishGallery = dishImages(dish);
         $('dish-image').value = dish.image || dishGallery[0] || '';
         syncDishUrlBox();
-        setDishImagePreview($('dish-image').value);
         setDishImageStatus($('dish-image').value ? '已填写图片' : '未选择');
         renderDishGallery();
         setAvailableSwitch(dish.available !== false);
@@ -3183,7 +3171,6 @@
         dishGallery = [];
         $('dish-image').value = '';
         syncDishUrlBox();
-        setDishImagePreview('');
         setDishImageStatus('未选择');
         renderDishGallery();
         setAvailableSwitch(true);
@@ -3210,7 +3197,6 @@
         dishGallery = request.image ? [request.image] : [];
         $('dish-image').value = request.image || '';
         syncDishUrlBox();
-        setDishImagePreview(request.image || '');
         setDishImageStatus(request.image ? '用户上传的图片' : '未选择');
         renderDishGallery();
         setAvailableSwitch(true);
@@ -3338,41 +3324,6 @@
                 resetDishForm();
             } catch (error) {
                 showMessage(error.message, 'error');
-            }
-        }
-    }
-
-    async function handleDishImageFile(event) {
-        const file = event.target.files && event.target.files[0];
-        if (!file) return;
-        if (!String(file.type || '').startsWith('image/')) {
-            setDishImageStatus('只能上传图片文件', 'error');
-            event.target.value = '';
-            return;
-        }
-        if (file.size > 20 * 1024 * 1024) {
-            setDishImageStatus('图片不能超过 20MB', 'error');
-            event.target.value = '';
-            return;
-        }
-        setDishImageUploading(true);
-        $('dish-image-preview').classList.add('is-busy');
-        setDishImageStatus('压缩上传中…');
-        const token = ++dishImageUploadToken;
-        try {
-            const url = await uploadDishImage(file);
-            if (token !== dishImageUploadToken) return;
-            setMainImageValue(url);
-            setDishImageStatus('上传成功', 'success');
-        } catch (error) {
-            if (token !== dishImageUploadToken) return;
-            setDishImageStatus('上传失败，请重试', 'error');
-        } finally {
-            if (token === dishImageUploadToken) {
-                event.target.value = '';
-                setDishImageUploading(false);
-                const preview = $('dish-image-preview');
-                if (preview) preview.classList.remove('is-busy');
             }
         }
     }
@@ -4526,11 +4477,6 @@
     });
     // 预览块会被替换成 <label> / <div>，所以用文档级委托
     document.addEventListener('click', event => {
-        const dishPreview = event.target.closest('#dish-image-preview[data-image-preview]');
-        if (dishPreview) {
-            openImageLightbox(dishPreview.dataset.imagePreview);
-            return;
-        }
         const milestonePreview = event.target.closest('#milestone-image-preview');
         if (milestonePreview && milestonePreview.querySelector('img')) {
             openImageLightbox(adminMilestoneImage);
@@ -4619,7 +4565,6 @@
         if (dishImageUploading) return;
         setMainImageValue(event.target.value);
     });
-    $('dish-image-file').addEventListener('change', handleDishImageFile);
     $('dish-gallery-file').addEventListener('change', handleDishGalleryFiles);
 
     $('milestone-add').addEventListener('click', () => openMilestoneModal(-1));

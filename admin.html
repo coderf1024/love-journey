@@ -522,18 +522,6 @@
     .order-actions { display: flex; gap: 5px; margin-left: auto; flex-wrap: wrap; justify-content: flex-end; }
 
     /* order detail — 管理端工作台风格：浅底数据卡 + 分隔线，不用用户端的深色 hero 和大圆角 */
-    /* 不是摘要卡，就是页面标题下的一行上下文 */
-    .od-context {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 0 2px 10px;
-        border-bottom: 1px dashed var(--line-strong);
-    }
-    .od-context { flex-wrap: wrap; row-gap: 6px; }
-    .od-context-main { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 7px; }
-    .od-context-label { color: var(--admin-muted); font-size: 9px; letter-spacing: .04em; }
-    .od-context-main .order-id { min-width: 0; overflow: hidden; color: var(--ink-2); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
 
     .od-layout { display: grid; gap: 12px; margin-top: 12px; align-items: start; }
     .od-col { display: grid; gap: 12px; min-width: 0; }
@@ -579,24 +567,34 @@
     .od-timeline li small { color: var(--admin-muted); font-size: 8.5px; font-variant-numeric: tabular-nums; text-align: right; }
     .od-timeline li small i { display: block; color: #b3aca5; font-size: 8px; font-style: normal; }
 
-    /* 状态挂在标题旁；主操作放在页头右侧——最常点的东西不该滚到底才能按 */
-    /* 标题是数据（饭点），不是页名，按正文层级排，别再当大标题 */
-    .od-head-main h1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 1px; font-family: var(--font-display); font-size: 15px; font-weight: 700; line-height: 1.4; }
+    /* 页头一行：左边是这一单是什么（饭点 + 订单号），右边是能做的操作。
+       标题是数据不是页名，用正文档位；状态 pill 跟饭点同一行。 */
+    .od-head {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 2px 2px 11px;
+        border-bottom: 1px dashed var(--line-strong);
+    }
+    .od-head-main { flex: 1; min-width: 0; display: grid; gap: 3px; }
+    .od-head-main h1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-family: var(--font-display); font-size: 15px; font-weight: 700; line-height: 1.35; }
     .od-head-status { display: inline-flex; }
-    .od-head-status .status-pill { padding: 4px 9px; font-size: 9px; }
+    .od-head-status .status-pill { padding: 3px 8px; font-size: 9px; }
     .od-head-status .status-text { font-size: 9.5px; }
+    .od-context-main { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+    .od-context-label { flex: 0 0 auto; color: var(--admin-muted); font-size: 9px; letter-spacing: .04em; }
+    .od-context-main .order-id { min-width: 0; overflow: hidden; color: var(--ink-2); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
     .od-actions { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
-    .od-actions .admin-btn { padding: 6px 11px; font-size: 10px; }
+    .od-actions:empty { display: none; }
+    .od-actions .admin-btn { padding: 7px 13px; font-size: 10.5px; }
 
     @media (max-width: 559px) {
-        /* 手机：订单号一行、按钮一行靠右，不铺满整行 */
-        .od-context { row-gap: 7px; }
-        .od-context-main { flex: 1 1 100%; }
-        .od-actions { width: 100%; justify-content: flex-end; margin-top: 1px; }
-        .od-actions .admin-btn { padding: 8px 13px; font-size: 10.5px; }
+        /* 手机放不下左右并排：左边信息一行、按钮另起一行靠右 */
+        .od-head { flex-wrap: wrap; row-gap: 9px; }
+        .od-head-main { flex: 1 1 100%; }
+        .od-actions { width: 100%; justify-content: flex-end; }
+        .od-actions .admin-btn { padding: 8px 14px; font-size: 10.5px; }
     }
-    .od-actions .admin-btn { padding: 7px 13px; }
-    .od-actions .admin-small { color: var(--admin-muted); }
 
     .order-card.is-openable { cursor: pointer; }
 
@@ -954,9 +952,6 @@
 
         .view-head > div { display: none; }
         .view-head:not(:has(.head-actions)) { display: none; }
-        /* 订单详情的标题带状态角标，移动端要保留 */
-        .view-head:has(#order-detail-status) { display: flex; }
-        .view-head:has(#order-detail-status) > .od-head-main { display: block; }
         .view-head { margin: 0 0 8px; }
         /* 移动端头部长：标题 + 用户端按钮 + 头像；空间名收起来，头像保持最右 */
         .admin-header-space #header-space-name { display: none; }
@@ -1122,11 +1117,15 @@
         </section>
 
         <section class="admin-view" data-panel="order-detail" hidden>
-            <div class="view-head">
+            <div class="od-head">
                 <div class="od-head-main">
-                    <p class="eyebrow">经营 · 订单详情</p>
                     <h1><span id="order-detail-title">订单详情</span><span class="od-head-status" id="order-detail-status"></span></h1>
+                    <div class="od-context-main">
+                        <span class="od-context-label">订单号</span>
+                        <span class="order-id" id="order-detail-id"></span>
+                    </div>
                 </div>
+                <div class="od-actions" id="order-detail-actions"></div>
             </div>
             <div id="order-detail-body"></div>
         </section>
@@ -2495,12 +2494,14 @@
         const body = $('order-detail-body');
         if (!order || !body) return;
         const statusLabel = ORDER_LABEL[order.status] || order.status;
+        const next = NEXT_STATUS[order.status];
         $('order-detail-title').textContent = slotText(order);
+        $('order-detail-id').textContent = order.id;
+        $('order-detail-actions').innerHTML = detailActionsHTML(order, next);
         $('order-detail-status').innerHTML = order.status === 'cancelled'
             ? '<span class="status-text">已取消</span>'
             : `<span class="status-pill ${esc(order.status)}">${esc(statusLabel)}</span>`;
 
-        const next = NEXT_STATUS[order.status];
         const history = Array.isArray(order.statusHistory) ? order.statusHistory : [];
         const payment = order.payment || {};
         const items = order.items || [];
@@ -2526,14 +2527,6 @@
         // 顶部只保留三样有决策价值的信息：这是哪一单、哪一餐、现在什么状态。
         // 下单时间和菜数分别由「状态记录」和「菜品明细」承担，不再重复。
         body.innerHTML = `
-            <div class="od-context">
-                <div class="od-context-main">
-                    <span class="od-context-label">订单号</span>
-                    <span class="order-id">${esc(order.id)}</span>
-                </div>
-                ${detailActionsHTML(order, next)}
-            </div>
-
             <div class="od-layout">
                 <div class="od-col">
                     <div class="od-panel">
@@ -2602,9 +2595,7 @@
         if (ADMIN_CANCELABLE.includes(order.status)) {
             buttons.push(`<button class="admin-btn danger" type="button" data-detail-cancel="${esc(order.id)}">${order.status === 'pending' ? '拒单退款' : '取消退款'}</button>`);
         }
-        return buttons.length
-            ? `<div class="od-actions">${buttons.join('')}</div>`
-            : '';
+        return buttons.join('');
     }
 
     /* ---------- serving photos ---------- */

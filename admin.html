@@ -723,11 +723,12 @@
     .photo-preview.milestone-preview { width: min(100%, 266px); max-width: none; aspect-ratio: 4 / 3; cursor: zoom-in; }
     .milestone-remove { padding: 6px 9px; background: #fff; border: 1px solid var(--line); border-radius: 8px; color: var(--admin-stamp); font-size: 9px; }
     .milestone-remove[hidden] { display: none; }
-    .milestone-url { display: grid; gap: 5px; font-size: 9px; }
-    .milestone-url > summary { color: var(--admin-muted); cursor: pointer; list-style: none; }
-    .milestone-url > summary::-webkit-details-marker { display: none; }
-    .milestone-url > summary::before { content: "＋ "; }
-    .milestone-url[open] > summary::before { content: "− "; }
+    /* 「用图片链接」折叠块：菜品主图与回忆封面共用 */
+    .photo-url { display: grid; gap: 5px; font-size: 9px; }
+    .photo-url > summary { color: var(--admin-muted); cursor: pointer; list-style: none; }
+    .photo-url > summary::-webkit-details-marker { display: none; }
+    .photo-url > summary::before { content: "＋ "; }
+    .photo-url[open] > summary::before { content: "− "; }
     .date-picker-button {
         display: flex;
         align-items: center;
@@ -1456,7 +1457,10 @@
                     <input id="dish-image-file" type="file" accept="image/*" hidden>
                     <div class="photo-preview" id="dish-image-preview"></div>
                     <span class="photo-status" id="dish-image-status">未选择</span>
-                    <div class="admin-field"><label for="dish-image">图片 URL（可选）</label><input class="admin-input" id="dish-image" type="text" placeholder="上传后自动填写，也可以粘贴链接"></div>
+                    <details class="photo-url" id="dish-image-url-box">
+                        <summary>用图片链接</summary>
+                        <div class="admin-field"><input class="admin-input" id="dish-image" type="text" placeholder="粘贴图片链接，或直接上传"></div>
+                    </details>
                 </div>
                 <div class="admin-field">
                     <label>图片集 <span style="color:#a9a29b;font-weight:400">第一张即主图</span></label>
@@ -1512,7 +1516,7 @@
                         <button class="milestone-remove" id="milestone-image-remove" type="button" hidden>移除封面</button>
                         <span class="photo-status" id="milestone-image-status">未选择</span>
                     </div>
-                    <details class="milestone-url">
+                    <details class="photo-url">
                         <summary>用图片链接</summary>
                         <div class="admin-field"><input class="admin-input" id="milestone-image" type="text" placeholder="粘贴图片链接，或直接上传"></div>
                     </details>
@@ -2987,6 +2991,12 @@
 
     // 没图时整块是 <label for=file>，点一下就选图；有图时是普通预览，点开看大图。
     // 这样「＋」本身就是上传入口，不再需要旁边单独的上传按钮。
+    // 折叠块默认收起；有链接时自动展开（编辑已有菜品 / 审核我想吃）
+    function syncDishUrlBox() {
+        const box = $('dish-image-url-box');
+        if (box) box.open = !!String($('dish-image').value || '').trim();
+    }
+
     function setDishImagePreview(url) {
         const value = String(url || '').trim();
         const preview = $('dish-image-preview');
@@ -3092,6 +3102,7 @@
         renderTagPicker();
         dishGallery = dishImages(dish);
         $('dish-image').value = dish.image || dishGallery[0] || '';
+        syncDishUrlBox();
         setDishImagePreview($('dish-image').value);
         setDishImageStatus($('dish-image').value ? '已填写图片' : '未选择');
         renderDishGallery();
@@ -3113,6 +3124,7 @@
         renderTagPicker();
         dishGallery = [];
         $('dish-image').value = '';
+        syncDishUrlBox();
         setDishImagePreview('');
         setDishImageStatus('未选择');
         renderDishGallery();
@@ -3139,6 +3151,7 @@
         renderTagPicker();
         dishGallery = request.image ? [request.image] : [];
         $('dish-image').value = request.image || '';
+        syncDishUrlBox();
         setDishImagePreview(request.image || '');
         setDishImageStatus(request.image ? '用户上传的图片' : '未选择');
         renderDishGallery();

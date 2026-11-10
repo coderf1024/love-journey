@@ -571,12 +571,13 @@
        标题是数据不是页名，用正文档位；状态 pill 跟饭点同一行。 */
     .od-head {
         display: flex;
-        align-items: center;
+        /* 左右两栏拉齐高度：各自撑满，内部再垂直居中 */
+        align-items: stretch;
         gap: 14px;
         padding: 2px 2px 11px;
         border-bottom: 1px dashed var(--line-strong);
     }
-    .od-head-main { flex: 1; min-width: 0; display: grid; gap: 3px; }
+    .od-head-main { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 3px; }
     .od-head-main h1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-family: var(--font-display); font-size: 15px; font-weight: 700; line-height: 1.35; }
     .od-head-status { display: inline-flex; }
     .od-head-status .status-pill { padding: 3px 8px; font-size: 9px; }
@@ -584,19 +585,19 @@
     .od-context-main { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
     .od-context-label { flex: 0 0 auto; color: var(--admin-muted); font-size: 9px; letter-spacing: .04em; }
     .od-context-main .order-id { min-width: 0; overflow: hidden; color: var(--ink-2); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
-    .od-actions { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+    .od-actions { display: flex; align-items: stretch; gap: 6px; flex: 0 0 auto; }
     .od-actions:empty { display: none; }
-    .od-actions .admin-btn { padding: 7px 13px; font-size: 10.5px; }
+    .od-actions .admin-btn { padding: 7px 13px; font-size: 10.5px; align-self: center; }
 
     @media (max-width: 559px) {
-        /* 手机不换行：左边信息缩小让位，右边两个按钮改成上下叠放 */
+        /* 手机不换行：左边信息缩小让位，右边两个按钮上下叠放、各占一半高度 */
         .od-head { gap: 10px; padding-bottom: 10px; }
         .od-head-main h1 { font-size: 13.5px; gap: 6px; }
         .od-head-status .status-pill { padding: 2px 7px; font-size: 8.5px; }
         .od-context-main .order-id { font-size: 9px; }
         .od-context-label { font-size: 8.5px; }
         .od-actions { flex-direction: column; align-items: stretch; gap: 5px; }
-        .od-actions .admin-btn { width: 100%; padding: 7px 12px; font-size: 10px; }
+        .od-actions .admin-btn { flex: 1 1 0; width: 100%; min-height: 26px; padding: 0 12px; font-size: 10px; align-self: stretch; }
     }
 
     .order-card.is-openable { cursor: pointer; }

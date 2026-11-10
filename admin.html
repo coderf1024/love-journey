@@ -522,35 +522,25 @@
     .order-actions { display: flex; gap: 5px; margin-left: auto; flex-wrap: wrap; justify-content: flex-end; }
 
     /* order detail — 管理端工作台风格：浅底数据卡 + 分隔线，不用用户端的深色 hero 和大圆角 */
-    .od-summary {
-        overflow: hidden;
-        background: var(--admin-soft);
-        border: 1px solid var(--line);
-        border-radius: 12px;
-    }
-    .od-summary-head {
+    /* 不是摘要卡，就是页面标题下的一行上下文 */
+    .od-context {
         display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 11px 13px;
-        border-bottom: 1px solid var(--line);
-        background: #faf7f2;
+        gap: 10px;
+        padding: 0 2px 10px;
+        border-bottom: 1px dashed var(--line-strong);
     }
-    .od-summary-head .order-id { font-size: 11px; }
-    .od-summary-head .status-pill { margin-left: auto; }
-    /* 移动端两列：饭点独占一行，下单时间和菜数并排；桌面端三列平铺 */
-    .od-facts {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0;
+    .od-context { flex-wrap: wrap; row-gap: 4px; }
+    .od-context-slot { flex: 1; min-width: 0; overflow: hidden; font-family: var(--font-display); font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+    .od-context-meta { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+    .od-context-meta .order-id { color: var(--admin-muted); font-size: 9.5px; white-space: nowrap; }
+    .od-context .status-pill { flex: 0 0 auto; }
+    /* 窄屏放不下一行：饭点独占一行，订单号靠左、状态 pill 靠右 */
+    @media (max-width: 559px) {
+        .od-context-slot { flex: 1 0 100%; }
+        .od-context-meta { margin-left: 0; width: 100%; }
+        .od-context-meta .status-pill { margin-left: auto; }
     }
-    .od-fact { min-width: 0; padding: 9px 13px; border-bottom: 1px dashed var(--line); border-right: 1px dashed var(--line); }
-    .od-fact:first-child { grid-column: 1 / -1; border-right: 0; }
-    .od-fact:last-child { border-right: 0; }
-    .od-fact dt { color: var(--admin-muted); font-size: 8.5px; letter-spacing: .04em; }
-    .od-fact dd { margin-top: 2px; overflow: hidden; color: var(--ink); font-size: 11.5px; font-variant-numeric: tabular-nums; text-overflow: ellipsis; white-space: nowrap; }
-    .od-fact dd.is-alert { color: var(--admin-stamp); }
-    .od-fact dd .unit { margin-left: 2px; color: var(--admin-muted); font-size: 9px; }
 
     .od-layout { display: grid; gap: 12px; margin-top: 12px; align-items: start; }
     .od-col { display: grid; gap: 12px; min-width: 0; }
@@ -615,8 +605,6 @@
     .order-card.is-openable { cursor: pointer; }
 
     @media (min-width: 900px) {
-        .od-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-        .od-fact:first-child { grid-column: auto; border-right: 1px dashed var(--line); }
         .od-layout { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
     }
 
@@ -2531,30 +2519,19 @@
         if (order.cancelled && order.cancelled.reason) alerts.push(`取消原因：${esc(order.cancelled.reason)}`);
         if (order.cancelled && order.cancelled.refundId) alerts.push(`退款流水：${esc(order.cancelled.refundId)}`);
 
-        // 状态由摘要卡右上角的 pill 承担，这里不再重复；饭点/下单时间/菜数各出现一次。
-        const facts = [
-            ['预约饭点', esc(slotText(order))],
-            ['下单时间', esc(formatDate(order.placedAt))],
-            ['菜品', `${itemCount} 道`]
-        ];
-
         const servedPhotos = items.filter(item => item && item.servedImage);
 
+        // 顶部只保留三样有决策价值的信息：这是哪一单、哪一餐、现在什么状态。
+        // 下单时间和菜数分别由「状态记录」和「菜品明细」承担，不再重复。
         body.innerHTML = `
-            <div class="od-summary">
-                <div class="od-summary-head">
-                    <b class="order-id">${esc(order.id)}</b>
+            <div class="od-context">
+                <b class="od-context-slot">${esc(slotText(order))}</b>
+                <div class="od-context-meta">
+                    <span class="order-id">${esc(order.id)}</span>
                     ${order.status === 'cancelled'
                         ? '<span class="status-text">已取消</span>'
                         : `<span class="status-pill ${esc(order.status)}">${esc(statusLabel)}</span>`}
                 </div>
-                <dl class="od-facts">
-                    ${facts.map(([label, value]) => `
-                        <div class="od-fact">
-                            <dt>${label}</dt>
-                            <dd>${value}</dd>
-                        </div>`).join('')}
-                </dl>
             </div>
 
             <div class="od-layout">

@@ -530,17 +530,10 @@
         padding: 0 2px 10px;
         border-bottom: 1px dashed var(--line-strong);
     }
-    .od-context { flex-wrap: wrap; row-gap: 4px; }
-    .od-context-slot { flex: 1; min-width: 0; overflow: hidden; font-family: var(--font-display); font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
-    .od-context-meta { display: flex; align-items: center; gap: 8px; margin-left: auto; }
-    .od-context-meta .order-id { color: var(--admin-muted); font-size: 9.5px; white-space: nowrap; }
-    .od-context .status-pill { flex: 0 0 auto; }
-    /* 窄屏放不下一行：饭点独占一行，订单号靠左、状态 pill 靠右 */
-    @media (max-width: 559px) {
-        .od-context-slot { flex: 1 0 100%; }
-        .od-context-meta { margin-left: 0; width: 100%; }
-        .od-context-meta .status-pill { margin-left: auto; }
-    }
+    .od-context { flex-wrap: wrap; row-gap: 6px; }
+    .od-context-main { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 7px; }
+    .od-context-label { color: var(--admin-muted); font-size: 9px; letter-spacing: .04em; }
+    .od-context-main .order-id { min-width: 0; overflow: hidden; color: var(--ink-2); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
 
     .od-layout { display: grid; gap: 12px; margin-top: 12px; align-items: start; }
     .od-col { display: grid; gap: 12px; min-width: 0; }
@@ -586,21 +579,24 @@
     .od-timeline li small { color: var(--admin-muted); font-size: 8.5px; font-variant-numeric: tabular-nums; text-align: right; }
     .od-timeline li small i { display: block; color: #b3aca5; font-size: 8px; font-style: normal; }
 
-    .od-actionbar {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 7px;
-        margin-top: 12px;
-        padding: 10px 12px;
-        background: var(--admin-soft);
-        border: 1px solid var(--line);
-        border-radius: 12px;
+    /* 状态挂在标题旁；主操作放在页头右侧——最常点的东西不该滚到底才能按 */
+    .od-head-main h1 { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-family: var(--font-display); font-size: 1.5rem; }
+    .od-head-status { display: inline-flex; }
+    .od-head-status .status-pill { padding: 4px 9px; font-size: 9px; }
+    .od-head-status .status-text { font-size: 9.5px; }
+    .od-actions { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+    .od-actions .admin-btn { padding: 6px 11px; font-size: 10px; }
+
+    @media (max-width: 559px) {
+        /* 手机：订单号一行、按钮一行靠右，不铺满整行 */
+        .od-context { row-gap: 7px; }
+        .od-context-main { flex: 1 1 100%; }
+        .od-actions { width: 100%; justify-content: flex-end; margin-top: 1px; }
+        .od-actions .admin-btn { padding: 8px 13px; font-size: 10.5px; }
+        .od-head-main h1 { font-size: 1.35rem; }
     }
-    .od-actionbar-btns { display: flex; gap: 6px; margin-left: auto; }
-    .od-actionbar .admin-btn { padding: 8px 14px; }
-    .od-actionbar p { margin: 0; }
-    .od-actionbar[hidden] { display: none; }
+    .od-actions .admin-btn { padding: 7px 13px; }
+    .od-actions .admin-small { color: var(--admin-muted); }
 
     .order-card.is-openable { cursor: pointer; }
 
@@ -958,6 +954,9 @@
 
         .view-head > div { display: none; }
         .view-head:not(:has(.head-actions)) { display: none; }
+        /* 订单详情的标题带状态角标，移动端要保留 */
+        .view-head:has(#order-detail-status) { display: flex; }
+        .view-head:has(#order-detail-status) > .od-head-main { display: block; }
         .view-head { margin: 0 0 8px; }
         /* 移动端头部长：标题 + 用户端按钮 + 头像；空间名收起来，头像保持最右 */
         .admin-header-space #header-space-name { display: none; }
@@ -1124,11 +1123,12 @@
 
         <section class="admin-view" data-panel="order-detail" hidden>
             <div class="view-head">
-                <div><p class="eyebrow">经营 · 订单详情</p><h1 id="order-detail-title">订单详情</h1></div>
-                <div class="head-actions"><button class="admin-btn ghost sm" id="order-detail-refresh" type="button">刷新</button></div>
+                <div class="od-head-main">
+                    <p class="eyebrow">经营 · 订单详情</p>
+                    <h1><span id="order-detail-title">订单详情</span><span class="od-head-status" id="order-detail-status"></span></h1>
+                </div>
             </div>
             <div id="order-detail-body"></div>
-            <div class="od-actionbar" id="order-detail-actions"></div>
         </section>
 
         <section class="admin-view" data-panel="cards" hidden>
@@ -2493,10 +2493,12 @@
     function renderOrderDetail() {
         const order = orderDetailData;
         const body = $('order-detail-body');
-        const actions = $('order-detail-actions');
         if (!order || !body) return;
         const statusLabel = ORDER_LABEL[order.status] || order.status;
-        $('order-detail-title').textContent = '订单详情';
+        $('order-detail-title').textContent = slotText(order);
+        $('order-detail-status').innerHTML = order.status === 'cancelled'
+            ? '<span class="status-text">已取消</span>'
+            : `<span class="status-pill ${esc(order.status)}">${esc(statusLabel)}</span>`;
 
         const next = NEXT_STATUS[order.status];
         const history = Array.isArray(order.statusHistory) ? order.statusHistory : [];
@@ -2525,13 +2527,11 @@
         // 下单时间和菜数分别由「状态记录」和「菜品明细」承担，不再重复。
         body.innerHTML = `
             <div class="od-context">
-                <b class="od-context-slot">${esc(slotText(order))}</b>
-                <div class="od-context-meta">
+                <div class="od-context-main">
+                    <span class="od-context-label">订单号</span>
                     <span class="order-id">${esc(order.id)}</span>
-                    ${order.status === 'cancelled'
-                        ? '<span class="status-text">已取消</span>'
-                        : `<span class="status-pill ${esc(order.status)}">${esc(statusLabel)}</span>`}
                 </div>
+                ${detailActionsHTML(order, next)}
             </div>
 
             <div class="od-layout">
@@ -2591,6 +2591,10 @@
                 </div>
             </div>`;
 
+    }
+
+    // 订单详情的主操作：放在订单号同一行的右侧，最常点的东西不用滚到底。
+    function detailActionsHTML(order, next) {
         const buttons = [];
         if (next) {
             buttons.push(`<button class="admin-btn primary" type="button" data-detail-next="${esc(order.id)}" data-next-status="${next.status}">${next.label}</button>`);
@@ -2598,9 +2602,9 @@
         if (ADMIN_CANCELABLE.includes(order.status)) {
             buttons.push(`<button class="admin-btn danger" type="button" data-detail-cancel="${esc(order.id)}">${order.status === 'pending' ? '拒单退款' : '取消退款'}</button>`);
         }
-        actions.innerHTML = buttons.length
-            ? `<span class="od-actionbar-btns">${buttons.join('')}</span>`
-            : '<p class="admin-small admin-muted">这一单已经结束，没有可执行的操作。</p>';
+        return buttons.length
+            ? `<div class="od-actions">${buttons.join('')}</div>`
+            : '';
     }
 
     /* ---------- serving photos ---------- */
@@ -4327,11 +4331,13 @@
     });
     bindOrderActions($('orders-list'));
     bindOrderActions($('home-todos'));
+    // 详情页的按钮随 innerHTML 重建，所以用 body 上的委托
     $('order-detail-body').addEventListener('click', event => {
         const preview = event.target.closest('[data-image-preview]');
-        if (preview) openImageLightbox(preview.dataset.imagePreview);
-    });
-    $('order-detail-actions').addEventListener('click', event => {
+        if (preview) {
+            openImageLightbox(preview.dataset.imagePreview);
+            return;
+        }
         const next = event.target.closest('[data-detail-next]');
         if (next) {
             changeOrderStatus(next.dataset.detailNext, next.dataset.nextStatus, next);
@@ -4339,10 +4345,6 @@
         }
         const cancel = event.target.closest('[data-detail-cancel]');
         if (cancel) cancelAdminOrder(cancel.dataset.detailCancel, cancel);
-    });
-    $('order-detail-refresh').addEventListener('click', async () => {
-        await loadOrderDetail();
-        showMessage('订单已刷新');
     });
     $('open-user-site').addEventListener('click', openUserSite);
     $('home-next-meal').addEventListener('click', event => {

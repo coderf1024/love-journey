@@ -538,15 +538,17 @@
     }
     .od-summary-head .order-id { font-size: 11px; }
     .od-summary-head .status-pill { margin-left: auto; }
+    /* 移动端两列：饭点独占一行，下单时间和菜数并排；桌面端三列平铺 */
     .od-facts {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 0;
     }
-    .od-fact { padding: 9px 13px; border-bottom: 1px dashed var(--line); }
-    .od-fact:nth-child(odd) { border-right: 1px dashed var(--line); }
+    .od-fact { min-width: 0; padding: 9px 13px; border-bottom: 1px dashed var(--line); border-right: 1px dashed var(--line); }
+    .od-fact:first-child { grid-column: 1 / -1; border-right: 0; }
+    .od-fact:last-child { border-right: 0; }
     .od-fact dt { color: var(--admin-muted); font-size: 8.5px; letter-spacing: .04em; }
-    .od-fact dd { margin-top: 2px; color: var(--ink); font-size: 11.5px; font-variant-numeric: tabular-nums; }
+    .od-fact dd { margin-top: 2px; overflow: hidden; color: var(--ink); font-size: 11.5px; font-variant-numeric: tabular-nums; text-overflow: ellipsis; white-space: nowrap; }
     .od-fact dd.is-alert { color: var(--admin-stamp); }
     .od-fact dd .unit { margin-left: 2px; color: var(--admin-muted); font-size: 9px; }
 
@@ -597,6 +599,7 @@
     .od-actionbar {
         display: flex;
         align-items: center;
+        justify-content: flex-end;
         gap: 7px;
         margin-top: 12px;
         padding: 10px 12px;
@@ -604,20 +607,16 @@
         border: 1px solid var(--line);
         border-radius: 12px;
     }
-    .od-actionbar > span:first-child { color: var(--admin-muted); font-size: 9px; }
     .od-actionbar-btns { display: flex; gap: 6px; margin-left: auto; }
     .od-actionbar .admin-btn { padding: 8px 14px; }
     .od-actionbar p { margin: 0; }
     .od-actionbar[hidden] { display: none; }
 
     .order-card.is-openable { cursor: pointer; }
-    .order-card.is-openable:hover { border-color: var(--line-strong); }
-    .order-open-chev { margin-left: 4px; color: #b3aca5; font-size: 15px; line-height: 1; }
 
     @media (min-width: 900px) {
-        .od-facts { grid-template-columns: repeat(4, 1fr); }
-        .od-fact:nth-child(odd) { border-right: 1px dashed var(--line); }
-        .od-fact:nth-child(4n) { border-right: 0; }
+        .od-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .od-fact:first-child { grid-column: auto; border-right: 1px dashed var(--line); }
         .od-layout { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
     }
 
@@ -1137,7 +1136,7 @@
 
         <section class="admin-view" data-panel="order-detail" hidden>
             <div class="view-head">
-                <div><p class="eyebrow">经营 · 订单详情</p><h1 id="order-detail-title">订单详情</h1><p id="order-detail-sub"></p></div>
+                <div><p class="eyebrow">经营 · 订单详情</p><h1 id="order-detail-title">订单详情</h1></div>
                 <div class="head-actions"><button class="admin-btn ghost sm" id="order-detail-refresh" type="button">刷新</button></div>
             </div>
             <div id="order-detail-body"></div>
@@ -2373,14 +2372,13 @@
             extras.push(`用户说：${order.thanks.note}${reward > 0 ? ` · 已返 ${reward} 币` : ''}`);
         }
         if (order.cancelled && order.cancelled.reason) extras.push(`取消原因：${order.cancelled.reason}`);
-        // 整卡可点开详情；卡片里的按钮点击通过 closest 判断，不会误触发
-        return `<article class="order-card is-openable" data-order-open="${esc(order.id)}" role="button" tabindex="0" aria-label="查看订单 ${esc(order.id)} 详情">
+        // 订单列表样式保持原样；只有点击行为是新增的（点卡片空白处进详情，按钮不受影响）
+        return `<article class="order-card is-openable" data-order-open="${esc(order.id)}" aria-label="查看订单 ${esc(order.id)} 详情">
             <div class="order-card-top">
                 <b class="order-id">${esc(order.id)}</b>
                 ${order.status === 'cancelled'
                     ? '<span class="status-text">已取消</span>'
                     : `<span class="status-pill ${esc(order.status)}">${ORDER_LABEL[order.status] || order.status}</span>`}
-                <span class="order-open-chev" aria-hidden="true">›</span>
             </div>
             <p class="order-slot">${esc(slotText(order))} · 下单 ${esc(formatDate(order.placedAt))}${waitText(order) ? ` · ${waitText(order)}` : ''}</p>
             <div class="order-items">${((order.items) || []).map(item => `
@@ -2511,7 +2509,6 @@
         if (!order || !body) return;
         const statusLabel = ORDER_LABEL[order.status] || order.status;
         $('order-detail-title').textContent = '订单详情';
-        $('order-detail-sub').textContent = `${order.id} · ${slotText(order)}`;
 
         const next = NEXT_STATUS[order.status];
         const history = Array.isArray(order.statusHistory) ? order.statusHistory : [];
@@ -2534,11 +2531,11 @@
         if (order.cancelled && order.cancelled.reason) alerts.push(`取消原因：${esc(order.cancelled.reason)}`);
         if (order.cancelled && order.cancelled.refundId) alerts.push(`退款流水：${esc(order.cancelled.refundId)}`);
 
+        // 状态由摘要卡右上角的 pill 承担，这里不再重复；饭点/下单时间/菜数各出现一次。
         const facts = [
-            ['预约饭点', esc(slotText(order)), ''],
-            ['下单时间', esc(formatDate(order.placedAt)), ''],
-            ['菜品', `${itemCount} 道`, ''],
-            ['当前状态', esc(statusLabel), '']
+            ['预约饭点', esc(slotText(order))],
+            ['下单时间', esc(formatDate(order.placedAt))],
+            ['菜品', `${itemCount} 道`]
         ];
 
         const servedPhotos = items.filter(item => item && item.servedImage);
@@ -2552,10 +2549,10 @@
                         : `<span class="status-pill ${esc(order.status)}">${esc(statusLabel)}</span>`}
                 </div>
                 <dl class="od-facts">
-                    ${facts.map(([label, value, tone]) => `
+                    ${facts.map(([label, value]) => `
                         <div class="od-fact">
                             <dt>${label}</dt>
-                            <dd class="${tone}">${value}</dd>
+                            <dd>${value}</dd>
                         </div>`).join('')}
                 </dl>
             </div>
@@ -2563,7 +2560,7 @@
             <div class="od-layout">
                 <div class="od-col">
                     <div class="od-panel">
-                        <div class="od-panel-head"><b>菜品明细</b><small>点图看大图</small></div>
+                        <div class="od-panel-head"><b>菜品明细</b><small>${itemCount} 道 · 点图看大图</small></div>
                         ${items.length ? items.map(item => `
                             <div class="od-item">
                                 ${photoHTML(item, 'order-item-photo', true)}
@@ -2599,7 +2596,6 @@
                 <div class="od-col">
                     <div class="od-panel">
                         <div class="od-panel-head"><b>支付</b></div>
-                        <div class="od-pay-row"><span>订单金额</span><b>${order.total} 币</b></div>
                         <div class="od-pay-row"><span>支付状态</span><b>${payment.refundedAt ? '已退款' : '已支付'}</b></div>
                         ${payment.balanceAfter != null ? `<div class="od-pay-row"><span>支付后余额</span><b>${payment.balanceAfter} 币</b></div>` : ''}
                         ${payment.transactionId ? `<div class="od-pay-row"><span>交易号</span><b>${esc(payment.transactionId)}</b></div>` : ''}
@@ -2626,7 +2622,7 @@
             buttons.push(`<button class="admin-btn danger" type="button" data-detail-cancel="${esc(order.id)}">${order.status === 'pending' ? '拒单退款' : '取消退款'}</button>`);
         }
         actions.innerHTML = buttons.length
-            ? `<span>当前状态：${esc(statusLabel)}</span><span class="od-actionbar-btns">${buttons.join('')}</span>`
+            ? `<span class="od-actionbar-btns">${buttons.join('')}</span>`
             : '<p class="admin-small admin-muted">这一单已经结束，没有可执行的操作。</p>';
     }
 

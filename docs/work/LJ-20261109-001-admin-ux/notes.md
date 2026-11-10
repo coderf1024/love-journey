@@ -99,3 +99,7 @@
 - 专门的 `.od-head` 取代 `.view-head`；页头不再受 `.view-head > div { display:none }` 的移动端规则影响（之前为了保住标题加了一个 `:has()` 例外，现在整条删掉）。
 - 桌面 ≥560px 左右并排；手机 `<560px` 信息一行、按钮换行右对齐。
 - 顺手修了一个 bug：`detailActionsHTML` 里的 `next` 在声明之前被使用（`Cannot access 'next' before initialization`），把 `next` 的声明提到最前。
+
+## 第八轮（2026-11-10）
+
+- 移动端订单详情页头**不换行**：左侧饭点收到 13.5px、状态 pill 8.5px，右侧两个按钮改成**上下叠放**（各自整宽）。之前是按钮换行到下一行，视觉上多出一条横线，用户反馈突兀。

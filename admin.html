@@ -589,11 +589,14 @@
     .od-actions .admin-btn { padding: 7px 13px; font-size: 10.5px; }
 
     @media (max-width: 559px) {
-        /* 手机放不下左右并排：左边信息一行、按钮另起一行靠右 */
-        .od-head { flex-wrap: wrap; row-gap: 9px; }
-        .od-head-main { flex: 1 1 100%; }
-        .od-actions { width: 100%; justify-content: flex-end; }
-        .od-actions .admin-btn { padding: 8px 14px; font-size: 10.5px; }
+        /* 手机不换行：左边信息缩小让位，右边两个按钮改成上下叠放 */
+        .od-head { gap: 10px; padding-bottom: 10px; }
+        .od-head-main h1 { font-size: 13.5px; gap: 6px; }
+        .od-head-status .status-pill { padding: 2px 7px; font-size: 8.5px; }
+        .od-context-main .order-id { font-size: 9px; }
+        .od-context-label { font-size: 8.5px; }
+        .od-actions { flex-direction: column; align-items: stretch; gap: 5px; }
+        .od-actions .admin-btn { width: 100%; padding: 7px 12px; font-size: 10px; }
     }
 
     .order-card.is-openable { cursor: pointer; }

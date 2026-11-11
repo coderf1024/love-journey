@@ -150,3 +150,22 @@
 - `#dish-image` / `#milestone-image` 保留为 **hidden input**，只作为保存时的数据载体（`upsertDish.image`、`milestones.json` 的 `image`），界面上不再有输入框。
 - 删掉 `.photo-url` 样式、`syncDishUrlBox()`、`setMainImageValue()`、以及两个 URL 输入框的 `input` 监听。
 - 旧数据里的图片 URL 不受影响：编辑时照常显示在图片集 / 封面上，只是不能再手工改链接。
+
+## 合并前自查（2026-11-11）
+
+修复的两个既有 bug：
+
+1. **`.admin-btn.dark` 从未定义**：首页「需要你处理」的接单 / 开始制作 / 去审核按钮（`main` 上就是这样）渲染成白底普通按钮，和旁边的取消按钮分不出主次。已补上深色样式。
+2. **待办第二行悬空的「· 」**：没有等待 / 超时 / 催单信息时，`${slotText(order)} · ${extras.join(' · ')}` 会输出「11.11 周二 晚餐 · 20:00 · 」。改成过滤空值后 join。
+3. 顺带删除无人调用的 `servedPhotosHTML()`（详情页已有内联版本）和无样式的 `dish-price-field` 类名。
+
+自查覆盖：
+
+- 所有 `$('id')` / `addEventListener` 引用的 DOM id 都存在。
+- 所有 data-panel 与 `switchView` 白名单、`SUB_VIEWS`、`VIEW_TITLES` 一致。
+- 320 / 390 / 1280 全视图无横向溢出、console 无报错。
+- 标签上限 2 个（第 3 个被拒并提示）、未知标签过滤、50 个重复标签截断到 2。
+- 回忆日期必填、日历跨月 / 跨年 / 闰年 42 格正确。
+- `thankChef` 答谢即完成 + 重复调用不重复发币（存根测试）。
+- 用户端四个 tab 无报错、菜品详情正常。
+- 订单列表刷新可用，订单详情无刷新按钮。

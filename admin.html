@@ -340,6 +340,7 @@
     }
     .admin-btn.primary { background: var(--admin-ink); border-color: var(--admin-ink); color: #fff; }
     .admin-btn.accent { background: var(--admin-stamp); border-color: var(--admin-stamp); color: #fff; }
+    .admin-btn.dark { background: var(--admin-ink); border-color: var(--admin-ink); color: #fff; }
     .admin-btn.ghost { background: transparent; color: var(--admin-muted); }
     .admin-btn.danger { border-color: rgba(185, 74, 99, .25); }
     .admin-btn.sm { padding: 5px 9px; font-size: 10px; }
@@ -1482,7 +1483,7 @@
                         <input type="hidden" id="dish-category">
                         <div class="choice-row" id="dish-category-picker" role="radiogroup" aria-label="分类"></div>
                     </div>
-                    <div class="admin-field dish-price-field"><label for="dish-price">价格（币）</label><input class="admin-input" id="dish-price" type="number" min="0" step="1" required></div>
+                    <div class="admin-field"><label for="dish-price">价格（币）</label><input class="admin-input" id="dish-price" type="number" min="0" step="1" required></div>
                 </div>
                 <div class="dish-field-row">
                     <div class="admin-field">
@@ -2287,9 +2288,11 @@
             if (waitText(order)) extras.push(waitText(order));
             if (overdue(order)) extras.push('已过时间');
             if (order.lastNudgeAt) extras.push('用户催过');
+            // 没有附加信息时不要留下悬空的「· 」
+            const meta = [slotText(order), ...extras].filter(Boolean).join(' · ');
             return `<div class="todo-row${overdue(order) || order.lastNudgeAt ? ' is-late' : ''}">
                 <span class="todo-mark">${mark}</span>
-                <span class="todo-main"><b>${ORDER_LABEL[order.status]} · ${esc(itemsText(order))}</b><small>${esc(slotText(order))} · ${esc(extras.join(' · '))}</small></span>
+                <span class="todo-main"><b>${ORDER_LABEL[order.status]} · ${esc(itemsText(order))}</b><small>${esc(meta)}</small></span>
                 ${nextStatus ? `<button class="admin-btn dark sm" type="button" data-home-next="${esc(order.id)}" data-next-status="${nextStatus.status}">${label}</button>` : `<span class="admin-small admin-muted">去订单处理</span>`}
             </div>`;
         }).join('');
@@ -2505,19 +2508,6 @@
             console.warn('加载订单详情失败:', error);
             renderOrderDetail();
         }
-    }
-
-    function servedPhotosHTML(items) {
-        const photos = (items || []).filter(item => item && item.servedImage);
-        if (!photos.length) return '';
-        return `<div class="detail-block">
-            <div class="detail-block-head"><b>本次出餐</b><small>点图看大图</small></div>
-            <div class="served-photos">${photos.map(item => `
-                <button class="served-photo" type="button" data-image-preview="${esc(item.servedImage)}" aria-label="查看${esc(item.name)}成品图">
-                    <img src="${esc(item.servedImage)}" alt="${esc(item.name)}成品图">
-                    <span>${esc(item.name)}</span>
-                </button>`).join('')}</div>
-        </div>`;
     }
 
     function renderOrderDetail() {

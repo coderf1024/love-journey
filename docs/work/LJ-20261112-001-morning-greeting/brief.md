@@ -1,6 +1,6 @@
 # LJ-20261112-001 · 每日早安问候（08:14 Bark）
 
-- 状态：accepted（用户批准发布，自动早安保持关闭）
+- 状态：done（已发布，自动早安保持关闭）
 - 提出人：人
 - 日期：2026-11-12
 - 分支：work/261112-daily-job（当前 worktree 分支，不新建分支）
@@ -54,4 +54,4 @@
 - Cron 可能有分钟级延迟；08:14 不保证准时到达。
 - Worker 共享站点 RAM Key；其实际权限未隔离到 greeting 前缀，将来可替换专用 Key。
 - open-meteo 与 api.shadiao.pro 为第三方服务，失败时由告警和补发兜底。
-- Worker 已部署并配置 Secret；管理端发布和首次真实推送仍待验收，见 [运维手册](../../runbooks/morning-greeting.md)。
+- Worker 和管理端均已发布，开关按用户要求保持关闭；首次真实推送留待用户启用后验证，见 [运维手册](../../runbooks/morning-greeting.md)。

@@ -43,7 +43,7 @@ npx wrangler deployments list
 
 部署完成并核实两项 Secret 后，在已发布的管理端保存 Bark 总开关、早安开关和长期收件人。Secret 列表只能证明绑定存在；实际 RAM 权限仍需检查策略和下一次运行结果。Cron 配置传播可能需要几分钟，见 [Cloudflare Cron 文档](https://developers.cloudflare.com/workers/configuration/cron-triggers/)。
 
-当前交付状态（2026-11-12）：Worker `love-morning-greeting` 已部署，Cron `14 0 * * *` 已配置；两项 `secret_text` 绑定经 secret list 验证。「宝宝早安」标题更新后当前 100% 版本为 `0fbff0a9-1169-4582-8a50-bac489a11bc2`。生产 space 尚无 morningGreeting 配置，自动发送仍关闭；管理端新代码尚未合并发布，真实推送仍待验收。
+当前交付状态（2026-11-12）：Worker `love-morning-greeting` 已部署，Cron `14 0 * * *` 已配置；两项 `secret_text` 绑定经 secret list 验证。「宝宝早安」标题更新后当前 100% 版本为 `0fbff0a9-1169-4582-8a50-bac489a11bc2`。管理端已随 `433695e` 合并 main 发布，两站只读 smoke 通过。生产 space 尚无 morningGreeting 配置，按用户要求自动发送保持关闭，由用户自行选择收件人并启用；真实推送仍待实际使用验收。
 
 ## 测试与补发
 

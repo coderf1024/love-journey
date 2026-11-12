@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>每日早安问候 · 设计原型</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+        --paper: #fbf6ec;
+        --ink: #2b2231;
+        --muted: #8d8782;
+        --stamp: #b94a63;
+        --line: rgba(43, 34, 49, .12);
+        --mint: #ddf1e8;
+        --lemon: #f6d478;
+        --font-display: "Noto Serif SC", "Songti SC", "STSong", serif;
+        --font-ui: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    body {
+        min-height: 100vh;
+        padding: 36px 26px 80px;
+        color: var(--ink);
+        font-family: var(--font-ui);
+        background: #e9e7e3;
+        line-height: 1.6;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; }
+    .eyebrow { color: #8a7b78; font-size: 11px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
+    h1 { margin-top: 6px; font-family: var(--font-display); font-size: 30px; font-weight: 600; }
+    .lead { margin-top: 6px; color: #5e555d; font-size: 14px; max-width: 760px; }
+    .layout { margin-top: 28px; display: grid; grid-template-columns: 340px 1fr; gap: 36px; align-items: start; }
+    .label { margin-bottom: 10px; color: #6f6862; font-size: 12px; font-weight: 700; letter-spacing: .08em; }
+
+    .phone {
+        width: 340px; height: 720px; display: flex; flex-direction: column; overflow: hidden;
+        background: var(--paper); border: 2px solid #2a2a2a; border-radius: 28px;
+        box-shadow: 0 18px 34px -22px rgba(0, 0, 0, .45);
+    }
+    .m-top { display: flex; align-items: center; gap: 8px; padding: 14px 16px 10px; background: #fffdf8; border-bottom: 1px solid var(--line); }
+    .m-top h2 { font-size: 17px; }
+    .m-top .back { color: #8d8782; font-size: 20px; line-height: 1; }
+    .m-top .right { margin-left: auto; }
+    .m-body { flex: 1; overflow-y: auto; padding: 10px 12px 18px; }
+    .sec { margin: 14px 4px 6px; display: flex; align-items: baseline; gap: 8px; color: #6f6862; font-size: 12px; font-weight: 700; }
+    .sec span { color: #a29a94; font-size: 10px; font-weight: 400; }
+    .group { background: #f7f5f1; border: 1px solid #d6d3ce; border-radius: 12px; overflow: hidden; }
+    .row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px dashed var(--line); }
+    .row:last-child { border-bottom: 0; }
+    .icon { width: 26px; height: 26px; flex: 0 0 26px; display: grid; place-items: center; background: #fff; border: 1px solid #d6d3ce; border-radius: 8px; font-size: 12px; }
+    .main { min-width: 0; flex: 1; display: grid; gap: 1px; }
+    .main b { font-size: 13px; font-weight: 600; }
+    .main small { color: var(--muted); font-size: 10.5px; line-height: 1.45; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 4px 10px; background: #fff; border: 1px solid #cfc9c1; border-radius: 999px; color: #6b6560; font-size: 11px; white-space: nowrap; }
+    .btn.dark { background: #2b2231; border-color: #2b2231; color: #fff; }
+    .btn.block { width: 100%; padding: 9px 10px; font-size: 13px; }
+    .btn.sm { padding: 3px 9px; font-size: 10.5px; }
+    .switch { width: 36px; height: 20px; flex: 0 0 36px; padding: 2px; background: #d6d3ce; border-radius: 999px; cursor: pointer; border: 0; }
+    .switch i { display: block; width: 16px; height: 16px; background: #fff; border-radius: 999px; transition: margin .15s; }
+    .switch.on { background: var(--stamp); }
+    .switch.on i { margin-left: 16px; }
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip { padding: 5px 10px; background: #fff; border: 1px solid #cfc9c1; border-radius: 999px; color: #6b6560; font-size: 11.5px; cursor: pointer; }
+    .chip small { display: block; color: #a29a94; font-size: 9.5px; }
+    .chip.on { background: #f6e2e6; border-color: var(--stamp); color: var(--stamp); }
+    .chip.on small { color: #c9788e; }
+    .chip.off-key { opacity: .55; }
+    .pill { display: inline-flex; padding: 2px 7px; border-radius: 999px; font-size: 10px; white-space: nowrap; }
+    .pill.green { background: #e3efeb; color: #447a6d; }
+    .pill.warm { background: #f4eadb; color: #8a7351; }
+    .greet-badge { padding: 2px 8px; background: var(--lemon); border-radius: 999px; font-size: 10px; color: #6f5a1d; }
+    .sheet-foot { padding: 10px 12px 14px; background: #fffdf8; border-top: 1px solid var(--line); }
+
+    .panel { background: #fffdf8; border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; }
+    .flow { display: grid; gap: 10px; }
+    .step { display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: start; }
+    .step .n { width: 26px; height: 26px; display: grid; place-items: center; background: var(--ink); color: #fff; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .step b { font-size: 14px; }
+    .step p { color: #5e555d; font-size: 12.5px; line-height: 1.65; }
+    code { padding: 1px 5px; background: #f1ece4; border-radius: 6px; font-size: 11.5px; font-family: ui-monospace, Menlo, monospace; }
+
+    .lock { margin-top: 16px; padding: 14px; background: linear-gradient(180deg, #2a2633, #1d1a22); border-radius: 18px; color: #fff; }
+    .lock .time { font-size: 11px; opacity: .7; }
+    .notice { margin-top: 8px; padding: 11px 12px; background: rgba(255,255,255,.14); border-radius: 12px; display: grid; gap: 2px; backdrop-filter: blur(6px); }
+    .notice .app { font-size: 10px; opacity: .75; display: flex; align-items: center; gap: 6px; }
+    .notice .app i { width: 16px; height: 16px; border-radius: 4px; background: var(--stamp); display: inline-block; }
+    .notice b { font-size: 13px; font-weight: 600; }
+    .notice .sub { font-size: 11px; opacity: .9; }
+    .notice .body { font-size: 12px; opacity: .95; }
+
+    .map-tag { display: inline-block; margin-bottom: 4px; padding: 1px 7px; border-radius: 999px; background: var(--mint); color: #447a6d; font-size: 10px; }
+
+    .qa { margin-top: 16px; display: grid; gap: 10px; }
+    .qa-item { padding: 12px 14px; background: #fffdf8; border: 1px solid var(--line); border-radius: 12px; }
+    .qa-item b { display: block; font-size: 13px; margin-bottom: 3px; }
+    .qa-item p { color: #5e555d; font-size: 12px; line-height: 1.65; }
+    .qa-item p + p { margin-top: 3px; }
+
+    @media (max-width: 900px) {
+        .layout { grid-template-columns: 1fr; }
+        .phone { width: 100%; max-width: 360px; margin: 0 auto; }
+    }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <p class="eyebrow">原型 · 每日早安问候</p>
+    <h1>每天 08:14 推送早安（Bark）</h1>
+    <p class="lead">内容沿用 <code>push.py</code> 的模板字段：日期 / 天气 / 恋爱天数 / 一句话。触发由 Cloudflare 定时执行，配置（是否发、发给谁）在管理端「系统 → 通知」里维护，持久化到 OSS。本页为线框，文案和数据是示例值，不是实际发送结果。</p>
+
+    <div class="layout">
+        <div>
+            <p class="label">A · 管理端「系统 → 通知」（移动端）</p>
+            <div class="phone">
+                <div class="m-top">
+                    <span class="back">‹</span>
+                    <h2>通知</h2>
+                    <div class="right"><span class="btn sm dark">保存</span></div>
+                </div>
+                <div class="m-body">
+                    <div class="group">
+                        <div class="row">
+                            <span class="icon">铃</span>
+                            <div class="main"><b>Bark 推送</b><small>总开关；关闭后所有事件都不发送</small></div>
+                            <button class="switch on" type="button" data-switch aria-label="Bark 推送"><i></i></button>
+                        </div>
+                    </div>
+
+                    <div class="sec">推送密钥 <span>两把都要填</span></div>
+                    <div class="group">
+                        <div class="row"><span class="icon">用</span><div class="main"><b>用户密钥</b><small>已配置 · ••••3Qm8</small></div><span class="btn sm">测试</span></div>
+                        <div class="row"><span class="icon">管</span><div class="main"><b>管理员密钥</b><small>已配置 · ••••Lx2a</small></div><span class="btn sm">测试</span></div>
+                    </div>
+
+                    <div class="sec">早安问候 <span class="greet-badge">每天 08:14</span></div>
+                    <div class="group">
+                        <div class="row">
+                            <span class="icon">早</span>
+                            <div class="main"><b>发送早安</b><small>北京时间每天 08:14；关闭后当天不发</small></div>
+                            <button class="switch on" type="button" data-switch aria-label="发送早安"><i></i></button>
+                        </div>
+                        <div class="row" style="display:grid; gap:8px;">
+                            <div class="main"><b>发给谁</b><small>勾选的收件人都会收到同一条早安，至少选一个</small></div>
+                            <div class="chips" data-chips>
+                                <button class="chip on" type="button" data-chip>用户<small>用户密钥</small></button>
+                                <button class="chip on" type="button" data-chip>大厨<small>管理员密钥</small></button>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <span class="icon">文</span>
+                            <div class="main"><b>发送内容</b><small>标题：宝宝早安 · 第 N 天　副标题：日期 + 天气　正文：一句话</small></div>
+                        </div>
+                        <div class="row" style="display:grid; gap:8px;">
+                            <div class="main"><b>发送测试</b><small>临时选择收件人，只发这一次，不改上面的长期设置；需二次确认</small></div>
+                            <div class="chips" data-chips>
+                                <button class="chip" type="button" data-chip>用户<small>用户密钥</small></button>
+                                <button class="chip" type="button" data-chip>大厨<small>管理员密钥</small></button>
+                            </div>
+                            <div><span class="btn sm dark">发送测试</span></div>
+                        </div>
+                    </div>
+
+                    <div class="sec">发送失败与补发 <span>无第二个定时任务</span></div>
+                    <div class="group">
+                        <div class="row">
+                            <span class="icon">警</span>
+                            <div class="main"><b>发送失败告警</b><small>08:14 任务中天气、Bark 或 OSS 任一步出错，立即用管理员密钥推「早安发送失败」，附原因</small></div>
+                            <button class="switch on" type="button" data-switch aria-label="发送失败告警"><i></i></button>
+                        </div>
+                        <div class="row">
+                            <span class="icon">待</span>
+                            <div class="main"><b>首页待办提醒</b><small>08:30 后打开管理端，若今天未发出，「需要你处理」里出现一条，右侧带「补发」</small></div>
+                            <button class="switch on" type="button" data-switch aria-label="首页待办提醒"><i></i></button>
+                        </div>
+                        <div class="row">
+                            <span class="icon">补</span>
+                            <div class="main"><b>补发今天</b><small>管理端直接发；收件人沿用上面的长期设置；今天已发出则不显示</small></div>
+                            <span class="btn sm">补发</span>
+                        </div>
+                    </div>
+
+                    <div class="sec">推给用户 <span>3 个事件</span></div>
+                    <div class="group">
+                        <div class="row"><span class="icon">接</span><div class="main"><b>接单</b><small>接单时推给用户</small></div><span class="btn sm">模板</span></div>
+                    </div>
+                    <div class="sec">用户端 <span>功能开关</span></div>
+                    <div class="group">
+                        <div class="row"><span class="icon">催</span><div class="main"><b>催一催按钮</b><small>关闭后用户端隐藏，服务端也会拒绝</small></div><span class="btn sm">关</span></div>
+                    </div>
+                </div>
+                <div class="sheet-foot"><span class="btn block dark">保存通知设置</span></div>
+            </div>
+        </div>
+
+        <div>
+            <p class="label">B · 数据流与触发</p>
+            <div class="panel">
+                <div class="flow">
+                    <div class="step">
+                        <span class="n">1</span>
+                        <div>
+                            <b>管理端保存</b>
+                            <p>写入 OSS <code>space.settings.morningGreeting</code>：<code>{ enabled, recipients: ["user", "admin"] }</code>。与现有 Bark 配置同一份文档，不新增文件。</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <span class="n">2</span>
+                        <div>
+                            <b>Cloudflare Cron 触发</b>
+                            <p>Cron 表达式 <code>14 0 * * *</code>（UTC），即北京时间每天 08:14。时间固定在 Cloudflare，管理端只显示、不能改。</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <span class="n">3</span>
+                        <div>
+                            <b>Worker 执行</b>
+                            <p>匿名读取 OSS 的 <code>space.json</code>（公开读，无需密钥）→ 若 <code>enabled</code> 为真，拉天气与一句话，计算恋爱天数，按 <code>recipients</code> 逐个调用 Bark <code>/push</code>。Bark 密钥由 OSS 读取，不进 Worker 环境变量。</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <span class="n">4</span>
+                        <div>
+                            <b>发送标记与补发</b>
+                            <p>每次发送成功后写 OSS <code>greeting/2026-11-12.json</code>，只存日期、发送时间、状态和收件人结果，不存天气和一句话。管理端首页只用它判断今天是否已发。补发在浏览器里现取天气（open-meteo）和一句话（shadiao）后直接发，发完更新发送状态为 <code>resent</code>（部分失败则为 <code>partial</code>）。</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <span class="n">5</span>
+                        <div>
+                            <b>与 push.py 的对应</b>
+                            <p>天气 <code>weather_res</code>、恋爱天数 <code>get_love_day()</code>（起点 2020-12-20）、一句话 <code>get_word()</code>（长度 ≤ 20 字，循环取）逐项移植；微信模板消息换成 Bark 三段式。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lock" style="max-width: 420px;">
+                <div class="time">08:14 · 周四 11月12日</div>
+                <div class="notice">
+                    <div class="app"><i></i>Bark · 恋爱空间</div>
+                    <b>宝宝早安 · 今天是我们在一起的第 2153 天</b>
+                    <div class="sub">2026年11月12日 周四 · 雾 1.5℃-11.3℃</div>
+                    <div class="body">愿你今天的每一步都踩在阳光上。</div>
+                </div>
+                <div class="notice" style="margin-top:8px; opacity:.85;">
+                    <div class="app"><i></i>Bark · 恋爱空间</div>
+                    <b>宝宝早安 · 今天是我们在一起的第 2153 天</b>
+                    <div class="sub">示例：收件人为「用户」时，同一条内容发给用户密钥</div>
+                </div>
+            </div>
+            <p class="label" style="margin-top:10px;">示例通知（锁屏）· 标题、副标题、正文均为示例值</p>
+
+            <div class="qa">
+                <div class="qa-item">
+                    <b>已确认 1：收件人</b>
+                    <p>长期设置用两把现有 Bark 密钥（用户 / 大厨）各勾选。「发送测试」单独再选一次收件人，只影响这一次。</p>
+                </div>
+                <div class="qa-item">
+                    <b>已确认 2：文案映射</b>
+                    <p>先按 push.py 映射，发出来后再调。天气失败的兜底文案暂不处理。</p>
+                </div>
+                <div class="qa-item">
+                    <b>已确认 3：补发在管理端直接发</b>
+                    <p>不做 Worker 的 HTTP 入口。管理端直接调 Bark 补发。</p>
+                </div>
+                <div class="qa-item">
+                    <b>已确认 3-1：天气源换成 open-meteo</b>
+                    <p>原天气接口 <code>t.weather.itboy.net</code> 无跨域头且是 http，浏览器取不到，弃用。新源 open-meteo（<a href="https://open-meteo.com/">open-meteo.com</a>）返回 <code>Access-Control-Allow-Origin: *</code>，免 key，本机请求可用（存在代理假 IP，国内无代理直连待验证），返回 WMO 天气码和当天最高最低温，需要在前端映射成中文（例如 45 → 雾）。补发和 08:14 Worker 用同一个源，不再需要快照。</p>
+                </div>
+                <div class="qa-item">
+                    <b>已确认 3-2：补发不经过 Worker</b>
+                    <p>天气和一句话都在浏览器里现取，补发直接调 Bark，不做 Worker 入口，也不写当天内容快照。</p>
+                </div>
+                <div class="qa-item">
+                    <b>待你确认 4：Worker 写 OSS 的凭证</b>
+                    <p>「今天已发」标记需要写 OSS，Worker 要带 AccessKey。已确认放在 Cloudflare Secret；用户追加决定复用站点现有 Key，已完成配置。原 RAM 权限保持不变，实际权限并不只限于早安目录。</p>
+                </div>
+                <div class="qa-item">
+                    <b>已确认 5：分支</b>
+                    <p>不建新分支，直接在当前 worktree 分支 <code>work/261112-daily-job</code> 上开发。CLAUDE.md 同步更新。</p>
+                </div>
+                <div class="qa-item">
+                    <b>已确认 6：部署工具链</b>
+                    <p>可以引入 wrangler。CLAUDE.md 的「不引入构建工具链」需要改成「需要时经 ADR 批准」，并开新 ADR 取代 ADR-0003 的「无 cron」。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('[data-switch]').forEach(function (btn) {
+        btn.addEventListener('click', function () { btn.classList.toggle('on'); });
+    });
+    document.querySelectorAll('[data-chips]').forEach(function (group) {
+        group.addEventListener('click', function (e) {
+            var chip = e.target.closest('[data-chip]');
+            if (!chip) return;
+            var on = group.querySelectorAll('[data-chip].on');
+            if (chip.classList.contains('on') && on.length === 1) return;
+            chip.classList.toggle('on');
+        });
+    });
+</script>
+</body>
+</html>

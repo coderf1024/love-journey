@@ -348,6 +348,214 @@ async function sendBark(space, options = {}) {
     }
 }
 
+/* ---------- 每日早安（LJ-20261112-001）----------
+   Worker（workers/morning-greeting）按 ADR-0007 在 08:14 发送；管理端只做补发与测试。
+   这里的天气映射与文案必须和 Worker 完全一致。 */
+const GREETING_WEATHER_URL = 'https://api.open-meteo.com/v1/forecast?latitude=39.9042&longitude=116.4074&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Asia%2FShanghai&forecast_days=1';
+const GREETING_QUOTE_URL = 'https://api.shadiao.pro/chp';
+const GREETING_QUOTE_MAX_CHARS = 20;
+const GREETING_QUOTE_ATTEMPTS = 10;
+const GREETING_WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+const GREETING_WMO = {
+    0: '晴', 1: '大部晴', 2: '多云', 3: '阴',
+    45: '雾', 48: '雾',
+    51: '毛毛雨', 53: '毛毛雨', 55: '毛毛雨', 56: '冻毛毛雨', 57: '冻毛毛雨',
+    61: '雨', 63: '雨', 65: '雨', 66: '冻雨', 67: '冻雨',
+    71: '雪', 73: '雪', 75: '雪', 77: '雪粒',
+    80: '阵雨', 81: '阵雨', 82: '阵雨', 85: '阵雪', 86: '阵雪',
+    95: '雷暴', 96: '雷暴伴冰雹', 99: '雷暴伴冰雹'
+};
+const GREETING_DONE_STATUSES = ['sent', 'resent'];
+
+function beijingDay(now = new Date()) {
+    const shifted = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+    const y = shifted.getUTCFullYear();
+    const m = shifted.getUTCMonth() + 1;
+    const d = shifted.getUTCDate();
+    return {
+        date: `${y}-${pad2(m)}-${pad2(d)}`,
+        label: `${y}年${m}月${d}日`,
+        weekday: GREETING_WEEKDAYS[shifted.getUTCDay()],
+        minutes: shifted.getUTCHours() * 60 + shifted.getUTCMinutes()
+    };
+}
+
+function greetingLoveDays(startDate, today) {
+    const toDay = value => {
+        const [y, m, d] = String(value).slice(0, 10).split('-').map(Number);
+        return Date.UTC(y, m - 1, d) / 86400000;
+    };
+    return Math.round(toDay(today) - toDay(startDate));
+}
+
+// Include body parsing in the timeout; slow weather must not block a greeting.
+async function greetingJson(url, options = {}) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
+    try {
+        const response = await fetch(url, { ...options, signal: controller.signal });
+        const json = await response.json().catch(() => null);
+        return { response, json };
+    } finally {
+        clearTimeout(timer);
+    }
+}
+
+async function fetchGreetingWeather() {
+    try {
+        const { response, json } = await greetingJson(GREETING_WEATHER_URL, { cache: 'no-store' });
+        if (!response.ok) return null;
+        const daily = json && json.daily;
+        const code = daily && daily.weather_code && daily.weather_code[0];
+        const max = daily && daily.temperature_2m_max && daily.temperature_2m_max[0];
+        const min = daily && daily.temperature_2m_min && daily.temperature_2m_min[0];
+        if (code == null || max == null || min == null) return null;
+        return `${GREETING_WMO[code] || '天气'} ${Math.round(min)}℃-${Math.round(max)}℃`;
+    } catch (error) {
+        return null;
+    }
+}
+
+async function fetchGreetingQuote() {
+    let lastError = '一句话接口无响应';
+    for (let attempt = 1; attempt <= GREETING_QUOTE_ATTEMPTS; attempt++) {
+        try {
+            const { response, json } = await greetingJson(GREETING_QUOTE_URL, { cache: 'no-store' });
+            if (!response.ok) {
+                lastError = `一句话接口返回 ${response.status}`;
+                continue;
+            }
+            const text = json && json.data && json.data.text;
+            if (typeof text !== 'string' || !text.trim()) {
+                lastError = '一句话接口返回格式不对';
+                continue;
+            }
+            if (Array.from(text).length <= GREETING_QUOTE_MAX_CHARS) return text;
+            lastError = `一句话超过 ${GREETING_QUOTE_MAX_CHARS} 字`;
+        } catch (error) {
+            lastError = `一句话接口出错：${error.message}`;
+        }
+    }
+    throw makeError('GREETING_QUOTE', `${lastError}（已重试 ${GREETING_QUOTE_ATTEMPTS} 次）`);
+}
+
+async function buildGreetingMessage(story, now = new Date()) {
+    const today = beijingDay(now);
+    const [weather, body] = await Promise.all([fetchGreetingWeather(), fetchGreetingQuote()]);
+    const days = greetingLoveDays((story && story.startDate) || '2020-12-20', today.date);
+    return {
+        title: `宝宝早安 · 今天是我们在一起的第 ${days} 天`,
+        subtitle: `${today.label} ${today.weekday}${weather ? ` · ${weather}` : ''}`,
+        body
+    };
+}
+
+function greetingSettings(space) {
+    const raw = (space && space.settings && space.settings.morningGreeting) || {};
+    return {
+        enabled: raw.enabled === true,
+        recipients: Array.isArray(raw.recipients) ? [...new Set(raw.recipients)].filter(item => item === 'user' || item === 'admin') : [],
+        alertOnFail: raw.alertOnFail !== false,
+        homeReminder: raw.homeReminder !== false
+    };
+}
+
+function assertGreetingCanSend(space) {
+    if (typeof isTestEnv === 'function' && isTestEnv()) {
+        const barkOn = typeof window !== 'undefined'
+            && new URLSearchParams(window.location.search).get('bark') === 'on';
+        if (!barkOn) throw makeError('GREETING_TEST_ENV', '测试库不发送（加 ?bark=on 才会真发）');
+    }
+    const bark = (space && space.settings && space.settings.bark) || {};
+    if (bark.enabled === false) throw makeError('GREETING_DISABLED', 'Bark 总开关已关闭');
+}
+
+async function pushGreeting(space, audience, message) {
+    assertGreetingCanSend(space);
+    const links = (space && space.settings && space.settings.links) || {};
+    const bark = (space && space.settings && space.settings.bark) || {};
+    const key = String(audience === 'user' ? (bark.userKey || '') : (bark.adminKey || '')).trim();
+    if (!key) return { audience, ok: false, error: '缺少密钥' };
+    const server = String(bark.server || 'https://api.day.app').replace(/\/+$/, '').replace(/\/push$/, '');
+    const payload = {
+        device_key: key,
+        group: '恋爱空间',
+        isArchive: '1',
+        title: message.title,
+        subtitle: message.subtitle,
+        body: message.body
+    };
+    const url = audience === 'user' ? links.user : links.admin;
+    if (url) payload.url = url;
+    const icon = barkIcon(space);
+    if (icon) payload.icon = icon;
+    try {
+        const { response, json } = await greetingJson(`${server}/push`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json; charset=utf-8' },
+            body: JSON.stringify(payload)
+        });
+        if (response.ok && json && json.code === 200) return { audience, ok: true };
+        return { audience, ok: false, error: `Bark 返回 ${json && json.code || response.status}` };
+    } catch (error) {
+        return { audience, ok: false, error: error.message || '网络错误' };
+    }
+}
+
+async function resendMorningGreeting({ space, story, recipients = [] }) {
+    assertGreetingCanSend(space);
+    const day = beijingDay();
+    const path = `greeting/${day.date}.json`;
+    const existing = await dbGetOrNull(path, { fresh: true });
+    if (existing && GREETING_DONE_STATUSES.includes(existing.status)) {
+        throw makeError('GREETING_DONE', '今天已经发出了');
+    }
+    const audiences = [...new Set(recipients)].filter(item => item === 'user' || item === 'admin');
+    if (!audiences.length) throw makeError('GREETING_NO_RECIPIENT', '请选择收件人');
+    const previous = (existing && Array.isArray(existing.recipients)) ? existing.recipients : [];
+    const successful = previous.filter(item => item.ok);
+    const pending = audiences.filter(audience => !successful.some(item => item.audience === audience));
+    let results = successful.slice();
+    let contentError = '';
+    if (pending.length) {
+        try {
+            const message = await buildGreetingMessage(story);
+            for (const audience of pending) results.push(await pushGreeting(space, audience, message));
+        } catch (error) {
+            contentError = error.message || '早安内容获取失败';
+            results.push(...pending.map(audience => ({ audience, ok: false, error: contentError })));
+        }
+    }
+    const selected = audiences.map(audience => results.find(item => item.audience === audience));
+    const okCount = selected.filter(item => item && item.ok).length;
+    const status = okCount === audiences.length ? 'resent' : (results.some(item => item.ok) ? 'partial' : 'failed');
+    const error = contentError || results.filter(item => !item.ok)
+        .map(item => `${item.audience === 'user' ? '用户' : '大厨'}：${item.error}`).join('；');
+    const record = {
+        date: day.date, kind: 'manual', status,
+        sentAt: new Date().toISOString(), recipients: results,
+        ...(error ? { error } : {})
+    };
+    try {
+        await dbPut(path, record);
+    } catch (error) {
+        throw makeError('GREETING_RECORD', '发送结果未能保存，部分人可能已收到；请先确认手机通知，避免重复补发');
+    }
+    return { status, results, record };
+}
+
+async function sendGreetingTest({ space, story, recipients = [] }) {
+    assertGreetingCanSend(space);
+    const audiences = [...new Set(recipients)].filter(item => item === 'user' || item === 'admin');
+    if (!audiences.length) throw makeError('GREETING_NO_RECIPIENT', '请选择收件人');
+    const message = await buildGreetingMessage(story);
+    const results = [];
+    for (const audience of audiences) {
+        results.push(await pushGreeting(space, audience, message));
+    }
+    return { results, message };
+}
+
 function orderSlotText(order) {
     return order && order.slot
         ? `${order.slot.dateLabel} ${order.slot.label} · ${order.slot.time}`

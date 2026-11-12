@@ -9,18 +9,18 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="管理端">
 <title>管理端 · 恋爱空间</title>
-<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261109-01" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261109-01" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261112-02" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261112-02" as="font" type="font/woff2" crossorigin>
 <style>
     @font-face {
         font-family: 'Ma Shan Zheng';
-        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261109-01') format('woff2');        font-weight: 400;
+        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261112-02') format('woff2');        font-weight: 400;
         font-style: normal;
         font-display: swap;
     }
     @font-face {
         font-family: 'Noto Serif SC';
-        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261109-01') format('woff2');        font-weight: 700;
+        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261112-02') format('woff2');        font-weight: 700;
         font-style: normal;
         font-display: swap;
     }
@@ -86,7 +86,7 @@
         pointer-events: none;
     }
     body.admin-body::before {
-        background: url('assets/texture-noise.png?v=20261109-01') repeat;        opacity: .06;
+        background: url('assets/texture-noise.png?v=20261112-02') repeat;        opacity: .06;
         mix-blend-mode: multiply;
     }
     body.admin-body::after {
@@ -676,6 +676,14 @@
     .setting-row .nav-badge { margin-left: 6px; min-width: 17px; height: 17px; display: grid; place-items: center; padding: 0 4px; background: #f6e2e6; border-radius: 999px; color: var(--admin-stamp); font-size: 9px; font-weight: 700; }
     .bark-links { display: grid; gap: 8px; padding: 11px 13px 13px; border-bottom: 1px dashed var(--line); background: rgba(244, 238, 232, .45); }
     .bark-links[hidden] { display: none; }
+    .greeting-source { margin: 8px 2px 0; color: var(--admin-muted); }
+    .greeting-source a { color: inherit; }
+    .greeting-recipients { flex-shrink: 0; margin: 0; }
+    @media (max-width: 480px) {
+        .greeting-recipient-row { flex-wrap: wrap; }
+        .greeting-recipient-row .setting-main { flex-basis: calc(100% - 40px); }
+        .greeting-recipient-row .choice-row { margin-left: 36px; }
+    }
     .bark-save-bottom { margin-top: 16px; }
     .admin-field { min-width: 0; }
     .logout-btn { margin-top: 16px; }
@@ -1305,6 +1313,48 @@
                     <div class="admin-field"><label for="link-admin">管理端跳转地址</label><input class="admin-input" id="link-admin" type="url" placeholder="https://your-site/admin.html"></div>
                 </div>
             </div>
+            <div class="section-title"><h2>每日早安</h2><span>每天 08:14 · 北京时间</span></div>
+            <div class="settings-group">
+                <div class="setting-row">
+                    <span class="setting-icon">早</span>
+                    <span class="setting-main"><b>发送早安</b><small>北京时间每天 08:14 推送，保存后生效</small></span>
+                    <button class="admin-switch" id="greeting-enabled" type="button" role="switch" aria-pressed="false" aria-label="发送早安"><i></i></button>
+                </div>
+                <div class="setting-row greeting-recipient-row">
+                    <span class="setting-icon">收</span>
+                    <div class="setting-main"><b>发给谁</b><small>勾选的收件人都会收到同一条早安，至少选一个</small></div>
+                    <div class="choice-row greeting-recipients" id="greeting-recipients" role="group" aria-label="早安收件人">
+                        <button type="button" data-greeting-recipient="user"><b>用户</b></button>
+                        <button type="button" data-greeting-recipient="admin"><b>大厨</b></button>
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-icon">警</span>
+                    <span class="setting-main"><b>发送失败告警</b><small>08:14 发送出错时，用管理员密钥推一条「早安发送失败」</small></span>
+                    <button class="admin-switch" id="greeting-alert" type="button" role="switch" aria-pressed="true" aria-label="发送失败告警"><i></i></button>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-icon">待</span>
+                    <span class="setting-main"><b>首页待办提醒</b><small>08:30 后打开管理端，今天未发出则在「需要你处理」里提醒</small></span>
+                    <button class="admin-switch" id="greeting-home-reminder" type="button" role="switch" aria-pressed="true" aria-label="首页待办提醒"><i></i></button>
+                </div>
+                <div class="setting-row greeting-recipient-row">
+                    <span class="setting-icon">测</span>
+                    <span class="setting-main"><b>发送测试</b><small>临时选收件人，只发这一次，不改上面的设置、不写发送记录</small></span>
+                    <div class="choice-row greeting-recipients" id="greeting-test-recipients" role="group" aria-label="测试收件人">
+                        <button type="button" data-greeting-test-recipient="user"><b>用户</b></button>
+                        <button type="button" data-greeting-test-recipient="admin"><b>大厨</b></button>
+                    </div>
+                    <button class="admin-btn sm" id="greeting-test" type="button">测试</button>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-icon">补</span>
+                    <span class="setting-main"><b>今天的状态</b><small id="greeting-today-status">读取中…</small></span>
+                    <button class="admin-btn sm" id="greeting-resend" type="button" hidden>补发</button>
+                </div>
+            </div>
+            <p class="system-note" id="greeting-save-hint" hidden>早安设置尚未保存；今天的状态与补发使用已保存的设置。</p>
+            <p class="admin-small greeting-source">天气数据：<a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · 天气不可用时仍发送早安</p>
             <div class="section-title"><h2>推给用户</h2><span>3 个事件</span></div>
             <div class="settings-group">
                 <div class="setting-row">
@@ -1702,10 +1752,10 @@
 
 <div class="admin-toast" id="message" role="status" aria-live="polite"></div>
 
-<script src="js/oss-config.js?v=20261109-01"></script>
-<script src="js/crypto-utils.js?v=20261109-01"></script>
-<script src="js/oss-utils.js?v=20261109-01"></script>
-<script src="js/store.js?v=20261109-01"></script><script>
+<script src="js/oss-config.js?v=20261112-02"></script>
+<script src="js/crypto-utils.js?v=20261112-02"></script>
+<script src="js/oss-utils.js?v=20261112-02"></script>
+<script src="js/store.js?v=20261112-02"></script><script>
     const ORDER_LABEL = {
         pending: '待接单',
         accepted: '已接单',
@@ -2153,6 +2203,7 @@
             adminData = await loadAdminData();
             saveAdminSession();
             renderAll();
+            refreshGreetingToday();
         } catch (error) {
             console.error(error);
             showMessage('加载失败: ' + error.message, 'error');
@@ -2185,6 +2236,7 @@
             renderWallet();
             renderDishRequests();
             renderChrome();
+            refreshGreetingToday();
             if (adminView === 'order-detail') loadOrderDetail();
         } catch (error) {
             console.warn('刷新订单失败:', error);
@@ -2280,6 +2332,12 @@
 
         const dishTodos = pendingDishRequests();
         const todos = homeAttentionOrders();
+        const greetingRows = greetingMissingNow() ? `
+            <div class="todo-row is-late">
+                <span class="todo-mark">早</span>
+                <span class="todo-main"><b>${greetingToday && greetingToday.status === 'partial' ? '今天早安部分未送达' : '今天早安未发出'}</b><small>${greetingToday && greetingToday.error ? esc(greetingToday.error) : '08:14 的发送没有成功'}</small></span>
+                <button class="admin-btn dark sm" type="button" data-home-greeting-resend ${greetingSending ? 'disabled' : ''}>${greetingSending ? '补发中…' : '补发'}</button>
+            </div>` : '';
         const orderRows = todos.map(order => {
             const nextStatus = NEXT_STATUS[order.status];
             const label = nextStatus ? nextStatus.label : '去处理';
@@ -2302,9 +2360,9 @@
                 <span class="todo-main"><b>我想吃：${esc(request.name)}</b><small>${esc(request.submittedAt || '')} · 等你审核</small></span>
                 <button class="admin-btn dark sm" type="button" data-review-dish="${esc(request.id)}">去审核</button>
             </div>`).join('');
-        const totalTodos = todos.length + dishTodos.length;
+        const totalTodos = todos.length + dishTodos.length + (greetingRows ? 1 : 0);
         $('home-todo-count').textContent = totalTodos ? `${totalTodos} 件` : '';
-        $('home-todos').innerHTML = (dishRows + orderRows) || '<div class="empty-state">现在没有需要处理的事。</div>';
+        $('home-todos').innerHTML = (greetingRows + dishRows + orderRows) || '<div class="empty-state">现在没有需要处理的事。</div>';
 
         const weekStart = new Date();
         weekStart.setHours(0, 0, 0, 0);
@@ -4043,6 +4101,7 @@
         document.querySelectorAll('[data-bark-event]').forEach(button => {
             setSwitch(button, (bark.events || {})[button.dataset.barkEvent] !== false);
         });
+        renderGreetingSettings();
         renderMilestoneCounts();
         renderNotificationSummary();
     }
@@ -4072,6 +4131,8 @@
         if (enabled && (!userKey || !adminKey)) {
             throw new Error('请填写用户和管理员两把 Bark 密钥');
         }
+        const greeting = { ...greetingSettingsFromForm(), ...greetingOptionsFromForm() };
+        if (greeting.enabled && !greeting.recipients.length) throw new Error('请至少选择一个早安收件人');
         const events = {};
         document.querySelectorAll('[data-bark-event]').forEach(button => {
             events[button.dataset.barkEvent] = button.getAttribute('aria-pressed') === 'true';
@@ -4090,11 +4151,202 @@
                 adminKey,
                 events,
                 server: 'https://api.day.app'
-            }
+            },
+            morningGreeting: greeting
         });
         adminData.space = space;
         renderSettings();
+        await refreshGreetingToday(true);
         if (showSuccess) showMessage('通知设置已保存');
+    }
+
+    function greetingSettingsFromForm() {
+        const recipients = [...document.querySelectorAll('[data-greeting-recipient].is-on')]
+            .map(button => button.dataset.greetingRecipient);
+        return {
+            enabled: $('greeting-enabled').getAttribute('aria-pressed') === 'true',
+            recipients
+        };
+    }
+
+    function greetingOptionsFromForm() {
+        return {
+            alertOnFail: $('greeting-alert').getAttribute('aria-pressed') === 'true',
+            homeReminder: $('greeting-home-reminder').getAttribute('aria-pressed') === 'true'
+        };
+    }
+
+    function renderGreetingSettings() {
+        const greeting = greetingSettings(adminData && adminData.space);
+        setSwitch($('greeting-enabled'), greeting.enabled);
+        setSwitch($('greeting-alert'), greeting.alertOnFail);
+        setSwitch($('greeting-home-reminder'), greeting.homeReminder);
+        document.querySelectorAll('[data-greeting-recipient]').forEach(button => {
+            const selected = greeting.recipients.includes(button.dataset.greetingRecipient);
+            button.classList.toggle('is-on', selected);
+            button.setAttribute('aria-pressed', String(selected));
+        });
+        renderGreetingDraftHint();
+        renderGreetingTodayStatus();
+    }
+
+    function renderGreetingDraftHint() {
+        const saved = greetingSettings(adminData && adminData.space);
+        const draft = { ...greetingSettingsFromForm(), ...greetingOptionsFromForm() };
+        $('greeting-save-hint').hidden = JSON.stringify(saved) === JSON.stringify(draft);
+    }
+
+    function selectedTestRecipients() {
+        return [...document.querySelectorAll('[data-greeting-test-recipient].is-on')]
+            .map(button => button.dataset.greetingTestRecipient);
+    }
+
+    let greetingToday = null;
+    let greetingTodayDate = '';
+    let greetingState = 'idle';
+    let greetingCheckedAt = 0;
+    let greetingReadVersion = 0;
+    let greetingSending = false;
+
+    async function refreshGreetingToday(force = false) {
+        if (!adminData || greetingSending) return;
+        const day = beijingDay();
+        const greeting = greetingSettings(adminData.space);
+        if (greetingTodayDate !== day.date) {
+            greetingToday = null;
+            greetingState = 'idle';
+            greetingCheckedAt = 0;
+            greetingTodayDate = day.date;
+        }
+        if (!greeting.enabled) {
+            greetingReadVersion++;
+            greetingState = 'off';
+        } else if (day.minutes < 8 * 60 + 14) {
+            greetingReadVersion++;
+            greetingState = 'waiting';
+        } else if (force || Date.now() - greetingCheckedAt >= 60000 || greetingState === 'off' || greetingState === 'waiting') {
+            const version = ++greetingReadVersion;
+            greetingCheckedAt = Date.now();
+            try {
+                const record = await dbGetOrNull(`greeting/${day.date}.json`, { fresh: true });
+                if (version !== greetingReadVersion || day.date !== beijingDay().date) return;
+                greetingToday = record;
+                greetingState = 'ready';
+            } catch (error) {
+                if (version !== greetingReadVersion || day.date !== beijingDay().date) return;
+                greetingState = 'error';
+            }
+        }
+        renderGreetingTodayStatus();
+        renderHome();
+    }
+
+    function greetingDone() {
+        return greetingTodayDate === beijingDay().date && !!greetingToday && GREETING_DONE_STATUSES.includes(greetingToday.status);
+    }
+
+    function greetingMissingNow() {
+        const greeting = greetingSettings(adminData && adminData.space);
+        const bark = (adminData && adminData.space.settings && adminData.space.settings.bark) || {};
+        if (!greeting.enabled || !greeting.homeReminder || !greeting.recipients.length || bark.enabled === false) return false;
+        const day = beijingDay();
+        return day.minutes >= 8 * 60 + 30 && greetingState === 'ready' && greetingTodayDate === day.date && !greetingDone();
+    }
+
+    function renderGreetingTodayStatus() {
+        const status = $('greeting-today-status');
+        const resend = $('greeting-resend');
+        if (!status || !resend || !adminData) return;
+        const bark = (adminData.space.settings && adminData.space.settings.bark) || {};
+        resend.hidden = greetingDone();
+        resend.disabled = greetingSending;
+        resend.textContent = greetingSending ? '补发中…' : '补发';
+        if (greetingDone()) {
+            const at = new Date(greetingToday.sentAt);
+            const time = Number.isFinite(at.getTime()) ? at.toLocaleTimeString('zh-CN', { timeZone: 'Asia/Shanghai', hour: '2-digit', minute: '2-digit', hour12: false }) : '';
+            status.textContent = `今天已发出${time ? `（北京时间 ${time}）` : ''}`;
+        } else if (bark.enabled === false) {
+            status.textContent = 'Bark 总开关关闭，请打开并保存后再发送';
+        } else if (greetingState === 'off') {
+            status.textContent = '自动早安未开启，仍可按已保存的收件人手动补发';
+        } else if (greetingState === 'waiting') {
+            status.textContent = '等待 08:14 自动发送，08:30 后检查漏发';
+        } else if (greetingState === 'error') {
+            status.textContent = '发送状态读取失败，将自动重试；不能据此判断漏发';
+        } else if (greetingState === 'idle') {
+            status.textContent = '读取中…';
+        } else {
+            const reason = greetingToday && greetingToday.error ? `：${greetingToday.error}` : '';
+            status.textContent = `${greetingToday ? '发送未完成' : '今天还没发出'}${reason}`;
+        }
+    }
+
+    async function handleGreetingResend() {
+        if (greetingSending) return;
+        const recipients = greetingSettings(adminData.space).recipients;
+        if (!recipients.length) {
+            showMessage('请先在「发给谁」里选择收件人并保存', 'error');
+            return;
+        }
+        greetingSending = true;
+        greetingReadVersion++;
+        try {
+            assertGreetingCanSend(adminData.space);
+            const ok = await adminConfirm({
+                title: '补发今天的早安',
+                message: `按已保存设置发给${recipients.map(item => item === 'user' ? '用户' : '大厨').join('、')}，跳过今天已成功的收件人。现取天气和一句话，确认补发？`,
+                okText: '补发'
+            });
+            if (!ok) return;
+            renderGreetingTodayStatus();
+            renderHome();
+            const { status, record } = await resendMorningGreeting({ space: adminData.space, story: adminData.story, recipients });
+            greetingToday = record;
+            greetingTodayDate = record.date;
+            greetingState = 'ready';
+            greetingCheckedAt = Date.now();
+            showMessage(status === 'resent' ? '早安已补发' : (record.error || '发送未完成，请查看今天的状态'), status === 'resent' ? 'success' : 'error');
+        } catch (error) {
+            showMessage(error.message || '补发失败', 'error');
+            if (error.code === 'GREETING_DONE') greetingCheckedAt = 0;
+        } finally {
+            greetingSending = false;
+            renderGreetingTodayStatus();
+            renderHome();
+        }
+    }
+
+    let greetingTesting = false;
+    async function handleGreetingTest() {
+        if (greetingTesting) return;
+        const recipients = selectedTestRecipients();
+        if (!recipients.length) {
+            showMessage('请先选一个测试收件人', 'error');
+            return;
+        }
+        greetingTesting = true;
+        const button = $('greeting-test');
+        button.disabled = true;
+        try {
+            const ok = await adminConfirm({
+                title: '发送测试早安',
+                message: `立即发给${recipients.map(item => item === 'user' ? '用户' : '大厨').join('、')}一条测试早安。不写发送记录，不影响今天的状态。`,
+                okText: '发送测试'
+            });
+            if (!ok) return;
+            const { results } = await sendGreetingTest({
+                space: adminData.space,
+                story: adminData.story,
+                recipients
+            });
+            const failed = results.filter(item => !item.ok);
+            showMessage(failed.length ? failed.map(item => `${item.audience === 'user' ? '用户' : '大厨'}：${item.error}`).join('；') : '测试早安已发送', failed.length ? 'error' : 'success');
+        } catch (error) {
+            showMessage(error.message || '测试失败', 'error');
+        } finally {
+            greetingTesting = false;
+            button.disabled = false;
+        }
     }
 
     async function handleBarkSave() {
@@ -4335,6 +4587,9 @@
     });
     bindOrderActions($('orders-list'));
     bindOrderActions($('home-todos'));
+    $('home-todos').addEventListener('click', event => {
+        if (event.target.closest('[data-home-greeting-resend]')) handleGreetingResend();
+    });
     // 详情页的按钮随 innerHTML 重建，所以用 body 上的委托
     $('order-detail-body').addEventListener('click', event => {
         const preview = event.target.closest('[data-image-preview]');
@@ -4598,6 +4853,30 @@
     $('nudge-enabled').addEventListener('click', () => {
         setSwitch($('nudge-enabled'), $('nudge-enabled').getAttribute('aria-pressed') !== 'true');
     });
+    ['greeting-enabled', 'greeting-alert', 'greeting-home-reminder'].forEach(id => {
+        $(id).addEventListener('click', () => {
+            setSwitch($(id), $(id).getAttribute('aria-pressed') !== 'true');
+            renderGreetingDraftHint();
+        });
+    });
+    document.querySelectorAll('[data-greeting-recipient]').forEach(button => {
+        button.setAttribute('aria-pressed', String(button.classList.contains('is-on')));
+        button.addEventListener('click', () => {
+            button.classList.toggle('is-on');
+            button.setAttribute('aria-pressed', String(button.classList.contains('is-on')));
+            renderGreetingDraftHint();
+        });
+    });
+    document.querySelectorAll('[data-greeting-test-recipient]').forEach(button => {
+        button.setAttribute('aria-pressed', String(button.classList.contains('is-on')));
+        button.addEventListener('click', () => {
+            button.classList.toggle('is-on');
+            button.setAttribute('aria-pressed', String(button.classList.contains('is-on')));
+            renderGreetingDraftHint();
+        });
+    });
+    $('greeting-resend').addEventListener('click', handleGreetingResend);
+    $('greeting-test').addEventListener('click', handleGreetingTest);
     document.querySelectorAll('[data-bark-event]').forEach(button => {
         button.addEventListener('click', () => {
             setSwitch(button, button.getAttribute('aria-pressed') !== 'true');

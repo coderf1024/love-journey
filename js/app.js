@@ -13,12 +13,12 @@ let lastCityColumns = 0;
 
 // Self-hosted: cdn.jsdelivr.net is unreliable in WeChat / mainland mobile networks.
 const LIBS = {
-    echarts: 'assets/vendor/echarts.min.js?v=20261109-01',
-    qrcode: 'assets/vendor/qrcode.min.js?v=20261109-01'
+    echarts: 'assets/vendor/echarts.min.js?v=20261112-02',
+    qrcode: 'assets/vendor/qrcode.min.js?v=20261112-02'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261109-01';
-const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261109-01';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261112-02';
+const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261112-02';
 // First-paint fallback only. The live story document always wins once it loads.
 const LOVE_START_FALLBACK = '2020-12-20';
 

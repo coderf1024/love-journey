@@ -29,6 +29,7 @@
 | [发布手册](./runbooks/release.md) | 验收、合并 main、版本 bump、线上 smoke、回滚 |
 | [EdgeOne 运维](./runbooks/edgeone.md) | 主站部署、自定义域名、3 小时预览限制、排障和回滚 |
 | [OSS 数据安全](./runbooks/oss-data.md) | 读写顺序、索引、删除、迁移、竞态 |
+| [每日早安](./runbooks/morning-greeting.md) | Cloudflare 部署、Secret、发送状态、告警和补发 |
 | [Bark 通知](./runbooks/bark.md) | 双密钥、模板变量、事件开关、深链 |
 | [GitHub Action](./runbooks/github-action.md) | 周更恋爱卡任务说明入口 |
 | [参考文档](./reference/README.md) | Bark API、OSS 配置、Action 配置、菜品照片来源 |

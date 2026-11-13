@@ -578,7 +578,7 @@ select:focus-visible {
     right: -4px;
     bottom: -8px;
     z-index: 2;
-    width: clamp(140px, 44vw, 208px);
+    width: clamp(140px, 30vw, 208px);
     height: auto;
     pointer-events: none;
     user-select: none;

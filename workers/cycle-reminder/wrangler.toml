@@ -1,0 +1,21 @@
+name = "love-cycle-reminder"
+main = "src/index.js"
+compatibility_date = "2026-11-12"
+# /run 只用于人工验证；其余时间没有任何流量。
+workers_dev = true
+preview_urls = false
+
+[observability]
+enabled = true
+
+# 01:00 UTC = 09:00 北京时间
+[triggers]
+crons = ["0 1 * * *"]
+
+# 与 morning-greeting 保持同一套命名
+[vars]
+OSS_REGION = "oss-cn-beijing"
+OSS_BUCKET = "love-config"
+DB_ROOT = "love-journey/db"
+
+# OSS_ACCESS_KEY_ID / OSS_ACCESS_KEY_SECRET / RUN_TOKEN 用 wrangler secret put 注入。

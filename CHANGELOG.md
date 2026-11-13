@@ -15,9 +15,9 @@
 
 ### Reminder worker
 
-- 新增 `scripts/cycle-reminder-worker/`：Cloudflare Worker 每天北京时间 09:00 读 `cycle/periods.json` + `cycle/settings.json`，按缓存预测判断今天该不该推（提前 N 天 / 当天 / 过期第 3·5·7·10 天），推一条 Bark，只把结果写回 `settings.lastPush`。**不重算预测、不写 `periods.json`**。
+- 新增 `workers/cycle-reminder/`（目录与工具链同 `workers/morning-greeting/`，独立 Worker、独立 cron）：Cloudflare Worker 每天北京时间 09:00 读 `cycle/periods.json` + `cycle/settings.json`，按缓存预测判断今天该不该推（提前 N 天 / 当天 / 过期第 3·5·7·10 天），推一条 Bark，只把结果写回 `settings.lastPush`。**不重算预测、不写 `periods.json`**。
 - 首页新增「上次的提醒没发出去」横幅：`lastPush.ok === false` 且不超过 3 天时显示，点「去记录」直接开记录弹层。
-- 部署是手动的（控制台粘贴或 `wrangler deploy`），步骤见该目录的 `README.md`。
+- 部署是手动的（`wrangler deploy`），步骤见 [docs/runbooks/cycle-reminder.md](docs/runbooks/cycle-reminder.md)；与早安 Worker 互不影响。
 
 - 2026-11-13 早安内容调整（LJ-20261112-001）：标题改为「宝宝早呀，在一起的第 N 天！」；定时、测试和补发早安不再跳转网页，其他通知跳转保持原样。缓存版本 `20261113-01`。
 

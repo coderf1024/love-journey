@@ -408,7 +408,7 @@
 1. 它解决的是 GitHub Action 的两个真实痛点——**不因仓库不活跃停用**、**不因共享 runner 排队而漂移**；Cloudflare 的 cron 在边缘调度，是按账号配额而不是公共队列。
 2. 免费额度够：一天 1 次，一年 365 次，远低于限制；10ms CPU 对「算个日期 + 一次 fetch」是够的（Bark 请求是 I/O，不吃 CPU）。
 3. 和现有架构同构：Worker 只读 OSS 上的 `cycle/periods.json`（匿名可读，和浏览器同一条读路径）+ POST Bark，不写 OSS，**不引入新的数据写入口**。
-4. 一个 Worker 文件 ≈ 60 行，`wrangler.toml` 一个文件，能签入仓库（`scripts/cycle-reminder-worker/`），不违反「不新增构建工具链」——它不参与站点构建。
+4. 一个 Worker 文件 ≈ 60 行，`wrangler.toml` 一个文件，能签入仓库（`workers/cycle-reminder/`），不违反「不新增构建工具链」——它不参与站点构建。
 
 **但有一个前提必须先确认**：`wrangler` 部署需要人拥有 Cloudflare 账号并授权。如果不想引入 Cloudflare，退路是**阿里云函数计算**（同账号能访问 OSS，商用级），或者家里有 NAS 就自建 Bark + 一个 cron。
 
@@ -444,7 +444,7 @@
 - 2026-11-10：**提醒文案可配置，可以出现「经期」**。参照小灶 Bark 模板：`title / subtitle / body / url` + 变量 `{days}` `{range}` `{url}`；默认文案直接写清楚，改含蓄只改模板不改代码。
 - 2026-11-10：**预测不给单日，区间上限 3 天**。周期不规律也裁到 3 天，用「可能提前/推迟」的话术补足，不放宽窗口。
 - 2026-11-10：**结束记录不自动结束**。超过 10 天只提示一次（补结束日 / 拆开 / 删除三选一），系统不改数据。
-- 2026-11-10：**定时方案定为 Cloudflare Workers Cron**（人已确认）。Worker 只读 OSS + POST Bark，不写 OSS；`wrangler.toml` 与 Worker 源码放 `scripts/cycle-reminder-worker/`。
+- 2026-11-10：**定时方案定为 Cloudflare Workers Cron**（人已确认）。Worker 只读 OSS + POST Bark，不写 OSS；`wrangler.toml` 与 Worker 源码放 `workers/cycle-reminder/`。
 - 2026-11-10：**美柚导出文件稍后提供**，导入解析的真实表头待补；在此之前导入器按「两种形态都兼容」设计。
 - 2026-11-10：原型 v1 已交付 `docs/design/period-tracker-wireframe.html`，等人工评审后再写 `plan.md`、开分支。
 - 2026-11-10：范围收窄。核心=记录+预测，不能输；照顾闭环/厨房联动/一键求助/回顾 → 二期；社区不做；隐私按明文 OSS（人判断不敏感）；GitHub Action 定时不可用，改 Cloudflare Workers。

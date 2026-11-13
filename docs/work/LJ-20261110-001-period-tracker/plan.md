@@ -50,15 +50,21 @@
 
 ## 提醒 Worker（2026-11-12 新增）
 
-`scripts/cycle-reminder-worker/`：
+`workers/cycle-reminder/`：
+
+目录和工具链与 `workers/morning-greeting/` 一致（2026-11-13 按 main 的结构改）：
 
 | 文件 | 内容 |
 |---|---|
-| `worker.js` | 单文件 Worker：读两个文档 → `decide()` 判断该不该推 → 发一条 Bark → 只把 `lastPush` 写回 `settings.json`。`export { decide }` 便于单测 |
-| `wrangler.toml` | `crons = ["0 1 * * *"]`（UTC）= 北京时间 09:00 |
-| `README.md` | 控制台粘贴版和 wrangler 版两套部署步骤、验证命令、排错表 |
+| `src/index.js` | Worker 本体：读两个文档 → `decide()` 判断该不该推 → 发一条 Bark → 只把 `lastPush` 写回 `settings.json`。`export { decide }` 便于单测 |
+| `test/reminder.test.js` | 18 条 `node:test` 用例，全内存，不联网、不推送、不写 OSS |
+| `wrangler.toml` | `crons = ["0 1 * * *"]`（UTC）= 北京时间 09:00；`workers_dev = true` 只为人工作 `/run` dry run |
+| `package.json` | `wrangler 4.160.1`，与早安同版本 |
+| `README.md` | 判定表、部署步骤、验证命令、已知限制 |
 
-判定逻辑（纯函数，已用 Node 跑 10 条用例）：提醒关闭 / 无可用预测 / 经期进行中 / 当天已推 → 跳过；`untilStart` 命中 `remindDaysBefore` → before 或 start；落在预测区间内 → 静默；过期天数命中 `overdueRemindDays` → overdue。
+运维手册：`docs/runbooks/cycle-reminder.md`。
+
+判定逻辑（纯函数，`npm test` 跑 18 条用例）：提醒关闭 / 无可用预测 / 经期进行中 / 当天已推 → 跳过；`untilStart` 命中 `remindDaysBefore` → before 或 start；落在预测区间内 → 静默；过期天数命中 `overdueRemindDays` → overdue。
 
 **Worker 不重算预测、不写 `periods.json`**，这一条在 README 和 CLAUDE.md 都写死了。
 
@@ -69,5 +75,5 @@
 ## 未验证 / 待办
 
 - 美柚真实导出文件（列名、形态）未拿到，导入器的猜列是按通用中文表头写的。
-- Cloudflare Worker 代码已写（`scripts/cycle-reminder-worker/`），**尚未部署**；等人工按 README 操作。
+- Cloudflare Worker 代码已写（`workers/cycle-reminder/`），**尚未部署**；等人工按 `docs/runbooks/cycle-reminder.md` 操作。
 - 真实 iPhone Safari 未测（只跑了 Chromium）。

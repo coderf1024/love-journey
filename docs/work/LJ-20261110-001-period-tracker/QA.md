@@ -26,7 +26,7 @@
 
 ## 提醒 Worker（代码级已验证，未部署）
 
-- `decide()` 用 Node 跑了 10 条用例：提前 1 天 / 当天 / 区间内静默 / 过期第 3 天 / 过期非提醒日 / 非提醒日 / 当天已推 / 经期进行中 / 提醒关闭 / 无预测 —— 全部通过。
+- `npm test`（node:test）18 条用例全过：提前 1 天 / 当天 / 区间内静默 / 过期第 3·5·7·10 天 / 过期第 11 天起静默 / 过期非提醒日 / 非提醒日 / 当天已推 / 上次失败不挡今天 / 经期进行中 / 已结束经期不影响 / 开关关闭 / 无预测（含 range 长度不对）/ 自定义提前天数 / 时区 / diffDays 方向 / 模板变量 / 设置归一化。
 - 时区助手：`2026-11-11T16:30:00Z` → `2026-11-12`，`15:30:00Z` → `2026-11-11`，符合北京时间。
 - OSS V1 URL 签名的 HMAC-SHA1 结果与 Node `crypto` 逐字节一致。
 - 已确认 `db-test` 的两个文档可匿名读取（200），字段名与 Worker 的读取一致。
@@ -50,5 +50,5 @@
 ## 备注
 
 - `db-test` 里留了 7 次演示记录（6 次标 `source: import`），验收时可以直接看到日历和预测。不想要的话走管理端「清空全部记录」。
-- 提醒 Worker 代码已写好（`scripts/cycle-reminder-worker/`），**尚未部署**。部署步骤见该目录 README。
+- 提醒 Worker 代码已写好（`workers/cycle-reminder/`），`wrangler deploy --dry-run` 通过（12.11 KiB / gzip 4.26 KiB），**尚未部署**。部署步骤见 [docs/runbooks/cycle-reminder.md](../../runbooks/cycle-reminder.md)。
 - 缓存 token 已 bump 到 `20261112-01`。

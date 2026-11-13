@@ -2,7 +2,7 @@
 
 - 状态：in-review（v1 已实现，等人工验收）
 - 分支：`work/261110-dym-tracker`
-- 最后更新：2026-11-12 11:30
+- 最后更新：2026-11-13 15:00
 - 当前负责人：人（决策）
 
 ## 已完成
@@ -29,12 +29,13 @@
 1. 人复看原型 v2（第 04 / 09 / 10 节为新增），确认记录无误。
 2. 人提供美柚导出文件，确认文件形态（xlsx/csv、一天一行还是一次一行、日期格式）。
 3. 补 `plan.md`、正式建 `feat/LJ-20261110-001-period-tracker` 分支，开始实现。
-4. 部署 Cloudflare Worker（代码已写好，按 `scripts/cycle-reminder-worker/README.md` 操作）。
+4. 部署 Cloudflare Worker（代码已写好，按 `docs/runbooks/cycle-reminder.md` 操作；与早安是两个独立 Worker，09:00 与 08:14 分开）。
 
 ## 阻塞
 
 - 无阻塞。美柚导出文件未到，导入器暂按通用表头猜列。
-- 提醒 Worker 代码已就绪，等待部署（见 `scripts/cycle-reminder-worker/README.md`）。
+- 提醒 Worker 代码已就绪（`workers/cycle-reminder/`，18 条单测 + `wrangler deploy --dry-run` 通过），等待部署。
+- 2026-11-13：已合并 origin/main，Worker 从 `scripts/` 迁到 `workers/`，目录与工具链对齐 `workers/morning-greeting/`。
 
 ## 已验证
 
@@ -48,4 +49,4 @@
 ## 备注
 
 - 2026-11-10 只做调研与方案，未改页面或数据。
-- 定时方案已定 Cloudflare Workers Cron；实现时新增 `scripts/cycle-reminder-worker/`，不参与站点构建。
+- 定时方案已定 Cloudflare Workers Cron；实现时新增 `workers/cycle-reminder/`，不参与站点构建。

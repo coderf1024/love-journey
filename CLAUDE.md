@@ -34,7 +34,7 @@ This repo is developed by **one human + one AI**, with several requirements able
 
 ### Quality and release
 
-- No new build/test toolchain: no package.json, Playwright, lint, or bundler unless a new ADR explicitly approves it. Exception: the morning-greeting Worker under `workers/morning-greeting/` uses wrangler (see ADR-0007); nothing outside that directory may depend on it.
+- No new build/test toolchain: no package.json, Playwright, lint, or bundler unless a new ADR explicitly approves it. Exception: the Workers under `workers/` (morning-greeting, cycle-reminder) use wrangler; nothing outside `workers/` may depend on it.
 - Manual gates: `node --check`, 320/390/1280 browser checks, console clean, and the task's `QA.md`.
 - `main` is the deploy branch; functional branches merge only after human acceptance. Pushing `main` triggers both EdgeOne Makers (primary, `https://coderf.site`) and GitHub Pages (fallback). EdgeOne's default project/deployment domain is preview-only in mainland China (3-hour link, 401 after expiry); use the custom domain for public access.
 - Follow [docs/runbooks/release.md](docs/runbooks/release.md) for cache-version bump, fonts, merge, and post-deploy smoke.
@@ -100,6 +100,11 @@ node scripts/auto-gift-massage.js
 cd workers/morning-greeting && npm ci
 npm test  # Node built-in mock tests, no network or real pushes
 npx wrangler deploy   # see docs/runbooks/morning-greeting.md before running
+
+# Cycle-reminder Worker. Same toolchain, separate deployment, 09:00 Asia/Shanghai.
+cd workers/cycle-reminder && npm ci
+npm test  # node:test against decide(); no network, no pushes, no OSS writes
+npx wrangler deploy   # see docs/runbooks/cycle-reminder.md before running
 
 # Encrypt a new AccessKey for js/oss-config.js — algorithm and snippet in docs/reference/oss-config.md
 ```
@@ -245,7 +250,7 @@ Rules worth keeping:
 - Imports never take a "predicted" column; only what actually happened. Dedupe is by start date.
 - Admin owns every setting (threshold, reminder time/window, templates, auto-tune, ovulation toggle, import toggle, clear-all). The user side has **no switches**; the admin also cannot record for her or see day-level detail.
 - Clearing needs the literal text 清空 plus a confirmation dialog.
-- The reminder Worker lives in `scripts/cycle-reminder-worker/` (single file, `wrangler.toml`, and a README with both the dashboard-paste and `wrangler deploy` flows). It runs `0 1 * * *` UTC = 09:00 Asia/Shanghai, reads `periods.json` + `settings.json` + `space.json` anonymously, and **only ever writes `settings.lastPush`** — it never recalculates the prediction and never touches `periods.json`. `decide()` is exported and pure so it can be tested with plain Node. Deployment is manual; see the folder README.
+- The reminder Worker lives in `workers/cycle-reminder/` — same layout and toolchain as `workers/morning-greeting/` (`src/index.js`, `wrangler.toml`, `package.json` with wrangler 4.160.1, `test/` with `node:test`). It runs `0 1 * * *` UTC = 09:00 Asia/Shanghai, reads `periods.json` + `settings.json` + `space.json` anonymously, and **only ever writes `settings.lastPush`** — it never recalculates the prediction and never touches `periods.json`. `decide()` is exported and pure so it can be tested with plain Node. It stays a **separate** Worker from the morning greeting: different time, different dependencies, so a bad deploy of one cannot silence the other. A Worker may hold several crons (`crons = [...]`, distinguished by `event.cron`); the free plan's limit is 5 cron triggers per account, not one per Worker. `/run` on the `workers_dev` domain is the manual dry-run entry, optional `RUN_TOKEN` guard. See [docs/runbooks/cycle-reminder.md](docs/runbooks/cycle-reminder.md).
 
 ## Assets
 

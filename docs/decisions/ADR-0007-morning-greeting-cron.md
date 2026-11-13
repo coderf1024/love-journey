@@ -41,7 +41,8 @@
 ## 影响
 
 - 新增通知事件时，先确认是否需要定时触发；若需要，只能通过 `workers/` 下的 Worker 实现，并更新本 ADR。
+- 2026-11-13 追加（生理期提醒，LJ-20261110-001）：每个定时任务用**独立 Worker**，不合并到同一个 Worker 的多个 cron。一个 Worker 技术上支持多个 cron（`event.cron` 区分），免费额度是每账号 5 个 cron 触发器；分开的理由是部署与故障互不影响。`workers/cycle-reminder/` 沿用本 ADR 的工具链约定（wrangler 仅限 `workers/`，Node 自带 `node:test`，密钥走 Secret）。
 - 不要把 Bark key 或 OSS 密钥写进仓库、README、commit message 或 Worker 的 `[vars]`。
-- 改 Cron 时间只改 `workers/morning-greeting/wrangler.toml` 的 `crons`，并重新 `wrangler deploy`；注意 UTC 换算。
+- 改 Cron 时间只改对应 Worker 的 `wrangler.toml` 的 `crons`，并重新 `wrangler deploy`；注意 UTC 换算。
 - `greeting/<日期>.json` 是 Worker 与管理端补发共同写入的记录，不要手工修改。
-- 运维步骤见 [早安问候运维手册](../runbooks/morning-greeting.md)。
+- 运维步骤：[早安问候](../runbooks/morning-greeting.md)、[生理期提醒](../runbooks/cycle-reminder.md)。

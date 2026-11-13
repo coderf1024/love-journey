@@ -1,0 +1,19 @@
+name = "love-morning-greeting"
+main = "src/index.js"
+compatibility_date = "2026-11-12"
+workers_dev = false
+preview_urls = false
+
+[observability]
+enabled = true
+
+# 00:14 UTC = 08:14 北京时间
+[triggers]
+crons = ["14 0 * * *"]
+
+[vars]
+OSS_REGION = "oss-cn-beijing"
+OSS_BUCKET = "love-config"
+DB_ROOT = "love-journey/db"
+
+# OSS_ACCESS_KEY_ID / OSS_ACCESS_KEY_SECRET 用 wrangler secret put 注入，不写在这里。

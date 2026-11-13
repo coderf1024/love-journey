@@ -6,6 +6,7 @@
 - 浏览器和管理端使用同一套 AccessKey；权限和 exposed 前端是同一边界。
 - 没有事务、锁、版本号；写入是 read-modify-write。
 - 文档索引是派生读模型；手工改文档后可能留下旧索引。
+- `greeting/<YYYY-MM-DD>.json` 是早安发送记录，由 Cloudflare Worker 写入，管理端补发也会写入；不要手工修改（见 [早安问候运维手册](morning-greeting.md)）。
 
 ## 读写规则
 

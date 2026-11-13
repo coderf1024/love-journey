@@ -2,25 +2,25 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#fbf6ec">
 <link rel="preconnect" href="https://love-config.oss-cn-beijing.aliyuncs.com" crossorigin>
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="管理端">
 <title>管理端 · 恋爱空间</title>
-<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261112-01" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261112-01" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261113-01" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261113-01" as="font" type="font/woff2" crossorigin>
 <style>
     @font-face {
         font-family: 'Ma Shan Zheng';
-        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261112-01') format('woff2');        font-weight: 400;
+        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261113-01') format('woff2');        font-weight: 400;
         font-style: normal;
         font-display: swap;
     }
     @font-face {
         font-family: 'Noto Serif SC';
-        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261112-01') format('woff2');        font-weight: 700;
+        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261113-01') format('woff2');        font-weight: 700;
         font-style: normal;
         font-display: swap;
     }
@@ -75,6 +75,7 @@
         -webkit-font-smoothing: antialiased;
         -webkit-tap-highlight-color: transparent;
         overflow-x: hidden;
+        touch-action: manipulation;
     }
     body.admin-body::before,
     body.admin-body::after {
@@ -85,7 +86,7 @@
         pointer-events: none;
     }
     body.admin-body::before {
-        background: url('assets/texture-noise.png?v=20261112-01') repeat;        opacity: .06;
+        background: url('assets/texture-noise.png?v=20261113-01') repeat;        opacity: .06;
         mix-blend-mode: multiply;
     }
     body.admin-body::after {
@@ -204,7 +205,7 @@
         backdrop-filter: blur(14px);
         border-bottom: 1px solid var(--line);
     }
-    .admin-header-title { display: grid; gap: 1px; min-width: 0; }
+    .admin-header-title { display: grid; gap: 1px; min-width: 0; margin-right: auto; }
     .admin-header-title small { color: var(--admin-muted); font-size: 9px; letter-spacing: .12em; }
     .admin-header-title b {
         overflow: hidden;
@@ -225,11 +226,14 @@
         background: none;
         border: 0;
     }
+    /* 用户端按钮靠右，头像是最后一个元素，贴到最右侧 */
+    .header-user-link { margin-left: auto; flex: 0 0 auto; }
     .admin-header-space {
         display: flex;
         align-items: center;
         gap: 7px;
-        margin-left: auto;
+        margin-left: 6px;
+        flex: 0 0 auto;
         color: var(--admin-muted);
         font-size: 10px;
         white-space: nowrap;
@@ -336,6 +340,7 @@
     }
     .admin-btn.primary { background: var(--admin-ink); border-color: var(--admin-ink); color: #fff; }
     .admin-btn.accent { background: var(--admin-stamp); border-color: var(--admin-stamp); color: #fff; }
+    .admin-btn.dark { background: var(--admin-ink); border-color: var(--admin-ink); color: #fff; }
     .admin-btn.ghost { background: transparent; color: var(--admin-muted); }
     .admin-btn.danger { border-color: rgba(185, 74, 99, .25); }
     .admin-btn.sm { padding: 5px 9px; font-size: 10px; }
@@ -517,6 +522,91 @@
     .order-total small { margin-left: 3px; color: var(--admin-muted); font-size: 8px; font-weight: 400; }
     .order-actions { display: flex; gap: 5px; margin-left: auto; flex-wrap: wrap; justify-content: flex-end; }
 
+    /* order detail — 管理端工作台风格：浅底数据卡 + 分隔线，不用用户端的深色 hero 和大圆角 */
+
+    .od-layout { display: grid; gap: 12px; margin-top: 12px; align-items: start; }
+    .od-col { display: grid; gap: 12px; min-width: 0; }
+
+    .od-panel { overflow: hidden; background: var(--admin-soft); border: 1px solid var(--line); border-radius: 12px; }
+    .od-panel-head { display: flex; align-items: baseline; gap: 8px; padding: 10px 13px; border-bottom: 1px solid var(--line); background: #faf7f2; }
+    .od-panel-head b { font-size: 10.5px; letter-spacing: .02em; }
+    .od-panel-head small { margin-left: auto; color: var(--admin-muted); font-size: 8.5px; }
+
+    .od-item { display: flex; align-items: center; gap: 9px; padding: 9px 13px; border-bottom: 1px dashed var(--line); }
+    .od-item:last-child { border-bottom: 0; }
+    .od-item .order-item-photo { width: 38px; height: 38px; flex: 0 0 38px; border-radius: 7px; cursor: zoom-in; }
+    .od-item-main { flex: 1; min-width: 0; display: grid; gap: 1px; }
+    .od-item-main b { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    .od-item-main small { color: var(--admin-muted); font-size: 8.5px; }
+    .od-item-price { color: var(--ink-2); font-size: 10.5px; font-variant-numeric: tabular-nums; }
+    .od-item-total { display: flex; align-items: baseline; gap: 8px; padding: 10px 13px; background: #faf7f2; border-top: 1px solid var(--line); }
+    .od-item-total span { color: var(--admin-muted); font-size: 9px; }
+    .od-item-total b { margin-left: auto; font-size: 13px; font-variant-numeric: tabular-nums; }
+
+    .od-photos { display: flex; flex-wrap: wrap; gap: 7px; padding: 11px 13px; }
+    .served-photo { position: relative; width: 78px; height: 78px; overflow: hidden; padding: 0; background: #f3eee7; border: 1px solid var(--line); border-radius: 7px; }
+    .served-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .served-photo span { position: absolute; right: 3px; bottom: 3px; left: 3px; overflow: hidden; padding: 1px 5px; background: rgba(43,34,49,.6); border-radius: 4px; color: #fff; font-size: 7px; text-overflow: ellipsis; white-space: nowrap; }
+
+    .od-note { margin: 0; padding: 10px 13px; color: #6e665f; font-size: 10.5px; line-height: 1.65; }
+    .od-alerts { display: grid; }
+    .od-alerts p { display: flex; gap: 6px; padding: 8px 13px; border-bottom: 1px dashed var(--line); color: var(--admin-stamp); font-size: 9.5px; line-height: 1.55; }
+    .od-alerts p:last-child { border-bottom: 0; }
+    .od-alerts p::before { content: "!"; flex: 0 0 12px; height: 12px; margin-top: 2px; display: grid; place-items: center; background: #f6e2e6; border-radius: 4px; font-size: 8px; font-weight: 700; }
+
+    .od-pay-row { display: flex; align-items: baseline; gap: 8px; padding: 9px 13px; border-bottom: 1px dashed var(--line); font-size: 10px; }
+    .od-pay-row span { color: var(--admin-muted); }
+    .od-pay-row b { margin-left: auto; font-size: 10.5px; font-variant-numeric: tabular-nums; }
+    .od-pay-row:last-child { border-bottom: 0; }
+
+    .od-timeline { margin: 0; padding: 0; list-style: none; }
+    .od-timeline li { position: relative; display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: baseline; padding: 8px 13px 8px 26px; border-bottom: 1px dashed var(--line); font-size: 10px; }
+    .od-timeline li:last-child { border-bottom: 0; }
+    .od-timeline li::before { content: ""; position: absolute; left: 14px; top: 13px; width: 5px; height: 5px; background: #cdc6bf; border-radius: 999px; }
+    .od-timeline li.is-latest::before { background: var(--admin-stamp); box-shadow: 0 0 0 3px rgba(185, 74, 99, .14); }
+    .od-timeline li b { font-weight: 500; }
+    .od-timeline li small { color: var(--admin-muted); font-size: 8.5px; font-variant-numeric: tabular-nums; text-align: right; }
+    .od-timeline li small i { display: block; color: #b3aca5; font-size: 8px; font-style: normal; }
+
+    /* 页头一行：左边是这一单是什么（饭点 + 订单号），右边是能做的操作。
+       标题是数据不是页名，用正文档位；状态 pill 跟饭点同一行。 */
+    .od-head {
+        display: flex;
+        /* 左右两栏拉齐高度：各自撑满，内部再垂直居中 */
+        align-items: stretch;
+        gap: 14px;
+        padding: 2px 2px 11px;
+        border-bottom: 1px dashed var(--line-strong);
+    }
+    .od-head-main { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 10px; }
+    .od-head-main h1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-family: var(--font-display); font-size: 18.5px; font-weight: 700; line-height: 1.35; }
+    .od-head-status { display: inline-flex; }
+    .od-head-status .status-pill { padding: 3px 8px; font-size: 9px; }
+    .od-head-status .status-text { font-size: 9.5px; }
+    .od-context-main { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+    .od-context-label { flex: 0 0 auto; color: var(--admin-muted); font-size: 9.5px; letter-spacing: .04em; }
+    .od-context-main .order-id { min-width: 0; overflow: hidden; color: var(--ink-2); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .od-actions { display: flex; align-items: stretch; gap: 6px; flex: 0 0 auto; }
+    .od-actions:empty { display: none; }
+    .od-actions .admin-btn { padding: 7px 13px; font-size: 10.5px; align-self: center; }
+
+    @media (max-width: 559px) {
+        /* 手机不换行：左边信息缩小让位，右边两个按钮上下叠放、各占一半高度 */
+        .od-head { gap: 10px; padding-bottom: 10px; }
+        .od-head-main h1 { gap: 6px; }
+        .od-head-status .status-pill { padding: 2px 7px; font-size: 8.5px; }
+        .od-context-main .order-id { font-size: 9px; }
+        .od-context-label { font-size: 8.5px; }
+        .od-actions { flex-direction: column; align-items: stretch; gap: 5px; }
+        .od-actions .admin-btn { flex: 1 1 0; width: 100%; min-height: 26px; padding: 0 12px; font-size: 10px; align-self: stretch; }
+    }
+
+    .order-card.is-openable { cursor: pointer; }
+
+    @media (min-width: 900px) {
+        .od-layout { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
+    }
+
     /* cards + wallet */
     .cards-layout { display: grid; gap: 14px; }
     .seg-control { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 3px; background: #f1eee8; border: 1px solid var(--line); border-radius: 999px; }
@@ -564,7 +654,7 @@
     .system-profile-main { flex: 1; min-width: 0; }
     .system-profile-main b { display: block; overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
     .system-profile-main small { color: var(--admin-muted); font-size: 9px; }
-    .system-profile > span { color: var(--admin-muted); font-size: 18px; }
+    .system-profile > span.system-profile-note { color: #b3aca5; font-size: 8.5px; letter-spacing: .06em; }
     .settings-group { overflow: hidden; background: var(--admin-soft); border: 1px solid var(--line); border-radius: 14px; }
     .setting-row { display: flex; align-items: center; gap: 10px; padding: 12px 13px; border-bottom: 1px dashed var(--line); }
     .setting-row:last-child { border-bottom: 0; }
@@ -573,7 +663,6 @@
     .setting-main b { font-size: 11px; }
     .setting-main small { color: var(--admin-muted); font-size: 9px; line-height: 1.45; }
     .setting-row > .admin-btn { margin-left: auto; }
-    .setting-row input[type="password"], .setting-row input[type="text"] { width: min(100%, 240px); margin-left: auto; }
     .admin-switch { position: relative; width: 34px; height: 20px; flex: 0 0 34px; padding: 2px; background: #d9d4ce; border: 0; border-radius: 999px; transition: background .18s ease; }
     .admin-switch i { display: block; width: 16px; height: 16px; background: #fff; border-radius: 999px; transition: transform .18s ease; }
     .admin-switch[aria-pressed="true"] { background: var(--admin-stamp); }
@@ -582,6 +671,21 @@
     .bark-key-box { flex: 1; display: grid; gap: 5px; min-width: 0; }
     .bark-key-actions { display: flex; gap: 5px; margin-left: auto; }
     .system-note { margin-top: 10px; padding: 10px 12px; background: #f4eee8; border: 1px dashed var(--line-strong); border-radius: 10px; color: var(--admin-muted); font-size: 9px; line-height: 1.6; }
+    .setting-row { width: 100%; background: none; border: 0; border-bottom: 1px dashed var(--line); text-align: left; }
+    .setting-chev { color: #b3aca5; font-size: 17px; line-height: 1; }
+    .setting-row .nav-badge { margin-left: 6px; min-width: 17px; height: 17px; display: grid; place-items: center; padding: 0 4px; background: #f6e2e6; border-radius: 999px; color: var(--admin-stamp); font-size: 9px; font-weight: 700; }
+    .bark-links { display: grid; gap: 8px; padding: 11px 13px 13px; border-bottom: 1px dashed var(--line); background: rgba(244, 238, 232, .45); }
+    .bark-links[hidden] { display: none; }
+    .greeting-source { margin: 8px 2px 0; color: var(--admin-muted); }
+    .greeting-source a { color: inherit; }
+    .greeting-recipients { flex-shrink: 0; margin: 0; }
+    @media (max-width: 480px) {
+        .greeting-recipient-row { flex-wrap: wrap; }
+        .greeting-recipient-row .setting-main { flex-basis: calc(100% - 40px); }
+        .greeting-recipient-row .choice-row { margin-left: 36px; }
+    }
+    .bark-save-bottom { margin-top: 16px; }
+    .admin-field { min-width: 0; }
     .logout-btn { margin-top: 16px; }
 
     /* menu */
@@ -624,10 +728,53 @@
     .milestone-meta { display: grid; justify-items: end; gap: 2px; color: var(--admin-muted); font-size: 8px; white-space: nowrap; }
     .milestone-meta time { font-variant-numeric: tabular-nums; }
     .milestone-chev { color: #b3aca5; font-size: 14px; }
-    .photo-preview.milestone-preview { width: 100%; max-width: none; aspect-ratio: 4 / 3; cursor: zoom-in; }
+    /* 封面保持 4:3 大图，只限制宽度，避免整宽预览把标题/描述挤出首屏 */
+    .photo-preview.milestone-preview { width: min(100%, 266px); max-width: none; aspect-ratio: 4 / 3; cursor: zoom-in; }
+    .milestone-remove { padding: 6px 9px; background: #fff; border: 1px solid var(--line); border-radius: 8px; color: var(--admin-stamp); font-size: 9px; }
+    .milestone-remove[hidden] { display: none; }
+    .date-picker-button {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        width: 100%;
+        padding: 9px 11px;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        color: var(--ink);
+        text-align: left;
+    }
+    .date-picker-icon { width: 24px; height: 24px; flex: 0 0 24px; display: grid; place-items: center; background: #f4e4e6; border-radius: 7px; color: var(--admin-stamp); font-size: 11px; }
+    .date-picker-main { flex: 1; min-width: 0; display: grid; gap: 1px; }
+    .date-picker-main b { font-size: 13px; font-variant-numeric: tabular-nums; }
+    .date-picker-main b.is-empty { color: var(--admin-muted); font-weight: 400; }
+    .date-picker-main small { color: var(--admin-muted); font-size: 9px; }
+    .date-picker-chev { color: #b3aca5; font-size: 18px; line-height: 1; }
+    .date-quick-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
+    .date-quick-row button { padding: 4px 10px; background: #fff; border: 1px solid var(--line); border-radius: 999px; color: var(--admin-muted); font-size: 9px; }
+    .field-required { margin-left: 4px; color: var(--admin-stamp); font-size: 8.5px; letter-spacing: 0; }
+    .milestone-delete-link { margin-right: auto; padding: 4px 2px; background: none; border: 0; color: var(--admin-stamp); font-size: 10px; }
+    .milestone-delete-link[hidden] { display: none; }
+    .cal-modal { z-index: 125; }
+    .cal-modal-card { width: min(100%, 380px); }
+    .cal-body { display: grid; gap: 9px; padding: 14px 16px 16px; }
+    .cal-year-row { display: flex; flex-wrap: wrap; gap: 5px; }
+    .cal-year-row button { padding: 4px 11px; background: #fff; border: 1px solid var(--line); border-radius: 999px; color: var(--admin-muted); font-size: 10px; }
+    .cal-year-row button.is-active { background: var(--admin-ink); border-color: var(--admin-ink); color: #fff; }
+    .cal-month-head { display: flex; align-items: center; gap: 6px; }
+    .cal-month-head b { flex: 1; text-align: center; font-size: 12px; }
+    .cal-weekdays,
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; text-align: center; }
+    .cal-weekdays span { color: var(--admin-muted); font-size: 8px; }
+    .cal-grid button { padding: 7px 0; background: none; border: 0; border-radius: 7px; color: var(--ink-2); font-size: 11px; font-variant-numeric: tabular-nums; }
+    .cal-grid button.is-mute { color: #c3bdb7; }
+    .cal-grid button.is-today { box-shadow: 0 0 0 1px var(--admin-stamp) inset; color: var(--admin-stamp); }
+    .cal-grid button.is-active { background: var(--admin-ink); color: #fff; }
     .mile-tag { position: absolute; left: 8px; bottom: 7px; padding: 3px 7px; background: rgba(255, 253, 248, .92); border-radius: 999px; color: var(--ink); font-size: 8px; font-weight: 700; letter-spacing: .04em; }
-    .admin-readonly { display: flex; align-items: center; min-height: 39px; padding: 8px 11px; background: #f7f5f1; border: 1px solid var(--line); border-radius: 9px; color: var(--admin-muted); font-size: 10px; }
     .form-note { padding: 8px 10px; background: #f4eee8; border: 1px dashed var(--line-strong); border-radius: 9px; color: var(--admin-muted); font-size: 9px; line-height: 1.55; }
+    .field-note { color: var(--admin-muted); font-size: 8.5px; line-height: 1.55; }
+    .hint-box { padding: 9px 10px; background: #f4eee8; border: 1px dashed var(--line-strong); border-radius: 9px; color: #77706a; font-size: 9px; line-height: 1.6; }
+    .hint-box b { color: var(--ink); }
     .dish-request-card { margin-bottom: 10px; }
     .dish-request-list { display: grid; gap: 7px; margin-top: 9px; }
     .dish-request-row { display: flex; align-items: center; gap: 10px; padding: 8px 9px; background: var(--admin-soft); border: 1px solid var(--line); border-radius: 12px; }
@@ -647,6 +794,30 @@
     .form-title span { margin-left: auto; color: var(--admin-muted); font-size: 8px; }
     .photo-field { display: grid; gap: 6px; }
     .photo-preview { position: relative; width: min(100%, 240px); aspect-ratio: 1; display: grid; place-items: center; overflow: hidden; margin: 0 auto; background: #f7f5f1; border: 1px dashed var(--line-strong); border-radius: 12px; color: var(--admin-muted); font-size: 9px; text-align: center; cursor: zoom-in; }
+    /* 没图时整块就是上传按钮（<label for=file>），点哪儿都能选图 */
+    .photo-preview.is-upload {
+        cursor: pointer;
+        background: repeating-linear-gradient(135deg, #faf8f4, #faf8f4 8px, #f6f2ec 8px, #f6f2ec 16px);
+        border-color: #c9c1b8;
+        color: #8a7f74;
+        transition: border-color .15s ease, color .15s ease, background .15s ease;
+    }
+    .photo-preview.is-upload:hover,
+    .photo-preview.is-upload:focus-within { border-color: var(--admin-stamp); color: var(--admin-stamp); }
+    .photo-preview.is-upload .photo-placeholder b {
+        display: grid;
+        place-items: center;
+        width: 40px;
+        height: 40px;
+        margin: 0 auto 6px;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        font-size: 20px;
+        line-height: 1;
+    }
+    .photo-preview.is-busy { opacity: .6; cursor: progress; }
+    .photo-status-row { display: flex; align-items: center; justify-content: center; gap: 8px; }
     .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
     .menu-photo[data-image-preview] { cursor: zoom-in; }
     .photo-preview .photo-placeholder { display: grid; gap: 2px; }
@@ -657,9 +828,36 @@
     .photo-status { color: var(--admin-muted); font-size: 8px; }
     .photo-status.is-success { color: #447a6d; }
     .photo-status.is-error { color: var(--admin-stamp); }
+    .dish-field-row { display: grid; gap: 9px; }
+    .dish-switch-field .form-switch-row { min-height: 34px; border-top: 0; padding: 4px 0; }
+    .dish-switch-field .form-switch-row .admin-small { color: var(--admin-ink); font-size: 11px; }
+
+    /* 菜品编辑里的分段选择：不用原生 select，避免各端样式不一致 */
+    .choice-row { display: flex; flex-wrap: wrap; gap: 5px; }
+    .choice-row button {
+        flex: 1 1 0;
+        min-width: 0;
+        padding: 7px 6px;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        color: var(--admin-muted);
+        font-size: 10px;
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+    .choice-row button.is-on { background: #f4e9dc; border-color: #d6c3a7; color: #8a7351; font-weight: 700; }
+    .choice-row button b { display: block; font-size: 12px; font-weight: 700; line-height: 1.2; }
+    .choice-row button small { display: block; margin-top: 1px; font-size: 7.5px; letter-spacing: .02em; }
+    .choice-row button:disabled { opacity: .45; }
     .tag-picker { display: flex; flex-wrap: wrap; gap: 5px; }
     .tag-picker button { padding: 5px 9px; background: #fff; border: 1px solid var(--line); border-radius: 999px; color: var(--admin-muted); font-size: 9px; }
     .tag-picker button.is-on { background: #f4e9dc; border-color: #d6c3a7; color: #8a7351; }
+    .tag-picker button.is-off { opacity: .4; }
+    .tag-filters { margin-top: 6px; }
+    .tag-filter { font-size: 9px; }
+    .tag-filter.is-active { background: #f4e9dc; border-color: #d6c3a7; color: #8a7351; }
+    .tag-filter.is-clear { border-style: dashed; color: var(--admin-muted); }
     .form-switch-row { display: flex; align-items: center; padding: 7px 0; border-top: 1px dashed var(--line); font-size: 11px; }
     .form-switch-row .admin-switch { margin-left: auto; }
 
@@ -713,6 +911,11 @@
     .serve-upload { display:none; }
     .serve-progress { color: var(--admin-muted); font-size: 9px; text-align: right; }
     .serve-progress b { color: var(--admin-stamp); }
+    .dish-gallery-head { display: flex; align-items: baseline; gap: 8px; }
+    .dish-gallery-head label { color: var(--admin-muted); font-size: 10px; }
+    .gallery-hint { color: #a9a29b; font-weight: 400; }
+    .dish-gallery-head .photo-status { margin-left: auto; }
+
     .dish-gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
     .dish-gallery-item { position: relative; aspect-ratio: 1; overflow: hidden; background: #f3eee7; border: 1px solid var(--line); border-radius: 9px; cursor: grab; }
     .dish-gallery-item.is-main { border-color: var(--admin-ink); box-shadow: 0 0 0 1px var(--admin-ink) inset; }
@@ -723,6 +926,19 @@
     .dish-gallery-tools button { min-width: 17px; min-height: 17px; padding: 2px 4px; background: rgba(255,255,255,.92); border: 0; border-radius: 4px; color: #5d544e; font-size: 7px; line-height: 1.1; }
     .dish-gallery-tools .danger { color: var(--admin-stamp); }
     .dish-gallery-empty { grid-column: 1 / -1; padding: 12px; border: 1px dashed var(--line-strong); border-radius: 9px; color: var(--admin-muted); font-size: 8px; text-align: center; }
+    /* 图片集末尾的「＋」添加瓦片：和图片瓦片同尺寸，点击选图（可多选） */
+    .dish-gallery-item.is-add {
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        background: repeating-linear-gradient(135deg, #faf8f4, #faf8f4 6px, #f6f2ec 6px, #f6f2ec 12px);
+        border-style: dashed;
+        border-color: #c9c1b8;
+    }
+    .dish-gallery-item.is-add:hover { border-color: var(--admin-stamp); }
+    .dish-gallery-add { display: grid; justify-items: center; gap: 2px; color: #8a7f74; font-size: 8px; }
+    .dish-gallery-add b { font-size: 18px; font-weight: 400; line-height: 1; }
+    .dish-gallery.is-busy { opacity: .55; pointer-events: none; }
 
     .image-lightbox { position: fixed; inset: 0; z-index: 130; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(20, 15, 23, .82); }
     .image-lightbox.is-open { display: flex; }
@@ -763,21 +979,35 @@
     .admin-toast.is-error { background: var(--admin-stamp); }
 
     @media (max-width: 899px) {
-        body.admin-body input[type="text"],
-        body.admin-body input[type="search"],
-        body.admin-body input[type="number"],
-        body.admin-body input[type="password"],
-        body.admin-body input[type="email"],
-        body.admin-body input[type="url"],
-        body.admin-body input[type="tel"],
-        body.admin-body textarea,
-        body.admin-body select {
+        /* iOS Safari 在“输入框计算字号 < 16px”时会自动放大整个页面，且收键盘后
+           不会缩回。所以输入控件保留 16px 计算字号，再缩放成 14px 视觉；
+           宽度反向补偿，视觉宽度仍是容器宽度的 100%。 */
+        body.admin-body .admin-input,
+        body.admin-body .admin-select,
+        body.admin-body .admin-textarea {
+            width: 114.2857%;
+            max-width: none;
             font-size: 16px;
+            transform: scale(.875);
+            transform-origin: left top;
+        }
+        /* 钱包卡里的「最多可欠」也是输入框，同样按 16px 计算 + 缩放，
+           但它的视觉基准是 10px，所以缩放比例更小、宽度单独补偿。 */
+        body.admin-body .wallet-limit input {
+            width: 96px;
+            padding: 8px 10px;
+            font-size: 16px;
+            transform: scale(.8);
+            transform-origin: left center;
         }
 
         .view-head > div { display: none; }
         .view-head:not(:has(.head-actions)) { display: none; }
         .view-head { margin: 0 0 8px; }
+        /* 移动端头部长：标题 + 用户端按钮 + 头像；空间名收起来，头像保持最右 */
+        .admin-header-space #header-space-name { display: none; }
+        .admin-header-space { margin-left: 4px; }
+        .header-user-link { padding: 5px 9px; font-size: 10px; }
     }
 
     @media (min-width: 900px) {
@@ -884,11 +1114,11 @@
         </nav>
         <div class="side-group">系统</div>
         <nav class="side-nav">
-            <button class="side-item" type="button" data-view="system"><b>⋯</b>系统设置</button>
-            <button class="side-item" type="button" data-view="menu"><b>✎</b>菜单</button>
+            <button class="side-item" type="button" data-view="menu"><b>✎</b>菜单<span class="nav-badge" data-nav-badge="menu" hidden>0</span></button>
             <button class="side-item" type="button" data-view="milestones"><b>忆</b>岁月留痕</button>
             <button class="side-item" type="button" data-view="cycle"><b>期</b>生理期</button>
             <button class="side-item" type="button" data-view="announcements"><b>告</b>更新公告</button>
+            <button class="side-item" type="button" data-view="notification"><b>铃</b>通知</button>
             <button class="side-item" type="button" data-view="space"><b>空</b>空间资料</button>
         </nav>
         <div class="side-foot">
@@ -902,6 +1132,7 @@
             <small>管理端</small>
             <b id="admin-page-title">首页</b>
         </div>
+        <button class="admin-btn ghost sm header-user-link" id="open-user-site" type="button" title="在新标签打开用户端">用户端 ↗</button>
         <div class="admin-header-space">
             <span id="header-space-name">我们的时光</span>
             <span class="admin-avatar"><img id="header-avatar" src="assets/media/space-avatar.svg" alt=""></span>
@@ -937,6 +1168,20 @@
             <div id="orders-list"></div>
         </section>
 
+        <section class="admin-view" data-panel="order-detail" hidden>
+            <div class="od-head">
+                <div class="od-head-main">
+                    <h1><span id="order-detail-title">订单详情</span><span class="od-head-status" id="order-detail-status"></span></h1>
+                    <div class="od-context-main">
+                        <span class="od-context-label">订单号</span>
+                        <span class="order-id" id="order-detail-id"></span>
+                    </div>
+                </div>
+                <div class="od-actions" id="order-detail-actions"></div>
+            </div>
+            <div id="order-detail-body"></div>
+        </section>
+
         <section class="admin-view" data-panel="cards" hidden>
             <div class="view-head">
                 <div><p class="eyebrow">经营 · 恋爱卡 / 恋爱币</p><h1 id="cards-title">恋爱卡</h1></div>
@@ -950,9 +1195,11 @@
                     <div class="admin-card">
                         <div class="cards-stats" id="coupon-stats"></div>
                         <div class="section-title" style="margin-top:14px"><h2>发放一张</h2><span>手动补发</span></div>
-                        <div class="admin-two-col">
-                            <div class="admin-field"><label>时长</label><select class="admin-select" id="coupon-duration"><option value="5">5 分钟</option><option value="10">10 分钟</option><option value="15">15 分钟</option><option value="20">20 分钟</option><option value="30">30 分钟</option></select></div>
-                            <div class="admin-field"><label>名称</label><input class="admin-input" id="coupon-title" type="text" placeholder="每周按摩卡"></div>
+                        <div class="admin-field"><label>名称</label><input class="admin-input" id="coupon-title" type="text" placeholder="每周按摩卡"></div>
+                        <div class="admin-field" style="margin-top:9px">
+                            <label>时长</label>
+                            <input type="hidden" id="coupon-duration">
+                            <div class="choice-row" id="coupon-duration-picker" role="radiogroup" aria-label="时长"></div>
                         </div>
                         <button class="admin-btn accent block" id="coupon-issue" type="button" style="margin-top:9px">发放恋爱卡</button>
                     </div>
@@ -981,28 +1228,29 @@
         </section>
 
         <section class="admin-view" data-panel="system" hidden>
-            <div class="view-head"><div><p class="eyebrow">系统 · 低频维护</p><h1>系统</h1><p>菜单、空间资料和站外通知都收在这里。</p></div></div>
-            <button class="system-profile" type="button" data-view="space" style="width:100%; text-align:left">
+            <div class="view-head"><div><p class="eyebrow">系统 · 导航</p><h1>系统</h1><p>内容、通知和空间资料都在这里进。</p></div></div>
+            <div class="system-profile">
                 <span class="admin-avatar"><img id="system-avatar" src="assets/media/space-avatar.svg" alt=""></span>
-                <span class="system-profile-main"><b id="system-space-name">我们的时光</b><small>福福 &amp; 老李 · 空间资料</small></span>
-                <span>›</span>
-            </button>
-            <div class="section-title"><h2>数据</h2></div>
+                <span class="system-profile-main"><b id="system-space-name">我们的时光</b><small id="system-member-line">福福 &amp; 老李</small></span>
+                <span class="system-profile-note">只读</span>
+            </div>
+            <div class="section-title"><h2>内容</h2></div>
             <div class="settings-group">
-                <button class="setting-row" type="button" data-view="menu" style="width:100%; background:none; border:0; text-align:left">
+                <button class="setting-row" type="button" data-view="menu">
                     <span class="setting-icon">菜</span>
                     <span class="setting-main"><b>菜单管理</b><small id="system-menu-count">14 道 · 12 道上架</small></span>
-                    <span class="admin-muted" style="margin-left:auto">›</span>
+                    <span class="nav-badge" data-nav-badge="menu" hidden>0</span>
+                    <span class="setting-chev">›</span>
                 </button>
-                <button class="setting-row" type="button" data-view="milestones" style="width:100%; background:none; border:0; text-align:left">
+                <button class="setting-row" type="button" data-view="milestones">
                     <span class="setting-icon">忆</span>
                     <span class="setting-main"><b>岁月留痕</b><small id="system-milestone-count">41 条回忆 · 13 条有封面</small></span>
-                    <span class="admin-muted" style="margin-left:auto">›</span>
+                    <span class="setting-chev">›</span>
                 </button>
-                <button class="setting-row" type="button" data-view="announcements" style="width:100%; background:none; border:0; text-align:left">
+                <button class="setting-row" type="button" data-view="announcements">
                     <span class="setting-icon">告</span>
                     <span class="setting-main"><b>更新公告</b><small id="system-announcement-count">0 条已发布 · 0 条草稿</small></span>
-                    <span class="admin-muted" style="margin-left:auto">›</span>
+                    <span class="setting-chev">›</span>
                 </button>
                 <button class="setting-row" type="button" data-view="cycle" style="width:100%; background:none; border:0; text-align:left">
                     <span class="setting-icon">期</span>
@@ -1010,17 +1258,41 @@
                     <span class="admin-muted" style="margin-left:auto">›</span>
                 </button>
             </div>
-            <div class="section-title"><h2>通知</h2><span>Bark · 站外</span></div>
+            <div class="section-title"><h2>设置</h2></div>
+            <div class="settings-group">
+                <button class="setting-row" type="button" data-view="notification">
+                    <span class="setting-icon">铃</span>
+                    <span class="setting-main"><b>通知</b><small id="system-notification-summary">Bark 推送 · 未配置</small></span>
+                    <span class="setting-chev">›</span>
+                </button>
+                <button class="setting-row" type="button" data-view="space">
+                    <span class="setting-icon">空</span>
+                    <span class="setting-main"><b>空间资料</b><small>名称 / 头像 / 成员</small></span>
+                    <span class="setting-chev">›</span>
+                </button>
+            </div>
+            <div class="system-note">这一页只做导航；所有设置都在二级页里编辑和保存。需要处理的数量会显示在对应行右侧。</div>
+            <button class="admin-btn ghost block logout-btn" id="logout-btn" type="button">退出登录</button>
+        </section>
+
+        <section class="admin-view" data-panel="notification" hidden>
+            <div class="view-head">
+                <div><p class="eyebrow">系统 · 通知</p><h1>通知</h1><p>Bark 站外推送；只在管理端打开时发送，没有定时任务。</p></div>
+                <div class="head-actions"><button class="admin-btn primary sm" id="bark-save-top" type="button">保存</button></div>
+            </div>
             <div class="settings-group">
                 <div class="setting-row">
                     <span class="setting-icon">铃</span>
-                    <span class="setting-main"><b>Bark 推送</b><small>新单 / 接单 / 菜品申请 / 用户取消 / 开始制作 / 出餐</small></span>
+                    <span class="setting-main"><b>Bark 推送</b><small>总开关；关闭后所有事件都不发送</small></span>
                     <button class="admin-switch" id="bark-enabled" type="button" role="switch" aria-pressed="false" aria-label="启用 Bark 推送"><i></i></button>
                 </div>
+            </div>
+            <div class="section-title"><h2>推送密钥</h2><span>两把都要填</span></div>
+            <div class="settings-group">
                 <div class="setting-row bark-key-row">
                     <span class="setting-icon">用</span>
                     <div class="bark-key-box">
-                        <label class="admin-small" for="bark-user-key">用户密钥</label>
+                        <label class="admin-small" for="bark-user-key">用户密钥 · 接单 / 开始制作 / 出餐</label>
                         <input class="admin-input" id="bark-user-key" type="text" autocomplete="off" placeholder="接收接单 / 开始制作 / 出餐">
                     </div>
                     <div class="bark-key-actions">
@@ -1030,42 +1302,93 @@
                 <div class="setting-row bark-key-row">
                     <span class="setting-icon">管</span>
                     <div class="bark-key-box">
-                        <label class="admin-small" for="bark-admin-key">管理员密钥</label>
+                        <label class="admin-small" for="bark-admin-key">管理员密钥 · 新单 / 申请 / 取消 / 催单</label>
                         <input class="admin-input" id="bark-admin-key" type="text" autocomplete="off" placeholder="接收新单 / 取消 / 催一催">
                     </div>
                     <div class="bark-key-actions">
                         <button class="admin-btn sm" id="bark-test-admin" type="button">测试</button>
                     </div>
                 </div>
-                <div class="setting-row bark-key-row">
+                <div class="setting-row">
                     <span class="setting-icon">链</span>
-                    <div class="bark-key-box">
-                        <label class="admin-small" for="link-user">用户端跳转地址</label>
-                        <input class="admin-input" id="link-user" type="url" placeholder="https://your-site/index.html">
-                    </div>
+                    <span class="setting-main"><b>点击跳转地址</b><small>Bark 通知点开后跳到哪里；留空用当前站点</small></span>
+                    <button class="admin-btn ghost sm" id="bark-links-toggle" type="button" aria-expanded="false">编辑</button>
                 </div>
-                <div class="setting-row bark-key-row">
-                    <span class="setting-icon">链</span>
-                    <div class="bark-key-box">
-                        <label class="admin-small" for="link-admin">管理端跳转地址</label>
-                        <input class="admin-input" id="link-admin" type="url" placeholder="https://your-site/admin.html">
+                <div class="bark-links" id="bark-links-box" hidden>
+                    <div class="admin-field"><label for="link-user">用户端跳转地址</label><input class="admin-input" id="link-user" type="url" placeholder="https://your-site/index.html"></div>
+                    <div class="admin-field"><label for="link-admin">管理端跳转地址</label><input class="admin-input" id="link-admin" type="url" placeholder="https://your-site/admin.html"></div>
+                </div>
+            </div>
+            <div class="section-title"><h2>每日早安</h2><span>每天 08:14 · 北京时间</span></div>
+            <div class="settings-group">
+                <div class="setting-row">
+                    <span class="setting-icon">早</span>
+                    <span class="setting-main"><b>发送早安</b><small>北京时间每天 08:14 推送，保存后生效</small></span>
+                    <button class="admin-switch" id="greeting-enabled" type="button" role="switch" aria-pressed="false" aria-label="发送早安"><i></i></button>
+                </div>
+                <div class="setting-row greeting-recipient-row">
+                    <span class="setting-icon">收</span>
+                    <div class="setting-main"><b>发给谁</b><small>勾选的收件人都会收到同一条早安，至少选一个</small></div>
+                    <div class="choice-row greeting-recipients" id="greeting-recipients" role="group" aria-label="早安收件人">
+                        <button type="button" data-greeting-recipient="user"><b>用户</b></button>
+                        <button type="button" data-greeting-recipient="admin"><b>大厨</b></button>
                     </div>
                 </div>
                 <div class="setting-row">
-                    <span class="setting-icon">时</span>
-                    <span class="setting-main"><b>发送时机</b><small>默认全开，可单独关闭</small></span>
+                    <span class="setting-icon">警</span>
+                    <span class="setting-main"><b>发送失败告警</b><small>08:14 发送出错时，用管理员密钥推一条「早安发送失败」</small></span>
+                    <button class="admin-switch" id="greeting-alert" type="button" role="switch" aria-pressed="true" aria-label="发送失败告警"><i></i></button>
                 </div>
                 <div class="setting-row">
-                    <span class="setting-icon">新</span>
-                    <span class="setting-main"><b>新单</b><small>用户下单时推给管理员</small></span>
-                    <button class="admin-btn ghost sm" type="button" data-bark-template="newOrder">模板</button>
-                    <button class="admin-switch" type="button" role="switch" data-bark-event="newOrder" aria-pressed="true" aria-label="新单通知"><i></i></button>
+                    <span class="setting-icon">待</span>
+                    <span class="setting-main"><b>首页待办提醒</b><small>08:30 后打开管理端，今天未发出则在「需要你处理」里提醒</small></span>
+                    <button class="admin-switch" id="greeting-home-reminder" type="button" role="switch" aria-pressed="true" aria-label="首页待办提醒"><i></i></button>
                 </div>
+                <div class="setting-row greeting-recipient-row">
+                    <span class="setting-icon">测</span>
+                    <span class="setting-main"><b>发送测试</b><small>临时选收件人，只发这一次，不改上面的设置、不写发送记录</small></span>
+                    <div class="choice-row greeting-recipients" id="greeting-test-recipients" role="group" aria-label="测试收件人">
+                        <button type="button" data-greeting-test-recipient="user"><b>用户</b></button>
+                        <button type="button" data-greeting-test-recipient="admin"><b>大厨</b></button>
+                    </div>
+                    <button class="admin-btn sm" id="greeting-test" type="button">测试</button>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-icon">补</span>
+                    <span class="setting-main"><b>今天的状态</b><small id="greeting-today-status">读取中…</small></span>
+                    <button class="admin-btn sm" id="greeting-resend" type="button" hidden>补发</button>
+                </div>
+            </div>
+            <p class="system-note" id="greeting-save-hint" hidden>早安设置尚未保存；今天的状态与补发使用已保存的设置。</p>
+            <p class="admin-small greeting-source">天气数据：<a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · 天气不可用时仍发送早安</p>
+            <div class="section-title"><h2>推给用户</h2><span>3 个事件</span></div>
+            <div class="settings-group">
                 <div class="setting-row">
                     <span class="setting-icon">接</span>
                     <span class="setting-main"><b>接单</b><small>接单时推给用户</small></span>
                     <button class="admin-btn ghost sm" type="button" data-bark-template="accepted">模板</button>
                     <button class="admin-switch" type="button" role="switch" data-bark-event="accepted" aria-pressed="true" aria-label="接单通知"><i></i></button>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-icon">制</span>
+                    <span class="setting-main"><b>开始制作</b><small>开始制作时推给用户</small></span>
+                    <button class="admin-btn ghost sm" type="button" data-bark-template="cooking">模板</button>
+                    <button class="admin-switch" type="button" role="switch" data-bark-event="cooking" aria-pressed="true" aria-label="开始制作通知"><i></i></button>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-icon">餐</span>
+                    <span class="setting-main"><b>出餐</b><small>出餐时推给用户</small></span>
+                    <button class="admin-btn ghost sm" type="button" data-bark-template="served">模板</button>
+                    <button class="admin-switch" type="button" role="switch" data-bark-event="served" aria-pressed="true" aria-label="出餐通知"><i></i></button>
+                </div>
+            </div>
+            <div class="section-title"><h2>推给我</h2><span>4 个事件</span></div>
+            <div class="settings-group">
+                <div class="setting-row">
+                    <span class="setting-icon">新</span>
+                    <span class="setting-main"><b>新单</b><small>用户下单时推给管理员</small></span>
+                    <button class="admin-btn ghost sm" type="button" data-bark-template="newOrder">模板</button>
+                    <button class="admin-switch" type="button" role="switch" data-bark-event="newOrder" aria-pressed="true" aria-label="新单通知"><i></i></button>
                 </div>
                 <div class="setting-row">
                     <span class="setting-icon">菜</span>
@@ -1080,34 +1403,22 @@
                     <button class="admin-switch" type="button" role="switch" data-bark-event="userCancel" aria-pressed="true" aria-label="用户取消通知"><i></i></button>
                 </div>
                 <div class="setting-row">
-                    <span class="setting-icon">制</span>
-                    <span class="setting-main"><b>开始制作</b><small>开始制作时推给用户</small></span>
-                    <button class="admin-btn ghost sm" type="button" data-bark-template="cooking">模板</button>
-                    <button class="admin-switch" type="button" role="switch" data-bark-event="cooking" aria-pressed="true" aria-label="开始制作通知"><i></i></button>
-                </div>
-                <div class="setting-row">
-                    <span class="setting-icon">餐</span>
-                    <span class="setting-main"><b>出餐</b><small>出餐时推给用户</small></span>
-                    <button class="admin-btn ghost sm" type="button" data-bark-template="served">模板</button>
-                    <button class="admin-switch" type="button" role="switch" data-bark-event="served" aria-pressed="true" aria-label="出餐通知"><i></i></button>
-                </div>
-                <div class="setting-row">
                     <span class="setting-icon">催</span>
-                    <span class="setting-main"><b>催一催</b><small>用户端按钮 · 与密钥一起保存</small></span>
-                    <button class="admin-switch" id="nudge-enabled" type="button" role="switch" aria-pressed="false" aria-label="启用催一催"><i></i></button>
-                </div>
-                <div class="setting-row">
-                    <span class="setting-icon">催</span>
-                    <span class="setting-main"><b>催一催通知</b><small>用户催单时推给管理员</small></span>
+                    <span class="setting-main"><b>催一催</b><small>用户催单时推给管理员</small></span>
                     <button class="admin-btn ghost sm" type="button" data-bark-template="nudge">模板</button>
                     <button class="admin-switch" type="button" role="switch" data-bark-event="nudge" aria-pressed="true" aria-label="催一催通知"><i></i></button>
                 </div>
+            </div>
+            <div class="section-title"><h2>用户端</h2><span>功能开关</span></div>
+            <div class="settings-group">
                 <div class="setting-row">
-                    <button class="admin-btn primary block" id="bark-save" type="button">保存通知设置</button>
+                    <span class="setting-icon">催</span>
+                    <span class="setting-main"><b>催一催按钮</b><small>关闭后用户端隐藏，服务端也会拒绝</small></span>
+                    <button class="admin-switch" id="nudge-enabled" type="button" role="switch" aria-pressed="false" aria-label="启用催一催"><i></i></button>
                 </div>
             </div>
-            <div class="system-note">Bark 不做定时任务，只在订单事件发生的页面里直接发送。用户密钥接收「接单 / 开始制作 / 出餐」，管理员密钥接收「新单 / 菜品申请 / 用户取消 / 催一催」；两把密钥都保存在 OSS 的 space.settings.bark。通知图标使用空间头像。催一催默认关闭，和密钥一起保存后生效。</div>
-            <button class="admin-btn ghost block logout-btn" id="logout-btn" type="button">退出登录</button>
+            <div class="system-note">用户密钥接收「接单 / 开始制作 / 出餐」，管理员密钥接收「新单 / 菜品申请 / 用户取消 / 催一催」；两把密钥都保存在 OSS 的 space.settings.bark。通知图标使用空间头像。</div>
+            <button class="admin-btn primary block bark-save-bottom" id="bark-save" type="button">保存通知设置</button>
         </section>
 
         <section class="admin-view" data-panel="menu" hidden>
@@ -1123,6 +1434,7 @@
                 <div class="menu-toolbar">
                     <input class="admin-input menu-search" id="menu-search" type="search" placeholder="搜菜名 / 标签">
                     <div class="filters" id="menu-filters"></div>
+                    <div class="filters tag-filters" id="menu-tag-filters"></div>
                     <p class="admin-small admin-muted" id="menu-summary"></p>
                 </div>
                 <div class="menu-list" id="menu-list"></div>
@@ -1315,28 +1627,35 @@
                     <span class="dish-request-banner-main"><b>来自用户的「我想吃」</b><small id="dish-request-banner-text"></small></span>
                     <button class="admin-btn ghost sm" id="dish-request-reject" type="button">不采纳</button>
                 </div>
-                <div class="photo-field">
-                    <div class="photo-preview" id="dish-image-preview"><span class="photo-placeholder"><b>＋</b>点击上传菜品照片</span></div>
-                    <div class="photo-upload-row">
-                        <input id="dish-image-file" type="file" accept="image/*" hidden>
-                        <label class="photo-upload-label" id="dish-image-upload-label" for="dish-image-file">上传照片</label>
+                <div class="admin-field">
+                    <div class="dish-gallery-head">
+                        <label>图片集 <span class="gallery-hint">第一张即主图</span></label>
                         <span class="photo-status" id="dish-image-status">未选择</span>
                     </div>
-                    <div class="admin-field"><label for="dish-image">图片 URL（可选）</label><input class="admin-input" id="dish-image" type="text" placeholder="上传后自动填写，也可以粘贴链接"></div>
-                </div>
-                <div class="admin-field">
-                    <label>图片集 <span style="color:#a9a29b;font-weight:400">第一张即主图</span></label>
+                    <input id="dish-gallery-file" type="file" accept="image/*" multiple hidden>
                     <div class="dish-gallery" id="dish-gallery"></div>
-                    <div class="field-note">出餐成品图会自动追加到这里；可拖动排序、设为主图、删除。数量不限。</div>
+                    <input id="dish-image" type="hidden">
+                    <div class="field-note">可以一次选多张；出餐成品图也会自动追加到这里。点图片看大图，可拖动排序、设为主图、删除，数量不限。</div>
                 </div>
                 <div class="admin-field"><label for="dish-name">菜名</label><input class="admin-input" id="dish-name" type="text" required></div>
-                <div class="admin-two-col">
-                    <div class="admin-field"><label for="dish-category">分类</label><select class="admin-select" id="dish-category"></select></div>
+                <div class="dish-field-row">
+                    <div class="admin-field">
+                        <label>分类</label>
+                        <input type="hidden" id="dish-category">
+                        <div class="choice-row" id="dish-category-picker" role="radiogroup" aria-label="分类"></div>
+                    </div>
                     <div class="admin-field"><label for="dish-price">价格（币）</label><input class="admin-input" id="dish-price" type="number" min="0" step="1" required></div>
                 </div>
-                <div class="admin-two-col">
-                    <div class="admin-field"><label for="dish-time">预计时间</label><select class="admin-select" id="dish-time"><option value="40">40 分钟</option><option value="60">60 分钟</option><option value="90">90 分钟</option><option value="120">120 分钟</option></select></div>
-                    <div class="admin-field"><label>上架</label><div class="form-switch-row" style="border:0;padding:0"><span class="admin-small admin-muted" id="dish-available-label">已上架</span><button class="admin-switch" id="dish-available" type="button" role="switch" aria-pressed="true" aria-label="上架"><i></i></button></div></div>
+                <div class="dish-field-row">
+                    <div class="admin-field">
+                        <label>预计时间</label>
+                        <input type="hidden" id="dish-time">
+                        <div class="choice-row" id="dish-time-picker" role="radiogroup" aria-label="预计时间"></div>
+                    </div>
+                    <div class="admin-field dish-switch-field">
+                        <label>上架</label>
+                        <div class="form-switch-row"><span class="admin-small" id="dish-available-label">已上架</span><button class="admin-switch" id="dish-available" type="button" role="switch" aria-pressed="true" aria-label="上架"><i></i></button></div>
+                    </div>
                 </div>
                 <div class="admin-field"><label>标签（非必选）</label><div class="tag-picker" id="dish-tags"></div></div>
                 <div class="admin-field"><label for="dish-description">描述（非必填）</label><textarea class="admin-textarea" id="dish-description"></textarea></div>
@@ -1361,31 +1680,65 @@
             <div class="admin-modal-body">
                 <input id="milestone-id" type="hidden">
                 <div class="photo-field">
-                    <div class="photo-preview milestone-preview" id="milestone-image-preview">
-                        <span class="photo-placeholder"><b>＋</b>点击上传封面</span>
-                    </div>
-                    <div class="photo-upload-row">
-                        <input id="milestone-image-file" type="file" accept="image/*" hidden>
-                        <label class="photo-upload-label" id="milestone-image-upload-label" for="milestone-image-file">上传封面</label>
+                    <input id="milestone-image-file" type="file" accept="image/*" hidden>
+                    <div class="photo-preview milestone-preview" id="milestone-image-preview"></div>
+                    <div class="photo-status-row">
+                        <button class="milestone-remove" id="milestone-image-remove" type="button" hidden>移除封面</button>
                         <span class="photo-status" id="milestone-image-status">未选择</span>
                     </div>
-                    <div class="admin-field"><label for="milestone-image">图片 URL（可选）</label><input class="admin-input" id="milestone-image" type="text" placeholder="上传后自动填写，也可以粘贴链接"></div>
+                    <input id="milestone-image" type="hidden">
                     <div class="field-note">封面按 4:3 居中裁切；保存后用户端卡片和详情会显示这张图，没有图片时回退纯色封面。</div>
                 </div>
-                <div class="admin-two-col">
-                    <div class="admin-field"><label for="milestone-date">日期</label><input class="admin-input" id="milestone-date" type="date"></div>
-                    <div class="admin-field"><label>年份</label><div class="admin-readonly" id="milestone-year">由日期自动生成</div></div>
+                <div class="admin-field">
+                    <label for="milestone-date-button">日期 <span class="field-required">必填</span></label>
+                    <input type="hidden" id="milestone-date">
+                    <button class="date-picker-button" id="milestone-date-button" type="button" aria-haspopup="dialog">
+                        <span class="date-picker-icon" aria-hidden="true">▦</span>
+                        <span class="date-picker-main">
+                            <b id="milestone-date-label" class="is-empty">选择日期</b>
+                            <small id="milestone-date-hint">决定这条回忆排在哪个年份</small>
+                        </span>
+                        <span class="date-picker-chev" aria-hidden="true">›</span>
+                    </button>
+                    <div class="date-quick-row" id="milestone-date-quick">
+                        <button type="button" data-milestone-quick="today">今天</button>
+                        <button type="button" data-milestone-quick="yesterday">昨天</button>
+                    </div>
                 </div>
                 <div class="admin-field"><label for="milestone-title">标题</label><input class="admin-input" id="milestone-title" type="text" maxlength="60" required></div>
                 <div class="admin-field"><label for="milestone-description">描述</label><textarea class="admin-textarea" id="milestone-description" maxlength="500"></textarea></div>
-                <div class="form-note">日期留空会归入「旧时光」，排在最后。保存后按日期自动排序，不需要手动调整位置。</div>
+                <div class="form-note">保存后按日期自动排序，不需要手动调整位置。</div>
             </div>
             <div class="admin-modal-foot">
-                <button class="admin-btn danger" id="milestone-delete" type="button">删除</button>
+                <button class="milestone-delete-link" id="milestone-delete" type="button">删除这条回忆</button>
                 <button class="admin-btn ghost" id="milestone-cancel" type="button">取消</button>
                 <button class="admin-btn primary" id="milestone-submit" type="submit">保存</button>
             </div>
         </form>
+    </div>
+</div>
+
+<div class="admin-modal cal-modal" id="milestone-calendar" aria-hidden="true">
+    <div class="admin-modal-backdrop" data-calendar-close></div>
+    <div class="admin-modal-card cal-modal-card" role="dialog" aria-modal="true" aria-labelledby="calendar-title">
+        <div class="admin-modal-head">
+            <b id="calendar-title">选择日期</b>
+            <button class="admin-modal-close" type="button" data-calendar-close aria-label="关闭">✕</button>
+        </div>
+        <div class="cal-body">
+            <div class="cal-year-row" id="calendar-years"></div>
+            <div class="cal-month-head">
+                <button class="admin-btn ghost sm" id="calendar-prev" type="button" aria-label="上个月">‹</button>
+                <b id="calendar-month-label">2026 年 11 月</b>
+                <button class="admin-btn ghost sm" id="calendar-next" type="button" aria-label="下个月">›</button>
+            </div>
+            <div class="cal-weekdays"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+            <div class="cal-grid" id="calendar-grid"></div>
+        </div>
+        <div class="admin-modal-foot">
+            <button class="admin-btn ghost" id="calendar-cancel" type="button" data-calendar-close>取消</button>
+            <button class="admin-btn primary" id="calendar-today" type="button">今天</button>
+        </div>
     </div>
 </div>
 
@@ -1510,11 +1863,11 @@
 
 <div class="admin-toast" id="message" role="status" aria-live="polite"></div>
 
-<script src="js/oss-config.js?v=20261112-01"></script>
-<script src="js/crypto-utils.js?v=20261112-01"></script>
-<script src="js/oss-utils.js?v=20261112-01"></script>
-<script src="js/cycle.js?v=20261112-01"></script>
-<script src="js/store.js?v=20261112-01"></script><script>
+<script src="js/oss-config.js?v=20261113-01"></script>
+<script src="js/crypto-utils.js?v=20261113-01"></script>
+<script src="js/oss-utils.js?v=20261113-01"></script>
+<script src="js/cycle.js?v=20261113-01"></script>
+<script src="js/store.js?v=20261113-01"></script><script>
     const ORDER_LABEL = {
         pending: '待接单',
         accepted: '已接单',
@@ -1525,6 +1878,8 @@
         cancelled: '已取消'
     };
     const ADMIN_ORDER_ACTIVE = ['pending', 'accepted', 'prepping', 'cooking', 'served'];
+    // 出餐（served）之后不再允许取消退款：菜已经端上桌了，只能完成。
+    const ADMIN_CANCELABLE = ['pending', 'accepted', 'prepping', 'cooking'];
     const ORDER_FILTERS = [
         { id: 'all', label: '全部' },
         { id: 'pending', label: '待接单' },
@@ -1540,7 +1895,9 @@
         served: { status: 'completed', label: '完成' }
     };
     const MENU_TIMES = [40, 60, 90, 120];
-    const MENU_TAGS = ['下饭', '香辣', '酸甜'];
+    const COUPON_DURATIONS = [5, 10, 15, 20, 30];
+    const MENU_TAGS = ['下饭', '香辣', '酸甜', '咸鲜', '拿手菜', '酱香', '暖胃', '红烧'];
+    const MENU_TAG_MAX = 2;
     const WALLET_ICONS = {
         grant: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="8" width="17" height="12" rx="2.5"/><path d="M3.5 12h17M12 8v12M8 8c-1.8-2.4 1.4-4.6 4-1.5 2.6-3.1 5.8-.9 4 1.5"/></svg>',
         order: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5h16a8 8 0 0 1-16 0Z"/><path d="M8 7.3c0-1.4 1-1.9 1-3M12 7.3c0-1.4 1-1.9 1-3M16 7.3c0-1.4 1-1.9 1-3"/><path d="M5 19h14"/></svg>',
@@ -1596,6 +1953,13 @@
     let adminTab = 'home';
     let adminPollTimer = null;
     let orderFilter = 'all';
+    let menuTagFilter = '';
+    let orderDetailId = null;
+    let orderDetailReturn = 'orders';
+    let orderDetailData = null;
+    let calendarViewYear = 0;
+    let calendarViewMonth = 0;
+    let calendarSelected = '';
     let couponFilter = 'available';
     let cardsSegment = 'cards';
     let menuFilter = 'all';
@@ -1667,6 +2031,22 @@
         const members = (adminData && adminData.space && adminData.space.members) || [];
         const admin = members.find(member => member.role === 'admin');
         return (admin && admin.name) || '老李';
+    }
+
+    // 用户端入口：线上用 space.settings.links.user；本地/测试库用相对地址并带上 env，
+    // 避免在测试库里点开却跳到线上数据。
+    function userSiteUrl() {
+        const links = ((adminData && adminData.space && adminData.space.settings) || {}).links || {};
+        const isLocal = typeof isTestEnv === 'function' && isTestEnv();
+        if (!isLocal && links.user) return links.user;
+        const url = new URL('index.html', location.href);
+        const env = new URLSearchParams(location.search).get('env');
+        if (env) url.searchParams.set('env', env);
+        return url.href;
+    }
+
+    function openUserSite() {
+        window.open(userSiteUrl(), '_blank', 'noopener');
     }
 
     function spaceAvatar() {
@@ -1773,6 +2153,10 @@
             closeBarkTemplate();
             return;
         }
+        if ($('milestone-calendar').classList.contains('is-open')) {
+            closeMilestoneCalendar();
+            return;
+        }
         if ($('milestone-modal').classList.contains('is-open')) {
             closeMilestoneModal();
             return;
@@ -1783,12 +2167,19 @@
     });
 
     /* ---------- chrome / navigation ---------- */
-    const VIEW_TITLES = { home: '首页', orders: '订单', cards: '恋爱卡', system: '系统', menu: '菜单', milestones: '岁月留痕', space: '空间资料', announcements: '更新公告', cycle: '生理期' };
+    const VIEW_TITLES = { home: '首页', orders: '订单', cards: '恋爱卡', system: '系统', menu: '菜单', milestones: '岁月留痕', space: '空间资料', announcements: '更新公告', notification: '通知', 'order-detail': '订单详情', cycle: '生理期' };
+    const SUB_VIEWS = ['menu', 'milestones', 'space', 'announcements', 'notification', 'order-detail', 'cycle'];
     function renderChrome() {
         const name = spaceName();
         $('side-space-name').textContent = name;
         $('header-space-name').textContent = name;
         $('system-space-name').textContent = name;
+        const memberLine = $('system-member-line');
+        if (memberLine) {
+            const members = ((adminData && adminData.space && adminData.space.members) || [])
+                .map(member => member.name).filter(Boolean);
+            memberLine.textContent = members.length ? members.join(' & ') : '空间资料在「设置 → 空间资料」里编辑';
+        }
         $('admin-page-title').textContent = adminView === 'cards' && cardsSegment === 'coins'
             ? '恋爱币' : (VIEW_TITLES[adminView] || '首页');
         document.title = `${name} · 管理端`;
@@ -1799,17 +2190,24 @@
             image.src = src;
         });
         $('home-name').textContent = adminName();
-        $('admin-back').hidden = !['menu', 'milestones', 'space', 'announcements', 'cycle'].includes(adminView);
+        $('admin-back').hidden = !SUB_VIEWS.includes(adminView);
         const pending = ((adminData && adminData.orders) || []).filter(order => order.status === 'pending').length;
         document.querySelectorAll('[data-nav-badge="orders"]').forEach(badge => {
             badge.textContent = pending;
             badge.hidden = pending <= 0;
         });
+        const pendingRequests = pendingDishRequests().length;
+        document.querySelectorAll('[data-nav-badge="menu"]').forEach(badge => {
+            badge.textContent = pendingRequests;
+            badge.hidden = pendingRequests <= 0;
+        });
 
+        // 订单详情属于「订单」的子页，导航高亮跟着回落到订单
+        const highlight = adminView === 'order-detail' ? 'orders' : adminView;
         document.querySelectorAll('[data-view]').forEach(button => {
             const view = button.dataset.view;
             const segment = button.dataset.cardsSegment;
-            const active = view === adminView && (!segment || segment === cardsSegment);
+            const active = view === highlight && (!segment || segment === cardsSegment);
             button.classList.toggle('is-active', active);
         });
         document.querySelectorAll('[data-panel]').forEach(panel => {
@@ -1825,11 +2223,11 @@
     }
 
     function switchView(view, options = {}) {
-        if (!['home', 'orders', 'cards', 'system', 'menu', 'milestones', 'space', 'announcements', 'cycle'].includes(view)) return;
+        if (!['home', 'orders', 'cards', 'system', 'menu', 'milestones', 'space', 'announcements', 'notification', 'order-detail', 'cycle'].includes(view)) return;
         if (view === 'cards' && options.segment) cardsSegment = options.segment;
         adminView = view;
         adminTab = ['home', 'orders', 'cards', 'system'].includes(view) ? view : 'system';
-        document.body.classList.toggle('admin-subpage', ['menu', 'milestones', 'space', 'announcements', 'cycle'].includes(view));
+        document.body.classList.toggle('admin-subpage', SUB_VIEWS.includes(view));
         if (view === 'home') renderHome();
         if (view === 'orders') renderOrders();
         if (view === 'cards') { renderCoupons(); renderWallet(); }
@@ -1842,6 +2240,8 @@
             renderAnnouncements();
             if (adminData && !Array.isArray(adminData.announcements)) refreshAdminAnnouncements();
         }
+        if (view === 'notification') renderSettings();
+        if (view === 'order-detail') renderOrderDetail();
         renderChrome();
         window.scrollTo({ top: 0, behavior: 'auto' });
     }
@@ -1916,6 +2316,7 @@
             adminData = await loadAdminData();
             saveAdminSession();
             renderAll();
+            refreshGreetingToday();
         } catch (error) {
             console.error(error);
             showMessage('加载失败: ' + error.message, 'error');
@@ -1949,6 +2350,8 @@
             renderWallet();
             renderDishRequests();
             renderChrome();
+            refreshGreetingToday();
+            if (adminView === 'order-detail') loadOrderDetail();
         } catch (error) {
             console.warn('刷新订单失败:', error);
         }
@@ -1960,6 +2363,18 @@
             .filter(order => ADMIN_ORDER_ACTIVE.includes(order.status) && order.slot)
             .slice()
             .sort((a, b) => String(a.scheduledFor || '').localeCompare(String(b.scheduledFor || '')));
+    }
+
+    // 「下一餐」：优先取还没到点的最近一单；都过点了就取最近那单（提示已超时）。
+    function nextMealOrder() {
+        const active = activeOrders();
+        const now = Date.now();
+        const upcoming = active.filter(order => {
+            const at = toDate(order.scheduledFor);
+            return at && at.getTime() >= now;
+        });
+        if (upcoming.length) return upcoming[0];
+        return active.length ? active[active.length - 1] : null;
     }
 
     function overdue(order) {
@@ -1986,10 +2401,38 @@
         return `距离开饭还有 ${Math.max(1, minutes)} 分钟`;
     }
 
+    // 「需要你处理」= 所有没完单的订单 + 待审核菜品申请。
+    // 已接单只在饭点当天提醒，避免提前几天接的单天天挂在首页。
+    function sameDay(value) {
+        const date = toDate(value);
+        if (!date) return false;
+        const now = new Date();
+        return date.getFullYear() === now.getFullYear() &&
+            date.getMonth() === now.getMonth() &&
+            date.getDate() === now.getDate();
+    }
+
+    function homeAttentionOrders() {
+        return ((adminData && adminData.orders) || [])
+            .filter(order => {
+                if (!ADMIN_ORDER_ACTIVE.includes(order.status)) return false;
+                // 已接单：只在饭点当天提醒；但饭点已经过去还没开工的也要留着，
+                // 否则过期订单会从待办里消失、永远没人处理。
+                if (order.status === 'accepted') return sameDay(order.scheduledFor) || overdue(order);
+                return true;
+            })
+            .slice()
+            .sort((a, b) => {
+                const rank = { pending: 0, accepted: 1, prepping: 2, cooking: 3, served: 4 };
+                return (rank[a.status] ?? 9) - (rank[b.status] ?? 9) ||
+                    String(a.scheduledFor || '').localeCompare(String(b.scheduledFor || ''));
+            });
+    }
+
     function renderHome() {
         if (!adminData) return;
         const active = activeOrders();
-        const next = active[0];
+        const next = nextMealOrder();
         $('home-date').textContent = `${todayLine()} · ${next ? '下一餐已预约' : '还没有饭点'}`;
         $('home-next-meal').innerHTML = next
             ? `<span class="next-meal-label">下一餐</span>
@@ -2002,20 +2445,26 @@
                <div class="next-meal-foot"><span>本周暂无饭点</span><button class="admin-btn sm" type="button" data-go-orders>查看订单 →</button></div>`;
 
         const dishTodos = pendingDishRequests();
-        const todos = ((adminData.orders) || [])
-            .filter(order => ['pending', 'served'].includes(order.status) || (overdue(order) && ADMIN_ORDER_ACTIVE.includes(order.status)))
-            .slice()
-            .sort((a, b) => {
-                const rank = { pending: 0, served: 1 };
-                return (rank[a.status] || 2) - (rank[b.status] || 2) ||
-                    String(a.scheduledFor || '').localeCompare(String(b.scheduledFor || ''));
-            });
+        const todos = homeAttentionOrders();
+        const greetingRows = greetingMissingNow() ? `
+            <div class="todo-row is-late">
+                <span class="todo-mark">早</span>
+                <span class="todo-main"><b>${greetingToday && greetingToday.status === 'partial' ? '今天早安部分未送达' : '今天早安未发出'}</b><small>${greetingToday && greetingToday.error ? esc(greetingToday.error) : '08:14 的发送没有成功'}</small></span>
+                <button class="admin-btn dark sm" type="button" data-home-greeting-resend ${greetingSending ? 'disabled' : ''}>${greetingSending ? '补发中…' : '补发'}</button>
+            </div>` : '';
         const orderRows = todos.map(order => {
             const nextStatus = NEXT_STATUS[order.status];
             const label = nextStatus ? nextStatus.label : '去处理';
-            return `<div class="todo-row">
-                <span class="todo-mark">${order.status === 'served' ? '餐' : '订'}</span>
-                <span class="todo-main"><b>${ORDER_LABEL[order.status]}</b><small>${esc(slotText(order))} · ${esc(itemsText(order))}${overdue(order) ? ' · 已过时间' : ''}</small></span>
+            const mark = { pending: '订', accepted: '接', prepping: '备', cooking: '制', served: '餐' }[order.status] || '订';
+            const extras = [];
+            if (waitText(order)) extras.push(waitText(order));
+            if (overdue(order)) extras.push('已过时间');
+            if (order.lastNudgeAt) extras.push('用户催过');
+            // 没有附加信息时不要留下悬空的「· 」
+            const meta = [slotText(order), ...extras].filter(Boolean).join(' · ');
+            return `<div class="todo-row${overdue(order) || order.lastNudgeAt ? ' is-late' : ''}">
+                <span class="todo-mark">${mark}</span>
+                <span class="todo-main"><b>${ORDER_LABEL[order.status]} · ${esc(itemsText(order))}</b><small>${esc(meta)}</small></span>
                 ${nextStatus ? `<button class="admin-btn dark sm" type="button" data-home-next="${esc(order.id)}" data-next-status="${nextStatus.status}">${label}</button>` : `<span class="admin-small admin-muted">去订单处理</span>`}
             </div>`;
         }).join('');
@@ -2025,9 +2474,9 @@
                 <span class="todo-main"><b>我想吃：${esc(request.name)}</b><small>${esc(request.submittedAt || '')} · 等你审核</small></span>
                 <button class="admin-btn dark sm" type="button" data-review-dish="${esc(request.id)}">去审核</button>
             </div>`).join('');
-        const totalTodos = todos.length + dishTodos.length;
+        const totalTodos = todos.length + dishTodos.length + (greetingRows ? 1 : 0);
         $('home-todo-count').textContent = totalTodos ? `${totalTodos} 件` : '';
-        $('home-todos').innerHTML = (dishRows + orderRows) || '<div class="empty-state">现在没有需要处理的事。</div>';
+        $('home-todos').innerHTML = (greetingRows + dishRows + orderRows) || '<div class="empty-state">现在没有需要处理的事。</div>';
 
         const weekStart = new Date();
         weekStart.setHours(0, 0, 0, 0);
@@ -2106,7 +2555,7 @@
         if (next) {
             actions.push(`<button class="admin-btn primary sm" type="button" data-order-next="${esc(order.id)}" data-next-status="${next.status}">${next.label}</button>`);
         }
-        if (ADMIN_ORDER_ACTIVE.includes(order.status)) {
+        if (ADMIN_CANCELABLE.includes(order.status)) {
             actions.push(`<button class="admin-btn danger sm" type="button" data-order-cancel="${esc(order.id)}">${order.status === 'pending' ? '拒单退款' : '取消退款'}</button>`);
         }
         const extras = [];
@@ -2116,7 +2565,8 @@
             extras.push(`用户说：${order.thanks.note}${reward > 0 ? ` · 已返 ${reward} 币` : ''}`);
         }
         if (order.cancelled && order.cancelled.reason) extras.push(`取消原因：${order.cancelled.reason}`);
-        return `<article class="order-card">
+        // 订单列表样式保持原样；只有点击行为是新增的（点卡片空白处进详情，按钮不受影响）
+        return `<article class="order-card is-openable" data-order-open="${esc(order.id)}" aria-label="查看订单 ${esc(order.id)} 详情">
             <div class="order-card-top">
                 <b class="order-id">${esc(order.id)}</b>
                 ${order.status === 'cancelled'
@@ -2149,6 +2599,7 @@
             await setOrderStatus(id, status, { by: 'admin' });
             showMessage(`订单 ${id} 已更新为「${ORDER_LABEL[status]}」`);
             await refreshAdminOrders();
+            if (adminView === 'order-detail') await loadOrderDetail(id);
         } catch (error) {
             showMessage(error.message, 'error');
             if (button) button.disabled = false;
@@ -2168,6 +2619,7 @@
             await cancelOrder(id, { by: 'admin', reason: '' });
             showMessage(`订单 ${id} 已取消，恋爱币已退回`);
             await refreshAdminOrders();
+            if (adminView === 'order-detail') await loadOrderDetail(id);
         } catch (error) {
             showMessage(error.message, 'error');
             if (button) button.disabled = false;
@@ -2182,10 +2634,161 @@
                 return;
             }
             const cancel = event.target.closest('[data-order-cancel]');
-            if (cancel) cancelAdminOrder(cancel.dataset.orderCancel, cancel);
+            if (cancel) {
+                cancelAdminOrder(cancel.dataset.orderCancel, cancel);
+                return;
+            }
             const review = event.target.closest('[data-review-dish]');
-            if (review) openDishRequestReview(review.dataset.reviewDish);
+            if (review) {
+                openDishRequestReview(review.dataset.reviewDish);
+                return;
+            }
+            // 按钮/链接不触发详情，其余空白处或卡片本身都可以
+            if (event.target.closest('button, a')) return;
+            const card = event.target.closest('[data-order-open]');
+            if (card) openOrderDetail(card.dataset.orderOpen, adminView);
         });
+        container.addEventListener('keydown', event => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            const card = event.target.closest('[data-order-open]');
+            if (!card || event.target !== card) return;
+            event.preventDefault();
+            openOrderDetail(card.dataset.orderOpen, adminView);
+        });
+    }
+
+    /* ---------- order detail ---------- */
+    async function openOrderDetail(id, from) {
+        if (!id) return;
+        orderDetailId = id;
+        orderDetailReturn = from === 'home' ? 'home' : 'orders';
+        const summary = ((adminData && adminData.orders) || []).find(order => String(order.id) === String(id));
+        orderDetailData = summary ? { ...summary } : null;
+        switchView('order-detail');
+        await loadOrderDetail(id);
+    }
+
+    async function loadOrderDetail(id) {
+        const target = id || orderDetailId;
+        if (!target) return;
+        try {
+            const order = await getOrder(target);
+            if (!order || String(order.id) !== String(orderDetailId)) return;
+            orderDetailData = order;
+            renderOrderDetail();
+        } catch (error) {
+            console.warn('加载订单详情失败:', error);
+            renderOrderDetail();
+        }
+    }
+
+    function renderOrderDetail() {
+        const order = orderDetailData;
+        const body = $('order-detail-body');
+        if (!order || !body) return;
+        const statusLabel = ORDER_LABEL[order.status] || order.status;
+        const next = NEXT_STATUS[order.status];
+        $('order-detail-title').textContent = slotText(order);
+        $('order-detail-id').textContent = order.id;
+        $('order-detail-actions').innerHTML = detailActionsHTML(order, next);
+        $('order-detail-status').innerHTML = order.status === 'cancelled'
+            ? '<span class="status-text">已取消</span>'
+            : `<span class="status-pill ${esc(order.status)}">${esc(statusLabel)}</span>`;
+
+        const history = Array.isArray(order.statusHistory) ? order.statusHistory : [];
+        const payment = order.payment || {};
+        const items = order.items || [];
+        const itemCount = items.reduce((sum, item) => sum + 1, 0);
+        const alerts = [];
+        // 只有「还没做完，但饭点已经过了」才提醒；已完成 / 已取消 / 还没到点都不提示
+        if (overdue(order) && ['prepping', 'cooking'].includes(order.status)) {
+            alerts.push('已过预约时间，还没出餐');
+        }
+        if (order.nudges && order.nudges.length) {
+            const last = order.nudges[order.nudges.length - 1];
+            alerts.push(`用户催过 ${order.nudges.length} 次 · 最后一次 ${esc(formatDate(last.at))}`);
+        }
+        if (order.thanks) {
+            const reward = Number(order.thanks.reward) || 0;
+            alerts.push(`用户答谢：${esc(order.thanks.note)}${reward > 0 ? ` · 已返 ${reward} 币` : ''}`);
+        }
+        if (order.cancelled && order.cancelled.reason) alerts.push(`取消原因：${esc(order.cancelled.reason)}`);
+        if (order.cancelled && order.cancelled.refundId) alerts.push(`退款流水：${esc(order.cancelled.refundId)}`);
+
+        const servedPhotos = items.filter(item => item && item.servedImage);
+
+        // 顶部只保留三样有决策价值的信息：这是哪一单、哪一餐、现在什么状态。
+        // 下单时间和菜数分别由「状态记录」和「菜品明细」承担，不再重复。
+        body.innerHTML = `
+            <div class="od-layout">
+                <div class="od-col">
+                    <div class="od-panel">
+                        <div class="od-panel-head"><b>菜品明细</b><small>${itemCount} 道 · 点图看大图</small></div>
+                        ${items.length ? items.map(item => `
+                            <div class="od-item">
+                                ${photoHTML(item, 'order-item-photo', true)}
+                                <span class="od-item-main">
+                                    <b>${esc(item.name)}</b>
+                                    <small>${item.prepMinutes ? `预计 ${item.prepMinutes} 分钟` : ''}</small>
+                                </span>
+                                <span class="od-item-price">${item.price} 币</span>
+                            </div>`).join('') : '<p class="od-note">这一单没有菜品记录。</p>'}
+                        <div class="od-item-total"><span>合计 · ${payment.refundedAt ? '已退款' : '已支付'}</span><b>${order.total} 币</b></div>
+                    </div>
+
+                    ${servedPhotos.length ? `<div class="od-panel">
+                        <div class="od-panel-head"><b>本次出餐</b><small>${servedPhotos.length} 张 · 点图看大图</small></div>
+                        <div class="od-photos">${servedPhotos.map(item => `
+                            <button class="served-photo" type="button" data-image-preview="${esc(item.servedImage)}" aria-label="查看${esc(item.name)}成品图">
+                                <img src="${esc(item.servedImage)}" alt="${esc(item.name)}成品图">
+                                <span>${esc(item.name)}</span>
+                            </button>`).join('')}</div>
+                    </div>` : ''}
+
+                    ${order.note ? `<div class="od-panel">
+                        <div class="od-panel-head"><b>用户备注</b></div>
+                        <p class="od-note">“${esc(order.note)}”</p>
+                    </div>` : ''}
+
+                    ${alerts.length ? `<div class="od-panel">
+                        <div class="od-panel-head"><b>需要留意</b></div>
+                        <div class="od-alerts">${alerts.map(text => `<p>${text}</p>`).join('')}</div>
+                    </div>` : ''}
+                </div>
+
+                <div class="od-col">
+                    <div class="od-panel">
+                        <div class="od-panel-head"><b>支付</b></div>
+                        <div class="od-pay-row"><span>支付状态</span><b>${payment.refundedAt ? '已退款' : '已支付'}</b></div>
+                        ${payment.balanceAfter != null ? `<div class="od-pay-row"><span>支付后余额</span><b>${payment.balanceAfter} 币</b></div>` : ''}
+                        ${payment.transactionId ? `<div class="od-pay-row"><span>交易号</span><b>${esc(payment.transactionId)}</b></div>` : ''}
+                    </div>
+
+                    <div class="od-panel">
+                        <div class="od-panel-head"><b>状态记录</b><small>${history.length} 条</small></div>
+                        <ol class="od-timeline">
+                            ${history.length ? history.map((entry, index) => `
+                                <li class="${index === history.length - 1 ? 'is-latest' : ''}">
+                                    <b>${esc(ORDER_LABEL[entry.status] || entry.status)}</b>
+                                    <small>${esc(formatDate(entry.at))}<i>${entry.by === 'user' ? '用户' : entry.by === 'admin' ? '管理端' : ''}</i></small>
+                                </li>`).join('') : '<li><b>还没有状态记录</b><small></small></li>'}
+                        </ol>
+                    </div>
+                </div>
+            </div>`;
+
+    }
+
+    // 订单详情的主操作：放在订单号同一行的右侧，最常点的东西不用滚到底。
+    function detailActionsHTML(order, next) {
+        const buttons = [];
+        if (next) {
+            buttons.push(`<button class="admin-btn primary" type="button" data-detail-next="${esc(order.id)}" data-next-status="${next.status}">${next.label}</button>`);
+        }
+        if (ADMIN_CANCELABLE.includes(order.status)) {
+            buttons.push(`<button class="admin-btn danger" type="button" data-detail-cancel="${esc(order.id)}">${order.status === 'pending' ? '拒单退款' : '取消退款'}</button>`);
+        }
+        return buttons.join('');
     }
 
     /* ---------- serving photos ---------- */
@@ -2288,6 +2891,7 @@
             closeServeModal();
             adminData = await loadAdminData();
             renderAll();
+            if (adminView === 'order-detail' && String(orderDetailId) === String(orderId)) await loadOrderDetail(orderId);
         } catch (error) {
             showMessage(error.message, 'error');
             button.disabled = false;
@@ -2295,8 +2899,18 @@
     }
 
     /* ---------- coupons ---------- */
+    function renderCouponDurationPicker() {
+        const current = String(parseInt($('coupon-duration').value, 10) || COUPON_DURATIONS[0]);
+        $('coupon-duration-picker').innerHTML = COUPON_DURATIONS.map(minutes => `
+            <button type="button" role="radio" aria-checked="${String(minutes) === current}"
+                class="${String(minutes) === current ? 'is-on' : ''}"
+                data-choice-duration="${minutes}"><b>${minutes}</b><small>分钟</small></button>`).join('');
+    }
+
     function renderCoupons() {
         if (!adminData) return;
+        if (!$('coupon-duration').value) $('coupon-duration').value = String(COUPON_DURATIONS[0]);
+        renderCouponDurationPicker();
         const coupons = (adminData.coupons || []).slice().sort((a, b) => Number(b.id) - Number(a.id));
         const available = coupons.filter(coupon => coupon.status === 'available').length;
         const used = coupons.filter(coupon => coupon.status === 'used').length;
@@ -2452,11 +3066,7 @@
         $('system-menu-count').textContent = `${dishes.length} 道 · ${dishes.filter(dish => dish.available !== false).length} 道上架`;
         $('menu-summary').textContent = `${dishes.length} 道菜 · ${dishes.filter(dish => dish.available !== false).length} 道上架`;
 
-        const select = $('dish-category');
-        const current = select.value;
-        select.innerHTML = (menu.categories || []).map(category =>
-            `<option value="${esc(category.id)}">${esc(category.name)}</option>`).join('');
-        if (current && [...select.options].some(option => option.value === current)) select.value = current;
+        renderDishChoicePickers();
 
         const filters = [{ id: 'all', label: '全部', count: dishes.length }].concat(
             (menu.categories || []).map(category => ({
@@ -2469,11 +3079,21 @@
             <button class="filter-btn ${menuFilter === filter.id ? 'is-active' : ''}" type="button"
                 data-menu-filter="${filter.id}">${filter.label} ${filter.count}</button>`).join('');
 
+        const tagCounts = new Map();
+        MENU_TAGS.forEach(tag => {
+            tagCounts.set(tag, dishes.filter(dish => (dish.tags || []).includes(tag)).length);
+        });
+        $('menu-tag-filters').innerHTML = MENU_TAGS.map(tag => `
+            <button class="filter-btn tag-filter ${menuTagFilter === tag ? 'is-active' : ''}" type="button"
+                data-menu-tag="${tag}">${tag} ${tagCounts.get(tag) || 0}</button>`).join('') +
+            (menuTagFilter ? '<button class="filter-btn tag-filter is-clear" type="button" data-menu-tag="">清除</button>' : '');
+
         const query = menuQuery.trim().toLowerCase();
         const shown = dishes.filter(dish => {
             const matchesCategory = menuFilter === 'all' || String(dish.categoryId) === String(menuFilter);
+            const matchesTag = !menuTagFilter || (dish.tags || []).includes(menuTagFilter);
             const haystack = `${dish.name} ${(dish.tags || []).join(' ')} ${dish.description || ''}`.toLowerCase();
-            return matchesCategory && (!query || haystack.includes(query));
+            return matchesCategory && matchesTag && (!query || haystack.includes(query));
         });
 
         $('menu-list').innerHTML = shown.length ? shown.map(dish => `
@@ -2498,9 +3118,29 @@
         renderDishRequests();
     }
 
+    function renderDishChoicePickers() {
+        const categories = ((adminData && adminData.menu && adminData.menu.categories) || []);
+        const currentCategory = $('dish-category').value
+            || (categories[0] && String(categories[0].id)) || '';
+        $('dish-category-picker').innerHTML = categories.map(category => `
+            <button type="button" role="radio" aria-checked="${String(category.id) === String(currentCategory)}"
+                class="${String(category.id) === String(currentCategory) ? 'is-on' : ''}"
+                data-choice-category="${esc(category.id)}">${esc(category.name)}</button>`).join('');
+        const currentTime = String(nearestTime($('dish-time').value || MENU_TIMES[0]));
+        $('dish-time-picker').innerHTML = MENU_TIMES.map(minutes => `
+            <button type="button" role="radio" aria-checked="${String(minutes) === currentTime}"
+                class="${String(minutes) === currentTime ? 'is-on' : ''}"
+                data-choice-time="${minutes}">${minutes}′</button>`).join('');
+    }
+
     function renderTagPicker() {
-        $('dish-tags').innerHTML = MENU_TAGS.map(tag => `
-            <button type="button" class="${dishTags.has(tag) ? 'is-on' : ''}" data-dish-tag="${tag}">${tag}</button>`).join('');
+        const full = dishTags.size >= MENU_TAG_MAX;
+        $('dish-tags').innerHTML = MENU_TAGS.map(tag => {
+            const on = dishTags.has(tag);
+            const disabled = !on && full;
+            return `<button type="button" class="${on ? 'is-on' : ''}${disabled ? ' is-off' : ''}" data-dish-tag="${tag}"
+                ${disabled ? 'aria-disabled="true"' : ''}>${tag}</button>`;
+        }).join('');
     }
 
     function setAvailableSwitch(value) {
@@ -2516,18 +3156,15 @@
         element.classList.toggle('is-error', tone === 'error');
     }
 
-    function setDishImagePreview(url) {
-        const value = String(url || '').trim();
-        $('dish-image-preview').innerHTML = value
-            ? `<img src="${esc(value)}" alt="">`
-            : '<span class="photo-placeholder"><b>＋</b>点击上传菜品照片</span>';
-    }
-
+    // 没图时整块是 <label for=file>，点一下就选图；有图时是普通预览，点开看大图。
+    // 这样「＋」本身就是上传入口，不再需要旁边单独的上传按钮。
     function renderDishGallery() {
         const container = $('dish-gallery');
         if (!container) return;
-        container.innerHTML = dishGallery.length
-            ? dishGallery.map((url, index) => `
+        const addTile = `<label class="dish-gallery-item is-add" for="dish-gallery-file" aria-label="添加图片">
+                    <span class="dish-gallery-add"><b>＋</b>添加</span>
+                </label>`;
+        container.innerHTML = dishGallery.map((url, index) => `
                 <div class="dish-gallery-item ${index === 0 ? 'is-main' : ''}" draggable="true" data-gallery-index="${index}">
                     <img src="${esc(url)}" alt="" data-gallery-preview="${index}">
                     ${index === 0 ? '<span class="dish-gallery-main">主图</span>' : ''}
@@ -2538,30 +3175,52 @@
                         ${index < dishGallery.length - 1 ? '<button type="button" data-gallery-move="1" data-gallery-at="' + index + '">→</button>' : ''}
                         <button class="danger" type="button" data-gallery-delete="${index}" title="删除">删</button>
                     </span>
-                </div>`).join('')
-            : '<div class="dish-gallery-empty">还没有图片，先在右上角上传主图</div>';
+                </div>`).join('') + addTile;
+    }
+
+    // 图片集一次可传多张：全部追加到末尾，第一张仍是主图
+    async function handleDishGalleryFiles(event) {
+        const files = [...(event.target.files || [])];
+        if (!files.length) return;
+        const bad = files.find(file => !String(file.type || '').startsWith('image/'));
+        if (bad) {
+            setDishImageStatus('只能上传图片文件', 'error');
+            event.target.value = '';
+            return;
+        }
+        if (files.some(file => file.size > 20 * 1024 * 1024)) {
+            setDishImageStatus('单张图片不能超过 20MB', 'error');
+            event.target.value = '';
+            return;
+        }
+        setDishImageUploading(true);
+        let done = 0;
+        try {
+            for (const file of files) {
+                setDishImageStatus(`上传中 ${done + 1}/${files.length}…`);
+                const url = await uploadDishImage(file);
+                if (dishGallery.includes(url)) continue;
+                dishGallery.push(url);
+                done += 1;
+                // 图集为空时同时补上主图预览；已有主图就不动它
+                if (dishGallery.length === 1) {
+                    $('dish-image').value = url;
+                        }
+                renderDishGallery();
+            }
+            setDishImageStatus(`已添加 ${done} 张`, 'success');
+        } catch (error) {
+            setDishImageStatus(error.message || '上传失败，请重试', 'error');
+        } finally {
+            event.target.value = '';
+            setDishImageUploading(false);
+        }
     }
 
     function syncMainImageFromGallery() {
         const main = dishGallery[0] || '';
         $('dish-image').value = main;
-        setDishImagePreview(main);
         setDishImageStatus(main ? '已填写图片' : '未选择');
-    }
-
-    function setMainImageValue(url) {
-        const value = String(url || '').trim();
-        if (value) {
-            const existing = dishGallery.indexOf(value);
-            if (existing >= 0) dishGallery.splice(existing, 1);
-            dishGallery.unshift(value);
-        } else if (dishGallery.length) {
-            dishGallery.shift();
-        }
-        $('dish-image').value = dishGallery[0] || '';
-        setDishImagePreview(dishGallery[0] || '');
-        setDishImageStatus(dishGallery[0] ? '已填写图片' : '未选择');
-        renderDishGallery();
     }
 
     function moveGalleryItem(from, to) {
@@ -2574,12 +3233,20 @@
 
     function setDishImageUploading(uploading) {
         dishImageUploading = !!uploading;
-        $('dish-image-upload-label').classList.toggle('is-disabled', dishImageUploading);
-        $('dish-image-file').disabled = dishImageUploading;
+        $('dish-gallery-file').disabled = dishImageUploading;
+        $('dish-gallery').classList.toggle('is-busy', dishImageUploading);
         $('dish-submit').disabled = dishImageUploading;
     }
 
+    function syncDishChoiceValues() {
+        const categories = ((adminData && adminData.menu && adminData.menu.categories) || []);
+        if (!$('dish-category').value && categories.length) $('dish-category').value = String(categories[0].id);
+        if (!$('dish-time').value) $('dish-time').value = String(MENU_TIMES[0]);
+        renderDishChoicePickers();
+    }
+
     function openDishModal() {
+        syncDishChoiceValues();
         $('dish-modal').classList.add('is-open');
         $('dish-modal').setAttribute('aria-hidden', 'false');
         document.body.classList.add('admin-modal-open');
@@ -2602,16 +3269,15 @@
         clearDishRequestMode();
         $('dish-id').value = dish.id;
         $('dish-name').value = dish.name || '';
-        $('dish-category').value = dish.categoryId || '';
+        $('dish-category').value = dish.categoryId != null ? String(dish.categoryId) : '';
         $('dish-price').value = dish.price ?? '';
         $('dish-time').value = String(nearestTime(dish.prepMinutes));
         $('dish-description').value = dish.description || '';
         $('dish-ingredients').value = dish.ingredients || '';
-        dishTags = new Set((dish.tags || []).filter(tag => MENU_TAGS.includes(tag)));
+        dishTags = new Set((dish.tags || []).filter(tag => MENU_TAGS.includes(tag)).slice(0, MENU_TAG_MAX));
         renderTagPicker();
         dishGallery = dishImages(dish);
         $('dish-image').value = dish.image || dishGallery[0] || '';
-        setDishImagePreview($('dish-image').value);
         setDishImageStatus($('dish-image').value ? '已填写图片' : '未选择');
         renderDishGallery();
         setAvailableSwitch(dish.available !== false);
@@ -2625,14 +3291,13 @@
         $('dish-id').value = '';
         $('dish-name').value = '';
         $('dish-price').value = '';
-        $('dish-time').value = '40';
+        $('dish-time').value = String(MENU_TIMES[0]);
         $('dish-description').value = '';
         $('dish-ingredients').value = '';
         dishTags = new Set();
         renderTagPicker();
         dishGallery = [];
         $('dish-image').value = '';
-        setDishImagePreview('');
         setDishImageStatus('未选择');
         renderDishGallery();
         setAvailableSwitch(true);
@@ -2648,16 +3313,16 @@
         pendingDishRequestId = request.id;
         $('dish-id').value = '';
         $('dish-name').value = request.name || '';
-        if ($('dish-category').options.length) $('dish-category').selectedIndex = 0;
+        const firstCategory = ((adminData.menu && adminData.menu.categories) || [])[0];
+        $('dish-category').value = firstCategory ? String(firstCategory.id) : '';
         $('dish-price').value = '';
-        $('dish-time').value = '40';
+        $('dish-time').value = String(MENU_TIMES[0]);
         $('dish-description').value = '';
         $('dish-ingredients').value = '';
         dishTags = new Set();
         renderTagPicker();
         dishGallery = request.image ? [request.image] : [];
         $('dish-image').value = request.image || '';
-        setDishImagePreview(request.image || '');
         setDishImageStatus(request.image ? '用户上传的图片' : '未选择');
         renderDishGallery();
         setAvailableSwitch(true);
@@ -2789,38 +3454,6 @@
         }
     }
 
-    async function handleDishImageFile(event) {
-        const file = event.target.files && event.target.files[0];
-        if (!file) return;
-        if (!String(file.type || '').startsWith('image/')) {
-            setDishImageStatus('只能上传图片文件', 'error');
-            event.target.value = '';
-            return;
-        }
-        if (file.size > 20 * 1024 * 1024) {
-            setDishImageStatus('图片不能超过 20MB', 'error');
-            event.target.value = '';
-            return;
-        }
-        setDishImageUploading(true);
-        setDishImageStatus('压缩上传中…');
-        const token = ++dishImageUploadToken;
-        try {
-            const url = await uploadDishImage(file);
-            if (token !== dishImageUploadToken) return;
-            setMainImageValue(url);
-            setDishImageStatus('上传成功', 'success');
-        } catch (error) {
-            if (token !== dishImageUploadToken) return;
-            setDishImageStatus('上传失败，请重试', 'error');
-        } finally {
-            if (token === dishImageUploadToken) {
-                event.target.value = '';
-                setDishImageUploading(false);
-            }
-        }
-    }
-
     /* ---------- milestones ---------- */
     function milestoneImageOf(item) {
         return String((item && item.image) || '').trim();
@@ -2833,7 +3466,8 @@
 
     function milestoneYearLabel(value) {
         const date = toDate(value);
-        return date ? String(date.getFullYear()) : '旧时光';
+        // 日期现在是必填；这个兜底只用于历史数据里没有日期的记录
+        return date ? String(date.getFullYear()) : '未填日期';
     }
 
     function sortedMilestones() {
@@ -2933,13 +3567,15 @@
     }
 
     function renderMilestonePreview() {
-        const preview = $('milestone-image-preview');
         const image = adminMilestoneImage;
         if (!image) {
-            preview.innerHTML = '<span class="photo-placeholder"><b>＋</b>点击上传封面</span>';
+            $('milestone-image-preview').outerHTML =
+                '<label class="photo-preview milestone-preview is-upload" id="milestone-image-preview" for="milestone-image-file"><span class="photo-placeholder"><b>＋</b>点击上传封面</span></label>';
             return;
         }
-        preview.innerHTML = `<img src="${esc(image)}" alt=""><span class="mile-tag">封面图 · 4:3</span>`;
+        $('milestone-image-preview').outerHTML =
+            `<div class="photo-preview milestone-preview" id="milestone-image-preview"><img src="${esc(image)}" alt=""><span class="mile-tag">封面图 · 4:3</span></div>`;
+        const preview = $('milestone-image-preview');
         const img = preview.querySelector('img');
         if (img) {
             img.onerror = () => {
@@ -2948,9 +3584,76 @@
         }
     }
 
-    function syncMilestoneYear() {
-        const value = $('milestone-date').value;
-        $('milestone-year').textContent = value ? value.slice(0, 4) : '旧时光';
+    const CAL_WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+
+    function syncMilestoneDate(value) {
+        const text = String(value || '').slice(0, 10);
+        $('milestone-date').value = text;
+        const date = toDate(text);
+        const label = $('milestone-date-label');
+        const hint = $('milestone-date-hint');
+        label.classList.toggle('is-empty', !date);
+        if (!date) {
+            label.textContent = '选择日期';
+            hint.textContent = '决定这条回忆排在哪个年份';
+            return;
+        }
+        label.textContent = `${date.getFullYear()} · ${pad2(date.getMonth() + 1)} · ${pad2(date.getDate())}`;
+        hint.textContent = `${CAL_WEEKDAYS[date.getDay()]} · 会排到 ${date.getFullYear()} 年`;
+    }
+
+    function openMilestoneCalendar() {
+        const current = toDate($('milestone-date').value) || new Date();
+        calendarSelected = $('milestone-date').value ? String($('milestone-date').value).slice(0, 10) : '';
+        calendarViewYear = current.getFullYear();
+        calendarViewMonth = current.getMonth();
+        renderMilestoneCalendar();
+        $('milestone-calendar').classList.add('is-open');
+        $('milestone-calendar').setAttribute('aria-hidden', 'false');
+    }
+
+    function closeMilestoneCalendar() {
+        $('milestone-calendar').classList.remove('is-open');
+        $('milestone-calendar').setAttribute('aria-hidden', 'true');
+    }
+
+    function renderMilestoneCalendar() {
+        const today = new Date();
+        const years = [];
+        for (let year = today.getFullYear() + 1; year >= today.getFullYear() - 12; year--) years.push(year);
+        $('calendar-years').innerHTML = years.map(year =>
+            `<button type="button" class="${year === calendarViewYear ? 'is-active' : ''}" data-calendar-year="${year}">${year}</button>`).join('');
+        $('calendar-month-label').textContent = `${calendarViewYear} 年 ${calendarViewMonth + 1} 月`;
+
+        const first = new Date(calendarViewYear, calendarViewMonth, 1);
+        const offset = (first.getDay() + 6) % 7; // 周一开头
+        const start = new Date(calendarViewYear, calendarViewMonth, 1 - offset);
+        const todayKey = `${today.getFullYear()}-${pad2(today.getMonth() + 1)}-${pad2(today.getDate())}`;
+        const cells = [];
+        for (let i = 0; i < 42; i++) {
+            const day = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+            const key = `${day.getFullYear()}-${pad2(day.getMonth() + 1)}-${pad2(day.getDate())}`;
+            const classes = [
+                day.getMonth() === calendarViewMonth ? '' : 'is-mute',
+                key === todayKey ? 'is-today' : '',
+                key === calendarSelected ? 'is-active' : ''
+            ].filter(Boolean).join(' ');
+            cells.push(`<button type="button" class="${classes}" data-calendar-day="${key}" aria-label="${key}">${day.getDate()}</button>`);
+        }
+        $('calendar-grid').innerHTML = cells.join('');
+    }
+
+    function shiftMilestoneCalendar(months) {
+        const next = new Date(calendarViewYear, calendarViewMonth + months, 1);
+        calendarViewYear = next.getFullYear();
+        calendarViewMonth = next.getMonth();
+        renderMilestoneCalendar();
+    }
+
+    function pickMilestoneDay(key) {
+        calendarSelected = key;
+        syncMilestoneDate(key);
+        closeMilestoneCalendar();
     }
 
     function openMilestoneModal(index) {
@@ -2963,15 +3666,14 @@
         adminMilestoneImage = milestoneImageOf(item);
         $('milestone-form-title').textContent = isNew ? '添加回忆' : '编辑回忆';
         $('milestone-id').value = isNew ? '' : String(index);
-        $('milestone-date').value = dateValue;
-        $('milestone-year').textContent = dateValue ? dateValue.slice(0, 4) : '旧时光';
+        syncMilestoneDate(dateValue);
         $('milestone-title').value = item.title || '';
         $('milestone-description').value = item.description || '';
         $('milestone-image').value = adminMilestoneImage;
         $('milestone-delete').hidden = isNew;
         $('milestone-image-file').value = '';
         $('milestone-submit').disabled = false;
-        $('milestone-image-upload-label').classList.remove('is-disabled');
+        $('milestone-image-remove').hidden = !adminMilestoneImage;
         setMilestoneImageStatus(adminMilestoneImage ? '已选择' : '未选择');
         renderMilestonePreview();
         $('milestone-modal').classList.add('is-open');
@@ -2980,11 +3682,11 @@
     }
 
     function closeMilestoneModal() {
+        closeMilestoneCalendar();
         if (!$('milestone-modal').classList.contains('is-open')) return;
         milestoneImageUploadToken++;
         milestoneImageUploading = false;
         $('milestone-submit').disabled = false;
-        $('milestone-image-upload-label').classList.remove('is-disabled');
         $('milestone-modal').classList.remove('is-open');
         $('milestone-modal').setAttribute('aria-hidden', 'true');
         document.body.classList.remove('admin-modal-open');
@@ -3011,7 +3713,7 @@
         }
         milestoneImageUploading = true;
         $('milestone-submit').disabled = true;
-        $('milestone-image-upload-label').classList.add('is-disabled');
+        $('milestone-image-preview').classList.add('is-busy');
         setMilestoneImageStatus('压缩上传中…');
         const token = ++milestoneImageUploadToken;
         try {
@@ -3021,6 +3723,7 @@
             $('milestone-image').value = url;
             renderMilestonePreview();
             setMilestoneImageStatus('上传成功，保存后生效', 'success');
+            $('milestone-image-remove').hidden = false;
         } catch (error) {
             if (token !== milestoneImageUploadToken) return;
             setMilestoneImageStatus(error.message || '上传失败，请重试', 'error');
@@ -3029,7 +3732,8 @@
                 event.target.value = '';
                 milestoneImageUploading = false;
                 $('milestone-submit').disabled = false;
-                $('milestone-image-upload-label').classList.remove('is-disabled');
+                const preview = $('milestone-image-preview');
+                if (preview) preview.classList.remove('is-busy');
             }
         }
     }
@@ -3093,6 +3797,12 @@
         }
         const indexValue = $('milestone-id').value;
         const isNew = indexValue === '';
+        const date = $('milestone-date').value;
+        if (!date) {
+            showMessage('请先选择日期', 'error');
+            $('milestone-date-button').focus();
+            return;
+        }
         const title = $('milestone-title').value.trim();
         if (!title) {
             showMessage('标题不能为空', 'error');
@@ -3102,7 +3812,7 @@
         const items = (adminData.milestones || []).slice();
         const entry = {
             ...(isNew ? {} : (items[Number(indexValue)] || {})),
-            date: $('milestone-date').value || '',
+            date: date,
             title,
             description: $('milestone-description').value.trim(),
             image: ($('milestone-image').value || adminMilestoneImage || '').trim()
@@ -3639,7 +4349,27 @@
         document.querySelectorAll('[data-bark-event]').forEach(button => {
             setSwitch(button, (bark.events || {})[button.dataset.barkEvent] !== false);
         });
+        renderGreetingSettings();
         renderMilestoneCounts();
+        renderNotificationSummary();
+    }
+
+    // 系统导航页的「通知」行摘要：让大厨不点进去也能判断推送是否正常。
+    function renderNotificationSummary() {
+        const summary = $('system-notification-summary');
+        if (!summary) return;
+        const settings = (adminData && adminData.space && adminData.space.settings) || {};
+        const bark = settings.bark || {};
+        const enabled = !!(bark.userKey || bark.adminKey || bark.key) && bark.enabled !== false;
+        if (!enabled) {
+            summary.textContent = 'Bark 推送 · 未开启';
+            return;
+        }
+        const events = bark.events || {};
+        const names = { newOrder: '新单', accepted: '接单', dishRequest: '申请', userCancel: '取消', cooking: '制作', served: '出餐', nudge: '催单' };
+        const on = Object.keys(names).filter(key => events[key] !== false);
+        const nudge = settings.nudgeEnabled === true ? '催一催开' : '催一催关';
+        summary.textContent = `Bark 已开启 · ${on.length} 个事件（${on.map(key => names[key]).join('/')}）· ${nudge}`;
     }
 
     async function saveBarkSettings(showSuccess = true) {
@@ -3649,6 +4379,8 @@
         if (enabled && (!userKey || !adminKey)) {
             throw new Error('请填写用户和管理员两把 Bark 密钥');
         }
+        const greeting = { ...greetingSettingsFromForm(), ...greetingOptionsFromForm() };
+        if (greeting.enabled && !greeting.recipients.length) throw new Error('请至少选择一个早安收件人');
         const events = {};
         document.querySelectorAll('[data-bark-event]').forEach(button => {
             events[button.dataset.barkEvent] = button.getAttribute('aria-pressed') === 'true';
@@ -3667,11 +4399,202 @@
                 adminKey,
                 events,
                 server: 'https://api.day.app'
-            }
+            },
+            morningGreeting: greeting
         });
         adminData.space = space;
         renderSettings();
+        await refreshGreetingToday(true);
         if (showSuccess) showMessage('通知设置已保存');
+    }
+
+    function greetingSettingsFromForm() {
+        const recipients = [...document.querySelectorAll('[data-greeting-recipient].is-on')]
+            .map(button => button.dataset.greetingRecipient);
+        return {
+            enabled: $('greeting-enabled').getAttribute('aria-pressed') === 'true',
+            recipients
+        };
+    }
+
+    function greetingOptionsFromForm() {
+        return {
+            alertOnFail: $('greeting-alert').getAttribute('aria-pressed') === 'true',
+            homeReminder: $('greeting-home-reminder').getAttribute('aria-pressed') === 'true'
+        };
+    }
+
+    function renderGreetingSettings() {
+        const greeting = greetingSettings(adminData && adminData.space);
+        setSwitch($('greeting-enabled'), greeting.enabled);
+        setSwitch($('greeting-alert'), greeting.alertOnFail);
+        setSwitch($('greeting-home-reminder'), greeting.homeReminder);
+        document.querySelectorAll('[data-greeting-recipient]').forEach(button => {
+            const selected = greeting.recipients.includes(button.dataset.greetingRecipient);
+            button.classList.toggle('is-on', selected);
+            button.setAttribute('aria-pressed', String(selected));
+        });
+        renderGreetingDraftHint();
+        renderGreetingTodayStatus();
+    }
+
+    function renderGreetingDraftHint() {
+        const saved = greetingSettings(adminData && adminData.space);
+        const draft = { ...greetingSettingsFromForm(), ...greetingOptionsFromForm() };
+        $('greeting-save-hint').hidden = JSON.stringify(saved) === JSON.stringify(draft);
+    }
+
+    function selectedTestRecipients() {
+        return [...document.querySelectorAll('[data-greeting-test-recipient].is-on')]
+            .map(button => button.dataset.greetingTestRecipient);
+    }
+
+    let greetingToday = null;
+    let greetingTodayDate = '';
+    let greetingState = 'idle';
+    let greetingCheckedAt = 0;
+    let greetingReadVersion = 0;
+    let greetingSending = false;
+
+    async function refreshGreetingToday(force = false) {
+        if (!adminData || greetingSending) return;
+        const day = beijingDay();
+        const greeting = greetingSettings(adminData.space);
+        if (greetingTodayDate !== day.date) {
+            greetingToday = null;
+            greetingState = 'idle';
+            greetingCheckedAt = 0;
+            greetingTodayDate = day.date;
+        }
+        if (!greeting.enabled) {
+            greetingReadVersion++;
+            greetingState = 'off';
+        } else if (day.minutes < 8 * 60 + 14) {
+            greetingReadVersion++;
+            greetingState = 'waiting';
+        } else if (force || Date.now() - greetingCheckedAt >= 60000 || greetingState === 'off' || greetingState === 'waiting') {
+            const version = ++greetingReadVersion;
+            greetingCheckedAt = Date.now();
+            try {
+                const record = await dbGetOrNull(`greeting/${day.date}.json`, { fresh: true });
+                if (version !== greetingReadVersion || day.date !== beijingDay().date) return;
+                greetingToday = record;
+                greetingState = 'ready';
+            } catch (error) {
+                if (version !== greetingReadVersion || day.date !== beijingDay().date) return;
+                greetingState = 'error';
+            }
+        }
+        renderGreetingTodayStatus();
+        renderHome();
+    }
+
+    function greetingDone() {
+        return greetingTodayDate === beijingDay().date && !!greetingToday && GREETING_DONE_STATUSES.includes(greetingToday.status);
+    }
+
+    function greetingMissingNow() {
+        const greeting = greetingSettings(adminData && adminData.space);
+        const bark = (adminData && adminData.space.settings && adminData.space.settings.bark) || {};
+        if (!greeting.enabled || !greeting.homeReminder || !greeting.recipients.length || bark.enabled === false) return false;
+        const day = beijingDay();
+        return day.minutes >= 8 * 60 + 30 && greetingState === 'ready' && greetingTodayDate === day.date && !greetingDone();
+    }
+
+    function renderGreetingTodayStatus() {
+        const status = $('greeting-today-status');
+        const resend = $('greeting-resend');
+        if (!status || !resend || !adminData) return;
+        const bark = (adminData.space.settings && adminData.space.settings.bark) || {};
+        resend.hidden = greetingDone();
+        resend.disabled = greetingSending;
+        resend.textContent = greetingSending ? '补发中…' : '补发';
+        if (greetingDone()) {
+            const at = new Date(greetingToday.sentAt);
+            const time = Number.isFinite(at.getTime()) ? at.toLocaleTimeString('zh-CN', { timeZone: 'Asia/Shanghai', hour: '2-digit', minute: '2-digit', hour12: false }) : '';
+            status.textContent = `今天已发出${time ? `（北京时间 ${time}）` : ''}`;
+        } else if (bark.enabled === false) {
+            status.textContent = 'Bark 总开关关闭，请打开并保存后再发送';
+        } else if (greetingState === 'off') {
+            status.textContent = '自动早安未开启，仍可按已保存的收件人手动补发';
+        } else if (greetingState === 'waiting') {
+            status.textContent = '等待 08:14 自动发送，08:30 后检查漏发';
+        } else if (greetingState === 'error') {
+            status.textContent = '发送状态读取失败，将自动重试；不能据此判断漏发';
+        } else if (greetingState === 'idle') {
+            status.textContent = '读取中…';
+        } else {
+            const reason = greetingToday && greetingToday.error ? `：${greetingToday.error}` : '';
+            status.textContent = `${greetingToday ? '发送未完成' : '今天还没发出'}${reason}`;
+        }
+    }
+
+    async function handleGreetingResend() {
+        if (greetingSending) return;
+        const recipients = greetingSettings(adminData.space).recipients;
+        if (!recipients.length) {
+            showMessage('请先在「发给谁」里选择收件人并保存', 'error');
+            return;
+        }
+        greetingSending = true;
+        greetingReadVersion++;
+        try {
+            assertGreetingCanSend(adminData.space);
+            const ok = await adminConfirm({
+                title: '补发今天的早安',
+                message: `按已保存设置发给${recipients.map(item => item === 'user' ? '用户' : '大厨').join('、')}，跳过今天已成功的收件人。现取天气和一句话，确认补发？`,
+                okText: '补发'
+            });
+            if (!ok) return;
+            renderGreetingTodayStatus();
+            renderHome();
+            const { status, record } = await resendMorningGreeting({ space: adminData.space, story: adminData.story, recipients });
+            greetingToday = record;
+            greetingTodayDate = record.date;
+            greetingState = 'ready';
+            greetingCheckedAt = Date.now();
+            showMessage(status === 'resent' ? '早安已补发' : (record.error || '发送未完成，请查看今天的状态'), status === 'resent' ? 'success' : 'error');
+        } catch (error) {
+            showMessage(error.message || '补发失败', 'error');
+            if (error.code === 'GREETING_DONE') greetingCheckedAt = 0;
+        } finally {
+            greetingSending = false;
+            renderGreetingTodayStatus();
+            renderHome();
+        }
+    }
+
+    let greetingTesting = false;
+    async function handleGreetingTest() {
+        if (greetingTesting) return;
+        const recipients = selectedTestRecipients();
+        if (!recipients.length) {
+            showMessage('请先选一个测试收件人', 'error');
+            return;
+        }
+        greetingTesting = true;
+        const button = $('greeting-test');
+        button.disabled = true;
+        try {
+            const ok = await adminConfirm({
+                title: '发送测试早安',
+                message: `立即发给${recipients.map(item => item === 'user' ? '用户' : '大厨').join('、')}一条测试早安。不写发送记录，不影响今天的状态。`,
+                okText: '发送测试'
+            });
+            if (!ok) return;
+            const { results } = await sendGreetingTest({
+                space: adminData.space,
+                story: adminData.story,
+                recipients
+            });
+            const failed = results.filter(item => !item.ok);
+            showMessage(failed.length ? failed.map(item => `${item.audience === 'user' ? '用户' : '大厨'}：${item.error}`).join('；') : '测试早安已发送', failed.length ? 'error' : 'success');
+        } catch (error) {
+            showMessage(error.message || '测试失败', 'error');
+        } finally {
+            greetingTesting = false;
+            button.disabled = false;
+        }
     }
 
     async function handleBarkSave() {
@@ -3867,7 +4790,13 @@
     });
     $('logout-btn').addEventListener('click', handleLogout);
     $('logout-side').addEventListener('click', handleLogout);
-    $('admin-back').addEventListener('click', () => switchView('system'));
+    $('admin-back').addEventListener('click', () => {
+        if (adminView === 'order-detail') {
+            switchView(orderDetailReturn);
+            return;
+        }
+        switchView('system');
+    });
 
     document.querySelectorAll('[data-view]').forEach(button => {
         button.addEventListener('click', () => switchView(button.dataset.view, {
@@ -3906,6 +4835,25 @@
     });
     bindOrderActions($('orders-list'));
     bindOrderActions($('home-todos'));
+    $('home-todos').addEventListener('click', event => {
+        if (event.target.closest('[data-home-greeting-resend]')) handleGreetingResend();
+    });
+    // 详情页的按钮随 innerHTML 重建，所以用 body 上的委托
+    $('order-detail-body').addEventListener('click', event => {
+        const preview = event.target.closest('[data-image-preview]');
+        if (preview) {
+            openImageLightbox(preview.dataset.imagePreview);
+            return;
+        }
+        const next = event.target.closest('[data-detail-next]');
+        if (next) {
+            changeOrderStatus(next.dataset.detailNext, next.dataset.nextStatus, next);
+            return;
+        }
+        const cancel = event.target.closest('[data-detail-cancel]');
+        if (cancel) cancelAdminOrder(cancel.dataset.detailCancel, cancel);
+    });
+    $('open-user-site').addEventListener('click', openUserSite);
     $('home-next-meal').addEventListener('click', event => {
         if (event.target.closest('[data-go-orders]')) switchView('orders');
     });
@@ -3931,6 +4879,12 @@
     });
 
     $('coupon-issue').addEventListener('click', issueCoupon);
+    $('coupon-duration-picker').addEventListener('click', event => {
+        const button = event.target.closest('[data-choice-duration]');
+        if (!button) return;
+        $('coupon-duration').value = button.dataset.choiceDuration;
+        renderCouponDurationPicker();
+    });
     $('coupon-filters').addEventListener('click', event => {
         const button = event.target.closest('[data-coupon-filter]');
         if (!button) return;
@@ -3953,6 +4907,13 @@
         menuFilter = button.dataset.menuFilter;
         renderMenu();
     });
+    $('menu-tag-filters').addEventListener('click', event => {
+        const button = event.target.closest('[data-menu-tag]');
+        if (!button) return;
+        const tag = button.dataset.menuTag;
+        menuTagFilter = menuTagFilter === tag ? '' : tag;
+        renderMenu();
+    });
     $('menu-list').addEventListener('click', handleMenuClick);
     $('dish-request-list').addEventListener('click', event => {
         const button = event.target.closest('[data-dish-request-review]');
@@ -3971,8 +4932,12 @@
     document.querySelectorAll('[data-dish-close]').forEach(button => {
         button.addEventListener('click', closeDishModal);
     });
-    $('dish-image-preview').addEventListener('click', () => {
-        openImageLightbox($('dish-image').value);
+    // 预览块会被替换成 <label> / <div>，所以用文档级委托
+    document.addEventListener('click', event => {
+        const milestonePreview = event.target.closest('#milestone-image-preview');
+        if (milestonePreview && milestonePreview.querySelector('img')) {
+            openImageLightbox(adminMilestoneImage);
+        }
     });
     $('image-lightbox-close').addEventListener('click', closeImageLightbox);
     $('image-lightbox').addEventListener('click', event => {
@@ -4023,22 +4988,37 @@
     });
     $('dish-gallery').addEventListener('dragend', () => { dishGalleryDragIndex = null; });
 
+    $('dish-category-picker').addEventListener('click', event => {
+        const button = event.target.closest('[data-choice-category]');
+        if (!button) return;
+        $('dish-category').value = button.dataset.choiceCategory;
+        renderDishChoicePickers();
+    });
+    $('dish-time-picker').addEventListener('click', event => {
+        const button = event.target.closest('[data-choice-time]');
+        if (!button) return;
+        $('dish-time').value = button.dataset.choiceTime;
+        renderDishChoicePickers();
+    });
     $('dish-tags').addEventListener('click', event => {
         const button = event.target.closest('[data-dish-tag]');
         if (!button) return;
         const tag = button.dataset.dishTag;
-        if (dishTags.has(tag)) dishTags.delete(tag);
-        else dishTags.add(tag);
+        if (dishTags.has(tag)) {
+            dishTags.delete(tag);
+        } else {
+            if (dishTags.size >= MENU_TAG_MAX) {
+                showMessage(`最多选 ${MENU_TAG_MAX} 个标签`, 'error');
+                return;
+            }
+            dishTags.add(tag);
+        }
         renderTagPicker();
     });
     $('dish-available').addEventListener('click', () => {
         setAvailableSwitch($('dish-available').getAttribute('aria-pressed') !== 'true');
     });
-    $('dish-image').addEventListener('input', event => {
-        if (dishImageUploading) return;
-        setMainImageValue(event.target.value);
-    });
-    $('dish-image-file').addEventListener('change', handleDishImageFile);
+    $('dish-gallery-file').addEventListener('change', handleDishGalleryFiles);
 
     $('milestone-add').addEventListener('click', () => openMilestoneModal(-1));
     $('milestone-search').addEventListener('input', event => {
@@ -4062,13 +5042,41 @@
     });
     $('milestone-delete').addEventListener('click', deleteMilestoneFromModal);
     $('milestone-image-file').addEventListener('change', handleMilestoneImageFile);
-    $('milestone-image').addEventListener('input', event => {
-        if (milestoneImageUploading) return;
-        adminMilestoneImage = event.target.value.trim();
-        setMilestoneImageStatus(adminMilestoneImage ? '已选择' : '未选择');
+    $('milestone-date-button').addEventListener('click', openMilestoneCalendar);
+    $('milestone-date-quick').addEventListener('click', event => {
+        const button = event.target.closest('[data-milestone-quick]');
+        if (!button) return;
+        const kind = button.dataset.milestoneQuick;
+        const date = new Date();
+        if (kind === 'yesterday') date.setDate(date.getDate() - 1);
+        syncMilestoneDate(`${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`);
+    });
+    $('milestone-image-remove').addEventListener('click', () => {
+        adminMilestoneImage = '';
+        $('milestone-image').value = '';
+        $('milestone-image-remove').hidden = true;
+        setMilestoneImageStatus('已移除');
         renderMilestonePreview();
     });
-    $('milestone-date').addEventListener('input', syncMilestoneYear);
+    $('calendar-prev').addEventListener('click', () => shiftMilestoneCalendar(-1));
+    $('calendar-next').addEventListener('click', () => shiftMilestoneCalendar(1));
+    $('calendar-years').addEventListener('click', event => {
+        const button = event.target.closest('[data-calendar-year]');
+        if (!button) return;
+        calendarViewYear = Number(button.dataset.calendarYear);
+        renderMilestoneCalendar();
+    });
+    $('calendar-grid').addEventListener('click', event => {
+        const button = event.target.closest('[data-calendar-day]');
+        if (button) pickMilestoneDay(button.dataset.calendarDay);
+    });
+    $('calendar-today').addEventListener('click', () => {
+        const today = new Date();
+        pickMilestoneDay(`${today.getFullYear()}-${pad2(today.getMonth() + 1)}-${pad2(today.getDate())}`);
+    });
+    document.querySelectorAll('[data-calendar-close]').forEach(button => {
+        button.addEventListener('click', closeMilestoneCalendar);
+    });
     $('milestone-image-preview').addEventListener('click', () => {
         const image = $('milestone-image-preview').querySelector('img');
         if (image) openImageLightbox(image.src);
@@ -4078,6 +5086,13 @@
     $('space-save').addEventListener('click', saveSpaceProfile);
 
     $('bark-save').addEventListener('click', handleBarkSave);
+    $('bark-save-top').addEventListener('click', handleBarkSave);
+    $('bark-links-toggle').addEventListener('click', () => {
+        const box = $('bark-links-box');
+        const next = box.hidden;
+        box.hidden = !next;
+        $('bark-links-toggle').setAttribute('aria-expanded', String(next));
+    });
     $('bark-test-user').addEventListener('click', () => handleBarkTest('user', $('bark-test-user')));
     $('bark-test-admin').addEventListener('click', () => handleBarkTest('admin', $('bark-test-admin')));
     $('bark-enabled').addEventListener('click', () => {
@@ -4086,6 +5101,30 @@
     $('nudge-enabled').addEventListener('click', () => {
         setSwitch($('nudge-enabled'), $('nudge-enabled').getAttribute('aria-pressed') !== 'true');
     });
+    ['greeting-enabled', 'greeting-alert', 'greeting-home-reminder'].forEach(id => {
+        $(id).addEventListener('click', () => {
+            setSwitch($(id), $(id).getAttribute('aria-pressed') !== 'true');
+            renderGreetingDraftHint();
+        });
+    });
+    document.querySelectorAll('[data-greeting-recipient]').forEach(button => {
+        button.setAttribute('aria-pressed', String(button.classList.contains('is-on')));
+        button.addEventListener('click', () => {
+            button.classList.toggle('is-on');
+            button.setAttribute('aria-pressed', String(button.classList.contains('is-on')));
+            renderGreetingDraftHint();
+        });
+    });
+    document.querySelectorAll('[data-greeting-test-recipient]').forEach(button => {
+        button.setAttribute('aria-pressed', String(button.classList.contains('is-on')));
+        button.addEventListener('click', () => {
+            button.classList.toggle('is-on');
+            button.setAttribute('aria-pressed', String(button.classList.contains('is-on')));
+            renderGreetingDraftHint();
+        });
+    });
+    $('greeting-resend').addEventListener('click', handleGreetingResend);
+    $('greeting-test').addEventListener('click', handleGreetingTest);
     document.querySelectorAll('[data-bark-event]').forEach(button => {
         button.addEventListener('click', () => {
             setSwitch(button, button.getAttribute('aria-pressed') !== 'true');

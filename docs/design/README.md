@@ -10,6 +10,8 @@
 | [coupons-refresh-wireframe.html](./coupons-refresh-wireframe.html) | 恋爱卡刷新按钮位置方案 |
 | [wallet-icons.html](./wallet-icons.html) | 钱包流水图标方案（已采用方案 A） |
 | [home-map-wireframe.html](./home-map-wireframe.html) | 首页「山河共赏」地图改造：圆点 / 省份点亮 A/B 对比、同省归并、按大区配色、视野自适应、城市卡、境外足迹 |
+| [admin-ux-wireframe.html](./admin-ux-wireframe.html) | 管理端体验优化（LJ-20261109-001）v3：首页顶部「用户端」入口、需要你处理口径（已接单仅饭点当天）、系统导航化 + 通知二级页 + 处理角标、输入字号原理与三种做法、回忆编辑保留 4:3 大图 + 日历弹层、订单详情二级页、8 个菜品标签（最多选 2 个）+ 菜单标签筛选 |
+| [morning-greeting-wireframe.html](./morning-greeting-wireframe.html) | 每日早安问候（08:14 Bark 推送）：管理端「系统 → 通知」新增早安开关与收件人勾选、Cloudflare Cron → Worker → OSS 数据流、通知锁屏示例；待确认 5 个问题 |
 | [thanks-reward-announcement-wireframe.html](./thanks-reward-announcement-wireframe.html) | 谢谢大厨返 10 恋爱币 + 新功能公告：用户端订单卡 / 钱包流水 / 公告弹窗与列表；管理端公告严格状态流转（草稿 → 发布 → 下线 → 重新发布）、发布版本号按时间自动生成（精确到秒）、纯文本条目、CTA 文案 + 跳转地址、代码先上线公告后发布 |
 | [period-tracker-wireframe.html](./period-tracker-wireframe.html) | 生理期 · 原型 v2（LJ-20261110-001）：首页细条按需出现、空间子页（预测/日历/记录三视图）、一键记录与补记、保存弹窗、日历视图、预测触发与跨度（只重算一次 / 过期不重算）、美柚导入三步、提醒与失败兜底、边界、桌面端、用户端/管理端分工（含管理端线框）、已确认清单 |
 

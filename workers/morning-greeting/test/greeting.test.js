@@ -48,14 +48,16 @@ async function run(options = {}, secrets = env) {
     finally { globalThis.fetch = old; }
     return h;
 }
-const normalPushes = h => h.calls.pushes.filter(p => p.title.startsWith('宝宝早安 ·'));
+const normalPushes = h => h.calls.pushes.filter(p => p.title.startsWith('宝宝早呀，在一起的第 '));
 const alerts = h => h.calls.pushes.filter(p => p.title === '早安发送失败');
 const partial = { status: 'partial', recipients: [{ audience: 'user', ok: true }, { audience: 'admin', ok: false, error: 'failed' }] };
 
 test('scheduled sends identical content and signs only status metadata', async () => {
     const h = await run(); assert.equal(h.error, undefined); assert.equal(normalPushes(h).length, 2);
     assert.equal(h.record.status, 'sent'); assert.equal(h.record.sentAt, '2026-11-12T08:14:00+08:00');
-    assert.equal(h.calls.pushes[0].title, '宝宝早安 · 今天是我们在一起的第 2153 天');
+    assert.equal(h.calls.pushes[0].title, '宝宝早呀，在一起的第 2153 天！');
+    assert.ok(normalPushes(h).every(p => !Object.hasOwn(p, 'url')));
+    assert.ok(normalPushes(h).every(p => p.icon === h.config.avatar));
     assert.equal(h.calls.pushes[0].subtitle, '2026年11月12日 周四 · 雾 2℃-11℃');
     assert.equal(h.calls.pushes[0].body, h.calls.pushes[1].body);
     assert.deepEqual(Object.keys(h.record).sort(), ['date', 'kind', 'recipients', 'sentAt', 'status']);
@@ -72,6 +74,7 @@ test('scheduled retry sends only failed recipient and preserves success', async 
 });
 test('Bark application error becomes partial and alerts', async () => {
     const h = await run({ failKey: 'user-test' }); assert.equal(h.record.status, 'partial'); assert.equal(alerts(h).length, 1);
+    assert.equal(alerts(h)[0].url, h.config.settings.links.admin);
 });
 test('quote exhaustion caps retries and alerts without sending greeting', async () => {
     const h = await run({ longQuote: true }); assert.equal(h.calls.quotes, 10); assert.equal(h.record.status, 'failed');
@@ -121,6 +124,7 @@ test('manual resend only retries failed person and records no message snapshot',
     const d = domain({ record: partial }); const r = await d.context.resendMorningGreeting(args(d));
     assert.equal(r.status, 'resent'); assert.deepEqual(normalPushes(d.h).map(p => p.device_key), ['admin-test']);
     assert.equal(d.record.recipients.length, 2); assert.equal(d.record.body, undefined);
+    assert.ok(normalPushes(d.h).every(p => !Object.hasOwn(p, 'url')));
 });
 test('manual completed record prevents duplicate delivery', async () => {
     const d = domain({ record: { status: 'sent' } }); await assert.rejects(d.context.resendMorningGreeting(args(d)), /已经发出/);
@@ -137,6 +141,14 @@ test('manual record write failure explains ambiguous delivery', async () => {
 test('test recipients independent and test never changes daily status', async () => {
     const d = domain(); await d.context.sendGreetingTest(args(d, ['admin']));
     assert.deepEqual(normalPushes(d.h).map(p => p.device_key), ['admin-test']); assert.equal(d.writes.length, 0);
+    assert.ok(normalPushes(d.h).every(p => !Object.hasOwn(p, 'url')));
+});
+test('other Bark notifications retain their click destinations', async () => {
+    const d = domain();
+    for (const audience of ['user', 'admin']) {
+        assert.equal(await d.context.sendBark(d.h.config, { audience, title: 'Other notification', body: 'Test' }), true);
+        assert.equal(d.h.calls.pushes.at(-1).url, d.h.config.settings.links[audience]);
+    }
 });
 for (const mode of ['testEnv', 'disabled']) test(`${mode} fails before requests or status writes`, async () => {
     const s = space(); if (mode === 'disabled') s.settings.bark.enabled = false;

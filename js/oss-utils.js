@@ -64,7 +64,7 @@ function publicObjectUrl(key) {
     return `${ossEndpoint()}/${String(key).replace(/^\/+/, '')}`;
 }
 
-const OSS_SDK_URL = 'assets/vendor/aliyun-oss-sdk-6.18.0.min.js?v=20261112-02';
+const OSS_SDK_URL = 'assets/vendor/aliyun-oss-sdk-6.18.0.min.js?v=20261113-01';
 let ossSdkPromise = null;
 
 function loadOssSdk() {

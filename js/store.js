@@ -444,7 +444,7 @@ async function buildGreetingMessage(story, now = new Date()) {
     const [weather, body] = await Promise.all([fetchGreetingWeather(), fetchGreetingQuote()]);
     const days = greetingLoveDays((story && story.startDate) || '2020-12-20', today.date);
     return {
-        title: `宝宝早安 · 今天是我们在一起的第 ${days} 天`,
+        title: `宝宝早呀，在一起的第 ${days} 天！`,
         subtitle: `${today.label} ${today.weekday}${weather ? ` · ${weather}` : ''}`,
         body
     };
@@ -472,7 +472,6 @@ function assertGreetingCanSend(space) {
 
 async function pushGreeting(space, audience, message) {
     assertGreetingCanSend(space);
-    const links = (space && space.settings && space.settings.links) || {};
     const bark = (space && space.settings && space.settings.bark) || {};
     const key = String(audience === 'user' ? (bark.userKey || '') : (bark.adminKey || '')).trim();
     if (!key) return { audience, ok: false, error: '缺少密钥' };
@@ -485,8 +484,6 @@ async function pushGreeting(space, audience, message) {
         subtitle: message.subtitle,
         body: message.body
     };
-    const url = audience === 'user' ? links.user : links.admin;
-    if (url) payload.url = url;
     const icon = barkIcon(space);
     if (icon) payload.icon = icon;
     try {

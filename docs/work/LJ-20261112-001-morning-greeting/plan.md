@@ -27,7 +27,7 @@
 
 ## 文案
 
-标题为「宝宝早安 · 今天是我们在一起的第 N 天」（读取 `content/story.json.startDate`），副标题为北京时间日期 / 星期 / 北京天气，正文为 api.shadiao.pro 的 `data.text`。天气不可用只省略天气；一句话不可用则记录失败，Worker 按开关报警。Open-Meteo 的国内无代理可达性尚未证实。
+标题为「宝宝早呀，在一起的第 N 天！」（读取 `content/story.json.startDate`），副标题为北京时间日期 / 星期 / 北京天气，正文为 api.shadiao.pro 的 `data.text`。标题模板写在代码中，不在 OSS 中配置。早安通知（定时、测试、补发）不携带 Bark `url`，不跳转网页；其他通知及失败告警跳转保持原样。天气不可用只省略天气；一句话不可用则记录失败，Worker 按开关报警。Open-Meteo 的国内无代理可达性尚未证实。
 
 ## 完成情况
 

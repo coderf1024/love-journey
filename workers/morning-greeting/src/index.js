@@ -73,7 +73,7 @@ async function runMorningGreeting(env, now) {
     const days = dayDiff(today.date, startDate);
     const weather = await fetchWeather();
     const subtitle = `${today.label} ${today.weekday}${weather ? ` · ${weather}` : ''}`;
-    const title = `宝宝早安 · 今天是我们在一起的第 ${days} 天`;
+    const title = `宝宝早呀，在一起的第 ${days} 天！`;
 
     let body;
     try {
@@ -94,9 +94,8 @@ async function runMorningGreeting(env, now) {
             results.push({ audience, ok: false, error: '缺少密钥' });
             continue;
         }
-        const url = audience === 'user' ? links.user : links.admin;
         try {
-            await pushBark(bark, key, buildPayload({ title, subtitle, body, url, avatar, links }));
+            await pushBark(bark, key, buildPayload({ title, subtitle, body, avatar, links }));
             results.push({ audience, ok: true });
         } catch (error) {
             results.push({ audience, ok: false, error: error.message });
@@ -156,9 +155,8 @@ async function alertFailure(today, run, error) {
     }
 }
 
-function buildPayload({ title, subtitle, body, url, avatar, links }) {
+function buildPayload({ title, subtitle, body, avatar, links }) {
     const payload = { title, subtitle, body };
-    if (url) payload.url = url;
     const icon = barkIcon(avatar, links);
     if (icon) payload.icon = icon;
     return payload;

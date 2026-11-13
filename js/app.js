@@ -13,12 +13,12 @@ let lastCityColumns = 0;
 
 // Self-hosted: cdn.jsdelivr.net is unreliable in WeChat / mainland mobile networks.
 const LIBS = {
-    echarts: 'assets/vendor/echarts.min.js?v=20261106-01',
-    qrcode: 'assets/vendor/qrcode.min.js?v=20261106-01'
+    echarts: 'assets/vendor/echarts.min.js?v=20261112-01',
+    qrcode: 'assets/vendor/qrcode.min.js?v=20261112-01'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261106-01';
-const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261106-01';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261112-01';
+const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261112-01';
 // First-paint fallback only. The live story document always wins once it loads.
 const LOVE_START_FALLBACK = '2020-12-20';
 
@@ -2852,7 +2852,7 @@ function scrollAppTop() {
 }
 
 function openMeView(view) {
-    if (!['orders', 'wallet', 'cards', 'announcements'].includes(view)) return;
+    if (!['orders', 'wallet', 'cards', 'announcements', 'cycle'].includes(view)) return;
     state.meView = view;
     state.meOrderId = null;
     document.body.classList.add('me-subpage');
@@ -3000,6 +3000,7 @@ function renderMePage() {
         wallet: '恋爱币',
         cards: '恋爱卡流水',
         announcements: '更新公告',
+        cycle: '生理期',
         'order-detail': '订单详情'
     }[state.meView] || '空间';
 
@@ -3010,6 +3011,9 @@ function renderMePage() {
     else if (state.meView === 'wallet') renderMeWallet();
     else if (state.meView === 'cards') renderMeCards();
     else if (state.meView === 'announcements') renderMeAnnouncements();
+    else if (state.meView === 'cycle') {
+        if (window.CycleUI) window.CycleUI.onMeView('cycle');
+    }
     else if (state.meView === 'order-detail') renderMeOrderDetail(state.meOrderId);
 }
 

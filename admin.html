@@ -9,18 +9,18 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="管理端">
 <title>管理端 · 恋爱空间</title>
-<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261106-01" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261106-01" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261112-01" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261112-01" as="font" type="font/woff2" crossorigin>
 <style>
     @font-face {
         font-family: 'Ma Shan Zheng';
-        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261106-01') format('woff2');        font-weight: 400;
+        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261112-01') format('woff2');        font-weight: 400;
         font-style: normal;
         font-display: swap;
     }
     @font-face {
         font-family: 'Noto Serif SC';
-        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261106-01') format('woff2');        font-weight: 700;
+        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261112-01') format('woff2');        font-weight: 700;
         font-style: normal;
         font-display: swap;
     }
@@ -85,7 +85,7 @@
         pointer-events: none;
     }
     body.admin-body::before {
-        background: url('assets/texture-noise.png?v=20261106-01') repeat;        opacity: .06;
+        background: url('assets/texture-noise.png?v=20261112-01') repeat;        opacity: .06;
         mix-blend-mode: multiply;
     }
     body.admin-body::after {
@@ -887,6 +887,7 @@
             <button class="side-item" type="button" data-view="system"><b>⋯</b>系统设置</button>
             <button class="side-item" type="button" data-view="menu"><b>✎</b>菜单</button>
             <button class="side-item" type="button" data-view="milestones"><b>忆</b>岁月留痕</button>
+            <button class="side-item" type="button" data-view="cycle"><b>期</b>生理期</button>
             <button class="side-item" type="button" data-view="announcements"><b>告</b>更新公告</button>
             <button class="side-item" type="button" data-view="space"><b>空</b>空间资料</button>
         </nav>
@@ -1001,6 +1002,11 @@
                 <button class="setting-row" type="button" data-view="announcements" style="width:100%; background:none; border:0; text-align:left">
                     <span class="setting-icon">告</span>
                     <span class="setting-main"><b>更新公告</b><small id="system-announcement-count">0 条已发布 · 0 条草稿</small></span>
+                    <span class="admin-muted" style="margin-left:auto">›</span>
+                </button>
+                <button class="setting-row" type="button" data-view="cycle" style="width:100%; background:none; border:0; text-align:left">
+                    <span class="setting-icon">期</span>
+                    <span class="setting-main"><b>生理期</b><small id="system-cycle-count">还没有记录</small></span>
                     <span class="admin-muted" style="margin-left:auto">›</span>
                 </button>
             </div>
@@ -1159,6 +1165,111 @@
                 <div class="section-title"><h2>成员</h2><span>只读</span></div>
                 <div class="settings-group" id="space-members"></div>
                 <button class="admin-btn primary block" id="space-save" type="button" style="margin-top:12px">保存空间资料</button>
+            </div>
+        </section>
+
+        <section class="admin-view" data-panel="cycle" hidden>
+            <div class="view-head">
+                <div>
+                    <p class="eyebrow">系统 · 生理期</p>
+                    <h1>生理期</h1>
+                    <p>她那边只负责记录；这里的配置决定提醒和首页入口的行为。</p>
+                </div>
+            </div>
+
+            <div class="admin-card">
+                <div class="admin-card-head"><b>入口与提醒</b><span>用户端读这里</span></div>
+                <div class="admin-two-col">
+                    <div class="admin-field">
+                        <label for="cycle-threshold">首页细条出现阈值</label>
+                        <select class="admin-select" id="cycle-threshold">
+                            <option value="3">距下次 ≤ 3 天</option>
+                            <option value="5">距下次 ≤ 5 天</option>
+                            <option value="7">距下次 ≤ 7 天</option>
+                            <option value="10">距下次 ≤ 10 天</option>
+                            <option value="14">距下次 ≤ 14 天</option>
+                        </select>
+                    </div>
+                    <div class="admin-field">
+                        <label for="cycle-remind-time">提醒时间</label>
+                        <input class="admin-input" id="cycle-remind-time" type="time" value="09:00">
+                    </div>
+                </div>
+                <div class="admin-two-col" style="margin-top:9px">
+                    <div class="admin-field">
+                        <label for="cycle-remind-before">提前几天提醒</label>
+                        <select class="admin-select" id="cycle-remind-before">
+                            <option value="1,0">提前 1 天 + 当天</option>
+                            <option value="3,1,0">提前 3 / 1 天 + 当天</option>
+                            <option value="0">只在当天</option>
+                        </select>
+                    </div>
+                    <div class="admin-field">
+                        <label for="cycle-overdue">过期后补录提醒</label>
+                        <input class="admin-input" id="cycle-overdue" type="text" placeholder="3,5,7,10">
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-card">
+                <div class="setting-row">
+                    <span class="setting-icon">铃</span>
+                    <span class="setting-main"><b>提醒总开关</b><small>关掉后不发任何生理期推送</small></span>
+                    <button class="admin-switch" id="cycle-remind-enabled" type="button" role="switch" aria-pressed="true" aria-label="生理期提醒"><i></i></button>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-icon">算</span>
+                    <span class="setting-main"><b>算法自动重选</b><small>每次记录后重新回测 27 种组合</small></span>
+                    <button class="admin-switch" id="cycle-auto-tune" type="button" role="switch" aria-pressed="true" aria-label="自动选择算法"><i></i></button>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-icon">卵</span>
+                    <span class="setting-main"><b>显示排卵日 / 排卵期</b><small>日历上的青色标记，默认开启</small></span>
+                    <button class="admin-switch" id="cycle-show-ovulation" type="button" role="switch" aria-pressed="true" aria-label="显示排卵日"><i></i></button>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-icon">导</span>
+                    <span class="setting-main"><b>允许用户端导入</b><small>关闭后「从美柚导入」入口隐藏</small></span>
+                    <button class="admin-switch" id="cycle-allow-import" type="button" role="switch" aria-pressed="true" aria-label="允许导入"><i></i></button>
+                </div>
+            </div>
+
+            <div class="admin-card">
+                <div class="admin-card-head"><b>提醒文案</b><span>与小灶同一套变量</span></div>
+                <div class="admin-field">
+                    <label>即将开始</label>
+                    <input class="admin-input" id="cycle-tpl-before-title" type="text" placeholder="还有 {days} 天">
+                    <textarea class="admin-input" id="cycle-tpl-before-body" rows="2" style="margin-top:6px" placeholder="预计 {range} 开始。&#10;记得的话点一下记录。"></textarea>
+                </div>
+                <div class="admin-field" style="margin-top:9px">
+                    <label>当天</label>
+                    <input class="admin-input" id="cycle-tpl-start-title" type="text" placeholder="预计今天开始">
+                    <textarea class="admin-input" id="cycle-tpl-start-body" rows="2" style="margin-top:6px" placeholder="预计 {range}。&#10;如果已经来了，记一下就好。"></textarea>
+                </div>
+                <div class="admin-field" style="margin-top:9px">
+                    <label>过期后</label>
+                    <input class="admin-input" id="cycle-tpl-overdue-title" type="text" placeholder="已经过了 {overdue} 天">
+                    <textarea class="admin-input" id="cycle-tpl-overdue-body" rows="2" style="margin-top:6px" placeholder="当时预计 {range}。&#10;如果来了，记一下为准。"></textarea>
+                </div>
+                <p class="admin-small admin-muted" style="margin-top:8px">变量：<code>{days}</code> <code>{range}</code> <code>{overdue}</code> <code>{url}</code></p>
+                <button class="admin-btn primary block" id="cycle-save" type="button" style="margin-top:12px">保存生理期设置</button>
+            </div>
+
+            <div class="admin-card">
+                <div class="admin-card-head"><b>数据</b><span>只读</span></div>
+                <div id="cycle-admin-summary"></div>
+                <p class="admin-small admin-muted" style="margin-top:8px">
+                    大厨能改配置，但不能替她记录、也看不到逐日明细——健康数据的写权限只在她手里。
+                </p>
+            </div>
+
+            <div class="admin-card">
+                <div class="admin-card-head"><b>危险操作</b><span>不可恢复</span></div>
+                <p class="admin-small admin-muted">清空全部生理期记录和预测历史。需要在下面的输入框里写「清空」确认。</p>
+                <div class="admin-two-col" style="margin-top:9px">
+                    <div class="admin-field"><input class="admin-input" id="cycle-clear-confirm" type="text" placeholder="输入 清空"></div>
+                    <button class="admin-btn danger" id="cycle-clear" type="button">清空全部记录</button>
+                </div>
             </div>
         </section>
 
@@ -1399,10 +1510,11 @@
 
 <div class="admin-toast" id="message" role="status" aria-live="polite"></div>
 
-<script src="js/oss-config.js?v=20261106-01"></script>
-<script src="js/crypto-utils.js?v=20261106-01"></script>
-<script src="js/oss-utils.js?v=20261106-01"></script>
-<script src="js/store.js?v=20261106-01"></script><script>
+<script src="js/oss-config.js?v=20261112-01"></script>
+<script src="js/crypto-utils.js?v=20261112-01"></script>
+<script src="js/oss-utils.js?v=20261112-01"></script>
+<script src="js/cycle.js?v=20261112-01"></script>
+<script src="js/store.js?v=20261112-01"></script><script>
     const ORDER_LABEL = {
         pending: '待接单',
         accepted: '已接单',
@@ -1671,7 +1783,7 @@
     });
 
     /* ---------- chrome / navigation ---------- */
-    const VIEW_TITLES = { home: '首页', orders: '订单', cards: '恋爱卡', system: '系统', menu: '菜单', milestones: '岁月留痕', space: '空间资料', announcements: '更新公告' };
+    const VIEW_TITLES = { home: '首页', orders: '订单', cards: '恋爱卡', system: '系统', menu: '菜单', milestones: '岁月留痕', space: '空间资料', announcements: '更新公告', cycle: '生理期' };
     function renderChrome() {
         const name = spaceName();
         $('side-space-name').textContent = name;
@@ -1687,7 +1799,7 @@
             image.src = src;
         });
         $('home-name').textContent = adminName();
-        $('admin-back').hidden = !['menu', 'milestones', 'space', 'announcements'].includes(adminView);
+        $('admin-back').hidden = !['menu', 'milestones', 'space', 'announcements', 'cycle'].includes(adminView);
         const pending = ((adminData && adminData.orders) || []).filter(order => order.status === 'pending').length;
         document.querySelectorAll('[data-nav-badge="orders"]').forEach(badge => {
             badge.textContent = pending;
@@ -1713,11 +1825,11 @@
     }
 
     function switchView(view, options = {}) {
-        if (!['home', 'orders', 'cards', 'system', 'menu', 'milestones', 'space', 'announcements'].includes(view)) return;
+        if (!['home', 'orders', 'cards', 'system', 'menu', 'milestones', 'space', 'announcements', 'cycle'].includes(view)) return;
         if (view === 'cards' && options.segment) cardsSegment = options.segment;
         adminView = view;
         adminTab = ['home', 'orders', 'cards', 'system'].includes(view) ? view : 'system';
-        document.body.classList.toggle('admin-subpage', ['menu', 'milestones', 'space', 'announcements'].includes(view));
+        document.body.classList.toggle('admin-subpage', ['menu', 'milestones', 'space', 'announcements', 'cycle'].includes(view));
         if (view === 'home') renderHome();
         if (view === 'orders') renderOrders();
         if (view === 'cards') { renderCoupons(); renderWallet(); }
@@ -1725,6 +1837,7 @@
         if (view === 'menu') renderMenu();
         if (view === 'milestones') renderMilestones();
         if (view === 'space') renderSpace();
+        if (view === 'cycle') renderCycle();
         if (view === 'announcements') {
             renderAnnouncements();
             if (adminData && !Array.isArray(adminData.announcements)) refreshAdminAnnouncements();
@@ -1820,6 +1933,7 @@
         renderSpace();
         renderSettings();
         renderAnnouncements();
+        renderCycle();
     }
 
     async function refreshAdminOrders() {
@@ -3374,6 +3488,140 @@
         button.setAttribute('aria-pressed', value ? 'true' : 'false');
     }
 
+    /* ---------- 生理期 ---------- */
+
+    function cycleAdmin() {
+        return (adminData && adminData.cycle) || null;
+    }
+
+    function renderCycle() {
+        const cycle = cycleAdmin();
+        const settings = cycle ? cycle.settings : normalizeCycleSettings(null);
+        const countEl = $('system-cycle-count');
+        if (countEl) {
+            const items = cycle ? cycle.items.length : 0;
+            const prediction = cycle && cycle.prediction;
+            const next = prediction && prediction.status === 'ok'
+                ? ` · 预计 ${cycleFmtShort(prediction.range[0])}`
+                : '';
+            countEl.textContent = items ? `${items} 次记录${next}` : '还没有记录';
+        }
+        if (!$('cycle-threshold')) return;
+
+        $('cycle-threshold').value = String(settings.homeStripThresholdDays);
+        $('cycle-remind-time').value = settings.remindTime;
+        $('cycle-remind-before').value = settings.remindDaysBefore.join(',');
+        $('cycle-overdue').value = settings.overdueRemindDays.join(',');
+        setSwitch($('cycle-remind-enabled'), settings.remindEnabled);
+        setSwitch($('cycle-auto-tune'), settings.autoTune);
+        setSwitch($('cycle-show-ovulation'), settings.showOvulation);
+        setSwitch($('cycle-allow-import'), settings.allowUserImport);
+
+        $('cycle-tpl-before-title').value = settings.templates.before.title;
+        $('cycle-tpl-before-body').value = settings.templates.before.body;
+        $('cycle-tpl-start-title').value = settings.templates.start.title;
+        $('cycle-tpl-start-body').value = settings.templates.start.body;
+        $('cycle-tpl-overdue-title').value = settings.templates.overdue.title;
+        $('cycle-tpl-overdue-body').value = settings.templates.overdue.body;
+
+        const summary = $('cycle-admin-summary');
+        if (!summary) return;
+        if (!cycle || !cycle.items.length) {
+            summary.innerHTML = '<p class="admin-small admin-muted">还没有任何记录。她在用户端记录后，这里会显示条数和上次推送状态。</p>';
+            return;
+        }
+        const prediction = cycle.prediction || {};
+        const last = cycle.items[cycle.items.length - 1];
+        const imported = cycle.items.filter(item => item.source === 'import').length;
+        const backtest = prediction.backtest || {};
+        const lastPush = settings.lastPush || {};
+        summary.innerHTML = `
+            <div class="settings-group">
+                <div class="setting-row"><span class="setting-main"><b>记录条数</b><small>其中 ${imported} 条来自导入</small></span><span class="admin-muted" style="margin-left:auto">${cycle.items.length} 次</span></div>
+                <div class="setting-row"><span class="setting-main"><b>最近一次</b><small>${last.end ? '已结束' : '进行中'}</small></span><span class="admin-muted" style="margin-left:auto">${esc(cycleFmtShort(last.start))}</span></div>
+                <div class="setting-row"><span class="setting-main"><b>下一次预测</b><small>${prediction.status === 'ok' ? `${cycleFmtAgree(prediction.confidence)} 置信度` : '数据还不够'}</small></span><span class="admin-muted" style="margin-left:auto">${prediction.status === 'ok' ? `${esc(cycleFmtShort(prediction.range[0]))} – ${esc(cycleFmtShort(prediction.range[1]))}` : '—'}</span></div>
+                <div class="setting-row"><span class="setting-main"><b>回测</b><small>${backtest.total ? `平均偏差 ${backtest.mae} 天` : '样本不足'}</small></span><span class="admin-muted" style="margin-left:auto">${backtest.total ? `${backtest.hit}/${backtest.total} 落在区间内` : '—'}</span></div>
+                <div class="setting-row"><span class="setting-main"><b>上次推送</b><small>${lastPush.kind || '无记录'}</small></span><span class="admin-muted" style="margin-left:auto">${lastPush.ok === true ? '已送达' : lastPush.ok === false ? '失败' : '—'}</span></div>
+            </div>`;
+    }
+
+    async function saveCycleAdminSettings() {
+        if (!adminData) return;
+        const daysBefore = $('cycle-remind-before').value.split(',').map(Number).filter(Number.isFinite);
+        const overdue = $('cycle-overdue').value.split(/[,，\s]+/).map(Number).filter(n => Number.isFinite(n) && n > 0);
+        const patch = {
+            homeStripThresholdDays: Number($('cycle-threshold').value) || 7,
+            remindEnabled: $('cycle-remind-enabled').getAttribute('aria-pressed') === 'true',
+            remindTime: $('cycle-remind-time').value || '09:00',
+            remindDaysBefore: daysBefore.length ? daysBefore : [0],
+            overdueRemindDays: overdue.length ? overdue : [3, 5, 7, 10],
+            autoTune: $('cycle-auto-tune').getAttribute('aria-pressed') === 'true',
+            showOvulation: $('cycle-show-ovulation').getAttribute('aria-pressed') === 'true',
+            allowUserImport: $('cycle-allow-import').getAttribute('aria-pressed') === 'true',
+            templates: {
+                before: {
+                    title: $('cycle-tpl-before-title').value,
+                    body: $('cycle-tpl-before-body').value
+                },
+                start: {
+                    title: $('cycle-tpl-start-title').value,
+                    body: $('cycle-tpl-start-body').value
+                },
+                overdue: {
+                    title: $('cycle-tpl-overdue-title').value,
+                    body: $('cycle-tpl-overdue-body').value
+                }
+            }
+        };
+        try {
+            const saved = await saveCycleSettings(patch);
+            adminData.cycle = { ...saved, settings: saved.settings, items: saved.items, prediction: saved.prediction };
+            renderCycle();
+            showMessage('生理期设置已保存');
+        } catch (error) {
+            showMessage(error.message || '保存失败', 'error');
+        }
+    }
+
+    async function clearCycleAdmin() {
+        if (!adminData) return;
+        if ($('cycle-clear-confirm').value.trim() !== '清空') {
+            showMessage('先输入「清空」两个字', 'error');
+            return;
+        }
+        const ok = await adminConfirm({
+            title: '清空全部生理期记录？',
+            message: '会删除所有经期记录和预测历史，不能恢复。',
+            okText: '清空',
+            danger: true
+        });
+        if (!ok) return;
+        try {
+            const cycle = cycleAdmin();
+            const saved = await saveCycle([], cycle ? cycle.settings : null, null);
+            adminData.cycle = { ...saved, settings: saved.settings || (cycle && cycle.settings), items: [], prediction: null };
+            $('cycle-clear-confirm').value = '';
+            renderCycle();
+            showMessage('已清空');
+        } catch (error) {
+            showMessage(error.message || '清空失败', 'error');
+        }
+    }
+
+    function bindCycleAdmin() {
+        const save = $('cycle-save');
+        if (save) save.addEventListener('click', saveCycleAdminSettings);
+        const clear = $('cycle-clear');
+        if (clear) clear.addEventListener('click', clearCycleAdmin);
+        ['cycle-remind-enabled', 'cycle-auto-tune', 'cycle-show-ovulation', 'cycle-allow-import'].forEach(id => {
+            const button = $(id);
+            if (!button) return;
+            button.addEventListener('click', () => {
+                setSwitch(button, button.getAttribute('aria-pressed') !== 'true');
+            });
+        });
+    }
+
     function renderSettings() {
         if (!adminData) return;
         const settings = (adminData.space && adminData.space.settings) || {};
@@ -3871,6 +4119,8 @@
         field.addEventListener('focus', () => { lastBarkField = id; });
         field.addEventListener('input', renderBarkTemplatePreview);
     });
+
+    bindCycleAdmin();
 
     document.addEventListener('visibilitychange', () => {
         if (isLoggedIn && document.visibilityState === 'visible') refreshAdminOrders();

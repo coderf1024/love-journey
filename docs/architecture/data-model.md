@@ -7,6 +7,9 @@
 ```text
 love-journey/db/
   space.json
+  cycle/
+    periods.json             # 经期记录 + 顶部 prediction 缓存
+    settings.json            # 管理端配置：阈值 / 提醒 / 模板 / 开关
   content/
     story.json
     milestones.json
@@ -29,6 +32,68 @@ love-journey/db/
 ```
 
 集合是「一份记录一个文档 + 一个 index 读模型」。索引不是事实来源，丢失时可由 `dbCollection.rebuild()` 重建。
+
+## cycle/periods.json · cycle/settings.json
+
+```jsonc
+// cycle/periods.json
+{
+  "version": 1,
+  "updatedAt": "2026-11-11 09:00:00",
+  "items": [{
+    "id": "pd_20261111",
+    "start": "2026-11-11",
+    "end": "2026-11-15",       // 可空 = 还没结束
+    "flow": "light|normal|heavy",   // 可空
+    "symptoms": ["腹痛"],            // 可空
+    "mood": "low|normal|good",       // 可空
+    "source": "app|import",
+    "uncertain": false,
+    "note": "",
+    "createdAt": "…", "updatedAt": "…"
+  }],
+  "prediction": {
+    "status": "ok",                   // 或 none
+    "reason": "no-data|few-samples|stale",
+    "asOf": "2026-11-11",
+    "center": "2026-12-10",
+    "range": ["2026-12-09", "2026-12-11"],   // 固定 3 天
+    "cycleLength": 29, "sampleSize": 6, "mad": 1, "average": 30,
+    "confidence": "high|mid|low|none",
+    "algorithm": { "center": "wmedian", "lambda": 0.85, "window": 6 },
+    "backtest": { "hit": 9, "total": 11, "mae": 1.7, "runs": [] },
+    "overdueDays": 0,
+    "dataVersion": "2026-11-11 09:00:02"
+  }
+}
+```
+
+- 整份读写，不走 `dbCollection`：一次经期一条记录，几年也就 60–100 条。
+- `prediction` 是缓存。**只在写成功后重算**（`writeCycleRecords`）；读取永远用缓存，所以预测日过了也不会自动改数字，`overdueDays` 只是让它换个说法。
+- `dataVersion` 是生成时的 `updatedAt` 快照，用于发现「有人绕过 store 改了数据」。
+
+```jsonc
+// cycle/settings.json —— 管理端写，用户端只读
+{
+  "enabled": true,
+  "homeStripThresholdDays": 7,
+  "remindEnabled": true,
+  "remindDaysBefore": [1, 0],
+  "remindTime": "09:00",
+  "overdueRemindDays": [3, 5, 7, 10],
+  "templates": { "before": { "title": "", "subtitle": "", "body": "", "url": "{url}" },
+                 "start":  { ... }, "overdue": { ... } },
+  "autoTune": true,
+  "algorithmOverride": null,
+  "showOvulation": true,
+  "allowUserImport": true,
+  "lastPush": { "date": "", "kind": "", "ok": null }
+}
+```
+
+- 用户端不写这个文档；管理端「系统 → 生理期」是唯一入口。
+- `overdueRemindDays` 固定 4 次，之后停；期间一旦记录，剩余提醒作废。
+- `lastPush` 预留给提醒 Worker（**尚未实现**）：Worker 只读两个文档、只写这一处，绝不写 `periods.json`。
 
 ## cities.json
 

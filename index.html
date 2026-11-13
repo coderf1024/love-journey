@@ -15,9 +15,9 @@
     <link rel="apple-touch-icon" href="assets/icon-180.png">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="preconnect" href="https://love-config.oss-cn-beijing.aliyuncs.com" crossorigin>
-    <link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261106-01" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261106-01" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/style.css?v=20261106-01">
+    <link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261112-01" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261112-01" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="css/style.css?v=20261112-01">
 </head>
 <body>
     <header class="app-header" id="app-header">
@@ -76,6 +76,21 @@
                     el.textContent = Math.max(0, Math.floor((Date.now() - start.getTime()) / 86400000));
                 })();
             </script>
+
+            <div class="cycle-push-warning" id="cycle-push-warning" hidden>
+                <b>上次的提醒没发出去。</b>
+                <span id="cycle-push-warning-text">今天该记的话，现在补一下</span>
+                <button type="button" class="cycle-push-warning-action" id="cycle-push-warning-action">去记录</button>
+            </div>
+
+            <button class="cycle-strip" id="cycle-strip" type="button" hidden aria-labelledby="cycle-strip-title">
+                <span class="cycle-mark" id="cycle-strip-mark" aria-hidden="true">—</span>
+                <span class="cycle-strip-text">
+                    <b id="cycle-strip-title">—</b>
+                    <small id="cycle-strip-sub"></small>
+                </span>
+                <span class="cycle-strip-btn" id="cycle-strip-cta">记录</span>
+            </button>
 
             <button class="dinner-card" id="dinner-card" type="button" aria-labelledby="dinner-title">
                 <span class="dinner-body">
@@ -233,6 +248,15 @@
                         <span class="me-menu-icon" aria-hidden="true">币</span>
                         <span class="me-menu-text"><b>恋爱币</b><small id="me-menu-wallet-sub">最多可欠 50 币</small></span>
                         <span class="me-menu-value" id="me-menu-balance">0 币</span>
+                        <span class="me-menu-chev" aria-hidden="true">›</span>
+                    </button>
+                </div>
+
+                <div class="me-menu-group">
+                    <button class="me-menu-row" type="button" data-me-view="cycle" id="me-menu-cycle">
+                        <span class="me-menu-icon is-cycle" aria-hidden="true">期</span>
+                        <span class="me-menu-text"><b>生理期</b><small id="me-menu-cycle-sub">还没开始记录</small></span>
+                        <span class="me-menu-value" id="me-menu-cycle-value"></span>
                         <span class="me-menu-chev" aria-hidden="true">›</span>
                     </button>
                 </div>
@@ -489,7 +513,47 @@
         </div>
     </div>
 
-    <div class="dialog" id="confirm-dialog" aria-hidden="true">
+    <div class="sheet" id="cycle-record-sheet" aria-hidden="true">
+        <div class="sheet-backdrop" data-close></div>
+        <div class="sheet-panel sheet-panel-cycle" role="dialog" aria-modal="true" aria-label="记录生理期">
+            <button class="sheet-close" type="button" data-close aria-label="关闭">✕</button>
+            <div class="sheet-scroll">
+                <div class="cycle-sheet-handle" aria-hidden="true"></div>
+                <div id="cycle-record-body"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sheet" id="cycle-day-sheet" aria-hidden="true">
+        <div class="sheet-backdrop" data-close></div>
+        <div class="sheet-panel sheet-panel-cycle" role="dialog" aria-modal="true" aria-label="这一天">
+            <button class="sheet-close" type="button" data-close aria-label="关闭">✕</button>
+            <div class="sheet-scroll">
+                <div class="cycle-sheet-handle" aria-hidden="true"></div>
+                <div id="cycle-day-body"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sheet" id="cycle-import-sheet" aria-hidden="true">
+        <div class="sheet-backdrop" data-close></div>
+        <div class="sheet-panel sheet-panel-cycle sheet-panel-tall" role="dialog" aria-modal="true" aria-label="从美柚导入">
+            <button class="sheet-close" type="button" data-close aria-label="关闭">✕</button>
+            <div class="sheet-scroll">
+                <div class="cycle-sheet-handle" aria-hidden="true"></div>
+                <div id="cycle-import-body"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dialog" id="cycle-saved-dialog" aria-hidden="true">
+        <div class="dialog-backdrop" data-cycle-saved="close"></div>
+        <div class="dialog-panel dialog-panel-cycle" role="dialog" aria-modal="true" aria-label="记录结果">
+            <div id="cycle-saved-body"></div>
+        </div>
+    </div>
+
+    <div class="dialog" id="confirm-dialog" aria-hidden="true">    <div class="dialog" id="confirm-dialog" aria-hidden="true">
         <div class="dialog-backdrop" data-confirm="cancel"></div>
         <div class="dialog-panel" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
             <h2 id="confirm-title">确认</h2>
@@ -514,10 +578,13 @@
 
     <audio id="bg-music" loop playsinline preload="none"></audio>
 
-    <script src="js/oss-config.js?v=20261106-01"></script>
-    <script src="js/crypto-utils.js?v=20261106-01"></script>
-    <script src="js/oss-utils.js?v=20261106-01"></script>
-    <script src="js/store.js?v=20261106-01"></script>
-    <script src="js/app.js?v=20261106-01"></script>
+    <script src="js/oss-config.js?v=20261112-01"></script>
+    <script src="js/crypto-utils.js?v=20261112-01"></script>
+    <script src="js/oss-utils.js?v=20261112-01"></script>
+    <script src="js/cycle.js?v=20261112-01"></script>
+    <script src="js/cycle-import.js?v=20261112-01"></script>
+    <script src="js/store.js?v=20261112-01"></script>
+    <script src="js/app.js?v=20261112-01"></script>
+    <script src="js/cycle-ui.js?v=20261112-01"></script>
 </body>
 </html>

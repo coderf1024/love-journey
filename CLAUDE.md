@@ -218,6 +218,29 @@ The passcode gate opens a 管理端 shell: mobile bottom tabs 首页 / 订单 / 
 - **Bark** — settings live in `space.settings.bark` as `{ enabled, userKey, adminKey, events, templates, server }` plus `space.settings.links` (`{ user, admin }`), all edited in 系统, with a test button per key. The user key receives 接单 / 开始制作 / 出餐; the admin key receives 新单 / 菜品申请 / 用户取消 / 催一催. Each trigger has an `events` flag (default true) and an editable template with `title` / `subtitle` / `body` / `url`; defaults live in `BARK_TEMPLATE_DEFAULTS` in `js/store.js`. Defaults use two voices: admin events (`newOrder` / `dishRequest` / `userCancel` / `nudge`) are system notifications (event title, who/what/how much, no emoji, no order id); user events (`accepted` / `cooking` / `served`) are written as the chef speaking to the user (first person 我, no amounts or status enums). `noteBlock` / `reasonBlock` carry their own leading newline so empty notes/reasons disappear entirely. The served push attaches the first `servedImage` as Bark's `image`; every push uses `space.avatar` as Bark's `icon` (omitted when unset or SVG). Templates use `{variable}` substitution (`orderId`, `slot`, `slotKey`, `items`, `total`, `note`, `status`, `refund`, `reason`, `minutes`, `userUrl`, `userOrderUrl`, `adminUrl`, …); the default user-side click URL is `{userOrderUrl}`, which resolves to the 小灶 order page with `?slot=<slotKey>#order`. the editor modal shows a sample-data preview and only sends a test after a confirmation dialog. `sendBark()` in `js/store.js` uses the documented `POST /push` JSON payload (`device_key`, `group`, `isArchive`, `title`, `subtitle`, `body`, `url`, `icon`, `image`); the click URL comes from the rendered template URL, with `settings.links`/current-origin fallback. There is deliberately no in-app notification center and no cron; pushes happen only when the acting page is open. `催一催` is `space.settings.nudgeEnabled`, default false and saved with the notification settings; when false the user UI hides the button and `nudgeOrder()` rejects.
 - **Coupon delete is a hard delete** — the bucket's browser CORS rule allows `GET/POST/PUT` but not `DELETE`, so `dbDelete()` uses `ossClient.deleteMulti([key])` (OSS `POST ?delete`) instead of `ossClient.delete()`. This keeps hard deletes working from the browser; do not switch `dbDelete()` back to `delete()` without adding DELETE to the bucket CORS.
 
+## 生理期 (cycle)
+
+A second bounded document pair under `cycle/`, layered so the maths can move into a Worker later:
+
+| File | Job |
+|---|---|
+| `js/cycle.js` | Pure maths: cycle lengths, weighted median, walk-forward backtest, algorithm sweep (27 combinations), month grid, ovulation. No DOM, no storage. |
+| `js/cycle-import.js` | CSV parsing, lazy SheetJS for `.xlsx`, header guessing, two layouts (one row per period / one row per day). |
+| `js/cycle-ui.js` | Home strip, 空间 sub-page (日历 / 预测 / 记录), record + day + import sheets, saved dialog. |
+| `js/store.js` (`cycle` section) | `cycle/periods.json` (records + cached `prediction`) and `cycle/settings.json` (admin-owned config), read and written whole. |
+
+Rules worth keeping:
+
+- **The prediction is only recalculated after a successful write** (`writeCycleRecords`). Reads always use the cache, which carries `asOf` and `dataVersion`. Passing the predicted day does **not** trigger a recompute — we cannot tell "the forecast was wrong" from "she did not log it", so an overdue forecast is shown as-is and the card only changes colour and copy.
+- The window is **always 3 days** (`center ± 1`). Never widen it because a cycle is irregular; show a low confidence and say so instead.
+- Ovulation day = next expected start − 14 days; ovulation window = −5…+1 days. Drawn in teal, deliberately distinct from the period pink. It is a derived guess, so the day sheet says so and the admin can turn it off (`showOvulation`).
+- The home strip only renders when a period is running or the next one is within `homeStripThresholdDays` (default 7); otherwise it stays `hidden`. It is not a bottom tab.
+- `markCycleDay` merges a single tapped day into its neighbours: inside an existing run → no-op, adjacent to one end → extend it, bridging two runs → join them, isolated → a new single-day record.
+- Imports never take a "predicted" column; only what actually happened. Dedupe is by start date.
+- Admin owns every setting (threshold, reminder time/window, templates, auto-tune, ovulation toggle, import toggle, clear-all). The user side has **no switches**; the admin also cannot record for her or see day-level detail.
+- Clearing needs the literal text 清空 plus a confirmation dialog.
+- The reminder Worker lives in `scripts/cycle-reminder-worker/` (single file, `wrangler.toml`, and a README with both the dashboard-paste and `wrangler deploy` flows). It runs `0 1 * * *` UTC = 09:00 Asia/Shanghai, reads `periods.json` + `settings.json` + `space.json` anonymously, and **only ever writes `settings.lastPush`** — it never recalculates the prediction and never touches `periods.json`. `decide()` is exported and pure so it can be tested with plain Node. Deployment is manual; see the folder README.
+
 ## Assets
 
 - `assets/fonts/*.woff2` — subsets of Ma Shan Zheng + Noto Serif SC Bold generated from the current copy and the live OSS documents, scoped to the characters each face actually renders: `--font-cute` gets the short decorative strings (`scripts/font-cute-chars.txt` + space/story/coupon/member names), `--font-display` gets title-like content (milestone/goal/city/dish/coupon titles), UI copy, digits and punctuation. Long-form descriptions stay in the body sans font and are deliberately excluded. No Google Fonts (blocked/slow in China). Run `./scripts/build-fonts.sh` after copy/content edits; unseen characters fall back to Songti SC. `scripts/font-extra-chars.txt` is retired and no longer read by the build.

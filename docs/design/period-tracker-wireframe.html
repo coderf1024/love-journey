@@ -1,0 +1,2289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>生理期 · 原型 v2</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+        --paper: #fbf6ec;
+        --paper-soft: #fffdf8;
+        --ink: #2b2231;
+        --ink-2: #453a4b;
+        --muted: #72656f;
+        --stamp: #df5f7e;
+        --stamp-deep: #c44766;
+        --route: #2f9b98;
+        --petal: #ffd9e2;
+        --mint: #ddf1e8;
+        --lemon: #f6d478;
+        --line: rgba(43, 34, 49, .10);
+        --line-strong: rgba(43, 34, 49, .20);
+        --radius: 18px;
+        --radius-s: 12px;
+        --radius-l: 26px;
+        --serif: 'Noto Serif SC', 'Songti SC', 'STSong', serif;
+        --sans: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    }
+    body {
+        font-family: var(--sans);
+        color: var(--ink);
+        background: #e9e7e3;
+        padding: 36px 26px 80px;
+        -webkit-font-smoothing: antialiased;
+    }
+    .page-head { max-width: 1380px; margin: 0 auto 34px; }
+    .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .2em; color: #8a7b78; }
+    .page-head h1 { margin-top: 6px; font-size: 30px; letter-spacing: .01em; }
+    .page-head p { max-width: 820px; margin-top: 12px; color: #625c59; font-size: 14px; line-height: 1.8; }
+    .page-head p + p { margin-top: 8px; }
+    .legend { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 18px; color: #777; font-size: 11px; }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .dot { width: 8px; height: 8px; border-radius: 999px; display: inline-block; }
+    .dot.solid { background: var(--stamp); }
+    .dot.dash { border: 1px dashed #999; }
+
+    .scope {
+        max-width: 1380px;
+        margin: 0 auto 40px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 12px;
+    }
+    .scope div {
+        padding: 14px 16px;
+        background: var(--paper-soft);
+        border: 1px solid #ddd8d1;
+        border-radius: 14px;
+        font-size: 12px;
+        line-height: 1.75;
+        color: #5b5450;
+    }
+    .scope b { display: block; margin-bottom: 4px; color: var(--ink); font-size: 12px; }
+    .scope .tag { display: inline-block; margin-right: 4px; padding: 1px 6px; border-radius: 6px; font-size: 10px; font-weight: 700; }
+    .scope .tag.p0 { background: var(--petal); color: var(--stamp-deep); }
+    .scope .tag.p2 { background: #ece9e3; color: #8b847e; }
+
+    .group { max-width: 1380px; margin: 0 auto 46px; }
+    .group > h3 {
+        display: flex; align-items: baseline; gap: 10px;
+        margin-bottom: 18px; padding-bottom: 10px;
+        border-bottom: 1px solid #d8d3cc;
+        font-size: 15px; letter-spacing: .02em;
+    }
+    .group > h3 span { color: #a8a09a; font-size: 11px; font-weight: 600; letter-spacing: .12em; }
+
+    .frames { display: flex; flex-wrap: wrap; gap: 34px 28px; align-items: flex-start; }
+    .frame-wrap { width: 300px; }
+    .frame-wrap > h2 { font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+    .frame-wrap > h2 em {
+        margin-left: 5px; color: var(--stamp-deep); font-style: normal;
+        font-size: 10px; font-weight: 700; letter-spacing: .1em;
+    }
+    .frame-wrap > .note {
+        margin-top: 12px; color: #726b66; font-size: 11px; line-height: 1.75;
+    }
+    .frame-wrap > .note b { color: var(--ink-2); }
+
+    /* ---------- phone ---------- */
+    .phone {
+        position: relative;
+        width: 300px; height: 620px;
+        display: flex; flex-direction: column;
+        overflow: hidden;
+        background: var(--paper);
+        border: 2px solid #2a2a2a;
+        border-radius: 28px;
+        box-shadow: 0 18px 34px -24px rgba(0,0,0,.45);
+    }
+    .phone.wide { width: 300px; }
+    .statusbar {
+        flex: 0 0 auto; display: flex; justify-content: space-between;
+        padding: 9px 18px 4px; color: #9a918a; font-size: 9px; letter-spacing: .08em;
+    }
+    .screen {
+        flex: 1; min-height: 0;
+        display: flex; flex-direction: column; gap: 10px;
+        padding: 8px 16px 12px;
+        overflow: hidden;
+    }
+    .screen.scroll { overflow-y: auto; }
+    /* scrolling screens: children keep their natural height instead of being
+       squeezed by the flex column (otherwise the big card collapses) */
+    .screen.scroll > * { flex: 0 0 auto; }
+    .screen.dimmed { opacity: .34; }
+
+    /* app chrome inside phone */
+    .ph-head { display: flex; align-items: center; gap: 8px; padding: 2px 0 4px; }
+    .ph-back {
+        width: 26px; height: 26px; flex: 0 0 26px;
+        display: grid; place-items: center;
+        border: 1px solid var(--line-strong); border-radius: 999px;
+        font-size: 15px; line-height: 1; color: var(--muted);
+    }
+    .ph-head strong { font-size: 15px; font-family: var(--serif); font-weight: 700; }
+    .ph-head .ph-more { margin-left: auto; color: #a8a09a; font-size: 16px; }
+
+    .ph-eyebrow { font-size: 9px; font-weight: 700; letter-spacing: .18em; color: #a59a93; }
+    .ph-title { font-family: var(--serif); font-size: 21px; font-weight: 700; line-height: 1.2; }
+    .ph-sub { color: var(--muted); font-size: 10.5px; line-height: 1.65; }
+
+    .tabbar {
+        flex: 0 0 auto;
+        display: grid; grid-template-columns: repeat(4, 1fr);
+        padding: 7px 4px 9px;
+        border-top: 1px solid var(--line);
+        background: rgba(255,253,248,.92);
+    }
+    .tabbar span {
+        display: grid; justify-items: center; gap: 3px;
+        color: #a09a94; font-size: 9px;
+    }
+    .tabbar span::before {
+        content: ''; width: 17px; height: 17px;
+        border: 1.5px solid #c6bfb8; border-radius: 6px;
+    }
+    .tabbar span.active { color: var(--stamp-deep); font-weight: 700; }
+    .tabbar span.active::before { border-color: var(--stamp); background: var(--petal); }
+
+    /* ---------- home cards ---------- */
+    .timer-mini {
+        position: relative; overflow: hidden;
+        padding: 12px 14px;
+        color: var(--paper-soft);
+        background:
+            radial-gradient(120% 100% at 100% 0%, rgba(223,95,126,.34), transparent 56%),
+            linear-gradient(148deg, #372a3c 0%, #241b2a 72%);
+        border-radius: var(--radius);
+    }
+    .timer-mini .tm-label { font-size: 9px; letter-spacing: .12em; color: rgba(255,253,248,.62); }
+    .timer-mini .tm-main { margin-top: 2px; font-family: var(--serif); font-size: 26px; font-weight: 700; line-height: 1.1; }
+    .timer-mini .tm-main small { margin-left: 4px; font-size: 11px; font-weight: 400; opacity: .7; }
+
+    .dinner-mini {
+        display: flex; align-items: center; gap: 10px;
+        padding: 11px 13px;
+        background: linear-gradient(135deg, rgba(255,253,248,.98), rgba(255,239,243,.92));
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+    }
+    .dinner-mini b { font-size: 12px; font-family: var(--serif); }
+    .dinner-mini small { display: block; margin-top: 1px; color: var(--muted); font-size: 9.5px; }
+    .dinner-mini .dm-cta { margin-left: auto; color: var(--stamp-deep); font-size: 10px; font-weight: 700; }
+
+    /* ---------- the cycle strip (home entry, option A) ---------- */
+    .cycle-strip {
+        position: relative;
+        display: flex; align-items: center; gap: 11px;
+        padding: 11px 12px;
+        background: var(--paper-soft);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: 0 10px 22px -20px rgba(77,48,61,.6);
+    }
+    .cycle-strip::before {
+        content: ''; position: absolute; left: 0; top: 14px; bottom: 14px;
+        width: 3px; border-radius: 3px; background: var(--stamp);
+    }
+    .cycle-strip.is-live { background: linear-gradient(135deg, #fff6f8, #fff0f3); border-color: rgba(223,95,126,.28); }
+    .cycle-strip.is-live::before { background: var(--stamp-deep); }
+    .cycle-strip.is-thin { padding: 9px 12px; }
+    .cs-mark {
+        width: 34px; height: 34px; flex: 0 0 34px;
+        display: grid; place-items: center;
+        border-radius: 999px;
+        background: var(--petal);
+        color: var(--stamp-deep);
+        font-family: var(--serif); font-size: 15px; font-weight: 700; line-height: 1;
+        text-align: center;
+    }
+    .cs-mark small { display: block; font-family: var(--sans); font-size: 7px; font-weight: 600; letter-spacing: .06em; }
+    .cs-text { min-width: 0; }
+    .cs-text b { display: block; font-family: var(--serif); font-size: 14px; }
+    .cs-text small { display: block; margin-top: 2px; color: var(--muted); font-size: 9.5px; line-height: 1.5; }
+    .cs-btn {
+        margin-left: auto; flex: 0 0 auto;
+        padding: 6px 11px;
+        font-family: var(--sans); font-size: 10px; font-weight: 700;
+        color: #fff; background: var(--stamp);
+        border: 0; border-radius: 999px;
+    }
+    .cs-btn.ghost { color: var(--stamp-deep); background: transparent; border: 1px solid rgba(223,95,126,.5); }
+
+    /* home section header */
+    .ph-section { margin-top: 2px; }
+    .ph-section-head { display: flex; align-items: baseline; gap: 7px; }
+    .ph-section-index { font-size: 9px; font-weight: 700; color: var(--stamp); letter-spacing: .1em; }
+    .ph-section-title { font-family: var(--serif); font-size: 14px; font-weight: 700; }
+    .ph-section-more { margin-left: auto; color: var(--muted); font-size: 9.5px; }
+
+    .milestone-row { display: flex; gap: 7px; }
+    .milestone-block {
+        flex: 1; height: 52px; border-radius: 10px;
+        background: linear-gradient(140deg, #f3e3e8, #e6dfe9);
+        border: 1px solid rgba(43,34,49,.06);
+    }
+    .milestone-block:nth-child(2) { background: linear-gradient(140deg, #e0efe9, #d9e6ef); }
+    .milestone-block:nth-child(3) { background: linear-gradient(140deg, #f6ecd5, #f0e2d4); }
+
+    /* ---------- me menu row ---------- */
+    .me-group { overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: var(--paper-soft); }
+    .me-row { display: flex; align-items: center; gap: 9px; padding: 12px 11px; border-bottom: 1px solid var(--line); }
+    .me-row:last-child { border-bottom: 0; }
+    .me-ico {
+        width: 26px; height: 26px; flex: 0 0 26px;
+        display: grid; place-items: center;
+        border-radius: 8px; background: var(--petal);
+        color: var(--stamp-deep); font-size: 11px; font-weight: 700;
+    }
+    .me-txt { display: flex; flex-direction: column; gap: 1px; }
+    .me-txt b { font-size: 12px; font-weight: 600; }
+    .me-txt small { color: #948c86; font-size: 9px; }
+    .me-val { margin-left: auto; color: var(--muted); font-size: 10px; font-weight: 600; white-space: nowrap; }
+    .me-chev { margin-left: 3px; color: #b8b0aa; font-size: 15px; line-height: 1; }
+
+    /* ---------- big status card ---------- */
+    .big-card {
+        position: relative; overflow: hidden;
+        padding: 18px 16px 15px;
+        color: var(--paper-soft);
+        background:
+            radial-gradient(120% 100% at 100% 0%, rgba(223,95,126,.36), transparent 56%),
+            linear-gradient(148deg, #372a3c 0%, #241b2a 72%);
+        border-radius: var(--radius-l);
+        box-shadow: 0 24px 50px -30px rgba(43,34,49,.8);
+    }
+    .big-card::after {
+        content: '☾';
+        position: absolute; top: -22px; right: 10px;
+        font-size: 92px; line-height: 1; color: rgba(255,253,248,.06);
+    }
+    .bc-label { position: relative; font-size: 9px; letter-spacing: .16em; color: rgba(255,253,248,.6); }
+    .bc-main { position: relative; margin-top: 4px; font-family: var(--serif); line-height: 1; }
+    .bc-main b { font-size: 46px; }
+    .bc-main span { margin-left: 5px; font-size: 13px; font-weight: 400; opacity: .72; }
+    .bc-range { position: relative; margin-top: 7px; font-size: 11px; color: rgba(255,253,248,.9); }
+    .bc-meta { position: relative; margin-top: 3px; font-size: 9px; color: rgba(255,253,248,.55); }
+    .bc-track { position: relative; margin-top: 14px; height: 4px; border-radius: 4px; background: rgba(255,253,248,.16); overflow: hidden; }
+    .bc-track i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; background: linear-gradient(90deg, rgba(223,95,126,.5), var(--stamp)); }
+    .bc-track b { position: absolute; top: -2px; width: 8px; height: 8px; margin-left: -4px; border-radius: 999px; background: var(--paper-soft); box-shadow: 0 0 0 2px rgba(223,95,126,.5); }
+    .bc-scale { position: relative; display: flex; justify-content: space-between; margin-top: 5px; font-size: 8px; color: rgba(255,253,248,.45); }
+
+    /* ---------- buttons ---------- */
+    .btn-primary {
+        display: flex; align-items: center; justify-content: center; gap: 6px;
+        width: 100%; padding: 12px;
+        font-family: var(--sans); font-size: 12.5px; font-weight: 700;
+        color: #fff; background: var(--stamp);
+        border: 0; border-radius: 14px;
+        box-shadow: 0 14px 26px -18px rgba(196,71,102,.85);
+    }
+    .btn-ghost {
+        display: flex; align-items: center; justify-content: center;
+        width: 100%; padding: 10px;
+        font-family: var(--sans); font-size: 11.5px; font-weight: 600;
+        color: var(--ink-2); background: transparent;
+        border: 1px solid var(--line-strong); border-radius: 14px;
+    }
+    .btn-row { display: flex; gap: 8px; }
+    .btn-row > * { flex: 1; }
+
+    /* ---------- generic cards ---------- */
+    .card { padding: 12px; background: var(--paper-soft); border: 1px solid var(--line); border-radius: 14px; }
+    .card + .card { margin-top: 8px; }
+    .card-title { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; }
+    .card-title .chev { margin-left: auto; color: #b8b0aa; font-size: 13px; }
+    .card-note { margin-top: 5px; color: var(--muted); font-size: 9.5px; line-height: 1.65; }
+
+    .kv { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px dashed rgba(43,34,49,.12); font-size: 10.5px; }
+    .kv:last-child { border-bottom: 0; }
+    .kv span { color: var(--muted); }
+    .kv b { font-weight: 600; }
+
+    .dotline {
+        display: flex; align-items: center; gap: 5px;
+        margin-top: 8px; font-size: 9px; color: var(--muted);
+    }
+    .dotline i { width: 5px; height: 5px; border-radius: 999px; background: var(--route); }
+
+    /* 自检 bars */
+    .bars { display: flex; align-items: flex-end; gap: 4px; height: 44px; margin-top: 10px; }
+    .bars i { flex: 1; border-radius: 3px 3px 0 0; background: var(--petal); }
+    .bars i.hit { background: var(--stamp); }
+    .bar-legend { display: flex; justify-content: space-between; margin-top: 5px; font-size: 8px; color: #a8a09a; }
+
+    /* record list */
+    .rec-row {
+        display: flex; align-items: center; gap: 9px;
+        padding: 9px 2px;
+        border-bottom: 1px dashed rgba(43,34,49,.12);
+    }
+    .rec-row:last-child { border-bottom: 0; }
+    .rec-dot { width: 7px; height: 7px; flex: 0 0 7px; border-radius: 999px; background: var(--stamp); }
+    .rec-row.is-old .rec-dot { background: #d9cfca; }
+    .rec-main b { font-size: 11px; font-weight: 600; }
+    .rec-main small { display: block; margin-top: 1px; color: var(--muted); font-size: 9px; }
+    .rec-val { margin-left: auto; text-align: right; font-size: 9.5px; color: var(--muted); }
+    .rec-val b { display: block; font-family: var(--serif); font-size: 12px; color: var(--ink); }
+
+    /* bottom sheet */
+    .sheet {
+        position: absolute; left: 0; right: 0; bottom: 0;
+        padding: 16px 16px 18px;
+        background: var(--paper-soft);
+        border-radius: 22px 22px 0 0;
+        box-shadow: 0 -18px 40px -22px rgba(43,34,49,.5);
+    }
+    .sheet-grab { width: 34px; height: 4px; margin: -6px auto 12px; border-radius: 4px; background: #ddd6cf; }
+    .sheet h4 { font-family: var(--serif); font-size: 17px; }
+    .sheet .sheet-sub { margin-top: 4px; color: var(--muted); font-size: 10px; line-height: 1.6; }
+    .sheet-actions { display: grid; gap: 8px; margin-top: 14px; }
+    .sheet-opt {
+        display: flex; align-items: center; gap: 10px;
+        padding: 12px 12px;
+        text-align: left;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 13px;
+    }
+    .sheet-opt.primary { background: var(--stamp); border-color: var(--stamp); color: #fff; }
+    .sheet-opt.primary .so-sub { color: rgba(255,255,255,.78); }
+    .so-ico { font-size: 15px; }
+    .so-txt { min-width: 0; }
+    .so-txt b { display: block; font-family: var(--sans); font-size: 12.5px; font-weight: 700; }
+    .so-sub { display: block; margin-top: 1px; color: var(--muted); font-size: 9px; }
+
+    /* chips */
+    .chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+    .chip {
+        padding: 4px 9px;
+        font-size: 9.5px; color: var(--muted);
+        background: var(--paper); border: 1px solid var(--line-strong); border-radius: 999px;
+    }
+    .chip.on { color: var(--stamp-deep); background: var(--petal); border-color: rgba(223,95,126,.45); font-weight: 600; }
+    .chip.dash { border-style: dashed; }
+
+    /* date picker mock */
+    .datepick { display: flex; gap: 8px; margin-top: 8px; }
+    .datepick div {
+        flex: 1; padding: 9px 10px;
+        background: var(--paper); border: 1px solid var(--line-strong); border-radius: 11px;
+    }
+    .datepick small { display: block; font-size: 8px; color: #a8a09a; letter-spacing: .08em; }
+    .datepick b { font-family: var(--serif); font-size: 13px; }
+
+    /* stepper */
+    .steps { display: flex; align-items: center; gap: 6px; margin: 4px 0 2px; }
+    .steps i {
+        flex: 1; height: 3px; border-radius: 3px; background: #e3ddd6;
+    }
+    .steps i.on { background: var(--stamp); }
+
+    /* import mapping */
+    .map-row {
+        display: flex; align-items: center; gap: 8px;
+        padding: 7px 0; border-bottom: 1px dashed rgba(43,34,49,.12);
+        font-size: 10px;
+    }
+    .map-row:last-child { border-bottom: 0; }
+    .map-src {
+        flex: 0 0 88px; padding: 4px 7px; overflow: hidden;
+        text-overflow: ellipsis; white-space: nowrap;
+        background: #f2eee8; border-radius: 6px; color: #6d645e;
+        font-family: ui-monospace, monospace; font-size: 9px;
+    }
+    .map-arrow { color: #bcb4ad; }
+    .map-dst { color: var(--ink-2); font-weight: 600; }
+    .map-dst.unset { color: #b04a4a; border-bottom: 1px dashed #d8a3a3; }
+
+    /* file drop */
+    .drop {
+        display: grid; place-items: center; gap: 6px;
+        padding: 20px 12px;
+        border: 1.5px dashed var(--line-strong); border-radius: 14px;
+        background: rgba(255,253,248,.6);
+        text-align: center;
+    }
+    .drop b { font-size: 11.5px; }
+    .drop small { color: var(--muted); font-size: 9px; }
+
+    /* toggle */
+    .tgl-row { display: flex; align-items: center; gap: 9px; padding: 9px 0; }
+    .tgl-row + .tgl-row { border-top: 1px dashed rgba(43,34,49,.12); }
+    .tgl-row .tl { min-width: 0; }
+    .tgl-row .tl b { display: block; font-size: 11px; font-weight: 600; }
+    .tgl-row .tl small { color: var(--muted); font-size: 9px; }
+    .tgl { margin-left: auto; width: 34px; height: 20px; border-radius: 999px; background: var(--stamp); position: relative; flex: 0 0 34px; }
+    .tgl::after { content: ''; position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; border-radius: 999px; background: #fff; }
+    .tgl.off { background: #d7d0c9; }
+    .tgl.off::after { right: auto; left: 2px; }
+
+    /* bark preview */
+    .bark {
+        padding: 10px 12px;
+        background: rgba(255,255,255,.86);
+        border: 1px solid rgba(43,34,49,.08);
+        border-radius: 13px;
+        box-shadow: 0 8px 20px -16px rgba(43,34,49,.5);
+    }
+    .bark-top { display: flex; align-items: center; gap: 6px; font-size: 8.5px; color: #8b8480; }
+    .bark-top i { width: 13px; height: 13px; border-radius: 4px; background: var(--stamp); }
+    .bark-top span { margin-left: auto; }
+    .bark b { display: block; margin-top: 5px; font-size: 11px; }
+    .bark p { margin-top: 2px; color: #4b4340; font-size: 9.5px; line-height: 1.55; }
+
+    /* misc */
+    .anno {
+        padding: 9px 10px;
+        border-left: 3px solid var(--lemon);
+        background: #fdf7e3;
+        border-radius: 0 10px 10px 0;
+        color: #6f6350; font-size: 9px; line-height: 1.7;
+    }
+    .anno.bad { border-left-color: #d07a7a; background: #fdf0f0; color: #7a5454; }
+    .anno.good { border-left-color: var(--route); background: #edf7f4; color: #4c6f6b; }
+    .dim-label { font-size: 8.5px; letter-spacing: .1em; color: #a8a09a; text-transform: uppercase; }
+
+    /* desktop */
+    .desk {
+        width: 900px; max-width: 100%;
+        background: var(--paper);
+        border: 2px solid #2a2a2a; border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 18px 34px -24px rgba(0,0,0,.45);
+    }
+    .desk-bar { display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-bottom: 1px solid var(--line); background: #f6f2eb; }
+    .desk-bar i { width: 8px; height: 8px; border-radius: 999px; background: #d8d1c8; }
+    .desk-bar span { margin-left: 10px; font-size: 9px; color: #9b938c; }
+    .desk-body { display: grid; grid-template-columns: 180px 1fr; min-height: 470px; }
+    .desk-side { padding: 16px 12px; border-right: 1px solid var(--line); background: #faf6ef; }
+    .desk-side h5 { font-family: var(--serif); font-size: 13px; margin-bottom: 12px; }
+    .desk-side a { display: block; padding: 7px 9px; border-radius: 8px; font-size: 10.5px; color: var(--muted); }
+    .desk-side a.on { background: var(--petal); color: var(--stamp-deep); font-weight: 700; }
+    .desk-main { padding: 18px 20px; display: grid; grid-template-columns: 1.1fr .9fr; gap: 16px; align-content: start; }
+    .desk-col { display: grid; gap: 10px; align-content: start; }
+    .desk-h { font-family: var(--serif); font-size: 18px; }
+    .desk-sub { color: var(--muted); font-size: 10.5px; }
+
+    .decisions { max-width: 1380px; margin: 0 auto; }
+    .decisions table { width: 100%; border-collapse: collapse; background: var(--paper-soft); border: 1px solid #ddd8d1; border-radius: 14px; overflow: hidden; font-size: 12px; }
+    .decisions th, .decisions td { padding: 11px 14px; text-align: left; border-bottom: 1px solid #eee8e1; vertical-align: top; line-height: 1.7; }
+    .decisions th { background: #f5f0e8; font-size: 11px; letter-spacing: .04em; }
+    .decisions tr:last-child td { border-bottom: 0; }
+    .decisions td.q { width: 24%; font-weight: 600; }
+    .decisions td.o { width: 22%; color: var(--muted); }
+</style>
+<style>
+    /* ---------- v2 additions: segmented control, calendar, modal, admin ---------- */
+    .seg { display: flex; gap: 2px; padding: 3px; background: #f0eae2; border-radius: 11px; }
+    .seg span { flex: 1; padding: 6px 0; text-align: center; font-size: 10.5px; color: var(--muted); border-radius: 9px; }
+    .seg span.on { background: var(--paper-soft); color: var(--ink); font-weight: 700; box-shadow: 0 2px 6px -3px rgba(0,0,0,.25); }
+
+    .cal-head { display: flex; align-items: center; gap: 7px; }
+    .cal-head b { font-family: var(--serif); font-size: 14px; }
+    .cal-nav { display: flex; gap: 6px; margin-left: auto; }
+    .cal-nav i {
+        width: 22px; height: 22px; display: grid; place-items: center;
+        border: 1px solid var(--line-strong); border-radius: 999px;
+        color: var(--muted); font-size: 11px; font-style: normal;
+    }
+    .cal-week { display: grid; grid-template-columns: repeat(7, 1fr); margin-top: 8px; }
+    .cal-week span { text-align: center; font-size: 8.5px; color: #a8a09a; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); margin-top: 2px; }
+    .cal-d { position: relative; height: 31px; display: grid; place-items: center; font-size: 10px; color: var(--ink-2); }
+    .cal-d > span { position: relative; z-index: 1; }
+    .cal-d.mute { color: #cdc6bf; }
+    .cal-d.period { color: #fff; font-weight: 700; }
+    .cal-d.period::before { content: ''; position: absolute; width: 25px; height: 25px; border-radius: 999px; background: var(--stamp); }
+    .cal-d.pred { color: var(--stamp-deep); font-weight: 700; }
+    .cal-d.pred::before { content: ''; position: absolute; width: 25px; height: 25px; border-radius: 999px; border: 1.5px dashed rgba(223,95,126,.85); }
+    .cal-d.today::after { content: ''; position: absolute; bottom: 1px; width: 4px; height: 4px; border-radius: 999px; background: var(--ink); }
+    .cal-d.imported::after { content: ''; position: absolute; top: 3px; right: 5px; width: 4px; height: 4px; border-radius: 999px; background: #c9a227; }
+    .cal-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 11px; font-size: 8.5px; color: var(--muted); }
+    .cal-legend i { display: inline-block; width: 8px; height: 8px; margin-right: 3px; border-radius: 999px; vertical-align: -1px; }
+    .cal-legend i.solid { background: var(--stamp); }
+    .cal-legend i.ring { border: 1.5px dashed rgba(223,95,126,.85); }
+    .cal-legend i.dot { background: var(--ink); width: 4px; height: 4px; }
+    .cal-legend i.gold { background: #c9a227; width: 4px; height: 4px; }
+    .cal-legend i.band { background: rgba(47,155,152,.22); border-radius: 3px; width: 10px; }
+    .cal-legend i.ovu { border: 1.5px solid rgba(47,155,152,.85); width: 8px; height: 8px; }
+
+    /* fertile window: a contiguous band across the cells; ovulation: a teal ring */
+    .cal-d.fertile { background: rgba(47,155,152,.22); box-shadow: inset 0 0 0 1px rgba(47,155,152,.22); }
+    .cal-d.fertile.first { border-radius: 8px 0 0 8px; }
+    .cal-d.fertile.last { border-radius: 0 8px 8px 0; }
+    .cal-d.ovu { color: #1f6f6c; font-weight: 700; }
+    .cal-d.ovu::before {
+        content: ''; position: absolute; width: 24px; height: 24px;
+        border-radius: 999px; border: 1.5px solid rgba(47,155,152,.9);
+        background: rgba(255,253,248,.72);
+    }
+
+    /* modal (save feedback) */
+    .modal-wrap {
+        position: absolute; inset: 0; z-index: 5;
+        display: grid; place-items: center; padding: 20px;
+        background: rgba(43, 34, 49, .45);
+        backdrop-filter: blur(1.5px);
+    }
+    .modal-card {
+        width: 100%; padding: 16px 15px 14px;
+        background: var(--paper-soft);
+        border-radius: 20px;
+        box-shadow: 0 26px 50px -24px rgba(0,0,0,.55);
+    }
+    .modal-card h4 { font-family: var(--serif); font-size: 17px; }
+    .m-sub { margin-top: 3px; color: var(--muted); font-size: 9.5px; line-height: 1.6; }
+    .m-rows { margin-top: 10px; border-top: 1px solid var(--line); }
+    .m-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px dashed rgba(43,34,49,.1); font-size: 10px; }
+    .m-row span { color: var(--muted); }
+    .m-row b { font-weight: 600; }
+    .m-change {
+        margin-top: 10px; padding: 9px 10px;
+        background: var(--petal); border-radius: 11px;
+        font-size: 10px; line-height: 1.6;
+    }
+    .m-change .line { display: flex; align-items: center; gap: 5px; font-size: 10px; }
+    .m-change .old { color: #a8838c; text-decoration: line-through; }
+    .m-change .arr { color: var(--stamp-deep); }
+    .m-change .new { font-weight: 700; color: var(--stamp-deep); }
+    .m-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .m-actions > * { flex: 1; }
+    .m-link { margin-top: 9px; text-align: center; font-size: 9px; color: var(--muted); text-decoration: underline; }
+
+    /* bottom sheet for a calendar day */
+    .day-title { display: flex; align-items: baseline; gap: 6px; }
+    .day-title b { font-family: var(--serif); font-size: 17px; }
+    .day-title small { color: var(--muted); font-size: 9.5px; }
+    .day-state {
+        display: inline-block; margin-top: 7px; padding: 3px 8px;
+        border-radius: 999px; font-size: 9px; font-weight: 700;
+    }
+    .day-state.p { background: var(--petal); color: var(--stamp-deep); }
+    .day-state.q { background: #ece9e3; color: #8b847e; }
+    .day-opts { display: grid; gap: 7px; margin-top: 12px; }
+    .day-opt { display: flex; align-items: center; gap: 9px; padding: 10px 11px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; font-size: 11px; }
+    .day-opt .oi { width: 20px; text-align: center; font-size: 12px; }
+    .day-opt.danger { color: #a4434f; }
+
+    /* admin shell */
+    .adm {
+        width: 640px; max-width: 100%; overflow: hidden;
+        background: #fbf6ec;
+        border: 2px solid #2a2a2a; border-radius: 14px;
+        box-shadow: 0 18px 34px -24px rgba(0,0,0,.45);
+    }
+    .adm-bar { display: flex; align-items: center; gap: 6px; padding: 7px 11px; background: #f6f2eb; border-bottom: 1px solid var(--line); }
+    .adm-bar i { width: 8px; height: 8px; border-radius: 999px; background: #d8d1c8; }
+    .adm-bar span { margin-left: 9px; color: #9b938c; font-size: 9px; }
+    .adm-nav { display: flex; gap: 4px; padding: 8px 11px; border-bottom: 1px solid var(--line); background: #faf6ef; }
+    .adm-nav span { padding: 5px 9px; color: var(--muted); font-size: 10px; border-radius: 8px; }
+    .adm-nav span.on { background: var(--petal); color: var(--stamp-deep); font-weight: 700; }
+    .adm-body { display: grid; gap: 10px; padding: 14px 16px 18px; }
+    .adm-h { font-family: var(--serif); font-size: 17px; }
+    .adm-sub { color: var(--muted); font-size: 9.5px; line-height: 1.6; }
+    .adm-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .field { padding: 9px 10px; background: var(--paper-soft); border: 1px solid var(--line-strong); border-radius: 10px; }
+    .field small { display: block; font-size: 8px; color: #a8a09a; letter-spacing: .06em; }
+    .field b { display: block; margin-top: 2px; font-size: 11px; }
+    .tpl-area {
+        min-height: 54px; padding: 8px 9px;
+        background: #fff; border: 1px solid var(--line-strong); border-radius: 10px;
+        font-family: ui-monospace, monospace; font-size: 9px; line-height: 1.7; color: #4b4340;
+        white-space: pre-wrap;
+    }
+    .vars { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+    .vars span {
+        padding: 2px 6px; background: #f3eee7; border-radius: 5px;
+        font-family: ui-monospace, monospace; font-size: 8.5px; color: #7a6f68;
+    }
+    .adm-note { padding: 8px 10px; border-left: 3px solid var(--lemon); background: #fdf7e3; border-radius: 0 9px 9px 0; font-size: 9px; line-height: 1.65; color: #6f6350; }
+    .adm-danger { padding: 10px 11px; background: #fdf0f0; border: 1px solid #ecc8c8; border-radius: 11px; font-size: 9.5px; color: #8c4f4f; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="page-head">
+    <p class="eyebrow">LOVE JOURNEY · PERIOD TRACKER · WIREFRAME V2</p>
+    <h1>生理期 · 原型 v2</h1>
+    <p>一期只做四件事：<b>记录</b>、<b>预测</b>、<b>美柚数据导入</b>、<b>每日提醒</b>。照顾清单、厨房联动、一键求助、回顾都放在二期（原型里只留一个入口占位，不展开）。</p>
+    <p>判断标准只有一条：<b>记录不能比美柚慢，预测不能比美柚差，而且必须能解释自己</b>。所以原型里刻意保留了「依据」「自检」「数据不够」这些平时会被产品砍掉的东西——它们是「不输」的证明，不是装饰。</p>
+    <p><b>2026-11-10 v2 已确认：</b>首页细条<b>按需出现</b>（距下次 ≤ 7 天或经期中）· 保存反馈改成<b>弹窗</b> · 新增<b>日历视图</b> · 用户端只记录，<b>配置全在管理端</b> · 提醒文案可配置、可出现「经期」· 预测不给单日、区间 ≤ 3 天 · 结束记录不自动结束。详见文末第 11 / 12 节。</p>
+    <div class="legend">
+        <span><i class="dot solid"></i> 已确定</span>
+        <span><i class="dot dash"></i> 待确认（美柚导出列名 / 具体数值）</span>
+        <span style="color:#8b847e">v2 新增：按需出现 · 保存弹窗 · 日历视图 · 用户/管理端分工</span>
+    </div>
+</div>
+
+<div class="scope">
+    <div><b><span class="tag p0">P0</span>记录</b>一键「今天来了 / 结束了」，补录可选。目标：打开首页点一次就完成，不出现表单。</div>
+    <div><b><span class="tag p0">P0</span>预测</b>固定算法族（27 种可枚举组合，回测选最优）+ 3 天区间 + 依据 + 自检。<b>不上 AI</b>。不足 3 个周期直接说「数据不够」。</div>
+    <div><b><span class="tag p0">P0</span>导入</b>上传美柚导出文件 → 自动猜列 → 预览 → 去重合并。冷启动靠它。</div>
+    <div><b><span class="tag p0">P0</span>提醒</b>Cloudflare Workers 每天 09:00 触发 Bark；失败可见，页面兜底。</div>
+    <div><b><span class="tag p2">二期</span>照顾清单 / 厨房联动 / 一键求助 / 回顾</b>只留入口。</div>
+</div>
+
+<!-- ============================================================ -->
+<div class="group">
+    <h3>01 · 首页入口 <span>ENTRY ON 「我们」</span></h3>
+    <div class="frames">
+
+        <div class="frame-wrap">
+            <h2>首页 · 方案 A <em>推荐</em></h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>●●● ⚡</span></div>
+                <div class="screen">
+                    <p class="ph-eyebrow">TINY LOVE SCRAPBOOK · SINCE 2020</p>
+                    <h2 class="ph-title">福福&amp;老李</h2>
+                    <div class="timer-mini">
+                        <div class="tm-label">● 在一起</div>
+                        <div class="tm-main">2146<small>天</small></div>
+                    </div>
+
+                    <div class="cycle-strip">
+                        <div class="cs-mark">5<small>天后</small></div>
+                        <div class="cs-text">
+                            <b>大概快来了</b>
+                            <small>预计 11.12 – 11.14 · 6 个周期</small>
+                        </div>
+                        <button class="cs-btn ghost">记录</button>
+                    </div>
+
+                    <div class="dinner-mini">
+                        <div>
+                            <b>周末吃什么</b>
+                            <small>只在周末开饭，先约下一顿吧</small>
+                        </div>
+                        <span class="dm-cta">去预约 →</span>
+                    </div>
+
+                    <div class="ph-section">
+                        <div class="ph-section-head">
+                            <span class="ph-section-index">01</span>
+                            <span class="ph-section-title">岁月留痕</span>
+                            <span class="ph-section-more">全部 41</span>
+                        </div>
+                        <div class="milestone-row" style="margin-top:7px">
+                            <div class="milestone-block"></div>
+                            <div class="milestone-block"></div>
+                            <div class="milestone-block"></div>
+                        </div>
+                    </div>
+
+                    <div class="ph-section">
+                        <div class="ph-section-head">
+                            <span class="ph-section-index">02</span>
+                            <span class="ph-section-title">共许白头</span>
+                        </div>
+                        <div class="milestone-row" style="margin-top:7px">
+                            <div class="milestone-block" style="height:38px"></div>
+                            <div class="milestone-block" style="height:38px"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tabbar">
+                    <span class="active">我们</span><span>小灶</span><span>恋爱卡</span><span>空间</span>
+                </div>
+            </div>
+            <p class="note"><b>放在哪：</b>相爱时间卡之下、周末吃什么之上。这是首页唯一的「时间敏感」信息位，不需要新增 tab。<br><b>多高：</b>约 58px，比周末卡片更细，不抢主视觉。<br><b>为什么不用 tab：</b>底部已经 4 个，再加就 5 个；而且生理期是低频查看、高频记录，适合「一眼看到 + 一键动作」。</p>
+        </div>
+
+        <div class="frame-wrap">
+            <h2>首页 · 经期中</h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>●●● ⚡</span></div>
+                <div class="screen">
+                    <p class="ph-eyebrow">TINY LOVE SCRAPBOOK · SINCE 2020</p>
+                    <h2 class="ph-title">福福&amp;老李</h2>
+                    <div class="timer-mini">
+                        <div class="tm-label">● 在一起</div>
+                        <div class="tm-main">2148<small>天</small></div>
+                    </div>
+
+                    <div class="cycle-strip is-live">
+                        <div class="cs-mark">2<small>天</small></div>
+                        <div class="cs-text">
+                            <b>经期第 2 天</b>
+                            <small>11.12 开始 · 通常持续 5 天</small>
+                        </div>
+                        <button class="cs-btn">结束了</button>
+                    </div>
+
+                    <div class="dinner-mini">
+                        <div>
+                            <b>周末吃什么</b>
+                            <small>这周还没约</small>
+                        </div>
+                        <span class="dm-cta">去预约 →</span>
+                    </div>
+
+                    <div class="ph-section">
+                        <div class="ph-section-head">
+                            <span class="ph-section-index">01</span>
+                            <span class="ph-section-title">岁月留痕</span>
+                            <span class="ph-section-more">全部 41</span>
+                        </div>
+                        <div class="milestone-row" style="margin-top:7px">
+                            <div class="milestone-block"></div>
+                            <div class="milestone-block"></div>
+                            <div class="milestone-block"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tabbar">
+                    <span class="active">我们</span><span>小灶</span><span>恋爱卡</span><span>空间</span>
+                </div>
+            </div>
+            <p class="note"><b>状态切换：</b>同一个卡片换文案和底色，不换位置。经期中把主动作从「记录」换成「结束了」，因为这是此刻唯一会发生的事。<br><b>刻意不做：</b>不显示「多喝热水」这类建议——那是二期的照顾清单，一期保持克制。</p>
+        </div>
+
+        <div class="frame-wrap">
+            <h2>首页 · 数据不够 <em>首次使用</em></h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>●●● ⚡</span></div>
+                <div class="screen">
+                    <p class="ph-eyebrow">TINY LOVE SCRAPBOOK · SINCE 2020</p>
+                    <h2 class="ph-title">福福&amp;老李</h2>
+                    <div class="timer-mini">
+                        <div class="tm-label">● 在一起</div>
+                        <div class="tm-main">2146<small>天</small></div>
+                    </div>
+
+                    <div class="cycle-strip">
+                        <div class="cs-mark" style="background:#eee8e1;color:#a8a09a">?</div>
+                        <div class="cs-text">
+                            <b>开始记录吧</b>
+                            <small>记满 3 次就能预测</small>
+                        </div>
+                        <button class="cs-btn">今天来了</button>
+                    </div>
+
+                    <div class="anno">没有数据时 <b>不给假日期</b>。这是和大多数经期 App 最大的一处分歧：宁可说「不知道」，也不给一个看起来很确定的数字。</div>
+
+                    <div class="dinner-mini">
+                        <div>
+                            <b>周末吃什么</b>
+                            <small>只在周末开饭，先约下一顿吧</small>
+                        </div>
+                        <span class="dm-cta">去预约 →</span>
+                    </div>
+
+                    <div class="ph-section">
+                        <div class="ph-section-head">
+                            <span class="ph-section-index">01</span>
+                            <span class="ph-section-title">岁月留痕</span>
+                            <span class="ph-section-more">全部 41</span>
+                        </div>
+                        <div class="milestone-row" style="margin-top:7px">
+                            <div class="milestone-block"></div>
+                            <div class="milestone-block"></div>
+                            <div class="milestone-block"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tabbar">
+                    <span class="active">我们</span><span>小灶</span><span>恋爱卡</span><span>空间</span>
+                </div>
+            </div>
+            <p class="note"><b>空状态就是导入的最佳时机。</b>这一屏下面（「空间 → 生理期」里）放一个显眼的「从美柚导入」——她第一次打开时最想做的事就是把历史搬过来。</p>
+        </div>
+
+        <div class="frame-wrap">
+            <h2>首页 · 距下次 &gt; 7 天 <em>不显示</em></h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>●●● ⚡</span></div>
+                <div class="screen">
+                    <p class="ph-eyebrow">TINY LOVE SCRAPBOOK · SINCE 2020</p>
+                    <h2 class="ph-title">福福&amp;老李</h2>
+                    <div class="timer-mini">
+                        <div class="tm-label">● 在一起</div>
+                        <div class="tm-main">2128<small>天</small></div>
+                    </div>
+
+                    <div class="dinner-mini">
+                        <div>
+                            <b>周末吃什么</b>
+                            <small>只在周末开饭，先约下一顿吧</small>
+                        </div>
+                        <span class="dm-cta">去预约 →</span>
+                    </div>
+
+                    <div class="ph-section">
+                        <div class="ph-section-head">
+                            <span class="ph-section-index">01</span>
+                            <span class="ph-section-title">岁月留痕</span>
+                            <span class="ph-section-more">全部 41</span>
+                        </div>
+                        <div class="milestone-row" style="margin-top:7px">
+                            <div class="milestone-block"></div>
+                            <div class="milestone-block"></div>
+                            <div class="milestone-block"></div>
+                        </div>
+                    </div>
+
+                    <div class="ph-section">
+                        <div class="ph-section-head">
+                            <span class="ph-section-index">02</span>
+                            <span class="ph-section-title">共许白头</span>
+                        </div>
+                        <div class="milestone-row" style="margin-top:7px">
+                            <div class="milestone-block" style="height:38px"></div>
+                            <div class="milestone-block" style="height:38px"></div>
+                        </div>
+                    </div>
+
+                    <div class="anno" style="margin-top:auto">
+                        此刻距下次还有 12 天 —— 细条<b>不出现</b>。<br>
+                        入口仍在「空间 → 生理期」，随时可进。
+                    </div>
+                </div>
+                <div class="tabbar">
+                    <span class="active">我们</span><span>小灶</span><span>恋爱卡</span><span>空间</span>
+                </div>
+            </div>
+            <p class="note"><b>按需出现（人已确认）。</b>显示条件：<code>距下次 ≤ 7 天</code> 或 <code>经期中</code>。其余时间首页完全不提这件事，入口只留在「空间 → 生理期」。<br><b>为什么是 7 天：</b>给「想提前准备」留出余量，又不至于整月挂在那儿；阈值写进设置，可以改。<br><b>代价：</b>周期不规律、提前来的时候，首页可能还没亮起来——但这正是「空间」那个常驻入口存在的意义，而且提醒会先到。</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<div class="group">
+    <h3>02 · 空间入口与生理期页 <span>ME → CYCLE</span></h3>
+    <div class="frames">
+
+        <div class="frame-wrap">
+            <h2>空间 · 一级菜单</h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>●●● ⚡</span></div>
+                <div class="screen">
+                    <p class="ph-eyebrow">OUR SPACE</p>
+                    <h2 class="ph-title">空间</h2>
+                    <p class="ph-sub">预约、流水，还有吃完的每一顿。</p>
+
+                    <div class="me-group">
+                        <div class="me-row">
+                            <span class="me-ico">币</span>
+                            <span class="me-txt"><b>恋爱币</b><small>最多可欠 50 币</small></span>
+                            <span class="me-val">482 币</span>
+                            <span class="me-chev">›</span>
+                        </div>
+                    </div>
+
+                    <div class="me-group">
+                        <div class="me-row">
+                            <span class="me-ico" style="background:#fde9ef">期</span>
+                            <span class="me-txt"><b>生理期</b><small>预计 11.12 – 11.14</small></span>
+                            <span class="me-val">还有 5 天</span>
+                            <span class="me-chev">›</span>
+                        </div>
+                    </div>
+
+                    <div class="me-group">
+                        <div class="me-row">
+                            <span class="me-ico" style="background:#ece9e3;color:#8b847e">订</span>
+                            <span class="me-txt"><b>我的订单</b><small>待接单 0 · 进行中 1 · 全部 6</small></span>
+                            <span class="me-chev">›</span>
+                        </div>
+                        <div class="me-row">
+                            <span class="me-ico" style="background:#ece9e3;color:#8b847e">卡</span>
+                            <span class="me-txt"><b>恋爱卡记录</b><small>获得 8 次 · 使用 3 次</small></span>
+                            <span class="me-chev">›</span>
+                        </div>
+                    </div>
+
+                    <div class="me-group">
+                        <div class="me-row">
+                            <span class="me-ico" style="background:#ece9e3;color:#8b847e">告</span>
+                            <span class="me-txt"><b>更新公告</b><small>1 条未读</small></span>
+                            <span class="me-chev">›</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="tabbar">
+                    <span>我们</span><span>小灶</span><span>恋爱卡</span><span class="active">空间</span>
+                </div>
+            </div>
+            <p class="note">复用现有的 <code>me-menu-row</code> 结构，只加一行，右侧显示「还有 5 天」——和「恋爱币 482 币」是同一种信息密度，不破坏现有节奏。</p>
+        </div>
+
+        <div class="frame-wrap">
+            <h2>生理期 · 预测视图 <em>默认是日历</em></h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>●●● ⚡</span></div>
+                <div class="screen scroll">
+                    <div class="ph-head">
+                        <span class="ph-back">‹</span>
+                        <strong>生理期</strong>
+                        <span class="ph-more">⋯</span>
+                    </div>
+
+                    <div class="seg"><span>日历</span><span class="on">预测</span><span>记录</span></div>
+
+                    <div class="big-card">
+                        <div class="bc-label">距离下次</div>
+                        <div class="bc-main"><b>5</b><span>天</span></div>
+                        <div class="bc-range">预计 11.12 – 11.14</div>
+                        <div class="bc-meta">基于最近 6 个周期 · 平均 29 天 · 波动 ±2 天</div>
+                        <div class="bc-track"><i style="width:64%"></i><b style="left:64%"></b></div>
+                        <div class="bc-scale"><span>10.14 上次</span><span>今天 11.07</span><span>11.13 预计</span></div>
+                    </div>
+
+                    <button class="btn-primary">今天来了</button>
+
+                    <div class="card">
+                        <div class="card-title">预测依据<span class="chev">›</span></div>
+                        <div class="kv"><span>样本</span><b>最近 6 个有效周期</b></div>
+                        <div class="kv"><span>平均</span><b>29 天</b></div>
+                        <div class="kv"><span>波动</span><b>28 – 31 天</b></div>
+                        <div class="kv"><span>置信度</span><b style="color:#b98b2f">中</b></div>
+                        <div class="kv"><span>算法</span><b>加权中位数 · 近 6 次</b></div>
+                        <div class="dotline"><i></i>试了 27 种算法，这一种在你的数据上误差最小（1.1 天）</div>
+                        <div class="dotline" style="margin-top:4px"><i style="background:#c9a227"></i>算法会随你的记录自动重选，窗口只取最近 6 次</div>
+                        <div class="dotline" style="margin-top:4px"><i style="background:#a8a09a"></i>预测于 11.07 生成 · 只算下一次 · 不会每次打开都变</div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">过去 12 次，准了 9 次</div>
+                        <div class="bars">
+                            <i class="hit" style="height:70%"></i><i class="hit" style="height:45%"></i><i class="hit" style="height:85%"></i>
+                            <i style="height:100%"></i><i class="hit" style="height:60%"></i><i class="hit" style="height:92%"></i>
+                            <i class="hit" style="height:52%"></i><i style="height:78%"></i><i class="hit" style="height:66%"></i>
+                            <i class="hit" style="height:40%"></i><i style="height:96%"></i><i class="hit" style="height:58%"></i>
+                        </div>
+                        <div class="bar-legend"><span>一年前</span><span>平均偏差 1.6 天</span><span>最近</span></div>
+                        <div class="card-note">每根柱子是一次预测的偏差，粉色 = 落在区间内。低于 50% 时会提示「你的周期波动较大，区间仅供参考」。</div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">最近 6 次</div>
+                        <div class="rec-row"><i class="rec-dot"></i><div class="rec-main"><b>10.14 – 10.19</b><small>6 天 · 流量正常</small></div><div class="rec-val"><b>33</b>天周期</div></div>
+                        <div class="rec-row"><i class="rec-dot"></i><div class="rec-main"><b>09.11 – 09.15</b><small>5 天</small></div><div class="rec-val"><b>28</b>天周期</div></div>
+                        <div class="rec-row"><i class="rec-dot"></i><div class="rec-main"><b>08.14 – 08.18</b><small>5 天</small></div><div class="rec-val"><b>30</b>天周期</div></div>
+                        <div class="rec-row is-old"><i class="rec-dot"></i><div class="rec-main"><b>07.15 – 07.20</b><small>6 天</small></div><div class="rec-val"><b>29</b>天周期</div></div>
+                        <div style="margin-top:8px;text-align:center;font-size:9.5px;color:var(--muted)">查看全部 38 次 ›</div>
+                    </div>
+
+                    <div class="btn-row" style="margin-top:2px">
+                        <button class="btn-ghost">从美柚导入</button>
+                        <button class="btn-ghost">提醒设置</button>
+                    </div>
+                    <div style="height:6px"></div>
+                </div>
+            </div>
+            <p class="note"><b>这一屏是分段控件里的「预测」，不是默认视图</b>——默认进的是日历（第 04 节）。<br><b>信息顺序就是判断顺序：</b>还有几天 → 依据 → 它到底准不准 → 历史 → 导入/提醒。<br><b>「依据」和「自检」是可以折叠的</b>，但默认展开一次，让她知道这里不是黑盒。<br><b>「算法」那一行是刻意露出来的：</b>固定公式，不是模型。27 种组合跑她自己的历史、取误差最小的那种——候选全都能被读懂，不存在「模型觉得」。</p>
+        </div>
+
+        <div class="frame-wrap">
+            <h2>生理期 · 经期中</h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>●●● ⚡</span></div>
+                <div class="screen scroll">
+                    <div class="ph-head">
+                        <span class="ph-back">‹</span>
+                        <strong>生理期</strong>
+                        <span class="ph-more">⋯</span>
+                    </div>
+
+                    <div class="seg"><span>日历</span><span class="on">预测</span><span>记录</span></div>
+
+                    <div class="big-card" style="background:radial-gradient(120% 100% at 100% 0%, rgba(223,95,126,.52), transparent 58%), linear-gradient(148deg,#4a2740 0%,#2a1726 72%)">
+                        <div class="bc-label">经期中</div>
+                        <div class="bc-main"><b>第 2 天</b></div>
+                        <div class="bc-range">11.12 开始 · 通常 5 天，预计 11.16 结束</div>
+                        <div class="bc-meta">已持续 16 天周期 · 本次比预期早 2 天</div>
+                        <div class="bc-track"><i style="width:40%"></i><b style="left:40%"></b></div>
+                        <div class="bc-scale"><span>11.12 开始</span><span>今天 11.13</span><span>11.16 预计结束</span></div>
+                    </div>
+
+                    <button class="btn-primary">今天结束了</button>
+                    <button class="btn-ghost">补记流量 / 症状</button>
+
+                    <div class="card">
+                        <div class="card-title">这次</div>
+                        <div class="kv"><span>开始</span><b>11.12（提前 2 天）</b></div>
+                        <div class="kv"><span>流量</span><b>未记录</b></div>
+                        <div class="kv"><span>症状</span><b>未记录</b></div>
+                        <div class="card-note">这些都是可选。不填不影响任何计算，填了只是让以后回看得更清楚。</div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">最近 6 次</div>
+                        <div class="rec-row"><i class="rec-dot"></i><div class="rec-main"><b>11.12 – 至今</b><small>第 2 天</small></div><div class="rec-val"><b>—</b>进行中</div></div>
+                        <div class="rec-row"><i class="rec-dot"></i><div class="rec-main"><b>10.14 – 10.19</b><small>6 天</small></div><div class="rec-val"><b>29</b>天周期</div></div>
+                        <div class="rec-row is-old"><i class="rec-dot"></i><div class="rec-main"><b>09.11 – 09.15</b><small>5 天</small></div><div class="rec-val"><b>33</b>天周期</div></div>
+                    </div>
+
+                    <div class="anno good">经期中，首页卡片和这里都只呈现事实（第几天、预计哪天结束），不给建议。建议属于二期照顾清单。</div>
+                    <div style="height:6px"></div>
+                </div>
+            </div>
+            <p class="note">进行中的那条记录用「第 2 天」而不是日期区间，因为这是她此刻真正关心的事。周期长度那一列显示「—」，避免把未完成的周期算进样本。</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<div class="group">
+    <h3>03 · 记录动作 <span>ONE TAP</span></h3>
+    <div class="frames">
+
+        <div class="frame-wrap">
+            <h2>点「今天来了」之后</h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>●●● ⚡</span></div>
+                <div class="screen dimmed">
+                    <p class="ph-eyebrow">OUR SPACE</p>
+                    <h2 class="ph-title">空间</h2>
+                    <div class="big-card">
+                        <div class="bc-label">距离下次</div>
+                        <div class="bc-main"><b>5</b><span>天</span></div>
+                        <div class="bc-range">预计 11.12 – 11.14</div>
+                    </div>
+                </div>
+                <div class="sheet">
+                    <div class="sheet-grab"></div>
+                    <h4>记一笔</h4>
+                    <p class="sheet-sub">今天（11.13）开始。日期不对可以改。</p>
+                    <div class="sheet-actions">
+                        <button class="sheet-opt primary">
+                            <span class="so-ico">✓</span>
+                            <span class="so-txt"><b>就是今天，11.13</b><span class="so-sub">记完直接回首页</span></span>
+                        </button>
+                        <button class="sheet-opt">
+                            <span class="so-ico">↺</span>
+                            <span class="so-txt"><b>其实前几天就来了</b><span class="so-sub">补记开始日期</span></span>
+                        </button>
+                    </div>
+                    <div style="margin-top:10px;text-align:center;font-size:9px;color:#a8a09a">点空白处取消</div>
+                </div>
+            </div>
+            <p class="note"><b>确认的必要性：</b>「今天来了」是可撤销的动作，但日期错了会污染后面几个月的预测，所以保留一次确认。确认只有两个选项，第二个才进日期选择。<br><b>总点击：</b>正常情况 2 次（按钮 + 确认）。</p>
+        </div>
+
+        <div class="frame-wrap">
+            <h2>补记 · 日期选择</h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>●●● ⚡</span></div>
+                <div class="screen dimmed"></div>
+                <div class="sheet" style="padding-bottom:22px">
+                    <div class="sheet-grab"></div>
+                    <div class="steps"><i class="on"></i><i class="on"></i><i></i></div>
+                    <h4 style="margin-top:10px">什么时候开始的？</h4>
+                    <p class="sheet-sub">补记得越准，预测越准。记不清就选「记不清」。</p>
+
+                    <div class="datepick">
+                        <div><small>开始</small><b>11 . 11</b></div>
+                        <div><small>结束（可空）</small><b>— —</b></div>
+                    </div>
+
+                    <div class="chip-row">
+                        <span class="chip on">11.11</span>
+                        <span class="chip">11.10</span>
+                        <span class="chip">11.09</span>
+                        <span class="chip dash">记不清了</span>
+                    </div>
+
+                    <div class="chip-row" style="margin-top:10px">
+                        <span class="chip on" style="background:transparent;color:var(--muted);border-color:var(--line-strong)">流量 正常 ▾</span>
+                        <span class="chip">症状 ▾</span>
+                        <span class="chip">心情 ▾</span>
+                    </div>
+
+                    <button class="btn-primary" style="margin-top:14px">保存</button>
+                </div>
+            </div>
+            <p class="note"><b>默认值来自日期推断：</b>列表里 11.11 / 11.10 / 11.09 是「最近三天」快捷选，不是随机。<br><b>流量 / 症状 / 心情全是可选</b>，默认折叠，不点开就不存在。<br><b>「记不清了」不是敷衍：</b>选它会把这条标成低置信度，不参与均值但保留在列表里。</p>
+        </div>
+
+        <div class="frame-wrap">
+            <h2>保存后的反馈 <em>弹窗</em></h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>●●● ⚡</span></div>
+                <div class="screen dimmed">
+                    <p class="ph-eyebrow">TINY LOVE SCRAPBOOK · SINCE 2020</p>
+                    <h2 class="ph-title">福福&amp;老李</h2>
+                    <div class="timer-mini">
+                        <div class="tm-label">● 在一起</div>
+                        <div class="tm-main">2148<small>天</small></div>
+                    </div>
+                    <div class="cycle-strip is-live">
+                        <div class="cs-mark">2<small>天</small></div>
+                        <div class="cs-text">
+                            <b>经期第 2 天</b>
+                            <small>11.11 开始 · 通常持续 5 天</small>
+                        </div>
+                        <button class="cs-btn">结束了</button>
+                    </div>
+                    <div class="dinner-mini">
+                        <div>
+                            <b>周末吃什么</b>
+                            <small>这周还没约</small>
+                        </div>
+                        <span class="dm-cta">去预约 →</span>
+                    </div>
+                    <div class="ph-section">
+                        <div class="ph-section-head">
+                            <span class="ph-section-index">01</span>
+                            <span class="ph-section-title">岁月留痕</span>
+                            <span class="ph-section-more">全部 41</span>
+                        </div>
+                        <div class="milestone-row" style="margin-top:7px">
+                            <div class="milestone-block"></div>
+                            <div class="milestone-block"></div>
+                            <div class="milestone-block"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tabbar">
+                    <span class="active">我们</span><span>小灶</span><span>恋爱卡</span><span>空间</span>
+                </div>
+
+                <div class="modal-wrap">
+                    <div class="modal-card">
+                        <h4>记好了</h4>
+                        <p class="m-sub">11.11 · 周三 · 第 1 天</p>
+
+                        <div class="m-rows">
+                            <div class="m-row"><span>和预计相比</span><b style="color:#a4434f">早了 1 天</b></div>
+                            <div class="m-row"><span>学习样本</span><b>6 条 → 7 条</b></div>
+                            <div class="m-row"><span>用到的算法</span><b>加权中位数 · 近 6 次</b></div>
+                        </div>
+
+                        <div class="m-change">
+                            <div class="line"><span>下次预测</span></div>
+                            <div class="line" style="margin-top:3px">
+                                <span class="old">11.12 – 11.14</span>
+                                <span class="arr">→</span>
+                                <span class="new">12.09 – 12.11</span>
+                            </div>
+                            <div style="margin-top:5px;color:#8c5f6b;font-size:9px">样本变了，算法重新选了一次</div>
+                        </div>
+
+                        <div class="m-actions">
+                            <button class="btn-ghost">撤销</button>
+                            <button class="btn-primary">知道了</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="note"><b>改成弹窗（人已确认）。</b>记录是低频但重要的动作，值得一次明确的收尾；页内横幅容易被滑走，而且「预测变了」这件事需要被看见。<br><b>弹窗里只放 4 件事：</b>记了什么 → 和预测差多少 → 下次变成什么 → 撤销 / 知道了。<br><b>「撤销」放在左边</b>，不抢主按钮；关闭后 5 秒内也能从 toast 撤回。</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<div class="group">
+    <h3>04 · 日历视图 <span>CALENDAR</span></h3>
+    <div class="frames">
+
+        <div class="frame-wrap">
+            <h2>生理期 · 日历 <em>新增</em></h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>●●● ⚡</span></div>
+                <div class="screen">
+                    <div class="ph-head">
+                        <span class="ph-back">‹</span>
+                        <strong>生理期</strong>
+                        <span class="ph-more">⋯</span>
+                    </div>
+
+                    <div class="seg"><span class="on">日历</span><span>预测</span><span>记录</span></div>
+
+                    <div class="cal-head">
+                        <b>2026 年 11 月</b>
+                        <div class="cal-nav"><i>‹</i><i>›</i></div>
+                    </div>
+
+                    <div class="cal-week">
+                        <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+                    </div>
+                    <div class="cal-grid">
+                        <div class="cal-d mute"><span>26</span></div>
+                        <div class="cal-d mute"><span>27</span></div>
+                        <div class="cal-d mute"><span>28</span></div>
+                        <div class="cal-d mute"><span>29</span></div>
+                        <div class="cal-d mute"><span>30</span></div>
+                        <div class="cal-d mute"><span>31</span></div>
+                        <div class="cal-d"><span>1</span></div>
+
+                        <div class="cal-d"><span>2</span></div>
+                        <div class="cal-d"><span>3</span></div>
+                        <div class="cal-d"><span>4</span></div>
+                        <div class="cal-d"><span>5</span></div>
+                        <div class="cal-d"><span>6</span></div>
+                        <div class="cal-d today"><span>7</span></div>
+                        <div class="cal-d"><span>8</span></div>
+
+                        <div class="cal-d"><span>9</span></div>
+                        <div class="cal-d"><span>10</span></div>
+                        <div class="cal-d"><span>11</span></div>
+                        <div class="cal-d pred"><span>12</span></div>
+                        <div class="cal-d pred"><span>13</span></div>
+                        <div class="cal-d pred"><span>14</span></div>
+                        <div class="cal-d"><span>15</span></div>
+
+                        <div class="cal-d"><span>16</span></div>
+                        <div class="cal-d"><span>17</span></div>
+                        <div class="cal-d"><span>18</span></div>
+                        <div class="cal-d"><span>19</span></div>
+                        <div class="cal-d"><span>20</span></div>
+                        <div class="cal-d"><span>21</span></div>
+                        <div class="cal-d fertile first"><span>22</span></div>
+
+                        <div class="cal-d fertile"><span>23</span></div>
+                        <div class="cal-d fertile"><span>24</span></div>
+                        <div class="cal-d fertile"><span>25</span></div>
+                        <div class="cal-d fertile"><span>26</span></div>
+                        <div class="cal-d fertile ovu"><span>27</span></div>
+                        <div class="cal-d fertile last"><span>28</span></div>
+                        <div class="cal-d"><span>29</span></div>
+                    </div>
+
+                    <div class="cal-legend">
+                        <span><i class="solid"></i>已记录经期</span>
+                        <span><i class="ring"></i>预测（3 天）</span>
+                        <span><i class="band"></i>排卵期</span>
+                        <span><i class="ovu"></i>排卵日</span>
+                        <span><i class="dot"></i>今天</span>
+                        <span><i class="gold"></i>导入数据</span>
+                    </div>
+
+                    <div class="card" style="margin-top:2px">
+                        <div class="kv"><span>上次</span><b>10.14 – 10.19</b></div>
+                        <div class="kv"><span>这次预测</span><b style="color:var(--stamp-deep)">11.12 – 11.14</b></div>
+                        <div class="kv"><span>排卵日</span><b style="color:#1f6f6c">11.27</b></div>
+                        <div class="kv"><span>周期</span><b>29 天</b></div>
+                    </div>
+
+                    <div class="anno good">日历能看出<b>连续两次之间的间距</b>，这是看列表看不出来的。周期变长或变短，在日历上比在数字里明显得多。</div>
+                </div>
+            </div>
+            <p class="note"><b>为什么必须有日历：</b>列表回答「上次什么时候」，日历回答「它到底有没有规律」。同一份数据，两种问题。<br><b>三个视图用一个分段控件切：</b>日历 / 预测 / 记录。日历默认打开。<br><b>预测用虚线圈、已记录用实心</b>，一眼分得清「发生过」和「猜的」。<br><b>排卵日与排卵期（人要求，对齐美柚）：</b>排卵日 = 预测的下次开始日 − 14 天，排卵期 = 排卵日前 5 天到后 1 天，用青色和经期的粉色区分开。<b>这是「预测之上的预测」</b>，误差会叠加，所以界面上不写「特定某天」，卡片和说明都明确标它是参考值。</p>
+        </div>
+
+        <div class="frame-wrap">
+            <h2>日历 · 经期中 / 已导入历史</h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>●●● ⚡</span></div>
+                <div class="screen">
+                    <div class="ph-head">
+                        <span class="ph-back">‹</span>
+                        <strong>生理期</strong>
+                        <span class="ph-more">⋯</span>
+                    </div>
+
+                    <div class="seg"><span class="on">日历</span><span>预测</span><span>记录</span></div>
+
+                    <div class="cal-head">
+                        <b>2026 年 11 月</b>
+                        <div class="cal-nav"><i>‹</i><i>›</i></div>
+                    </div>
+
+                    <div class="cal-week">
+                        <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+                    </div>
+                    <div class="cal-grid">
+                        <div class="cal-d mute"><span>26</span></div>
+                        <div class="cal-d mute"><span>27</span></div>
+                        <div class="cal-d mute"><span>28</span></div>
+                        <div class="cal-d mute"><span>29</span></div>
+                        <div class="cal-d mute"><span>30</span></div>
+                        <div class="cal-d mute"><span>31</span></div>
+                        <div class="cal-d"><span>1</span></div>
+
+                        <div class="cal-d"><span>2</span></div>
+                        <div class="cal-d"><span>3</span></div>
+                        <div class="cal-d"><span>4</span></div>
+                        <div class="cal-d"><span>5</span></div>
+                        <div class="cal-d"><span>6</span></div>
+                        <div class="cal-d"><span>7</span></div>
+                        <div class="cal-d"><span>8</span></div>
+
+                        <div class="cal-d"><span>9</span></div>
+                        <div class="cal-d"><span>10</span></div>
+                        <div class="cal-d"><span>11</span></div>
+                        <div class="cal-d period imported"><span>12</span></div>
+                        <div class="cal-d period imported"><span>13</span></div>
+                        <div class="cal-d period imported today"><span>14</span></div>
+                        <div class="cal-d"><span>15</span></div>
+
+                        <div class="cal-d"><span>16</span></div>
+                        <div class="cal-d"><span>17</span></div>
+                        <div class="cal-d"><span>18</span></div>
+                        <div class="cal-d"><span>19</span></div>
+                        <div class="cal-d"><span>20</span></div>
+                        <div class="cal-d"><span>21</span></div>
+                        <div class="cal-d"><span>22</span></div>
+
+                        <div class="cal-d"><span>23</span></div>
+                        <div class="cal-d"><span>24</span></div>
+                        <div class="cal-d"><span>25</span></div>
+                        <div class="cal-d"><span>26</span></div>
+                        <div class="cal-d"><span>27</span></div>
+                        <div class="cal-d"><span>28</span></div>
+                        <div class="cal-d"><span>29</span></div>
+                    </div>
+
+                    <div class="cal-legend">
+                        <span><i class="solid"></i>已记录经期</span>
+                        <span><i class="ring"></i>预测（3 天）</span>
+                        <span><i class="dot"></i>今天</span>
+                        <span><i class="gold"></i>导入数据</span>
+                    </div>
+
+                    <div class="card" style="margin-top:2px">
+                        <div class="kv"><span>进行中</span><b>11.12 – 至今 · 第 3 天</b></div>
+                        <div class="kv"><span>来源</span><b>美柚导入</b></div>
+                        <div class="kv"><span>操作</span><b style="color:var(--stamp-deep)">点日期可改</b></div>
+                    </div>
+
+                    <div class="anno">导入的历史用金色小点标出来，<b>不隐藏来源</b>。她随时能知道哪些是「我当时记的」、哪些是「搬家搬来的」。</div>
+                </div>
+            </div>
+            <p class="note"><b>点任意一天 → 底部弹出当天详情</b>（下一屏）。日历本身只读，不在这里直接涂格子——触摸精度不够，容易记错。<br><b>「导入」标记的意义：</b>导入的数据可能和她记忆有出入，标出来她才知道该不该信。</p>
+        </div>
+
+        <div class="frame-wrap">
+            <h2>点某一天</h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>●●● ⚡</span></div>
+                <div class="screen dimmed">
+                    <div class="ph-head">
+                        <span class="ph-back">‹</span>
+                        <strong>生理期</strong>
+                        <span class="ph-more">⋯</span>
+                    </div>
+                    <div class="seg"><span class="on">日历</span><span>预测</span><span>记录</span></div>
+                    <div class="cal-head"><b>2026 年 11 月</b></div>
+                    <div class="cal-week"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+                    <div class="cal-grid">
+                        <div class="cal-d mute"><span>26</span></div><div class="cal-d mute"><span>27</span></div>
+                        <div class="cal-d mute"><span>28</span></div><div class="cal-d mute"><span>29</span></div>
+                        <div class="cal-d mute"><span>30</span></div><div class="cal-d mute"><span>31</span></div>
+                        <div class="cal-d"><span>1</span></div>
+                        <div class="cal-d"><span>2</span></div><div class="cal-d"><span>3</span></div>
+                        <div class="cal-d"><span>4</span></div><div class="cal-d"><span>5</span></div>
+                        <div class="cal-d"><span>6</span></div><div class="cal-d"><span>7</span></div>
+                        <div class="cal-d"><span>8</span></div>
+                        <div class="cal-d"><span>9</span></div><div class="cal-d"><span>10</span></div>
+                        <div class="cal-d"><span>11</span></div>
+                        <div class="cal-d pred"><span>12</span></div>
+                        <div class="cal-d pred"><span>13</span></div>
+                        <div class="cal-d pred"><span>14</span></div>
+                        <div class="cal-d"><span>15</span></div>
+                    </div>
+                </div>
+                <div class="sheet">
+                    <div class="sheet-grab"></div>
+                    <div class="day-title"><b>11 月 13 日</b><small>周五</small></div>
+                    <span class="day-state q">预测中的一天 · 未记录</span>
+                    <p class="sheet-sub" style="margin-top:6px">如果这天真的来了，点一下就算开始；结束时间之后再补。</p>
+
+                    <div class="day-opts">
+                        <button class="sheet-opt primary">
+                            <span class="so-ico">✓</span>
+                            <span class="so-txt"><b>这天开始的</b><span class="so-sub">记为经期开始日</span></span>
+                        </button>
+                        <button class="sheet-opt">
+                            <span class="so-ico">＋</span>
+                            <span class="so-txt"><b>这天是经期中的一天</b><span class="so-sub">会把前后合并成一次</span></span>
+                        </button>
+                        <button class="day-opt danger">
+                            <span class="oi">⌫</span>
+                            <span>把这一天从记录里去掉</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <p class="note"><b>只给 3 个动作，不给「记录流量/症状」这种表单。</b>日历上的操作目标很窄：确认或否定某一天。<br><b>「这天是经期中的一天」</b>是为补记准备的——她可能只记得中间某天，前后由系统合并。</p>
+        </div>
+
+        <div class="frame-wrap">
+            <h2>点排卵日 / 排卵期</h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>●●● ⚡</span></div>
+                <div class="screen dimmed">
+                    <div class="ph-head">
+                        <span class="ph-back">‹</span>
+                        <strong>生理期</strong>
+                        <span class="ph-more">⋯</span>
+                    </div>
+                    <div class="seg"><span class="on">日历</span><span>预测</span><span>记录</span></div>
+                    <div class="cal-head"><b>2026 年 11 月</b></div>
+                    <div class="cal-week"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+                    <div class="cal-grid">
+                        <div class="cal-d mute"><span>26</span></div><div class="cal-d mute"><span>27</span></div>
+                        <div class="cal-d mute"><span>28</span></div><div class="cal-d mute"><span>29</span></div>
+                        <div class="cal-d mute"><span>30</span></div><div class="cal-d mute"><span>31</span></div>
+                        <div class="cal-d"><span>1</span></div>
+                        <div class="cal-d"><span>2</span></div><div class="cal-d"><span>3</span></div>
+                        <div class="cal-d"><span>4</span></div><div class="cal-d"><span>5</span></div>
+                        <div class="cal-d"><span>6</span></div><div class="cal-d today"><span>7</span></div>
+                        <div class="cal-d"><span>8</span></div>
+                    </div>
+                </div>
+                <div class="sheet">
+                    <div class="sheet-grab"></div>
+                    <div class="day-title"><b>11 月 27 日</b><small>周五</small></div>
+                    <span class="day-state" style="background:#dff0ee;color:#1f6f6c">推算的排卵日 · 参考值</span>
+                    <p class="sheet-sub" style="margin-top:7px">
+                        以下一次经期预计开始日往前推 14 天得到。<b>它不是测出来的</b>，只是按周期长度推算的中位数。
+                    </p>
+
+                    <div class="card" style="margin-top:10px;padding:10px">
+                        <div class="kv"><span>依据</span><b>11.13 预计开始 − 14 天</b></div>
+                        <div class="kv"><span>排卵期</span><b>11.22 – 11.28</b></div>
+                        <div class="kv"><span>准确度</span><b style="color:#a4434f">比经期预测更不可靠</b></div>
+                    </div>
+
+                    <div class="day-opts">
+                        <button class="day-opt">
+                            <span class="oi">×</span>
+                            <span>这次日历上不显示排卵期</span>
+                        </button>
+                    </div>
+
+                    <p style="margin-top:10px;color:#a8a09a;font-size:8.5px;line-height:1.6;text-align:center">
+                        排卵日不能用来自行判断避孕或备孕；需要精确判断请用试纸或咨询医生。
+                    </p>
+                </div>
+            </div>
+            <p class="note"><b>点排卵日必须说清三件事：</b>它是推算的不是测出来的、它比经期预测更不可靠、它不能当避孕依据。<br><b>不显示「受孕概率」数字</b>——那个数字没人能算准，写出来只是装精确。<br><b>可以整个关掉：</b>她不想在日历上看到这些，一句话就能收起来。</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<div class="group">
+    <h3>05 · 预测什么时候算、算多远 <span>WHEN &amp; HOW FAR</span></h3>
+    <div class="frames">
+
+        <div class="frame-wrap" style="width:320px">
+            <h2>唯一的触发点 <em>数据变了才重算</em></h2>
+            <div class="card" style="padding:14px">
+                <div style="display:flex;gap:9px;align-items:flex-start">
+                    <span style="flex:0 0 20px;height:20px;display:grid;place-items:center;border-radius:999px;background:var(--stamp);color:#fff;font-size:9px;font-weight:700">1</span>
+                    <div>
+                        <b style="font-size:11px">数据变了 → 立刻重算</b>
+                        <div style="color:var(--muted);font-size:9.5px;line-height:1.6;margin-top:2px">记录开始 / 结束 / 补记 / 删除 / 导入完成 / 「这次不准」。写成功后当场算，结果写回文档。除此之外没有第二个触发点。</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top:8px;padding:14px;background:#fdf6f7;border-color:#edd6da">
+                <div style="display:flex;gap:9px;align-items:flex-start">
+                    <span style="flex:0 0 20px;height:20px;display:grid;place-items:center;border-radius:999px;background:#e9d3d8;color:#a4434f;font-size:11px;font-weight:700">✕</span>
+                    <div>
+                        <b style="font-size:11px">预测日过了 → 不重算</b>
+                        <div style="color:#8c5f6b;font-size:9.5px;line-height:1.6;margin-top:2px">预测日过了她还没记录，分不清是<b>预测算错</b>还是<b>她没记</b>。这时候重算，等于用「没记」去改预测——但没记不等于没来，算出来只会越偏。</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top:8px;padding:14px;background:#fdf6f7;border-color:#edd6da">
+                <div style="display:flex;gap:9px;align-items:flex-start">
+                    <span style="flex:0 0 20px;height:20px;display:grid;place-items:center;border-radius:999px;background:#e9d3d8;color:#a4434f;font-size:11px;font-weight:700">✕</span>
+                    <div>
+                        <b style="font-size:11px">Worker 不做任何补算</b>
+                        <div style="color:#8c5f6b;font-size:9.5px;line-height:1.6;margin-top:2px">Worker 每天 09:00 只<b>读</b>缓存判断要不要推送，不重算、不写 <code>periods.json</code>。它是个纯只读的闹钟，出错的面小得多。</div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="note"><b>过期了改状态，不改数字。</b>预测原样留着，界面从「还有 5 天」变成「已过 3 天」，区间照旧显示，加一句「如果已经来了，记一下为准」。<br><b>为什么这是对的：</b>预测的价值是「当时这么说」，不是「现在永远对」。原样留着才能事后回测「它到底准不准」；每次都重算，回测对标的是一个一直在动的目标，等于没法验证。<br><b>缓存 + asOf：</b>界面上写「预测于 11.07 生成」，比一个永远在变的数字可信。</p>
+        </div>
+
+        <div class="frame-wrap">
+            <h2>预测日过了 <em>不改数字</em></h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>●●● ⚡</span></div>
+                <div class="screen scroll">
+                    <div class="ph-head"><span class="ph-back">‹</span><strong>生理期</strong><span class="ph-more">⋯</span></div>
+                    <div class="seg"><span>日历</span><span class="on">预测</span><span>记录</span></div>
+
+                    <div class="big-card" style="background:radial-gradient(120% 100% at 100% 0%, rgba(120,110,125,.4), transparent 58%), linear-gradient(148deg,#3b3440 0%,#241e2a 72%)">
+                        <div class="bc-label">已过预计时间</div>
+                        <div class="bc-main"><b>3</b><span>天</span></div>
+                        <div class="bc-range">当时预计 11.12 – 11.14</div>
+                        <div class="bc-meta">预测于 11.07 生成 · 基于最近 6 个周期 · 没有重算</div>
+                        <div class="bc-track" style="background:rgba(255,253,248,.12)"><i style="width:100%;background:rgba(255,253,248,.32)"></i></div>
+                        <div class="bc-scale"><span>11.12 预计</span><span>11.14 区间末</span><span>今天 11.17</span></div>
+                    </div>
+
+                    <div class="anno" style="background:#f6f1ea;border-left-color:#b3a79c;color:#6f635a">
+                        <b>预测没有变，只是过期了。</b><br>
+                        如果已经来了，记一下为准；如果确实还没来，也可以再等等。<br>
+                        <span style="color:#8b847e">过期第 3 / 5 / 7 / 10 天会各提醒一次，之后不再提。</span>
+                    </div>
+
+                    <button class="btn-primary">今天来了</button>
+                    <button class="btn-ghost">补记前几天</button>
+
+                    <div class="card">
+                        <div class="card-title">为什么没有自动往后续</div>
+                        <div class="card-note">如果我们看到「过了 3 天还没记录」就自动改成 11.15 – 11.17，那就等于假设「她没记 = 没来」。但没记也可能只是忘了记——这两种情况从数据上分不出来，硬猜会把后面的周期一起带偏。</div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">这条预测会进回测</div>
+                        <div class="kv"><span>当时的区间</span><b>11.12 – 11.14</b></div>
+                        <div class="kv"><span>实际</span><b style="color:#a8a09a">等你记录</b></div>
+                        <div class="card-note">记录之后，这条预测会被算进「过去 12 次准了几次」。所以它必须原样留着。</div>
+                    </div>
+                </div>
+            </div>
+            <p class="note"><b>整张卡从粉色褪成灰紫</b>，一眼看出「这不是一个新的预测，是一个过期的旧预测」。<br><b>文案不催促、不猜测</b>——不给「你是不是怀了」「是不是压力大」这类推断，那不是我们能判断的事。</p>
+        </div>
+
+        <div class="frame-wrap">
+            <h2>只算下一次 <em>只给 3 天</em></h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>●●● ⚡</span></div>
+                <div class="screen">
+                    <div class="ph-head"><span class="ph-back">‹</span><strong>生理期</strong><span class="ph-more">⋯</span></div>
+                    <div class="seg"><span class="on">日历</span><span>预测</span><span>记录</span></div>
+
+                    <div class="cal-head"><b>2026 年 11 月</b><div class="cal-nav"><i>‹</i><i>›</i></div></div>
+                    <div class="cal-week"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+                    <div class="cal-grid">
+                        <div class="cal-d mute"><span>26</span></div><div class="cal-d mute"><span>27</span></div>
+                        <div class="cal-d mute"><span>28</span></div><div class="cal-d mute"><span>29</span></div>
+                        <div class="cal-d mute"><span>30</span></div><div class="cal-d mute"><span>31</span></div>
+                        <div class="cal-d"><span>1</span></div>
+                        <div class="cal-d"><span>2</span></div><div class="cal-d"><span>3</span></div>
+                        <div class="cal-d"><span>4</span></div><div class="cal-d"><span>5</span></div>
+                        <div class="cal-d"><span>6</span></div><div class="cal-d today"><span>7</span></div>
+                        <div class="cal-d"><span>8</span></div>
+                        <div class="cal-d"><span>9</span></div><div class="cal-d"><span>10</span></div>
+                        <div class="cal-d"><span>11</span></div>
+                        <div class="cal-d pred"><span>12</span></div>
+                        <div class="cal-d pred"><span>13</span></div>
+                        <div class="cal-d pred"><span>14</span></div>
+                        <div class="cal-d"><span>15</span></div>
+                        <div class="cal-d"><span>16</span></div><div class="cal-d"><span>17</span></div>
+                        <div class="cal-d"><span>18</span></div><div class="cal-d"><span>19</span></div>
+                        <div class="cal-d"><span>20</span></div><div class="cal-d"><span>21</span></div>
+                        <div class="cal-d"><span>22</span></div>
+                        <div class="cal-d"><span>23</span></div><div class="cal-d"><span>24</span></div>
+                        <div class="cal-d"><span>25</span></div><div class="cal-d"><span>26</span></div>
+                        <div class="cal-d"><span>27</span></div><div class="cal-d"><span>28</span></div>
+                        <div class="cal-d"><span>29</span></div>
+                    </div>
+
+                    <div class="cal-legend">
+                        <span><i class="solid"></i>已记录</span>
+                        <span><i class="ring"></i>下一次（3 天）</span>
+                        <span><i class="dot"></i>今天</span>
+                    </div>
+
+                    <div class="anno bad" style="margin-top:2px">
+                        12 月、1 月都<b>不画虚线</b>。<br>
+                        远期预测误差会累积，画出来就是假装精确。
+                    </div>
+
+                    <div class="card">
+                        <div class="kv"><span>下一次</span><b style="color:var(--stamp-deep)">11.12 – 11.14</b></div>
+                        <div class="kv"><span>再下一次</span><b style="color:#a8a09a">等这次记录后</b></div>
+                    </div>
+                </div>
+            </div>
+            <p class="note"><b>一次只预测 1 个周期。</b>每往后推一次误差都会叠加（每次约 ±1.5 天），要维持 3 天窗口就得假装精确。<br><b>远期也没有决策价值：</b>她只需要知道「这次大概什么时候、要不要准备」。<br><b>过期后的推送不是第二次预测：</b>只是在第 3 / 5 / 7 / 10 天提醒她「记一下」，预测本身不动，也不重算。</p>
+        </div>
+
+        <div class="frame-wrap">
+            <h2>不预测的情况</h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>●●● ⚡</span></div>
+                <div class="screen">
+                    <div class="ph-head"><span class="ph-back">‹</span><strong>生理期</strong><span class="ph-more">⋯</span></div>
+                    <div class="seg"><span class="on">日历</span><span>预测</span><span>记录</span></div>
+
+                    <div class="card" style="margin-top:2px">
+                        <div class="card-title">现在还不预测</div>
+                        <div class="kv"><span>有效周期</span><b>2 条（需要 3 条）</b></div>
+                        <div class="kv"><span>或者</span><b>最近一次 &gt; 90 天前</b></div>
+                        <div class="card-note">数据不够时不硬给日期，日历上也不画虚线圈。记满 3 次（或补录历史）后自动开始。</div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">异常时不外推，但不说教</div>
+                        <div class="kv"><span>周期 &lt; 15 天</span><b>标为异常，不进中心点</b></div>
+                        <div class="kv"><span>周期 &gt; 60 天</span><b>标为异常，保留展示</b></div>
+                        <div class="kv"><span>连续 3 次偏差 &gt; 5 天</span><b>置信度降到「低」</b></div>
+                        <div class="card-note">异常周期仍然画在日历上——她需要看到它，系统只是不用它来外推。</div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">经期中</div>
+                        <div class="card-note">仍然显示「下一次」预测，但日历上不画虚线圈，避免和实心圆混淆。</div>
+                    </div>
+                </div>
+            </div>
+            <p class="note"><b>四条边界写死：</b><br>① 有效周期 &lt; 3 → 不预测；<br>② 最近一次开始日 &gt; 90 天前 → 不预测，提示补录；<br>③ 最近 3 个周期里 2 个异常 → 给窗口但置信度「低」；<br>④ 经期中 → 不画虚线圈。</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<div class="group">
+    <h3>06 · 从美柚导入 <span>ONBOARDING</span></h3>
+    <div class="frames">
+
+        <div class="frame-wrap">
+            <h2>① 选文件</h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>●●● ⚡</span></div>
+                <div class="screen">
+                    <div class="ph-head"><span class="ph-back">‹</span><strong>从美柚导入</strong></div>
+                    <p class="ph-sub">在美柚里打开「记录 → 分析 → 导出数据」，把导出的文件保存到手机，再从这里选。</p>
+                    <div class="steps"><i class="on"></i><i></i><i></i></div>
+
+                    <div class="drop" style="margin-top:4px">
+                        <b>选择文件</b>
+                        <small>支持 .xlsx / .csv · 只在浏览器里解析</small>
+                    </div>
+
+                    <div class="card" style="margin-top:2px">
+                        <div class="card-title">文件不会离开这台设备</div>
+                        <div class="card-note">解析在本地完成，只有你确认后的经期记录会写入空间。原始文件不保存、不上传。</div>
+                    </div>
+
+                    <div class="anno">美柚的导出入口在不同版本位置不同；如果找不到，也可以直接手动补录最近 3–6 次，预测一样能跑起来。</div>
+
+                    <div class="card">
+                        <div class="card-title">或者</div>
+                        <div class="kv"><span>已经记在别处？</span><b>手动补录</b></div>
+                        <div class="kv"><span>只有大致时间？</span><b>按月补录也行</b></div>
+                    </div>
+                </div>
+            </div>
+            <p class="note"><b>把「找不到导出入口」当成常态处理。</b>不能因为导入失败把人挡在门外，所以这一屏两个出口：选文件 / 手动补录。</p>
+        </div>
+
+        <div class="frame-wrap">
+            <h2>② 确认列映射 <em>核心</em></h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>●●● ⚡</span></div>
+                <div class="screen">
+                    <div class="ph-head"><span class="ph-back">‹</span><strong>确认字段</strong></div>
+                    <p class="ph-sub">自动识别了 3 个字段。对不上的可以手动改。</p>
+                    <div class="steps"><i class="on"></i><i class="on"></i><i></i></div>
+
+                    <div class="card" style="margin-top:2px">
+                        <div class="map-row">
+                            <span class="map-src">开始日期</span>
+                            <span class="map-arrow">→</span>
+                            <span class="map-dst">开始日期 ✓</span>
+                        </div>
+                        <div class="map-row">
+                            <span class="map-src">结束日期</span>
+                            <span class="map-arrow">→</span>
+                            <span class="map-dst">结束日期 ✓</span>
+                        </div>
+                        <div class="map-row">
+                            <span class="map-src">流量</span>
+                            <span class="map-arrow">→</span>
+                            <span class="map-dst">流量 ✓</span>
+                        </div>
+                        <div class="map-row">
+                            <span class="map-src">症状</span>
+                            <span class="map-arrow">→</span>
+                            <span class="map-dst unset">忽略</span>
+                        </div>
+                        <div class="map-row">
+                            <span class="map-src">体重</span>
+                            <span class="map-arrow">→</span>
+                            <span class="map-dst unset">忽略</span>
+                        </div>
+                        <div class="map-row">
+                            <span class="map-src">预测</span>
+                            <span class="map-arrow">→</span>
+                            <span class="map-dst unset">忽略</span>
+                        </div>
+                    </div>
+
+                    <div class="anno bad">「预测」列永远不导入。那是美柚的推算，不是发生过的事实 —— 导进来会污染我们自己的样本。</div>
+
+                    <button class="btn-primary" style="margin-top:2px">下一步 · 预览</button>
+                </div>
+            </div>
+            <p class="note"><b>列名是按猜测写的占位。</b>真实表头等你的导出文件确认后再定（可能不是「开始日期」这种中文，也可能是一天一行）。<br><b>一天一行的形态：</b>这一屏会变成「按流量 &gt; 0 的连续日期合并」，字段映射自然少一行，但需要额外说明合并规则。</p>
+        </div>
+
+        <div class="frame-wrap">
+            <h2>③ 预览并合并</h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>●●● ⚡</span></div>
+                <div class="screen">
+                    <div class="ph-head"><span class="ph-back">‹</span><strong>预览</strong></div>
+                    <p class="ph-sub">识别出 38 次经期，38 次会新增。</p>
+                    <div class="steps"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+
+                    <div class="card">
+                        <div class="kv"><span>时间范围</span><b>2019.03 – 2026.10</b></div>
+                        <div class="kv"><span>可导入</span><b>38 次</b></div>
+                        <div class="kv"><span>已存在，跳过</span><b>0 次</b></div>
+                        <div class="kv"><span>格式异常</span><b>1 次（已忽略）</b></div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">最前面 3 条</div>
+                        <div class="rec-row"><div class="rec-main"><b>2026.10.14 – 10.19</b><small>6 天</small></div><div class="rec-val"><b>33</b>天周期</div></div>
+                        <div class="rec-row"><div class="rec-main"><b>2026.09.11 – 09.15</b><small>5 天</small></div><div class="rec-val"><b>28</b>天周期</div></div>
+                        <div class="rec-row"><div class="rec-main"><b>2026.08.14 – 08.18</b><small>5 天</small></div><div class="rec-val"><b>30</b>天周期</div></div>
+                    </div>
+
+                    <button class="btn-primary" style="margin-top:2px">导入 38 次</button>
+                    <div style="margin-top:6px;text-align:center;font-size:9px;color:var(--muted)">导入后可以逐条删除</div>
+                </div>
+            </div>
+            <p class="note"><b>去重规则：</b>开始日期相同即视为同一次，已存在就跳过，不覆盖已有记录的流量/症状。<br><b>说清代价：</b>「格式异常 1 次（已忽略）」直接把问题摆出来，而不是悄悄丢掉。</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<div class="group">
+    <h3>07 · 提醒 <span>CLOUDFLARE WORKERS CRON</span></h3>
+    <div class="frames">
+
+        <div class="frame-wrap">
+            <h2>提醒设置</h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>●●● ⚡</span></div>
+                <div class="screen">
+                    <div class="ph-head"><span class="ph-back">‹</span><strong>提醒</strong></div>
+                    <p class="ph-sub">每天 09:00 检查一次，用 Bark 推给你。</p>
+
+                    <div class="card">
+                        <div class="tgl-row"><div class="tl"><b>即将开始</b><small>预计开始前 1 天</small></div><span class="tgl"></span></div>
+                        <div class="tgl-row"><div class="tl"><b>当天</b><small>预计开始那天早上</small></div><span class="tgl"></span></div>
+                        <div class="tgl-row"><div class="tl"><b>过期后补录提醒</b><small>过期第 3 / 5 / 7 / 10 天各推一次，之后停</small></div><span class="tgl"></span></div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">文案模板<span class="chev">›</span></div>
+                        <div class="kv"><span>即将开始</span><b style="font-weight:400;color:var(--muted)">还有 {days} 天</b></div>
+                        <div class="kv"><span>当天</span><b style="font-weight:400;color:var(--muted)">预计今天开始</b></div>
+                        <div class="card-note">和小灶的通知同一套：标题 / 副标题 / 正文 / 点击地址，变量用 <code>{days}</code>、<code>{range}</code>。</div>
+                    </div>
+
+                    <p class="dim-label" style="margin-top:4px">推送预览</p>
+                    <div class="bark">
+                        <div class="bark-top"><i></i>恋爱空间<span>09:00</span></div>
+                        <b>还有 1 天</b>
+                        <p>预计 11.12 开始（范围 11.12 – 11.14）。<br>记得的话点一下记录。</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">上次推送</div>
+                        <div class="kv"><span>今天 09:00</span><b style="color:var(--route)">已送达</b></div>
+                        <div class="kv"><span>昨天 09:00</span><b style="color:#a8a09a">无需提醒</b></div>
+                        <div class="card-note">如果某次没发出去，这里会显示「失败」，并且打开首页时会有横幅提示。</div>
+                    </div>
+                </div>
+            </div>
+            <p class="note"><b>文案可配置，默认就写清楚。</b>参考小灶的 Bark 模板：标题 / 副标题 / 正文 / 点击地址，变量 <code>{days}</code>（还有几天 / 过几天）、<code>{range}</code>（预计范围）、<code>{url}</code>。默认文案直接说「生理期」，不藏着。<br><b>过期补录提醒固定 4 次：</b>过期第 3 / 5 / 7 / 10 天，之后永久停止——不每小时骚扰，也不会无限期。<b>它只提醒「记一下」，和预测无关</b>（不重算）。<br><b>「上次推送」是必要的。</b>定时任务最怕静默失败，把结果摆出来是唯一让人信它的方式。</p>
+        </div>
+
+        <div class="frame-wrap">
+            <h2>推送到达</h2>
+            <div class="phone" style="background:linear-gradient(160deg,#5b2b45,#2a1726)">
+                <div class="statusbar" style="color:rgba(255,253,248,.6)"><span>9:00</span><span>●●● ⚡</span></div>
+                <div class="screen" style="gap:12px;padding-top:26px">
+                    <p style="font-family:var(--serif);font-size:34px;color:rgba(255,253,248,.95);line-height:1.15">9:00</p>
+                    <p style="color:rgba(255,253,248,.5);font-size:11px">11 月 13 日 星期五</p>
+
+                    <div style="margin-top:auto;display:grid;gap:8px">
+                        <div class="bark" style="background:rgba(255,255,255,.9)">
+                            <div class="bark-top"><i></i>恋爱空间<span>现在</span></div>
+                            <b>还有 1 天</b>
+                            <p>预计 11.12 开始（范围 11.12 – 11.14）。<br>记得的话点一下记录。</p>
+                        </div>
+                        <div class="bark" style="background:rgba(255,255,255,.55)">
+                            <div class="bark-top"><i style="background:#8b8480"></i>每日提醒<span>昨天</span></div>
+                            <b>别的 App 的通知</b>
+                            <p>…</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="note"><b>点开落到哪：</b><code>index.html#me</code> 的生理期子页。一次点击从锁屏到能记录。<br><b>文案里给了范围，不给单日</b>——和预测算法一致：范围永远是 3 天以内，说了也不算假精确。</p>
+        </div>
+
+        <div class="frame-wrap">
+            <h2>失败兜底</h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>●●● ⚡</span></div>
+                <div class="screen">
+                    <p class="ph-eyebrow">TINY LOVE SCRAPBOOK · SINCE 2020</p>
+                    <h2 class="ph-title">福福&amp;老李</h2>
+                    <div class="timer-mini">
+                        <div class="tm-label">● 在一起</div>
+                        <div class="tm-main">2146<small>天</small></div>
+                    </div>
+
+                    <div class="anno bad" style="margin-top:2px">
+                        <b>昨天的提醒没发出去。</b><br>
+                        今天该记的话，现在补一下 → <span style="text-decoration:underline">去记录</span>
+                    </div>
+
+                    <div class="cycle-strip">
+                        <div class="cs-mark">5<small>天后</small></div>
+                        <div class="cs-text">
+                            <b>大概快来了</b>
+                            <small>预计 11.12 – 11.14 · 6 个周期</small>
+                        </div>
+                        <button class="cs-btn ghost">记录</button>
+                    </div>
+
+                    <div class="dinner-mini">
+                        <div>
+                            <b>周末吃什么</b>
+                            <small>只在周末开饭，先约下一顿吧</small>
+                        </div>
+                        <span class="dm-cta">去预约 →</span>
+                    </div>
+
+                    <div class="ph-section">
+                        <div class="ph-section-head">
+                            <span class="ph-section-index">01</span>
+                            <span class="ph-section-title">岁月留痕</span>
+                            <span class="ph-section-more">全部 41</span>
+                        </div>
+                        <div class="milestone-row" style="margin-top:7px">
+                            <div class="milestone-block"></div>
+                            <div class="milestone-block"></div>
+                            <div class="milestone-block"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tabbar">
+                    <span class="active">我们</span><span>小灶</span><span>恋爱卡</span><span>空间</span>
+                </div>
+            </div>
+            <p class="note"><b>三层兜底：</b><br>① Workers 每日触发；② 幂等写 <code>lastPush</code>，同一天不重复；③ 页面每次打开本地再判一次，定时器挂了也只是晚，不是没有。<br>这条横幅出现的条件是「今天该提醒 &amp;&amp; 今天没发出去」。</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<div class="group">
+    <h3>08 · 边界与二期占位 <span>EDGES</span></h3>
+    <div class="frames">
+
+        <div class="frame-wrap">
+            <h2>周期不规律</h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>●●● ⚡</span></div>
+                <div class="screen">
+                    <div class="ph-head"><span class="ph-back">‹</span><strong>生理期</strong></div>
+                    <div class="big-card">
+                        <div class="bc-label">距离下次</div>
+                        <div class="bc-main"><b>7</b><span>天</span></div>
+                        <div class="bc-range">预计 11.13 – 11.15</div>
+                        <div class="bc-meta">基于最近 6 个周期 · 平均 24 天 · 波动 ±9 天 · 置信度 低</div>
+                        <div class="bc-track" style="background:rgba(255,253,248,.1)"><i style="width:52%;background:repeating-linear-gradient(90deg,rgba(223,95,126,.5) 0 5px,transparent 5px 9px)"></i></div>
+                        <div class="bc-scale"><span>10.20 上次</span><span>今天 11.06</span><span>11.14 中位</span></div>
+                    </div>
+
+                    <div class="anno bad">
+                        <b>你的周期波动较大（22–37 天）。</b><br>
+                        这 3 天只是最可能的一段，实际可能提前或推迟好几天。提前备着比掐点更实际。
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">过去 12 次，准了 5 次</div>
+                        <div class="bars">
+                            <i class="hit" style="height:40%"></i><i style="height:92%"></i><i class="hit" style="height:70%"></i>
+                            <i style="height:100%"></i><i style="height:85%"></i><i class="hit" style="height:55%"></i>
+                            <i style="height:96%"></i><i class="hit" style="height:38%"></i><i style="height:78%"></i>
+                            <i style="height:88%"></i><i class="hit" style="height:62%"></i><i style="height:74%"></i>
+                        </div>
+                        <div class="bar-legend"><span>一年前</span><span>平均偏差 4.2 天</span><span>最近</span></div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">这种时候更适合</div>
+                        <div class="kv"><span>提醒提前量</span><b>提前 3 天</b></div>
+                        <div class="kv"><span>随机带一片</span><b>按最早可能日备</b></div>
+                        <div class="card-note">周期长期不规律本身可能是需要关注的事。我们不做诊断，但会建议必要时问问医生。</div>
+                    </div>
+                </div>
+            </div>
+            <p class="note"><b>窗口永远 3 天，不因为波动大就放宽。</b>放宽到 10 天等于没有信息，还会让「预计」失去意义；宁可固定 3 天 + 明说「可能提前或推迟」。<br><b>代价要认：</b>窗口收窄，回测命中率会掉下来。命中率低本身就是有用的信息，不用粉饰。<br><b>不诊断，但给一句边界话术。</b></p>
+        </div>
+
+        <div class="frame-wrap">
+            <h2>忘了结束</h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>●●● ⚡</span></div>
+                <div class="screen">
+                    <div class="ph-head"><span class="ph-back">‹</span><strong>生理期</strong></div>
+                    <div class="big-card">
+                        <div class="bc-label">经期中</div>
+                        <div class="bc-main"><b>第 12 天</b></div>
+                        <div class="bc-range">11.01 开始 · 还没记结束</div>
+                        <div class="bc-meta">已经超过通常的 5 天，帮你确认一下</div>
+                    </div>
+
+                    <button class="btn-primary">点这里结束</button>
+
+                    <div class="card">
+                        <div class="card-title">是不是漏记了？</div>
+                        <div class="kv"><span>实际第几天结束</span><b>补一个结束日</b></div>
+                        <div class="kv"><span>两次连着记成一次</span><b>拆开</b></div>
+                        <div class="kv"><span>这条记错了</span><b>删除</b></div>
+                        <div class="card-note">超过 10 天会这样问你一次，但不会自动改数据 —— 记错的是记录的人，不是系统。</div>
+                    </div>
+
+                    <div class="anno">进行中的记录不参与周期样本；所以即使忘了结束，也不会把下一次预测算歪到离谱。</div>
+                </div>
+            </div>
+            <p class="note"><b>「忘了点结束」是最常见的操作失败。</b>处理方式：提示，不替她做决定；同时用「进行中不参与样本」保护算法。</p>
+        </div>
+
+        <div class="frame-wrap">
+            <h2>二期占位 <em>不做</em></h2>
+            <div class="phone">
+                <div class="statusbar"><span>9:41</span><span>●●● ⚡</span></div>
+                <div class="screen">
+                    <div class="ph-head"><span class="ph-back">‹</span><strong>生理期</strong></div>
+                    <div class="card">
+                        <div class="card-title">这几天</div>
+                        <div class="card-note">（二期：经期前 3 天 / 第 1–2 天 / 结束后的照顾清单，可勾选）</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">告诉他</div>
+                        <div class="card-note">（二期：想喝热的 / 想被抱抱 / 今天别说话 → Bark 只推大厨）</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">厨房</div>
+                        <div class="card-note">（二期：经期友好 / 忌口标记；订单卡显示「她经期第 2 天」）</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">回顾</div>
+                        <div class="card-note">（二期：经期条与岁月留痕并排）</div>
+                    </div>
+                    <div class="anno bad">一期不显示这些入口。<b>有空位但不上线，比上线了再砍更省事。</b></div>
+                </div>
+            </div>
+            <p class="note">这一屏不是要做的界面，是提醒后续别把二期的东西偷偷塞进一期。评估「照顾闭环是不是伪需求」要在记录+预测稳定之后再谈。</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<div class="group">
+    <h3>09 · 桌面端 <span>1280</span></h3>
+    <div class="frames">
+        <div class="frame-wrap" style="width:auto">
+            <h2>空间 → 生理期（桌面）</h2>
+            <div class="desk">
+                <div class="desk-bar"><i></i><i></i><i></i><span>coderf.site/index.html#me</span></div>
+                <div class="desk-body">
+                    <aside class="desk-side">
+                        <h5>空间</h5>
+                        <a>恋爱币</a>
+                        <a class="on">生理期</a>
+                        <a>我的订单</a>
+                        <a>恋爱卡记录</a>
+                        <a>更新公告</a>
+                    </aside>
+                    <div class="desk-main">
+                        <div class="desk-col">
+                            <div>
+                                <p class="desk-h">还有 5 天</p>
+                                <p class="desk-sub">预计 11.12 – 11.14 · 基于最近 6 个周期</p>
+                            </div>
+                            <div class="big-card" style="padding:22px 22px 18px">
+                                <div class="bc-label">距离下次</div>
+                                <div class="bc-main"><b>5</b><span>天</span></div>
+                                <div class="bc-range">预计 11.12 – 11.14</div>
+                                <div class="bc-meta">平均 29 天 · 波动 ±2 天 · 置信度 中</div>
+                                <div class="bc-track"><i style="width:64%"></i><b style="left:64%"></b></div>
+                                <div class="bc-scale"><span>10.14 上次</span><span>今天 11.07</span><span>11.13 预计</span></div>
+                            </div>
+                            <div class="btn-row">
+                                <button class="btn-primary">今天来了</button>
+                                <button class="btn-ghost">补记</button>
+                            </div>
+                            <div class="card">
+                                <div class="card-title">过去 12 次，准了 9 次</div>
+                                <div class="bars" style="height:60px">
+                                    <i class="hit" style="height:70%"></i><i class="hit" style="height:45%"></i><i class="hit" style="height:85%"></i>
+                                    <i style="height:100%"></i><i class="hit" style="height:60%"></i><i class="hit" style="height:92%"></i>
+                                    <i class="hit" style="height:52%"></i><i style="height:78%"></i><i class="hit" style="height:66%"></i>
+                                    <i class="hit" style="height:40%"></i><i style="height:96%"></i><i class="hit" style="height:58%"></i>
+                                </div>
+                                <div class="bar-legend"><span>一年前</span><span>平均偏差 1.6 天</span><span>最近</span></div>
+                            </div>
+                        </div>
+                        <div class="desk-col">
+                            <div class="card">
+                                <div class="card-title">最近 6 次</div>
+                                <div class="rec-row"><i class="rec-dot"></i><div class="rec-main"><b>10.14 – 10.19</b><small>6 天 · 流量正常</small></div><div class="rec-val"><b>33</b>天</div></div>
+                                <div class="rec-row"><i class="rec-dot"></i><div class="rec-main"><b>09.11 – 09.15</b><small>5 天</small></div><div class="rec-val"><b>28</b>天</div></div>
+                                <div class="rec-row"><i class="rec-dot"></i><div class="rec-main"><b>08.14 – 08.18</b><small>5 天</small></div><div class="rec-val"><b>30</b>天</div></div>
+                                <div class="rec-row is-old"><i class="rec-dot"></i><div class="rec-main"><b>07.15 – 07.20</b><small>6 天</small></div><div class="rec-val"><b>29</b>天</div></div>
+                                <div style="margin-top:8px;text-align:center;font-size:9.5px;color:var(--muted)">查看全部 38 次 ›</div>
+                            </div>
+                            <div class="card">
+                                <div class="card-title">数据</div>
+                                <div class="kv"><span>从美柚导入</span><b>38 次</b></div>
+                                <div class="kv"><span>提醒</span><b>每天 09:00</b></div>
+                                <div class="kv"><span>上次推送</span><b style="color:var(--route)">已送达</b></div>
+                            </div>
+                            <div class="anno">桌面端只是同一页的两栏重排，<b>不新增功能</b>。这个产品主要用手机打开。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="note">桌面端两栏：左边「现在」，右边「历史和数据」。与用户端现有「空间」子页的布局规则一致（`me-sub-page` 容器宽度 + 两栏网格）。</p>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<div class="group">
+    <h3>10 · 用户端 / 管理端分工 <span>SURFACES</span></h3>
+
+    <div class="frames" style="margin-bottom:26px">
+        <div class="frame-wrap" style="width:auto;flex:1 1 420px">
+            <div class="card" style="padding:0;overflow:hidden">
+                <table style="width:100%;border-collapse:collapse;font-size:11px">
+                    <thead>
+                        <tr style="background:#f5f0e8">
+                            <th style="padding:9px 12px;text-align:left;font-size:10px">能力</th>
+                            <th style="padding:9px 12px;text-align:left;font-size:10px;color:var(--stamp-deep)">用户端（她）</th>
+                            <th style="padding:9px 12px;text-align:left;font-size:10px;color:var(--muted)">管理端（大厨）</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td style="padding:8px 12px;border-top:1px solid #eee8e1"><b>记录经期</b></td><td style="padding:8px 12px;border-top:1px solid #eee8e1">✅ 一键开始 / 结束 / 补记 / 删除</td><td style="padding:8px 12px;border-top:1px solid #eee8e1">只读，不能替她记</td></tr>
+                        <tr><td style="padding:8px 12px;border-top:1px solid #eee8e1"><b>看日历 / 预测 / 自检</b></td><td style="padding:8px 12px;border-top:1px solid #eee8e1">✅</td><td style="padding:8px 12px;border-top:1px solid #eee8e1">—</td></tr>
+                        <tr><td style="padding:8px 12px;border-top:1px solid #eee8e1"><b>导入美柚数据</b></td><td style="padding:8px 12px;border-top:1px solid #eee8e1">✅ 发起导入（文件在她手机上）</td><td style="padding:8px 12px;border-top:1px solid #eee8e1">可看导入结果</td></tr>
+                        <tr><td style="padding:8px 12px;border-top:1px solid #eee8e1"><b>首页细条出现阈值</b></td><td style="padding:8px 12px;border-top:1px solid #eee8e1">—</td><td style="padding:8px 12px;border-top:1px solid #eee8e1">✅ 默认 7 天</td></tr>
+                        <tr><td style="padding:8px 12px;border-top:1px solid #eee8e1"><b>提醒开关 / 时间 / 提前量</b></td><td style="padding:8px 12px;border-top:1px solid #eee8e1">—</td><td style="padding:8px 12px;border-top:1px solid #eee8e1">✅</td></tr>
+                        <tr><td style="padding:8px 12px;border-top:1px solid #eee8e1"><b>提醒文案模板</b></td><td style="padding:8px 12px;border-top:1px solid #eee8e1">—</td><td style="padding:8px 12px;border-top:1px solid #eee8e1">✅ 与小灶同一套编辑器</td></tr>
+                        <tr><td style="padding:8px 12px;border-top:1px solid #eee8e1"><b>算法参数</b></td><td style="padding:8px 12px;border-top:1px solid #eee8e1">—</td><td style="padding:8px 12px;border-top:1px solid #eee8e1">可覆盖（默认自动回测）</td></tr>
+                        <tr><td style="padding:8px 12px;border-top:1px solid #eee8e1"><b>删除 / 清空全部记录</b></td><td style="padding:8px 12px;border-top:1px solid #eee8e1">逐条删除</td><td style="padding:8px 12px;border-top:1px solid #eee8e1">✅ 需要二次确认</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="note"><b>原则：用户端只做「记录」和「看」。</b>凡是「配置」——什么时候提醒、文案怎么写、细条什么时候出现、算法怎么选——全部在管理端。<br>这样她的界面里<b>没有一个开关</b>，不会因为配错而错过记录；也符合现有分工：用户端管自己的生活，管理端管系统。<br><b>边界：</b>大厨能改配置，但<b>不能替她记录、不能看她的日历详情</b>——健康数据的写权限只在她手里。</p>
+        </div>
+    </div>
+
+    <div class="frames">
+
+        <div class="frame-wrap" style="width:auto">
+            <h2>管理端 · 系统 → 生理期</h2>
+            <div class="adm">
+                <div class="adm-bar"><i></i><i></i><i></i><span>coderf.site/admin.html · 系统</span></div>
+                <div class="adm-nav">
+                    <span>菜单</span><span>岁月留痕</span><span>更新公告</span><span class="on">生理期</span><span>空间资料</span>
+                </div>
+                <div class="adm-body">
+                    <div>
+                        <p class="adm-h">生理期</p>
+                        <p class="adm-sub">她那边只负责记录；这里的配置决定提醒和首页入口的行为。</p>
+                    </div>
+
+                    <div class="adm-grid2">
+                        <div class="field"><small>首页细条出现阈值</small><b>距下次 ≤ 7 天</b></div>
+                        <div class="field"><small>提醒时间</small><b>每天 09:00</b></div>
+                        <div class="field"><small>提醒提前量</small><b>提前 1 天 + 当天</b></div>
+                        <div class="field"><small>过期补录提醒</small><b>第 3 / 5 / 7 / 10 天</b></div>
+                    </div>
+
+                    <div style="display:grid;gap:6px">
+                        <div class="tgl-row" style="padding:6px 0"><div class="tl"><b>提醒总开关</b><small>关掉后不发任何推送</small></div><span class="tgl"></span></div>
+                        <div class="tgl-row" style="padding:6px 0"><div class="tl"><b>算法自动重选</b><small>每次记录后重新回测 27 种组合</small></div><span class="tgl"></span></div>
+                        <div class="tgl-row" style="padding:6px 0"><div class="tl"><b>允许用户端导入</b><small>关闭后「从美柚导入」入口隐藏</small></div><span class="tgl"></span></div>
+                    </div>
+
+                    <div class="adm-note">这里没有「查看她的日历」。大厨能看到配置和数据统计，但看不到逐日明细——健康数据的写权限和查看粒度都留给她。</div>
+
+                    <div class="adm-grid2">
+                        <div class="field"><small>数据条数</small><b>38 次（导入）</b></div>
+                        <div class="field"><small>上次推送</small><b style="color:var(--route)">今天 09:00 已送达</b></div>
+                    </div>
+                    <div class="adm-danger">
+                        <b>清空全部记录</b> —— 会删除 38 次经期与全部预测历史，不可恢复。需要输入「清空」二次确认。
+                    </div>
+                </div>
+            </div>
+            <p class="note">与现有「系统」页其它模块同构：卡片式字段 + 开关 + 危险操作红框。<b>危险操作放最后，且在管理端而不是用户端。</b></p>
+        </div>
+
+        <div class="frame-wrap" style="width:auto">
+            <h2>管理端 · 提醒模板</h2>
+            <div class="adm">
+                <div class="adm-bar"><i></i><i></i><i></i><span>coderf.site/admin.html · 系统 → 生理期 → 文案</span></div>
+                <div class="adm-body">
+                    <div>
+                        <p class="adm-h">提醒文案</p>
+                        <p class="adm-sub">和小灶的 Bark 模板同一套变量与预览。改这里不影响记录。</p>
+                    </div>
+
+                    <div class="adm-grid2">
+                        <div class="field"><small>事件</small><b>即将开始</b></div>
+                        <div class="field"><small>发送时间</small><b>09:00</b></div>
+                    </div>
+
+                    <div>
+                        <p style="font-size:9px;color:#a8a09a;letter-spacing:.06em;margin-bottom:4px">标题</p>
+                        <div class="tpl-area">还有 {days} 天</div>
+                    </div>
+                    <div>
+                        <p style="font-size:9px;color:#a8a09a;letter-spacing:.06em;margin-bottom:4px">正文</p>
+                        <div class="tpl-area">预计 {range} 开始。
+记得的话点一下记录。</div>
+                    </div>
+                    <div>
+                        <p style="font-size:9px;color:#a8a09a;letter-spacing:.06em;margin-bottom:4px">点击地址</p>
+                        <div class="tpl-area">{url}</div>
+                    </div>
+                    <div class="vars">
+                        <span>{days}</span><span>{range}</span><span>{date}</span><span>{url}</span>
+                    </div>
+
+                    <div class="bark" style="background:#fff">
+                        <div class="bark-top"><i></i>恋爱空间<span>09:00</span></div>
+                        <b>还有 1 天</b>
+                        <p>预计 11.12 – 11.14 开始。<br>记得的话点一下记录。</p>
+                    </div>
+
+                    <div class="adm-note">默认文案直接写「经期」相关的时间和范围，不玩模糊——如果哪天想含蓄，改模板就行，不用改代码。</div>
+                </div>
+            </div>
+            <p class="note">和现有小灶通知编辑器保持同一套交互：字段 + 变量提示 + 实时预览 + 发送测试前的确认框。</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<div class="group decisions">
+    <h3>11 · 已确认 <span>DECIDED 2026-11-10</span></h3>
+    <table>
+        <thead>
+            <tr><th>决定</th><th>结论</th><th>对原型的影响</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="q">首页入口</td>
+                <td class="o">方案 A（独立细条），<b>按需出现</b></td>
+                <td>只在「距下次 ≤ 7 天」或「经期中」显示；其余时间首页完全不提，入口留在「空间 → 生理期」。阈值在管理端可改。</td>
+            </tr>
+            <tr>
+                <td class="q">提醒文案</td>
+                <td class="o">可以出现「经期」，做成可配置</td>
+                <td>参照小灶 Bark 模板：标题 / 副标题 / 正文 / 点击地址 + 变量 <code>{days}</code> <code>{range}</code> <code>{url}</code>。默认文案直接说清楚，不再用「大概快来了」这种模糊说法。</td>
+            </tr>
+            <tr>
+                <td class="q">预测的展示粒度</td>
+                <td class="o">不给单日，区间不超过 3 天</td>
+                <td>周期不规律那屏从「5–14 天」改成固定 3 天窗口（11.13 – 11.15）+ 明确指出可能提前或推迟。<b>代价：窗口收窄 → 回测命中率会下降，这个数字要如实展示，不粉饰。</b></td>
+            </tr>
+            <tr>
+                <td class="q">保存后的反馈</td>
+                <td class="o">弹窗，不是页内横幅</td>
+                <td>弹窗里 4 件事：记了什么 / 和预测差多少 / 下次变成什么 / 撤销 + 知道了。记录是低频重要动作，值得一次明确收尾。</td>
+            </tr>
+            <tr>
+                <td class="q">日历视图</td>
+                <td class="o">必须有，作为生理期页默认视图</td>
+                <td>新增第 04 节：月历 + 已记录实心 / 预测虚线圈 / 导入金色小点；点日期弹底部操作。分段控件切「日历 / 预测 / 记录」。</td>
+            </tr>
+            <tr>
+                <td class="q">过期后的补录提醒</td>
+                <td class="o">过期第 3 / 5 / 7 / 10 天各推一次，之后停</td>
+                <td>只提醒记录，<b>不重算预测</b>。固定 4 次，不每小时骚扰也不无限期；期间一旦记录即停止后续推送。</td>
+            </tr>
+            <tr>
+                <td class="q">排卵日 / 排卵期</td>
+                <td class="o">日历上显示，对齐美柚</td>
+                <td>排卵日 = 下次预计开始日 − 14 天，排卵期 = 前 5 到后 1 天（共 7 天）；青色与经期粉色区分。<b>默认开启</b>，可在管理端或当天卡片里关。口径是「推算值 · 参考值」：不写受孕概率、不叫安全期、明说不能作为避孕或备孕依据。</td>
+            </tr>
+            <tr>
+                <td class="q">预测的触发与范围</td>
+                <td class="o">只有数据变更才重算；预测过期不重算（改状态）；Worker 只读不补算。一次只预测下一个周期</td>
+                <td>新增第 05 节：唯一触发点 + 两个被否掉的触发点；过期后卡片褪色显示「已过 N 天」、区间原样保留；日历只画一段虚线；四条不预测的边界。</td>
+            </tr>
+            <tr>
+                <td class="q">用户端 / 管理端分工</td>
+                <td class="o">用户只记录，配置在管理端</td>
+                <td>新增第 09 节：阈值、提醒开关与时间、文案模板、算法开关、清空全在管理端；用户端没有开关。大厨不能替她记录、看不到逐日明细。</td>
+            </tr>
+            <tr>
+                <td class="q">结束记录</td>
+                <td class="o">不自动结束</td>
+                <td>超过 10 天只提示一次，给「补结束日 / 拆开 / 删除」三个动作，系统不改数据；进行中的记录不参与周期样本，避免把预测带歪。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3 style="margin-top:30px">12 · 按推荐执行的（已写进原型） <span>ACCEPTED RECOMMENDATIONS</span></h3>
+    <table>
+        <thead>
+            <tr><th>项</th><th>结论</th><th>备注</th></tr>
+        </thead>
+        <tbody>
+            <tr><td class="q">置信度</td><td class="o">显示，中文三档（高 / 中 / 低）</td><td>只在「预测依据」卡里出现，不占主视觉。</td></tr>
+            <tr><td class="q">自检回测</td><td class="o">第一次展开，之后记住折叠</td><td>相对美柚的唯一硬证据；常驻会吵，藏起来就白做。</td></tr>
+            <tr><td class="q">导入格式</td><td class="o">「一次一行」和「一天一行」都支持</td><td>多写约 30 行，避免你的导出是哪种就废掉一半功能。<b>等你文件到了再确认是否真的需要两种。</b></td></tr>
+            <tr><td class="q">流量 / 症状 / 心情</td><td class="o">全部可选，默认折叠</td><td>不填完全不影响预测，预测只用开始日期。</td></tr>
+            <tr><td class="q">定时任务</td><td class="o">Cloudflare Workers Cron，每天 09:00</td><td>只读 OSS + POST Bark，不写 OSS；三层兜底（幂等 / 失败可见 / 页面兜底）。</td></tr>
+            <tr><td class="q">隐私</td><td class="o">明文存 OSS（人已判断不敏感）</td><td>路径可预测，知道 <code>js/oss-config.js</code> 就能读到——已知并接受。</td></tr>
+            <tr><td class="q">二期</td><td class="o">照顾清单 / 厨房联动 / 一键求助 / 回顾</td><td>一期连入口都不显示，避免半成品。</td></tr>
+        </tbody>
+    </table>
+
+    <h3 style="margin-top:30px">13 · 还差的输入 <span>STILL NEEDED</span></h3>
+    <table>
+        <tbody>
+            <tr><td class="q">美柚导出文件</td><td class="o">等提供</td><td>要确认：xlsx 还是 csv、一次一行还是一天一行、表头列名、日期格式。拿到之前导入器按两种形态写。</td></tr>
+            <tr><td class="q">Cloudflare 账号</td><td class="o">等开发到提醒部分再要</td><td>需要能部署 Worker 的账号权限，或你自己按文档部署一次。</td></tr>
+            <tr><td class="q">分支名</td><td class="o">建议改</td><td><code>work/261110-dym-tracker</code> → <code>feat/LJ-20261110-001-period-tracker</code>，与任务 ID 对齐。</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // Prototype-only interactivity: toggles and chip selection so the states can
+    // be felt on a phone. No href="#..." links anywhere (Paseo preview breaks them).
+    document.addEventListener('click', function (event) {
+        var toggle = event.target.closest('.tgl');
+        if (toggle) {
+            toggle.classList.toggle('off');
+            return;
+        }
+        var chip = event.target.closest('.chip:not(.dash)');
+        if (chip && chip.parentElement && chip.parentElement.classList.contains('chip-row')) {
+            var row = chip.parentElement;
+            if (row.dataset.multi !== 'yes') {
+                Array.prototype.forEach.call(row.querySelectorAll('.chip'), function (item) {
+                    item.classList.remove('on');
+                });
+            } else {
+                chip.classList.toggle('on');
+                return;
+            }
+            chip.classList.add('on');
+        }
+    });
+</script>
+</body>
+</html>

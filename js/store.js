@@ -616,12 +616,13 @@ async function refreshOrderData() {
 }
 
 async function loadAdminData() {
-    const [data, dishRequests, announcements] = await Promise.all([
+    const [data, dishRequests, announcements, cycle] = await Promise.all([
         loadAppData(),
         listDishRequests(),
-        listAnnouncements({ includeAll: true }).catch(() => [])
+        listAnnouncements({ includeAll: true }).catch(() => []),
+        loadCycle().catch(() => null)
     ]);
-    return { ...data, dishRequests, announcements };
+    return { ...data, dishRequests, announcements, cycle };
 }
 
 /* ---------- dish requests (我想吃) ---------- */
@@ -1449,6 +1450,358 @@ async function useCoupon(id) {
 
 async function deleteCoupon(id) {
     await couponCollection.remove(id);
+}
+
+/* ---------- 生理期 (cycle) ----------
+
+   One bounded document pair, read/written whole, like milestones.json.
+   periods.json holds the records plus the cached prediction; settings.json
+   holds the admin-owned configuration. The user side only ever writes
+   periods; the reminder Worker only ever reads and touches settings.lastPush.
+   ------------------------------------------------------------------------ */
+
+const CYCLE_PERIODS_PATH = 'cycle/periods.json';
+const CYCLE_SETTINGS_PATH = 'cycle/settings.json';
+
+const CYCLE_DEFAULT_SETTINGS = {
+    enabled: true,
+    homeStripThresholdDays: 7,
+    remindEnabled: true,
+    remindDaysBefore: [1, 0],
+    remindTime: '09:00',
+    overdueRemindDays: [3, 5, 7, 10],
+    templates: {
+        before: {
+            title: '还有 {days} 天',
+            subtitle: '生理期',
+            body: '预计 {range} 开始。\n记得的话点一下记录。',
+            url: '{url}'
+        },
+        start: {
+            title: '预计今天开始',
+            subtitle: '生理期',
+            body: '预计 {range}。\n如果已经来了，记一下就好。',
+            url: '{url}'
+        },
+        overdue: {
+            title: '已经过了 {overdue} 天',
+            subtitle: '生理期',
+            body: '当时预计 {range}。\n如果来了，记一下为准。',
+            url: '{url}'
+        }
+    },
+    autoTune: true,
+    algorithmOverride: null,
+    showOvulation: true,
+    allowUserImport: true,
+    lastPush: { date: '', kind: '', ok: null }
+};
+
+function normalizeCycleSettings(raw) {
+    const value = raw || {};
+    const templates = {};
+    Object.keys(CYCLE_DEFAULT_SETTINGS.templates).forEach(key => {
+        const fallback = CYCLE_DEFAULT_SETTINGS.templates[key];
+        const configured = (value.templates && value.templates[key]) || {};
+        templates[key] = {
+            title: String(configured.title == null ? fallback.title : configured.title).slice(0, 40),
+            subtitle: String(configured.subtitle == null ? fallback.subtitle : configured.subtitle).slice(0, 40),
+            body: String(configured.body == null ? fallback.body : configured.body).slice(0, 200),
+            url: String(configured.url == null ? fallback.url : configured.url).slice(0, 200)
+        };
+    });
+    const daysBefore = Array.isArray(value.remindDaysBefore)
+        ? value.remindDaysBefore.map(Number).filter(n => Number.isFinite(n) && n >= 0 && n <= 14)
+        : CYCLE_DEFAULT_SETTINGS.remindDaysBefore;
+    const overdue = Array.isArray(value.overdueRemindDays)
+        ? value.overdueRemindDays.map(Number).filter(n => Number.isFinite(n) && n > 0 && n <= 30).sort((a, b) => a - b)
+        : CYCLE_DEFAULT_SETTINGS.overdueRemindDays;
+    return {
+        enabled: value.enabled !== false,
+        homeStripThresholdDays: Number.isFinite(Number(value.homeStripThresholdDays))
+            ? Math.min(30, Math.max(0, Math.round(Number(value.homeStripThresholdDays))))
+            : CYCLE_DEFAULT_SETTINGS.homeStripThresholdDays,
+        remindEnabled: value.remindEnabled !== false,
+        remindDaysBefore: daysBefore.length ? [...new Set(daysBefore)] : [0],
+        remindTime: /^\d{2}:\d{2}$/.test(String(value.remindTime || ''))
+            ? String(value.remindTime)
+            : CYCLE_DEFAULT_SETTINGS.remindTime,
+        overdueRemindDays: overdue.length ? [...new Set(overdue)] : CYCLE_DEFAULT_SETTINGS.overdueRemindDays,
+        templates,
+        autoTune: value.autoTune !== false,
+        algorithmOverride: value.algorithmOverride && typeof value.algorithmOverride === 'object'
+            ? {
+                center: ['wmedian', 'wmean', 'blend'].includes(value.algorithmOverride.center)
+                    ? value.algorithmOverride.center : 'wmedian',
+                lambda: [0.7, 0.85, 1].includes(Number(value.algorithmOverride.lambda))
+                    ? Number(value.algorithmOverride.lambda) : 0.85,
+                window: [3, 6, 12].includes(Number(value.algorithmOverride.window))
+                    ? Number(value.algorithmOverride.window) : 6
+            }
+            : null,
+        showOvulation: value.showOvulation !== false,
+        allowUserImport: value.allowUserImport !== false,
+        lastPush: {
+            date: String((value.lastPush && value.lastPush.date) || ''),
+            kind: String((value.lastPush && value.lastPush.kind) || ''),
+            ok: value.lastPush && value.lastPush.ok === true ? true
+                : value.lastPush && value.lastPush.ok === false ? false : null
+        }
+    };
+}
+
+async function loadCycle() {
+    ensureStorage();
+    const [periodsDoc, settingsDoc] = await Promise.all([
+        dbGetOrNull(CYCLE_PERIODS_PATH),
+        dbGetOrNull(CYCLE_SETTINGS_PATH)
+    ]);
+    const items = cycleNormalizePeriods(periodsDoc && periodsDoc.items);
+    const settings = normalizeCycleSettings(settingsDoc);
+    const prediction = recalcCyclePrediction(items, settings);
+    return {
+        items,
+        settings,
+        prediction,
+        updatedAt: String((periodsDoc && periodsDoc.updatedAt) || '')
+    };
+}
+
+function recalcCyclePrediction(items, settings) {
+    const prediction = cyclePredict(items, settings);
+    prediction.dataVersion = nowStamp();
+    return prediction;
+}
+
+async function saveCycle(items, settings, prediction) {
+    const stamp = nowStamp();
+    const payload = {
+        version: 1,
+        updatedAt: stamp,
+        items: cycleNormalizePeriods(items),
+        prediction: prediction || null
+    };
+    await dbPut(CYCLE_PERIODS_PATH, payload);
+    if (settings) {
+        await dbPut(CYCLE_SETTINGS_PATH, normalizeCycleSettings(settings));
+    }
+    return {
+        items: payload.items,
+        settings: settings ? normalizeCycleSettings(settings) : null,
+        prediction: payload.prediction,
+        updatedAt: stamp
+    };
+}
+
+/* Recompute and persist after a data change. This is the only place the
+   prediction is ever recalculated. */
+async function writeCycleRecords(items, settings) {
+    const prediction = recalcCyclePrediction(items, settings);
+    return saveCycle(items, settings, prediction);
+}
+
+async function saveCycleSettings(patch) {
+    ensureStorage();
+    const [periodsDoc, settingsDoc] = await Promise.all([
+        dbGetOrNull(CYCLE_PERIODS_PATH),
+        dbGetOrNull(CYCLE_SETTINGS_PATH)
+    ]);
+    const items = cycleNormalizePeriods(periodsDoc && periodsDoc.items);
+    const settings = normalizeCycleSettings({ ...normalizeCycleSettings(settingsDoc), ...(patch || {}) });
+    return writeCycleRecords(items, settings);
+}
+
+async function addCyclePeriod(input, options = {}) {
+    ensureStorage();
+    const state = await loadCycle();
+    const start = cycleDayKey(cycleParseDay(input && input.start));
+    if (!start) throw makeError('BAD_CYCLE_DATE', '日期不对');
+    const end = cycleParseDay(input && input.end);
+    const entry = {
+        id: `pd_${start.replace(/-/g, '')}`,
+        start,
+        end: end && cycleDiffDays(start, end) >= 0 ? cycleDayKey(end) : '',
+        flow: ['light', 'normal', 'heavy'].includes(input && input.flow) ? input.flow : '',
+        symptoms: Array.isArray(input && input.symptoms) ? input.symptoms.slice(0, 8).map(String) : [],
+        mood: ['low', 'normal', 'good'].includes(input && input.mood) ? input.mood : '',
+        source: input && input.source === 'import' ? 'import' : 'app',
+        note: String((input && input.note) || '').slice(0, 60),
+        uncertain: !!(input && input.uncertain),
+        createdAt: nowStamp(),
+        updatedAt: nowStamp()
+    };
+    const items = state.items.filter(item => item.start !== start);
+    items.push(entry);
+    return writeCycleRecords(items, state.settings);
+}
+
+async function updateCyclePeriod(id, patch) {
+    ensureStorage();
+    const state = await loadCycle();
+    const index = state.items.findIndex(item => item.id === id);
+    if (index < 0) throw makeError('MISSING_CYCLE', '找不到这条记录');
+    const current = state.items[index];
+    const next = {
+        ...current,
+        ...patch,
+        start: patch && patch.start ? cycleDayKey(cycleParseDay(patch.start)) : current.start,
+        updatedAt: nowStamp()
+    };
+    if (patch && patch.end !== undefined) {
+        const end = cycleParseDay(patch.end);
+        next.end = end && cycleDiffDays(next.start, end) >= 0 ? cycleDayKey(end) : '';
+    }
+    state.items[index] = next;
+    return writeCycleRecords(state.items, state.settings);
+}
+
+async function removeCyclePeriod(id) {
+    ensureStorage();
+    const state = await loadCycle();
+    const items = state.items.filter(item => item.id !== id);
+    if (items.length === state.items.length) throw makeError('MISSING_CYCLE', '找不到这条记录');
+    return writeCycleRecords(items, state.settings);
+}
+
+/* "Just hit" — start today, or extend the running period if one exists. */
+async function startCycleToday(options = {}) {
+    const today = cycleDayKey(cycleToday(options.now));
+    const state = await loadCycle();
+    const active = cycleActivePeriod(state.items, cycleToday(options.now));
+    if (active) return { state, entry: active, created: false };
+    const items = state.items.filter(item => item.start !== today);
+    items.push({
+        id: `pd_${today.replace(/-/g, '')}`,
+        start: today,
+        end: '',
+        flow: '',
+        symptoms: [],
+        mood: '',
+        source: 'app',
+        note: '',
+        uncertain: false,
+        createdAt: nowStamp(),
+        updatedAt: nowStamp()
+    });
+    const saved = await writeCycleRecords(items, state.settings);
+    return { state: saved, entry: items[items.length - 1], created: true };
+}
+
+async function endCycleToday(options = {}) {
+    const today = cycleDayKey(cycleToday(options.now));
+    const state = await loadCycle();
+    const active = cycleActivePeriod(state.items, cycleToday(options.now));
+    if (!active) throw makeError('NO_ACTIVE_CYCLE', '现在没有进行中的经期');
+    const items = state.items.map(item => item.id === active.id
+        ? { ...item, end: today, updatedAt: nowStamp() }
+        : item);
+    const saved = await writeCycleRecords(items, state.settings);
+    return { state: saved, entry: items.find(item => item.id === active.id) };
+}
+
+/* Merging a single day into the surrounding record.
+   Kept in its own step so the rule is easy to read:
+     - inside an existing period  -> no-op
+     - next to one end            -> extend that end
+     - touching both ends         -> join the two records
+     - on its own                 -> create a single-day record
+*/
+async function markCycleDay(day) {
+    ensureStorage();
+    const target = cycleDayKey(cycleParseDay(day));
+    if (!target) throw makeError('BAD_CYCLE_DATE', '日期不对');
+    const state = await loadCycle();
+    const items = state.items.map(item => ({ ...item }));
+
+    const before = items.filter(item => item.end && item.end < target)
+        .sort((a, b) => b.end.localeCompare(a.end))[0] || null;
+    const after = items.filter(item => item.start > target)
+        .sort((a, b) => a.start.localeCompare(b.start))[0] || null;
+
+    if (items.some(item => item.start <= target && (item.end || item.start) >= target)) {
+        return state;
+    }
+
+    const touchesBefore = before && cycleDiffDays(before.end, target) === 1;
+    const touchesAfter = after && cycleDiffDays(target, after.start) === 1;
+
+    if (touchesBefore && touchesAfter) {
+        const merged = items.find(item => item.id === before.id);
+        merged.end = after.end || after.start;
+        merged.updatedAt = nowStamp();
+        const remaining = items.filter(item => item.id !== after.id);
+        return writeCycleRecords(remaining, state.settings);
+    }
+    if (touchesBefore) {
+        const target_ = items.find(item => item.id === before.id);
+        target_.end = target;
+        target_.updatedAt = nowStamp();
+        return writeCycleRecords(items, state.settings);
+    }
+    if (touchesAfter) {
+        const record = items.find(item => item.id === after.id);
+        record.start = target;
+        record.updatedAt = nowStamp();
+        return writeCycleRecords(items, state.settings);
+    }
+
+    const active = cycleActivePeriod(items, cycleToday());
+    if (active && cycleDiffDays(active.start, target) === 1) {
+        const record = items.find(item => item.id === active.id);
+        record.end = target;
+        record.updatedAt = nowStamp();
+        return writeCycleRecords(items, state.settings);
+    }
+
+    items.push({
+        id: `pd_${target.replace(/-/g, '')}`,
+        start: target,
+        end: '',
+        flow: '',
+        symptoms: [],
+        mood: '',
+        source: 'app',
+        note: '',
+        uncertain: false,
+        createdAt: nowStamp(),
+        updatedAt: nowStamp()
+    });
+    return writeCycleRecords(items, state.settings);
+}
+
+/* Merge an imported batch. Same start date wins; existing records are kept. */
+async function importCyclePeriods(entries) {
+    ensureStorage();
+    const state = await loadCycle();
+    const existing = new Set(state.items.map(item => item.start));
+    const added = [];
+    const skipped = [];
+    (Array.isArray(entries) ? entries : []).forEach(raw => {
+        const start = cycleDayKey(cycleParseDay(raw && raw.start));
+        if (!start) return;
+        if (existing.has(start)) {
+            skipped.push(start);
+            return;
+        }
+        existing.add(start);
+        const end = cycleParseDay(raw && raw.end);
+        added.push({
+            id: `pd_${start.replace(/-/g, '')}`,
+            start,
+            end: end && cycleDiffDays(start, end) >= 0 ? cycleDayKey(end) : '',
+            flow: ['light', 'normal', 'heavy'].includes(raw && raw.flow) ? raw.flow : '',
+            symptoms: Array.isArray(raw && raw.symptoms) ? raw.symptoms.slice(0, 8).map(String) : [],
+            mood: '',
+            source: 'import',
+            note: '',
+            uncertain: !!(raw && raw.uncertain),
+            createdAt: nowStamp(),
+            updatedAt: nowStamp()
+        });
+    });
+    const items = [...state.items, ...added].sort((a, b) => a.start.localeCompare(b.start));
+    const saved = await writeCycleRecords(items, state.settings);
+    return { state: saved, added: added.length, skipped: skipped.length };
 }
 
 /* ---------- space ---------- */

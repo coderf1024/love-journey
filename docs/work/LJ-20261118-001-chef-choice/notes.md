@@ -131,3 +131,15 @@
 - 顺带修：订单详情页的操作按钮原本绑在 `#order-detail-body` 上，但按钮实际在 `#order-detail-actions`（od-head 内），导致详情页「开始制作 / 出餐」点不动；现在两处都委托。
 
 - 2026-11-18：随机池必须排除「你做的我都爱吃」自身（它会随机抽到「让大厨定」形成套娃）；已在 `drawableDishes()` 里按 `isChefPickDish` 过滤，实测连抽 25 次 0 命中。
+
+## 发布记录
+
+- 版本 token：`20261118-01`
+- 合并：`work/261113-cook-random` → `main`（fast-forward 到 `ce32aad`，含与 `origin/main` 的六一形象提交合并）
+- 发布时间：2026-11-18
+- 线上验证：
+  - `https://coderf.site/index.html` 与 `admin.html` 均返回 200，页面引用 `?v=20261118-01`
+  - 线上 `js/app.js` 含 `drawableDishes` / `isChefPickDish`，`js/store.js` 含 `CHEF_PICK_ID`
+  - 线上 `menu.json` 已有 `chef_choice`（快手菜、20 币、60 分钟、上架）
+  - GitHub Pages 备用站同样已更新到 `20261118-01`
+- 遗留：抽奖动画手感与置顶卡缩略图可读性需要人在真机复核。

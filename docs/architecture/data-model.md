@@ -150,6 +150,35 @@ love-journey/db/
 - 管理端审核通过时 `approveDishRequest()` 创建正式菜品，并写入 `dish.sourceRequestId`；先写菜单再写申请，重试按 `sourceRequestId` 去重。
 - 用户端不读取这个集合，也不展示申请状态；管理端 `loadAdminData()` 会带上 `dishRequests`。
 
+## 「你做的我都爱吃」与随机选一道
+
+它就是 `menu.dishes` 里的**一道普通菜**（`id: chef_choice`、`chefPick: true`、`order: -1`），默认在快手菜分类：
+
+```jsonc
+{
+  "id": "chef_choice", "categoryId": "quick",
+  "name": "你做的我都爱吃", "description": "这道我来定，开火时告诉你",
+  "price": 20, "prepMinutes": 60, "tags": [],
+  "image": "https://…/uploads/dishes/chef-choice-….jpg",
+  "images": ["https://…/uploads/dishes/chef-choice-….jpg"],
+  "available": true, "chefPick": true, "order": -1
+}
+```
+
+- 上下架就是开关；菜名 / 描述 / 图片 / 分类 / 价格 / 时长都在菜品编辑器里改，没有单独的设置页。
+- 用户端展示与普通菜完全一致（同一张卡、同样标签位、无角标）；它在自己所属分类里排第一。
+- 订单里写一项特殊 item，金额按菜品价格（默认 20）：
+
+```jsonc
+{ "kind": "chefPick", "pending": true, "name": "你做的我都爱吃",
+  "image": "海报", "chefPickImage": "海报", "price": 20, "prepMinutes": 60 }
+// fillChefPick 之后：pending: false、name 换成真实菜名、dishId 可选
+```
+
+- **揭晓只看订单状态**：`pending / accepted / prepping` 只显示卡名；`cooking` 起显示大厨填的菜名 + 「大厨做的」。
+- 出餐照：`kind === 'chefPick'` 的项只写订单项 `servedImage`，**不**追加到菜品 `images[]`。
+- 随机选一道是纯前端：池子为全部 `available !== false` 且**排除 `chefPick` 自身**的菜（否则会「随机抽到让大厨定」套娃），不写任何文档；抽完的上一道会被排除。
+
 ## 订单
 
 订单索引存摘要，订单文档存完整快照；字段详见 `js/store.js` 的 `orderSummary` 和 `placeOrder`。

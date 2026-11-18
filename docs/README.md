@@ -44,7 +44,6 @@
 - [OSS 配置](./reference/oss-config.md) — AccessKey 混淆和配置步骤。
 - [Bark API 示例](./reference/bark-api.md) — 官方接口请求格式和参数示例。
 - [GitHub Action 配置](./reference/github-action-setup.md) — 周更恋爱卡 Action 的 Secrets 配置。
-- [菜品照片来源](./reference/dish-photo-credits.md) — 当前 mock 照片的来源和替换说明。
 
 ## 工作约定
 

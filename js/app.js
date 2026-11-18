@@ -13,12 +13,12 @@ let lastCityColumns = 0;
 
 // Self-hosted: cdn.jsdelivr.net is unreliable in WeChat / mainland mobile networks.
 const LIBS = {
-    echarts: 'assets/vendor/echarts.min.js?v=20261113-01',
-    qrcode: 'assets/vendor/qrcode.min.js?v=20261113-01'
+    echarts: 'assets/vendor/echarts.min.js?v=20261118-01',
+    qrcode: 'assets/vendor/qrcode.min.js?v=20261118-01'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261113-01';
-const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261113-01';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261118-01';
+const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261118-01';
 // First-paint fallback only. The live story document always wins once it loads.
 const LOVE_START_FALLBACK = '2020-12-20';
 
@@ -1757,9 +1757,25 @@ function slotText(slot) {
 }
 
 function dishImageFor(item) {
+    if (item && item.pending !== false && isChefPickItem(item)) {
+        return item.chefPickImage || item.image || '';
+    }
     if (item && item.image) return item.image;
     const dish = (state.menu.dishes || []).find(d => String(d.id) === String(item.dishId));
     return dish && dish.image ? dish.image : '';
+}
+
+// 「你做的我都爱吃」未填时：用海报图 + 卡名，不暴露大厨选的菜。
+function chefPickItemView(item, status) {
+    const kind = isChefPickItem(item) ? item : null;
+    if (!kind) return null;
+    const revealed = kind.pending === false && status && !['pending', 'accepted', 'prepping'].includes(status);
+    return {
+        revealed,
+        name: revealed ? kind.name : CHEF_PICK_NAME,
+        image: revealed ? (kind.image || '') : (kind.chefPickImage || kind.image || ''),
+        tag: revealed ? '大厨做的' : ''
+    };
 }
 
 function dishPhotoHTML(item) {
@@ -1982,6 +1998,28 @@ function renderSlotPicker() {
     }).join('');
 }
 
+// 订单项统一渲染：置顶的「你做的我都爱吃」在开火前只显示卡名和海报，
+// 进入 cooking 之后才换成大厨填的真实菜名。三处（订单卡 / 空间列表 / 详情）共用。
+function orderItemRowHTML(item, status, options = {}) {
+    const view = typeof chefPickItemView === 'function' ? chefPickItemView(item, status) : null;
+    const name = view ? view.name : item.name;
+    const tag = view && view.tag ? `<i class="order-item-tag">${cleanText(view.tag)}</i>` : '';
+    const cls = '';
+    const price = item.price == null ? '' : item.price;
+    if (options.variant === 'me') {
+        return `<span class="me-order-item">
+            ${dishPhotoHTML(item)}
+            <span class="me-order-item-name${cls}">${cleanText(name)}${tag}<i>×1</i></span>
+            <b class="me-order-item-price">${price}</b>
+        </span>`;
+    }
+    return `<div class="order-item${cls}">
+                        ${dishPhotoHTML(item)}
+                        <span class="order-item-name">${cleanText(name)}${tag}<i class="order-item-qty">×1</i></span>
+                        <span class="order-item-price">${price}</span>
+                    </div>`;
+}
+
 function renderOrderStatus() {
     const wrap = $('order-status-wrap');
     if (!wrap) return;
@@ -2082,13 +2120,7 @@ function renderOrderStatus() {
                 <span>合计 ${order.total} 币</span>
             </div>
             <div class="order-card-items">
-                ${order.items.map(item => `
-                    <div class="order-item">
-                        ${dishPhotoHTML(item)}
-                        <span class="order-item-name">${cleanText(item.name)}<i class="order-item-qty">×1</i></span>
-                        <span class="order-item-price">${item.price}</span>
-                    </div>
-                `).join('')}
+                ${order.items.map(item => orderItemRowHTML(item, order.status)).join('')}
             </div>
             ${servedPhotosHTML(order)}
             ${order.note ? `<p class="order-user-note">“${cleanText(order.note)}”</p>` : ''}
@@ -2143,19 +2175,25 @@ function renderMenu() {
         .slice()
         .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
     const category = state.menuCategory;
-    const visible = category === 'all'
+    // 「你做的我都爱吃」就是 menu.dishes 里的一道普通菜（chefPick: true），
+    // 分类过滤和别的菜一样，只靠 order: -1 排在它所在分类的第一位。
+    const categoryDishes = category === 'all'
         ? dishes
         : dishes.filter(dish => String(dish.categoryId) === String(category));
+    const visible = categoryDishes;
 
     const count = $('menu-count');
-    if (count) count.textContent = `${visible.length} 道`;
+    if (count) count.textContent = `${categoryDishes.length} 道`;
+
+    const randomButton = $('menu-random');
+    if (randomButton) randomButton.disabled = !categoryDishes.length;
 
     if (!dishes.length) {
         container.innerHTML = '<div class="coupon-empty menu-empty"><span aria-hidden="true">🍽️</span><p>菜单还没上架</p><small>等大厨写几道拿手菜吧</small></div>';
         return;
     }
 
-    if (!visible.length) {
+    if (!categoryDishes.length) {
         container.innerHTML = '<div class="coupon-empty menu-empty"><span aria-hidden="true">♡</span><p>这个分类还没有菜</p><small>换个分类看看</small></div>';
         return;
     }
@@ -2183,7 +2221,7 @@ function renderMenu() {
                     </div>
                     <p class="dish-desc">${cleanText(dish.description)}</p>
                     <div class="dish-meta">
-                        <span class="dish-time">${dish.prepMinutes} 分钟</span>
+                        ${dish.prepMinutes ? `<span class="dish-time">${dish.prepMinutes} 分钟</span>` : ''}
                         ${tags}
                     </div>
                 </div>
@@ -2200,14 +2238,15 @@ function renderMenu() {
     });
 }
 
-function cartTotal() {
+function cartDishes() {
     const dishes = state.menu.dishes || [];
-    let total = 0;
-    state.cart.forEach(id => {
-        const dish = dishes.find(item => String(item.id) === String(id));
-        if (dish) total += Number(dish.price) || 0;
-    });
-    return total;
+    return [...state.cart]
+        .map(id => dishes.find(item => String(item.id) === String(id)))
+        .filter(Boolean);
+}
+
+function cartTotal() {
+    return cartDishes().reduce((sum, dish) => sum + (Number(dish.price) || 0), 0);
 }
 
 function updateCartBar() {
@@ -2285,10 +2324,7 @@ function renderCartSheet() {
     const slotLine = $('cart-slot');
     if (slotLine) slotLine.textContent = `预约：${slotText(slot)}`;
 
-    const dishes = state.menu.dishes || [];
-    const lines = [...state.cart]
-        .map(id => dishes.find(dish => String(dish.id) === String(id)))
-        .filter(Boolean);
+    const lines = cartDishes();
     const total = lines.reduce((sum, dish) => sum + (Number(dish.price) || 0), 0);
     const wallet = state.wallet;
     const after = wallet.balance - total;
@@ -2300,7 +2336,7 @@ function renderCartSheet() {
             <span class="cart-line-icon" aria-hidden="true">${dish.image
                 ? `<img src="${escapeHTML(dish.image)}" alt="">`
                 : cleanText(dish.icon || '🍽️')}</span>
-            <span class="cart-line-name">${cleanText(dish.name)}</span>
+            <span class="cart-line-name">${cleanText(dish.name)}${dish.chefPick ? '<small class="cart-line-note">菜名开火时揭晓</small>' : ''}</span>
             <span class="cart-line-price">${dish.price}</span>
             <button class="cart-line-remove" type="button" data-cart-remove="${cleanText(dish.id)}" aria-label="移除${cleanText(dish.name)}">移除</button>
         </div>
@@ -2574,13 +2610,7 @@ function orderRowHTML(order) {
     const items = order.items || [];
     const active = !['completed', 'cancelled'].includes(order.status);
     const action = active && order.slotKey && slotByKey(order.slotKey) ? '查看进度 ›' : '查看详情 ›';
-    const itemRows = items.map(item => `
-        <span class="me-order-item">
-            ${dishPhotoHTML(item)}
-            <span class="me-order-item-name">${cleanText(item.name)}<i>×1</i></span>
-            <b class="me-order-item-price">${item.price}</b>
-        </span>
-    `).join('');
+    const itemRows = items.map(item => orderItemRowHTML(item, order.status, { variant: 'me' })).join('');
     return `
         <button class="me-order" type="button" data-order-open="${cleanText(order.id)}"
             data-order-slot="${order.slotKey ? cleanText(order.slotKey) : ''}"
@@ -3146,13 +3176,7 @@ function orderDetailHTML(order) {
             </div>
             <p class="order-detail-slot">${slot ? cleanText(slotText(slot)) : '旧订单（无预约时间）'}</p>
             <div class="order-detail-items">
-                ${(order.items || []).map(item => `
-                    <div class="order-item">
-                        ${dishPhotoHTML(item)}
-                        <span class="order-item-name">${cleanText(item.name)}<i class="order-item-qty">×1</i></span>
-                        <span class="order-item-price">${item.price}</span>
-                    </div>
-                `).join('')}
+                ${(order.items || []).map(item => orderItemRowHTML(item, order.status)).join('')}
             </div>
             ${servedPhotosHTML(order)}
             <div class="order-detail-total"><span>合计</span><b>${order.total} 币</b></div>
@@ -3187,8 +3211,12 @@ async function openOrderDetail(orderId) {
     }
 }
 
+function findMenuDish(id) {
+    return (state.menu.dishes || []).find(item => String(item.id) === String(id)) || null;
+}
+
 function renderDishSheet() {
-    const dish = (state.menu.dishes || []).find(item => String(item.id) === String(state.dishId));
+    const dish = findMenuDish(state.dishId);
     if (!dish) return;
 
     const image = $('dish-detail-image');
@@ -3233,7 +3261,10 @@ function renderDishSheet() {
 
     const category = (state.menu.categories || []).find(item => String(item.id) === String(dish.categoryId));
     const categoryEl = $('dish-sheet-category');
-    if (categoryEl) categoryEl.textContent = category ? category.name : '';
+    if (categoryEl) {
+        categoryEl.textContent = dish.chefPick ? '' : (category ? category.name : '');
+        categoryEl.hidden = !!dish.chefPick;
+    }
     const name = $('dish-sheet-name');
     if (name) name.textContent = dish.name;
     const meta = $('dish-sheet-meta');
@@ -3250,6 +3281,156 @@ function renderDishSheet() {
         add.classList.toggle('is-added', inCart);
         add.disabled = !dish.available;
     }
+}
+
+
+/* ---------- 随机选一道（点按钮，不写数据） ---------- */
+const drawState = {
+    busy: false,
+    lastId: '',
+    timer: null,
+    dish: null
+};
+
+function drawableDishes() {
+    // 「你做的我都爱吃」本身就是「让大厨定」，不能再被随机抽出来（会套娃）
+    return (state.menu.dishes || []).filter(dish =>
+        dish.available !== false && !(typeof isChefPickDish === 'function' && isChefPickDish(dish)));
+}
+
+function pickRandomDish(pool) {
+    const candidates = pool.filter(dish => String(dish.id) !== drawState.lastId);
+    const list = candidates.length ? candidates : pool;
+    return list[Math.floor(Math.random() * list.length)];
+}
+
+function drawBurst(host) {
+    host.innerHTML = '';
+    for (let i = 0; i < 18; i += 1) {
+        const spark = document.createElement('span');
+        const angle = (Math.PI * 2 * i) / 18 + Math.random() * 0.32;
+        const distance = 48 + Math.random() * 46;
+        spark.style.setProperty('--dx', `${Math.cos(angle) * distance}px`);
+        spark.style.setProperty('--dy', `${Math.sin(angle) * distance}px`);
+        spark.style.setProperty('--rot', `${Math.round(Math.random() * 360)}deg`);
+        spark.style.background = ['#df5f7e', '#f6d478', '#2f9b98', '#f0829d'][i % 4];
+        host.appendChild(spark);
+    }
+}
+
+function drawShowResult(dish) {
+    const box = $('draw-box');
+    const burst = $('draw-burst');
+    const result = $('draw-result');
+    const actions = $('draw-actions');
+
+    $('draw-title').textContent = '今天就吃这个吧';
+    $('draw-sub').textContent = '';
+    const photoEl = $('draw-photo');
+    if (photoEl) photoEl.classList.add('is-revealed');
+    const pickImg = $('draw-photo-img');
+    if (pickImg) {
+        pickImg.src = dish.image || '';
+        pickImg.alt = dish.name;
+        pickImg.classList.add('is-visible');
+    }
+    $('draw-name').textContent = dish.name;
+    const category = (state.menu.categories || []).find(item => String(item.id) === String(dish.categoryId));
+    $('draw-meta').textContent = [category && category.name, dish.prepMinutes ? `预计 ${dish.prepMinutes} 分钟` : '', (dish.tags || [])[0]]
+        .filter(Boolean).join(' · ');
+    $('draw-price').textContent = `${dish.price} 币`;
+
+    if (box) box.classList.remove('is-shaking', 'is-open');
+    if (burst) burst.classList.remove('is-go');
+    const stage = $('draw-stage');
+    if (stage) stage.classList.add('is-hidden');
+    if (result) result.classList.add('is-show');
+    if (actions) {
+        actions.classList.add('is-armed');
+        const take = $('draw-take');
+        const slot = selectedSlot();
+        const canTake = slot && slot.orderable && !orderForSlot(slot.key);
+        if (take) {
+            take.disabled = !canTake;
+            take.textContent = canTake ? '就它了，加进购物车' : '先选一个饭点';
+        }
+    }
+    drawState.busy = false;
+}
+
+function startDraw() {
+    const pool = drawableDishes();
+    if (!pool.length) {
+        toast('菜单还没上架');
+        return;
+    }
+    const dialog = $('draw');
+    if (!dialog) return;
+    const dish = pickRandomDish(pool);
+    drawState.dish = dish;
+    drawState.lastId = String(dish.id);
+
+    const box = $('draw-box');
+    const burst = $('draw-burst');
+    const result = $('draw-result');
+    const actions = $('draw-actions');
+
+    $('draw-title').textContent = '正在选取…';
+    $('draw-sub').textContent = '';
+    const photoEl = $('draw-photo');
+    if (photoEl) photoEl.classList.remove('is-revealed');
+    const resetImg = $('draw-photo-img');
+    if (resetImg) resetImg.classList.remove('is-visible');
+    if (result) result.classList.remove('is-show');
+    const stage = $('draw-stage');
+    if (stage) stage.classList.remove('is-hidden');
+    if (actions) actions.classList.remove('is-armed');
+
+    drawState.busy = true;
+
+    const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) {
+        window.setTimeout(() => drawShowResult(dish), 120);
+        return;
+    }
+
+    if (box) {
+        box.classList.remove('is-shaking', 'is-open');
+        void box.offsetWidth;
+        box.classList.add('is-shaking');
+    }
+    clearTimeout(drawState.timer);
+    drawState.timer = window.setTimeout(() => {
+        if (box) {
+            box.classList.remove('is-shaking');
+            box.classList.add('is-open');
+        }
+        if (burst) {
+            drawBurst(burst);
+            burst.classList.add('is-go');
+        }
+        window.setTimeout(() => drawShowResult(dish), 160);
+    }, 410);
+}
+
+function openDrawSheet() {
+    if (drawState.busy) return;
+    if (!drawableDishes().length) {
+        toast('菜单还没上架');
+        return;
+    }
+    openSheet('draw');
+    startDraw();
+}
+
+function closeDrawSheet() {
+    clearTimeout(drawState.timer);
+    drawState.busy = false;
+    const box = $('draw-box');
+    const burst = $('draw-burst');
+    if (box) box.classList.remove('is-shaking', 'is-open');
+    if (burst) burst.classList.remove('is-go');
+    closeSheet('draw');
 }
 
 function openDishSheet(dishId) {
@@ -3550,6 +3731,28 @@ function initOrderUI() {
         });
     }
 
+    const randomButton = $('menu-random');
+    if (randomButton) randomButton.addEventListener('click', openDrawSheet);
+
+    const drawDialog = $('draw');
+    if (drawDialog) {
+        drawDialog.querySelectorAll('[data-draw-close]').forEach(button => {
+            button.addEventListener('click', closeDrawSheet);
+        });
+        const again = $('draw-again');
+        if (again) again.addEventListener('click', () => {
+            if (!drawState.busy) startDraw();
+        });
+        const take = $('draw-take');
+        if (take) take.addEventListener('click', () => {
+            if (!drawState.dish || take.disabled) return;
+            const dish = drawState.dish;
+            closeDrawSheet();
+            toggleCart(dish.id);
+            toast(`已加入「${dish.name}」`);
+        });
+    }
+
     const dishAdd = $('dish-sheet-add');
     if (dishAdd) {
         dishAdd.addEventListener('click', () => {
@@ -3722,6 +3925,11 @@ function initSheets() {
         const dialog = $('confirm-dialog');
         if (dialog && dialog.classList.contains('is-open')) {
             resolveConfirm(false);
+            return;
+        }
+        const draw = $('draw');
+        if (draw && draw.classList.contains('is-open')) {
+            closeDrawSheet();
             return;
         }
         closeTopSheet();

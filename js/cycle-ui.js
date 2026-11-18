@@ -5,7 +5,7 @@
    Data comes from js/store.js; maths comes from js/cycle.js.
    ============================================================ */
 
-const CYCLE_XLSX_SRC = 'assets/vendor/xlsx.mini.min.js?v=20261112-01';
+const CYCLE_XLSX_SRC = 'assets/vendor/xlsx.mini.min.js?v=20261118-01';
 
 const CycleUI = (() => {
     const ui = {

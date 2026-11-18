@@ -1815,6 +1815,102 @@ async function writeCycleRecords(items, settings) {
     return saveCycle(items, settings, prediction);
 }
 
+/* ---------- 提醒测试（管理端，不发定时任务只发内容） ----------
+
+   和早安一样：管理端点「测试」，用当前设置渲染一条真实的通知并发出，
+   不写 lastPush、不改任何设置、不影响第二天的定时判断。
+
+   差异：生理期的文案依赖预测结果（{days} / {range} / {overdue}），
+   所以测试要给定一个"假想今天"。为了不让人工去猜，这里用**真实的预测**
+   代入三个时间点各渲染一条，让人一次看到三种文案长什么样。
+   ------------------------------------------------------------------------ */
+
+const CYCLE_TEST_KINDS = ['before', 'start', 'overdue'];
+
+/* 用真实 prediction.range 生成三种场景的变量，保证和 Worker 输出一致。 */
+function cycleTestVariables(prediction) {
+    const range = prediction && Array.isArray(prediction.range) && prediction.range.length === 2
+        ? prediction.range
+        : null;
+    const fmt = key => (key ? String(key).slice(5).replace('-', '.') : '??.??');
+    if (!range) {
+        // 还没有可用预测时用占位值，让文案结构仍然可读。
+        return {
+            before: { days: '1', range: '??.?? – ??.??' },
+            start: { days: '0', range: '??.?? – ??.??' },
+            overdue: { days: '3', overdue: '3', range: '??.?? – ??.??' }
+        };
+    }
+    const text = `${fmt(range[0])} – ${fmt(range[1])}`;
+    return {
+        before: { days: '1', range: text },
+        start: { days: '0', range: text },
+        overdue: { days: '3', overdue: '3', range: text }
+    };
+}
+
+function cycleTestRender(template, variables, url) {
+    const vars = { ...variables, url };
+    return {
+        title: renderBarkTemplate(template.title, vars),
+        subtitle: renderBarkTemplate(template.subtitle, vars),
+        body: renderBarkTemplate(template.body, vars),
+        url: renderBarkTemplate(template.url, vars)
+    };
+}
+
+/*
+ * kind: 'before' | 'start' | 'overdue' | 'all'
+ * 返回 { sent, results: [{ kind, ok, error?, preview }] }
+ * 不写 lastPush，不修改 settings。
+ */
+async function sendCycleReminderTest({ kind = 'before' } = {}) {
+    ensureStorage();
+    const space = await loadSpace();
+    const state = await loadCycle();
+    const settings = state.settings;
+    const prediction = state.prediction;
+
+    const wants = kind === 'all' ? CYCLE_TEST_KINDS : [kind];
+    const unknown = wants.filter(item => !CYCLE_TEST_KINDS.includes(item));
+    if (unknown.length) throw makeError('BAD_CYCLE_TEST', '未知的提醒类型');
+
+    const bark = (space && space.settings && space.settings.bark) || {};
+    if (bark.enabled === false) throw makeError('BARK_DISABLED', '先在「通知」里打开 Bark 推送');
+    const key = String(bark.userKey || bark.key || '').trim();
+    if (!key) throw makeError('BARK_NO_KEY', '先填用户密钥');
+
+    const links = (space.settings && space.settings.links) || {};
+    const pageUrl = links.user || (typeof window !== 'undefined'
+        ? new URL('index.html', window.location.href).href
+        : '');
+    const variables = cycleTestVariables(prediction);
+    const results = [];
+
+    for (const item of wants) {
+        const template = settings.templates[item];
+        const preview = cycleTestRender(template, variables[item], pageUrl);
+        // 用 template 传入已经渲染好的内容：sendBark 会再 render 一次，
+        // 但文本里已无 { 变量 }，等价于原样发送。
+        const ok = await sendBark(space, {
+            audience: 'user',
+            template: {
+                title: `[测试] ${preview.title}`,
+                subtitle: preview.subtitle,
+                body: preview.body,
+                url: preview.url
+            }
+        });
+        results.push({
+            kind: item,
+            ok: !!ok,
+            error: ok ? undefined : 'Bark 返回失败，检查密钥、开关或测试库前缀（本地需 ?bark=on）',
+            preview
+        });
+    }
+    return { sent: results.some(item => item.ok), results };
+}
+
 async function saveCycleSettings(patch) {
     ensureStorage();
     const [periodsDoc, settingsDoc] = await Promise.all([

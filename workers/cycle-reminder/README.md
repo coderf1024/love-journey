@@ -66,28 +66,27 @@ npx wrangler secret list
 
 ## 验证
 
-**没有 HTTP 入口。** 这是纯定时任务，只由 Cloudflare 的 cron 调度器通过 `scheduled()` 调用；`workers_dev = false`、`preview_urls = false`、`fetch()` 一律 404，公网访问不到（旧地址返回 `error code: 1042`）。与 `workers/morning-greeting` 完全一致。
+**主要方式：管理端「系统 → 生理期 → 发送测试」**（2026-11-18 加，和早安的「发送测试」同一套思路）。
 
-理由：`scheduled()` 根本不需要 URL，那个入口只服务于「我想用 curl 手动试一天」，却把「能触发真推送」的能力挂到了公网上，不值得。
+- 用**已保存的**文案 + 真实预测渲染，发一条到用户手机。
+- 三种场景可单选或全选：即将开始 / 当天 / 过期后；每次发送前有确认框。
+- **不写 `lastPush`、不改任何设置**，因此不影响第二天的定时判断。
+- **它验证的是「文案对不对」，不是「定时任务会不会执行」。** 后者只能在 Dashboard 日志里看——这也是这个测试存在的理由：定时不该靠人去守。
 
-三种验证方式，都不需要公网：
+发送前先点「保存生理期设置」，因为测试读的是已保存的值，不是表单里没保存的草稿。
+
+其他两种方式：
 
 ```bash
-# 1. 判定逻辑：22 条 node:test，全内存，覆盖每个分支
+# 判定逻辑：20 条 node:test，全内存，覆盖每个分支
 npm test
 
-# 2. 本地触发 scheduled()，走真实 OSS 读、真实 Bark 推（谨慎：会真发）
-#    先在 .dev.vars 里写 OSS_* 与 DB_ROOT，测试时建议指向 db-test
+# 本地触发真实 scheduled()（会真的读 OSS、真的推 Bark）
 npx wrangler dev --test-scheduled --remote
-#    另开一个终端触发一次：
 curl "http://localhost:8787/__scheduled?cron=0+1+*+*+*"
-
-# 3. 线上验证：看日志，不看返回体
-#    Cloudflare Dashboard → Workers & Pages → love-cycle-reminder → Logs
-#    每次运行输出一行 [cycle-reminder] {...}，包含 today / pushed / reason
 ```
 
-想验证「今天该不该推」，不用真跑——看 Dashboard 日志里上一条 `reason` 字段就够了：`no-settings` / `not-a-remind-day` / `already-pushed` 等都是明确的静默原因。
+线上确认定时是否真的跑过：Cloudflare Dashboard → Workers & Pages → `love-cycle-reminder` → Logs，每次运行输出一行 `[cycle-reminder] {...}`，`reason` 字段就是「为什么推 / 不推」。
 
 ## 漏发怎么看
 

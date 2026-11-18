@@ -9,18 +9,18 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="管理端">
 <title>管理端 · 恋爱空间</title>
-<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261113-01" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261113-01" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261118-01" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261118-01" as="font" type="font/woff2" crossorigin>
 <style>
     @font-face {
         font-family: 'Ma Shan Zheng';
-        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261113-01') format('woff2');        font-weight: 400;
+        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261118-01') format('woff2');        font-weight: 400;
         font-style: normal;
         font-display: swap;
     }
     @font-face {
         font-family: 'Noto Serif SC';
-        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261113-01') format('woff2');        font-weight: 700;
+        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261118-01') format('woff2');        font-weight: 700;
         font-style: normal;
         font-display: swap;
     }
@@ -86,7 +86,7 @@
         pointer-events: none;
     }
     body.admin-body::before {
-        background: url('assets/texture-noise.png?v=20261113-01') repeat;        opacity: .06;
+        background: url('assets/texture-noise.png?v=20261118-01') repeat;        opacity: .06;
         mix-blend-mode: multiply;
     }
     body.admin-body::after {
@@ -1047,6 +1047,34 @@
         .menu-layout .admin-card:first-child { min-width: 0; }
         .next-meal-card b { font-size: 22px; }
     }
+
+    /* ---------- 生理期：发送测试预览 ---------- */
+    .cycle-test-preview { display: grid; gap: 8px; margin-top: 10px; }
+
+    .cycle-test-preview-item + .cycle-test-preview-item { margin-top: 2px; }
+
+    .cycle-test-preview-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 4px;
+        color: var(--admin-muted);
+        font-size: 0.68rem;
+    }
+
+    .cycle-test-preview-head b { color: var(--admin-ink); font-weight: 600; }
+
+    .cycle-test-preview-bubble {
+        padding: 9px 11px;
+        background: #fff;
+        border: 1px solid var(--admin-line);
+        border-radius: 12px;
+        font-size: 0.72rem;
+        line-height: 1.6;
+    }
+
+    .cycle-test-preview-bubble b { display: block; font-weight: 700; }
+    .cycle-test-preview-bubble p { margin-top: 3px; color: var(--admin-muted); }
 </style>
 <script>
     /* 登录态放在 <head>：浏览器绘制前就要决定显示登录页还是过渡加载态，
@@ -1568,6 +1596,27 @@
             </div>
 
             <div class="admin-card">
+                <div class="admin-card-head"><b>发送测试</b><span>只验证文案，不验证定时</span></div>
+                <p class="admin-small admin-muted">
+                    用<strong>当前已保存</strong>的文案和真实预测渲染，发一条到用户手机。
+                    不写 <code>lastPush</code>、不改任何设置，也不影响明天的定时判断。
+                    定时任务是否真的执行，看 Cloudflare 日志，这里测不到。
+                </p>
+                <div class="setting-row" style="margin-top:9px">
+                    <span class="setting-main"><b>场景</b><small>三种文案一次看全</small></span>
+                    <div class="choice-row" id="cycle-test-kinds" role="group" aria-label="测试场景">
+                        <button type="button" data-cycle-test-kind="before">即将开始</button>
+                        <button type="button" data-cycle-test-kind="start">当天</button>
+                        <button type="button" data-cycle-test-kind="overdue">过期后</button>
+                        <button type="button" data-cycle-test-kind="all" class="is-on">全部</button>
+                    </div>
+                </div>
+                <div id="cycle-test-preview" class="cycle-test-preview"></div>
+                <button class="admin-btn block" id="cycle-test" type="button" style="margin-top:9px">发送测试</button>
+            </div>
+            </div>
+
+            <div class="admin-card">
                 <div class="admin-card-head"><b>数据</b><span>只读</span></div>
                 <div id="cycle-admin-summary"></div>
                 <p class="admin-small admin-muted" style="margin-top:8px">
@@ -1863,11 +1912,11 @@
 
 <div class="admin-toast" id="message" role="status" aria-live="polite"></div>
 
-<script src="js/oss-config.js?v=20261113-01"></script>
-<script src="js/crypto-utils.js?v=20261113-01"></script>
-<script src="js/oss-utils.js?v=20261113-01"></script>
-<script src="js/cycle.js?v=20261113-01"></script>
-<script src="js/store.js?v=20261113-01"></script><script>
+<script src="js/oss-config.js?v=20261118-01"></script>
+<script src="js/crypto-utils.js?v=20261118-01"></script>
+<script src="js/oss-utils.js?v=20261118-01"></script>
+<script src="js/cycle.js?v=20261118-01"></script>
+<script src="js/store.js?v=20261118-01"></script><script>
     const ORDER_LABEL = {
         pending: '待接单',
         accepted: '已接单',
@@ -4234,6 +4283,8 @@
         $('cycle-tpl-overdue-title').value = settings.templates.overdue.title;
         $('cycle-tpl-overdue-body').value = settings.templates.overdue.body;
 
+        renderCycleTestPreview();
+
         const summary = $('cycle-admin-summary');
         if (!summary) return;
         if (!cycle || !cycle.items.length) {
@@ -4318,6 +4369,86 @@
         }
     }
 
+    /* ---------- 生理期：发送测试（只管文案，不管定时） ---------- */
+
+    let cycleTestKind = 'all';
+    let cycleTesting = false;
+
+    function selectedCycleTestKind() {
+        const pressed = document.querySelector('#cycle-test-kinds [data-cycle-test-kind].is-on');
+        return (pressed && pressed.dataset.cycleTestKind) || 'all';
+    }
+
+    function renderCycleTestPreview() {
+        const box = $('cycle-test-preview');
+        if (!box || !adminData) return;
+        const cycle = cycleAdmin();
+        const settings = cycle ? cycle.settings : null;
+        if (!settings) {
+            box.innerHTML = '';
+            return;
+        }
+        const prediction = cycle.prediction;
+        const range = prediction && Array.isArray(prediction.range) ? prediction.range : null;
+        const rangeText = range
+            ? `${range[0].slice(5).replace('-', '.')} – ${range[1].slice(5).replace('-', '.')}`
+            : '??.?? – ??.??';
+        const vars = {
+            before: { days: '1', range: rangeText },
+            start: { days: '0', range: rangeText },
+            overdue: { days: '3', overdue: '3', range: rangeText }
+        };
+        const labels = { before: '即将开始', start: '当天', overdue: '过期后' };
+        const kinds = cycleTestKind === 'all' ? ['before', 'start', 'overdue'] : [cycleTestKind];
+
+        box.innerHTML = kinds.map(kind => {
+            const template = settings.templates[kind];
+            const rendered = {
+                title: renderBarkTemplate(template.title, { ...vars[kind], url: '' }),
+                body: renderBarkTemplate(template.body, { ...vars[kind], url: '' })
+            };
+            return `
+                <div class="cycle-test-preview-item">
+                    <div class="cycle-test-preview-head"><b>${esc(labels[kind])}</b><span>${esc(vars[kind].range)}</span></div>
+                    <div class="cycle-test-preview-bubble">
+                        <b>${esc(rendered.title)}</b>
+                        <p>${esc(rendered.body).replace(/\n/g, '<br>')}</p>
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    async function handleCycleTest() {
+        if (cycleTesting) return;
+        const kind = selectedCycleTestKind();
+        const button = $('cycle-test');
+        cycleTesting = true;
+        if (button) button.disabled = true;
+        try {
+            const ok = await adminConfirm({
+                title: '发送测试提醒',
+                message: kind === 'all'
+                    ? '会把三种文案各发一条到用户手机。不写发送记录，不影响定时任务。'
+                    : '会发一条到用户手机。不写发送记录，不影响定时任务。',
+                okText: '发送测试'
+            });
+            if (!ok) return;
+            const { results } = await sendCycleReminderTest({ kind });
+            const failed = results.filter(item => !item.ok);
+            showMessage(
+                failed.length
+                    ? failed.map(item => `${item.kind}：${item.error}`).join('；')
+                    : `测试已发送（${results.length} 条），请看手机`,
+                failed.length ? 'error' : 'success'
+            );
+        } catch (error) {
+            showMessage(error.message || '测试失败', 'error');
+        } finally {
+            cycleTesting = false;
+            if (button) button.disabled = false;
+        }
+    }
+
     function bindCycleAdmin() {
         const save = $('cycle-save');
         if (save) save.addEventListener('click', saveCycleAdminSettings);
@@ -4328,6 +4459,16 @@
             if (!button) return;
             button.addEventListener('click', () => {
                 setSwitch(button, button.getAttribute('aria-pressed') !== 'true');
+            });
+        });
+        const test = $('cycle-test');
+        if (test) test.addEventListener('click', handleCycleTest);
+        document.querySelectorAll('[data-cycle-test-kind]').forEach(button => {
+            button.addEventListener('click', () => {
+                cycleTestKind = button.dataset.cycleTestKind;
+                document.querySelectorAll('[data-cycle-test-kind]').forEach(item => item.classList.remove('is-on'));
+                button.classList.add('is-on');
+                renderCycleTestPreview();
             });
         });
     }

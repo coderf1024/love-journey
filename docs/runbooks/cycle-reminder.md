@@ -38,7 +38,16 @@
 - `fetch()` 一律返回 404
 - `RUN_TOKEN` 已从 Cloudflare 删除
 
-验证改用三种方式：`npm test`（20 条内存用例）、`wrangler dev --test-scheduled --remote` 本地触发、线上看 Dashboard 日志里的 `[cycle-reminder]` 行。
+验证分两层，各管各的：
+
+| 想验证 | 怎么做 |
+|---|---|
+| 文案对不对 | 管理端「系统 → 生理期 → 发送测试」 |
+| 定时会不会执行 | Dashboard → Workers → `love-cycle-reminder` → Logs |
+| 判定逻辑 | `npm test`（20 条内存用例） |
+| 本地真跑一次 | `wrangler dev --test-scheduled --remote` |
+
+**管理端的「发送测试」**（2026-11-18 加，与早安同一套思路）：用已保存的文案 + 真实预测渲染，发到用户手机；三种场景（即将开始 / 当天 / 过期后）可单选或全选，发送前有确认框。**不写 `lastPush`、不改设置、不影响明天的定时判断。** 它只证明「发出来的东西长什么样」，不证明「cron 会不会跑」——后者只能看日志。
 
 ## fail closed 的默认值
 

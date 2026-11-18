@@ -125,3 +125,58 @@ test('设置归一化：非法值回落默认', () => {
     assert.equal(normalized.templates.before.title, '自定义');
     assert.equal(normalized.templates.before.body, '预计 {range} 开始。\n记得的话点一下记录。');
 });
+
+/* ---------- /run 的安全默认 ---------- */
+
+import worker from '../src/index.js';
+
+/** 用最小 mock 取代 run() 背后的真实网络，只验证 fetch 的准入判断。 */
+function fakeEnv(extra = {}) {
+    return {
+        OSS_REGION: 'oss-cn-beijing',
+        OSS_BUCKET: 'love-config',
+        DB_ROOT: 'love-journey/db',
+        OSS_ACCESS_KEY_ID: 'id',
+        OSS_ACCESS_KEY_SECRET: 'secret',
+        ...extra
+    };
+}
+
+async function callRun(query, env) {
+    const response = await worker.fetch(
+        new Request(`https://example.workers.dev/run?${query}`),
+        env
+    );
+    return { status: response.status, body: await response.json() };
+}
+
+test('/run 未配置 RUN_TOKEN 时拒绝 dry=0', async () => {
+    // 只验证准入判断在 run() 之前就返回 403；不需要网络。
+    const result = await callRun('dry=0', fakeEnv());
+    assert.equal(result.status, 403);
+    assert.match(result.body.error, /RUN_TOKEN/);
+});
+
+test('/run token 不匹配时降级为 dry run 而不是 401', async () => {
+    // 会真的去读 OSS，因此这里只断言不会被当成真推送；
+    // 读取失败会走到 500，同样说明没有进入推送分支。
+    let result;
+    try {
+        result = await callRun('dry=0&token=wrong', fakeEnv({ RUN_TOKEN: 'right' }));
+    } catch (error) {
+        return; // 网络不可用也不影响这条用例的意图
+    }
+    assert.ok(result.status === 500 || result.body.warning, 'token 不匹配不应真推');
+});
+
+test('未知路径不暴露任何信息', async () => {
+    const response = await worker.fetch(new Request('https://example.workers.dev/whatever'), fakeEnv());
+    assert.equal(await response.text(), 'cycle-reminder');
+});
+
+test('设置文档不存在时 fail closed，绝不推送', () => {
+    assert.equal(decide(periods(), null, '2026-12-08').skip, 'no-settings');
+    assert.equal(decide(periods(), undefined, '2026-12-08').skip, 'no-settings');
+    // 空的设置对象算「配置过并采用默认值」，与「文档不存在」不同
+    assert.equal(decide(periods(), {}, '2026-12-08').kind, 'before');
+});

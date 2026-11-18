@@ -61,7 +61,14 @@ npx wrangler secret list
 
 `[vars]` 里只有 `OSS_REGION` / `OSS_BUCKET` / `DB_ROOT`，与早安一致。`USER_URL` 不设时回落到 `space.settings.links.user`，再回落到 `https://coderf.site/index.html`。
 
-`workers_dev = true` 是**有意的**：`/run` 是唯一的人工验证入口，生产域名没有这条通道。设置 `RUN_TOKEN` 后必须带 `?token=`；不设则任何人知道地址都能触发一次真推送（`dry=0`），所以**建议设**。
+`workers_dev = true` 是**有意的**：`/run` 是唯一的人工验证入口。
+
+**安全默认（2026-11-18 修正）**：
+
+- 未配置 `RUN_TOKEN` 时 `dry=0` **一律拒绝**，只能 dry run。
+- token 不匹配时**降级为 dry run** 并在响应里带 `warning`（返回 401 会让「忘了 token」看起来像「服务坏了」）。
+- `decide()` 遇到缺失的 `cycle/settings.json` 返回 `no-settings`，**fail closed**。浏览器侧缺省是「开」，但那是给已启用空间用的；Worker 面对的是可能从未启用的功能。
+- 生产库目前没有 `cycle/**`，所以即使被触发也只会返回 `no-settings`。
 
 ## 验证（先 dry run，再真跑）
 

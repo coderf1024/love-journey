@@ -15,7 +15,25 @@
 
 ## 部署状态
 
-（部署后在此记录：Worker 名、版本 ID、Secret 绑定、Cron 生效时间。）
+2026-11-18 首次部署完成：
+
+- Worker：`love-cycle-reminder`
+- 地址：`https://love-cycle-reminder.coderf.workers.dev`
+- 版本：`33b5c22b-e4a4-4a0e-9e78-30c64bc21874`（100%）
+- Cron：`0 1 * * *` 已注册
+- Secret：`OSS_ACCESS_KEY_ID`、`OSS_ACCESS_KEY_SECRET`、`RUN_TOKEN`（三项均 `secret_text`）
+- 生产库 `cycle/settings.json` **不存在**（404），因此实际不会推送。`/run` 各日期分支均返回 `no-settings`，符合预期。
+
+待办：等到真正启用时，先在管理端「系统 → 生理期」保存一次设置（这会创建 `settings.json`），再确认 `remindEnabled` 的取值。
+
+## 安全默认（2026-11-18 修正）
+
+最初的设计让 `RUN_TOKEN` 可选，不设就等于任何人都能 `?dry=0` 触发真推送。已改成：
+
+1. **未配置 `RUN_TOKEN` 时，`dry=0` 一律拒绝**（返回 `README` 提示），只能 dry run。
+2. **token 不匹配时不返回 401，而是降级为 dry run**，并在响应里带 `warning`。理由是 401 会让「忘了 token」看起来像「服务坏了」；降级后结果仍然可读，且不会误发。
+3. **`decide()` 对缺失的 `settings.json` 返回 `no-settings`（fail closed）**。浏览器侧 `normalizeCycleSettings(null)` 缺省是「开」，那是给已启用空间用的；Worker 面对的是一个可能从未启用的功能，不能默认开。
+4. `workers_dev = true` 保留，因为 `/run` 是唯一的人工验证入口；生产库没有 `cycle/**`，即使被触发也只是返回 `no-settings`。
 
 ## 数据边界
 

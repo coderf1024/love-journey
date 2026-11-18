@@ -168,6 +168,12 @@ function normalizeSettings(raw) {
  * @returns {{ skip: string } | { kind: 'before'|'start'|'overdue', variables: object }}
  */
 function decide(periodsDoc, settingsRaw, today) {
+    // 缺设置文档 = 从没配置过 = 不发。
+    // 浏览器的 normalizeCycleSettings 缺省是「开」，但那是给已配置的空间用的；
+    // Worker 面对的是一个可能根本还没启用的功能，必须 fail closed，
+    // 否则部署当天就可能开始推送。
+    if (!settingsRaw) return { skip: 'no-settings' };
+
     const settings = normalizeSettings(settingsRaw);
     if (!settings.enabled) return { skip: 'cycle-disabled' };
     if (!settings.remindEnabled) return { skip: 'reminders-off' };
@@ -330,27 +336,39 @@ export default {
     },
 
     /**
-     * 人工验证入口，只在 workers_dev 上可达：
-     *   GET /run            默认 dry run，只看判断结果，不发通知、不写 OSS
-     *   GET /run?dry=0      真的推一次并写 lastPush
-     *   GET /run?today=YYYY-MM-DD  指定某天，方便验证各分支
-     * 生产环境没有这条通道（workers_dev = false 时整站不可达）。
+     * 人工验证入口，只在 workers_dev 域上可达：
+     *   GET /run?token=...             dry run，只看判断结果，不发通知、不写 OSS
+     *   GET /run?token=...&dry=0       真的推一次并写 lastPush
+     *   GET /run?token=...&today=YYYY-MM-DD  指定某天，便于验证各分支
+     *
+     * 安全默认：**没有配置 RUN_TOKEN 时只允许 dry run**，`dry=0` 一律拒绝。
+     * 不能把「记得设 token」当成防线——忘了设就等于把真推送暴露在公网。
      */
     async fetch(request, env) {
         const url = new URL(request.url);
         if (url.pathname !== '/' && url.pathname !== '/run') {
             return new Response('cycle-reminder', { status: 200 });
         }
-        if (env.RUN_TOKEN && url.searchParams.get('token') !== env.RUN_TOKEN) {
-            return jsonResponse({ error: '缺少或错误的 token' }, 401);
+
+        const expectsToken = Boolean(env.RUN_TOKEN);
+        const tokenOk = !expectsToken || url.searchParams.get('token') === env.RUN_TOKEN;
+        const wantsRealPush = url.searchParams.get('dry') === '0';
+
+        // 无 token：只允许 dry run。带 token 且校验通过才允许真推。
+        const dry = !wantsRealPush || !tokenOk;
+        if (!dry && !expectsToken) {
+            return jsonResponse({
+                error: 'RUN_TOKEN 未配置，只允许 dry run',
+                hint: 'wrangler secret put RUN_TOKEN 之后再传 dry=0'
+            }, 403);
         }
-        const dry = url.searchParams.get('dry') !== '0';
+
         try {
             const result = await run(env, {
                 dry,
                 today: url.searchParams.get('today') || undefined
             });
-            return jsonResponse(result);
+            return jsonResponse(expectsToken && !tokenOk ? { ...result, warning: 'token 不匹配，已降级为 dry run' } : result);
         } catch (error) {
             return jsonResponse({ error: String(error.message || error) }, 500);
         }

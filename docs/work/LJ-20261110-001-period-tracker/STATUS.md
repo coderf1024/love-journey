@@ -29,12 +29,13 @@
 1. **启用前必须先关掉提醒开关**（人 2026-11-18 要求）。生产库目前没有 `cycle/settings.json`，Worker 因此 fail closed、不会推送；但一旦在管理端保存过生理期设置，就会按表单的值写入。启用前先确认「提醒总开关」是关的。
 2. 人提供美柚导出文件，确认文件形态（xlsx/csv、一天一行还是一次一行、日期格式）。
 3. 人工验收整套生理期功能（本地 db-test 已自测通过）。
-4. ~~合并 main~~ 2026-11-13 完成；~~部署 Worker~~ 2026-11-18 完成（`love-cycle-reminder`，版本 `33b5c22b`，cron `0 1 * * *`，三个 Secret 已绑定）。
+4. ~~合并 main~~ 2026-11-13 完成；~~部署 Worker~~ 2026-11-18 完成（`love-cycle-reminder`，版本 `eb1ad017`，cron `0 1 * * *`，两个 Secret；无公开 URL）。
 
 ## 阻塞
 
 - 无阻塞。美柚导出文件未到，导入器暂按通用表头猜列。
-- ~~提醒 Worker 等待部署~~ 已于 2026-11-18 部署；22 条单测通过（含 /run 准入与 fail-closed）。
+- ~~提醒 Worker 等待部署~~ 已于 2026-11-18 部署；20 条单测通过。
+- 2026-11-18 修正：取消 `workers_dev` 和 `/run` 入口（`fetch()` 一律 404），与早安一致；`RUN_TOKEN` 已从 Cloudflare 删除。
 - 2026-11-13：已合并 origin/main，Worker 从 `scripts/` 迁到 `workers/`，目录与工具链对齐 `workers/morning-greeting/`。
 
 ## 已验证

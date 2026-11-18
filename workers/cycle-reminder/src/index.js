@@ -336,50 +336,16 @@ export default {
     },
 
     /**
-     * 人工验证入口，只在 workers_dev 域上可达：
-     *   GET /run?token=...             dry run，只看判断结果，不发通知、不写 OSS
-     *   GET /run?token=...&dry=0       真的推一次并写 lastPush
-     *   GET /run?token=...&today=YYYY-MM-DD  指定某天，便于验证各分支
+     * 没有任何 HTTP 能力。这个是纯定时任务，只由 Cloudflare 的 cron 调度器
+     * 通过 scheduled() 调用，不需要公网 URL。
+     * 与 workers/morning-greeting/src/index.js 保持完全一致。
      *
-     * 安全默认：**没有配置 RUN_TOKEN 时只允许 dry run**，`dry=0` 一律拒绝。
-     * 不能把「记得设 token」当成防线——忘了设就等于把真推送暴露在公网。
+     * 想单独验证某一天的判断，用 `npm test`（全内存），
+     * 或在本地 `npx wrangler dev --test-scheduled` 触发 scheduled()。
      */
-    async fetch(request, env) {
-        const url = new URL(request.url);
-        if (url.pathname !== '/' && url.pathname !== '/run') {
-            return new Response('cycle-reminder', { status: 200 });
-        }
-
-        const expectsToken = Boolean(env.RUN_TOKEN);
-        const tokenOk = !expectsToken || url.searchParams.get('token') === env.RUN_TOKEN;
-        const wantsRealPush = url.searchParams.get('dry') === '0';
-
-        // 无 token：只允许 dry run。带 token 且校验通过才允许真推。
-        const dry = !wantsRealPush || !tokenOk;
-        if (!dry && !expectsToken) {
-            return jsonResponse({
-                error: 'RUN_TOKEN 未配置，只允许 dry run',
-                hint: 'wrangler secret put RUN_TOKEN 之后再传 dry=0'
-            }, 403);
-        }
-
-        try {
-            const result = await run(env, {
-                dry,
-                today: url.searchParams.get('today') || undefined
-            });
-            return jsonResponse(expectsToken && !tokenOk ? { ...result, warning: 'token 不匹配，已降级为 dry run' } : result);
-        } catch (error) {
-            return jsonResponse({ error: String(error.message || error) }, 500);
-        }
+    async fetch() {
+        return new Response('Not Found', { status: 404 });
     }
 };
-
-function jsonResponse(value, status = 200) {
-    return new Response(JSON.stringify(value, null, 2), {
-        status,
-        headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }
-    });
-}
 
 export { decide, normalizeSettings, shanghaiToday, diffDays, render };

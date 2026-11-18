@@ -55,37 +55,39 @@ npx wrangler deploy --dry-run
 npx wrangler deploy
 npx wrangler secret put OSS_ACCESS_KEY_ID
 npx wrangler secret put OSS_ACCESS_KEY_SECRET
-npx wrangler secret put RUN_TOKEN      # 可选；不设则 /run 不再要求口令
 npx wrangler secret list
 ```
 
 `[vars]` 里只有 `OSS_REGION` / `OSS_BUCKET` / `DB_ROOT`，与早安一致。`USER_URL` 不设时回落到 `space.settings.links.user`，再回落到 `https://coderf.site/index.html`。
 
-`workers_dev = true` 是**有意的**：`/run` 是唯一的人工验证入口。
+**没有公开 URL**（2026-11-18 修正）：最初为了 `/run` 开了 `workers_dev`，还加了可选 `RUN_TOKEN`。这是错的——`scheduled()` 是定时触发，不需要公网入口；开了就等于把「能触发真推送」挂到公网，并要靠「记得设 token」来兜底。现在与早安一致：`workers_dev = false`、`fetch()` 返回 404。
 
-**安全默认（2026-11-18 修正）**：
+**`decide()` 对缺失的 `settings.json` 返回 `no-settings`，fail closed。** 浏览器侧 `normalizeCycleSettings(null)` 缺省是「开」，那是给已启用空间用的；Worker 面对的是可能从未启用的功能。生产库目前没有 `cycle/**`，所以即使 cron 触发也只会得到 `no-settings`。
 
-- 未配置 `RUN_TOKEN` 时 `dry=0` **一律拒绝**，只能 dry run。
-- token 不匹配时**降级为 dry run** 并在响应里带 `warning`（返回 401 会让「忘了 token」看起来像「服务坏了」）。
-- `decide()` 遇到缺失的 `cycle/settings.json` 返回 `no-settings`，**fail closed**。浏览器侧缺省是「开」，但那是给已启用空间用的；Worker 面对的是可能从未启用的功能。
-- 生产库目前没有 `cycle/**`，所以即使被触发也只会返回 `no-settings`。
+## 验证
 
-## 验证（先 dry run，再真跑）
+**没有 HTTP 入口。** 这是纯定时任务，只由 Cloudflare 的 cron 调度器通过 `scheduled()` 调用；`workers_dev = false`、`preview_urls = false`、`fetch()` 一律 404，公网访问不到（旧地址返回 `error code: 1042`）。与 `workers/morning-greeting` 完全一致。
+
+理由：`scheduled()` 根本不需要 URL，那个入口只服务于「我想用 curl 手动试一天」，却把「能触发真推送」的能力挂到了公网上，不值得。
+
+三种验证方式，都不需要公网：
 
 ```bash
-# 只看判断结果：不发通知、不写 OSS
-curl 'https://love-cycle-reminder.<子域>.workers.dev/run?token=<RUN_TOKEN>'
+# 1. 判定逻辑：22 条 node:test，全内存，覆盖每个分支
+npm test
 
-# 指定某一天，覆盖各分支
-curl '.../run?token=...&today=2026-12-08'   # before
-curl '.../run?token=...&today=2026-12-09'   # start
-curl '.../run?token=...&today=2026-12-14'   # overdue（第 3 天）
+# 2. 本地触发 scheduled()，走真实 OSS 读、真实 Bark 推（谨慎：会真发）
+#    先在 .dev.vars 里写 OSS_* 与 DB_ROOT，测试时建议指向 db-test
+npx wrangler dev --test-scheduled --remote
+#    另开一个终端触发一次：
+curl "http://localhost:8787/__scheduled?cron=0+1+*+*+*"
 
-# 真的推一次并写 lastPush
-curl '.../run?token=...&dry=0'
+# 3. 线上验证：看日志，不看返回体
+#    Cloudflare Dashboard → Workers & Pages → love-cycle-reminder → Logs
+#    每次运行输出一行 [cycle-reminder] {...}，包含 today / pushed / reason
 ```
 
-`dry=0` 会真的发 Bark、真的写 `settings.lastPush`。只在自己手机上验证时用。
+想验证「今天该不该推」，不用真跑——看 Dashboard 日志里上一条 `reason` 字段就够了：`no-settings` / `not-a-remind-day` / `already-pushed` 等都是明确的静默原因。
 
 ## 漏发怎么看
 

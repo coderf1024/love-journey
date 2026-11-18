@@ -18,31 +18,30 @@
 2026-11-18 首次部署完成：
 
 - Worker：`love-cycle-reminder`
-- 地址：`https://love-cycle-reminder.coderf.workers.dev`
-- 版本：`33b5c22b-e4a4-4a0e-9e78-30c64bc21874`（100%）
+- 版本：`eb1ad017-4959-4ce6-8394-0ecfa1d6f4c2`（100%，2026-11-18 二次部署，取消公开入口）
 - Cron：`0 1 * * *` 已注册
-- Secret：`OSS_ACCESS_KEY_ID`、`OSS_ACCESS_KEY_SECRET`、`RUN_TOKEN`（三项均 `secret_text`）
-- 生产库 `cycle/settings.json` **不存在**（404），因此实际不会推送。`/run` 各日期分支均返回 `no-settings`，符合预期。
+- Secret：`OSS_ACCESS_KEY_ID`、`OSS_ACCESS_KEY_SECRET`（`secret_text`）
+- **无公开 URL**：`workers_dev = false`、`preview_urls = false`、`fetch()` 一律 404。旧的 `*.workers.dev` 地址已返回 `error code: 1042`。与 `love-morning-greeting` 一致。
+- 生产库 `cycle/settings.json` **不存在**（404），因此实际不会推送。
 
 待办：等到真正启用时，先在管理端「系统 → 生理期」保存一次设置（这会创建 `settings.json`），再确认 `remindEnabled` 的取值。
 
-## 安全默认（2026-11-18 修正）
+## 没有 HTTP 入口（2026-11-18 修正)
 
-最初的设计让 `RUN_TOKEN` 可选，不设就等于任何人都能 `?dry=0` 触发真推送。已改成：
+最初给这个 Worker 开了 `workers_dev = true` 和一个 `/run` 入口，还配了可选 `RUN_TOKEN`，理由是「方便手动验证某一天」。
 
-1. **未配置 `RUN_TOKEN` 时，`dry=0` 一律拒绝**（返回 `README` 提示），只能 dry run。
-2. **token 不匹配时不返回 401，而是降级为 dry run**，并在响应里带 `warning`。理由是 401 会让「忘了 token」看起来像「服务坏了」；降级后结果仍然可读，且不会误发。
-3. **`decide()` 对缺失的 `settings.json` 返回 `no-settings`（fail closed）**。浏览器侧 `normalizeCycleSettings(null)` 缺省是「开」，那是给已启用空间用的；Worker 面对的是一个可能从未启用的功能，不能默认开。
-4. `workers_dev = true` 保留，因为 `/run` 是唯一的人工验证入口；生产库没有 `cycle/**`，即使被触发也只是返回 `no-settings`。
+这是错的。`scheduled()` 由 Cloudflare 的 cron 调度器直接调用，**完全不需要公网 URL**。那个入口唯一的用途是我自己用 curl 试，代价却是把「能触发真推送、能改写 `lastPush`」的能力挂到公网，并靠「记得设 token」兜底。
 
-## 数据边界
+现在与早安完全一致：
 
-- 只读 `cycle/periods.json`、`cycle/settings.json`、`space.json`。
-- **只写** `cycle/settings.json` 的 `lastPush` 字段，整份覆盖写入。
-- 从不写 `cycle/periods.json`，从不重算预测。
+- `workers_dev = false`、`preview_urls = false`
+- `fetch()` 一律返回 404
+- `RUN_TOKEN` 已从 Cloudflare 删除
 
-## 漏发处理
+验证改用三种方式：`npm test`（20 条内存用例）、`wrangler dev --test-scheduled --remote` 本地触发、线上看 Dashboard 日志里的 `[cycle-reminder]` 行。
 
-- 用户端首页横幅会在 `lastPush.ok === false` 且 3 天内提示；横幅只提示，不补发。
-- 管理端「系统 → 生理期」显示上次推送结果。
-- 目前没有自动补发。当天漏了就漏了，第二天按新的一天重新判断——这是刻意的：补发一个过期提醒会让「今天该不该提醒」这件事变得不可推理。
+## fail closed 的默认值
+
+`decide()` 遇到缺失的 `cycle/settings.json` 返回 `no-settings`，**不推送**。
+
+浏览器侧 `normalizeCycleSettings(null)` 的缺省是「开」，那是给已经配置过的空间用的。Worker 面对的是一个可能从未启用的功能，不能同样默认开——否则部署当天就可能开始推送。生产库目前没有 `cycle/**`，所以即使 cron 触发也只会得到 `no-settings`。

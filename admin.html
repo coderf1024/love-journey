@@ -522,6 +522,23 @@
     .order-total small { margin-left: 3px; color: var(--admin-muted); font-size: 8px; font-weight: 400; }
     .order-actions { display: flex; gap: 5px; margin-left: auto; flex-wrap: wrap; justify-content: flex-end; }
 
+    /* 「你做的我都爱吃」：填菜面板 */
+    .pick-modal .admin-modal-card { max-width: 420px; }
+    .pick-meta { margin: 0 0 9px; padding: 8px 10px; background: #fdf6e6; border-radius: 9px; color: #8a7351; font-size: 9.5px; line-height: 1.6; }
+    .pick-list { display: grid; gap: 5px; max-height: 208px; overflow-y: auto; margin-bottom: 9px; }
+    .pick-row { display: flex; align-items: center; gap: 8px; padding: 7px 8px; background: #fff; border: 1px solid var(--line); border-radius: 10px; text-align: left; }
+    .pick-row.is-on { background: #fdf2f5; border-color: rgba(223, 95, 126, .55); }
+    .pick-row img,
+    .pick-row .pick-photo-empty { width: 30px; height: 30px; flex: 0 0 30px; display: grid; place-items: center; overflow: hidden; background: #f3eee7; border-radius: 7px; font-size: 13px; object-fit: cover; }
+    .pick-row-main { flex: 1; min-width: 0; display: grid; gap: 1px; }
+    .pick-row-main b { font-size: 10.5px; }
+    .pick-row-main small { color: var(--admin-muted); font-size: 8.5px; }
+    .pick-row i { width: 14px; height: 14px; flex: 0 0 14px; display: grid; place-items: center; border: 1px solid #cfc9c1; border-radius: 999px; color: transparent; font-size: 8px; font-style: normal; }
+    .pick-row.is-on i { background: var(--admin-stamp); border-color: var(--admin-stamp); color: #fff; }
+    .pick-type { display: flex; gap: 6px; }
+    .pick-type .admin-input { flex: 1; }
+    .pick-hint { margin-top: 8px; color: var(--admin-muted); font-size: 8.5px; line-height: 1.6; }
+
     /* order detail — 管理端工作台风格：浅底数据卡 + 分隔线，不用用户端的深色 hero 和大圆角 */
 
     .od-layout { display: grid; gap: 12px; margin-top: 12px; align-items: start; }
@@ -701,6 +718,7 @@
     .menu-main small { color: var(--admin-muted); font-size: 8.5px; }
     .menu-tags { display: flex; flex-wrap: wrap; gap: 3px; }
     .menu-tags span { padding: 1px 5px; background: #f4e9dc; border-radius: 999px; color: #8a7351; font-size: 7px; }
+    .menu-row-flag { padding: 1px 5px; background: #fdf0f4; border-radius: 999px; color: var(--admin-stamp); font-size: 7px; font-style: normal; vertical-align: 1px; }
     .menu-side { display: grid; align-content: end; justify-items: end; gap: 5px; }
     .menu-side .status-pill { justify-content: center; }
     .menu-row-actions { display: flex; gap: 4px; }
@@ -1898,6 +1916,29 @@
     </div>
 </div>
 
+<div class="admin-modal pick-modal" id="pick-modal" aria-hidden="true">
+    <div class="admin-modal-backdrop" data-pick-close></div>
+    <div class="admin-modal-card" role="dialog" aria-modal="true" aria-labelledby="pick-modal-title">
+        <header class="admin-modal-head">
+            <b id="pick-modal-title">填上这一道</b>
+            <span class="admin-small admin-muted" id="pick-order-id" style="margin-left:auto"></span>
+            <button class="admin-modal-close" type="button" data-pick-close aria-label="关闭">✕</button>
+        </header>
+        <div class="admin-modal-body">
+            <p class="pick-meta">填完就直接开始制作，并给用户发「开始下厨了」。用户按固定价付过钱，这里选什么菜都不影响金额。</p>
+            <div class="pick-list" id="pick-list"></div>
+            <div class="pick-type">
+                <input class="admin-input" id="pick-name" type="text" maxlength="30" placeholder="或者手写一道菜，比如 青椒炒蛋">
+            </div>
+            <p class="pick-hint">这一道只在订单里留出餐照，不会加进菜品图集；用户端看到的仍是上面那张固定图。</p>
+        </div>
+        <div class="admin-modal-foot">
+            <button class="admin-btn ghost" type="button" data-pick-close>再想想</button>
+            <button class="admin-btn primary" id="pick-confirm" type="button" disabled>填上并开始制作</button>
+        </div>
+    </div>
+</div>
+
 <div class="admin-dialog" id="admin-confirm" aria-hidden="true">
     <div class="admin-dialog-backdrop" data-admin-confirm="cancel"></div>
     <div class="admin-dialog-card" role="dialog" aria-modal="true" aria-labelledby="admin-confirm-title">
@@ -2109,11 +2150,35 @@
             : '旧订单（无预约时间）';
     }
 
+    // 「你做的我都爱吃」在开始制作前只显示卡名和海报；之后显示大厨填的菜名。
+    function chefRevealed(order) {
+        return !!order && !['pending', 'accepted', 'prepping'].includes(order.status);
+    }
+
+    function pickItemView(item, order) {
+        if (!item || item.kind !== 'chefPick') return null;
+        const revealed = chefRevealed(order) && item.pending === false;
+        return {
+            revealed,
+            name: revealed ? item.name : '你做的我都爱吃',
+            image: revealed ? (item.image || '') : (item.chefPickImage || item.image || ''),
+            tag: revealed ? '大厨做的' : '待填'
+        };
+    }
+
     function itemsText(order) {
-        return ((order && order.items) || []).map(item => item.name).join('、');
+        return ((order && order.items) || [])
+            .map(item => {
+                const view = pickItemView(item, order);
+                return view ? view.name : item.name;
+            })
+            .join('、');
     }
 
     function dishImageFor(item) {
+        if (item && item.kind === 'chefPick' && item.pending !== false) {
+            return item.chefPickImage || item.image || '';
+        }
         if (item && item.image) return item.image;
         const dish = ((adminData && adminData.menu && adminData.menu.dishes) || [])
             .find(entry => String(entry.id) === String(item && item.dishId));
@@ -2503,7 +2568,9 @@
             </div>` : '';
         const orderRows = todos.map(order => {
             const nextStatus = NEXT_STATUS[order.status];
-            const label = nextStatus ? nextStatus.label : '去处理';
+            const label = (nextStatus && nextStatus.status === 'cooking' && pendingChefPickItem(order))
+                ? '填上并开始制作'
+                : (nextStatus ? nextStatus.label : '去处理');
             const mark = { pending: '订', accepted: '接', prepping: '备', cooking: '制', served: '餐' }[order.status] || '订';
             const extras = [];
             if (waitText(order)) extras.push(waitText(order));
@@ -2513,7 +2580,7 @@
             const meta = [slotText(order), ...extras].filter(Boolean).join(' · ');
             return `<div class="todo-row${overdue(order) || order.lastNudgeAt ? ' is-late' : ''}">
                 <span class="todo-mark">${mark}</span>
-                <span class="todo-main"><b>${ORDER_LABEL[order.status]} · ${esc(itemsText(order))}</b><small>${esc(meta)}</small></span>
+                <span class="todo-main"><b>${ORDER_LABEL[order.status]} · ${esc(itemsText(order))}</b><small>${esc(meta)}${pendingChefPickItem(order) ? ' · 还有一道待填' : ''}</small></span>
                 ${nextStatus ? `<button class="admin-btn dark sm" type="button" data-home-next="${esc(order.id)}" data-next-status="${nextStatus.status}">${label}</button>` : `<span class="admin-small admin-muted">去订单处理</span>`}
             </div>`;
         }).join('');
@@ -2600,9 +2667,11 @@
 
     function orderCardHTML(order) {
         const next = NEXT_STATUS[order.status];
+        const pendingPick = pendingChefPickItem(order);
         const actions = [];
         if (next) {
-            actions.push(`<button class="admin-btn primary sm" type="button" data-order-next="${esc(order.id)}" data-next-status="${next.status}">${next.label}</button>`);
+            const label = (next.status === 'cooking' && pendingPick) ? '填上并开始制作' : next.label;
+            actions.push(`<button class="admin-btn primary sm" type="button" data-order-next="${esc(order.id)}" data-next-status="${next.status}">${label}</button>`);
         }
         if (ADMIN_CANCELABLE.includes(order.status)) {
             actions.push(`<button class="admin-btn danger sm" type="button" data-order-cancel="${esc(order.id)}">${order.status === 'pending' ? '拒单退款' : '取消退款'}</button>`);
@@ -2623,12 +2692,18 @@
                     : `<span class="status-pill ${esc(order.status)}">${ORDER_LABEL[order.status] || order.status}</span>`}
             </div>
             <p class="order-slot">${esc(slotText(order))} · 下单 ${esc(formatDate(order.placedAt))}${waitText(order) ? ` · ${waitText(order)}` : ''}</p>
-            <div class="order-items">${((order.items) || []).map(item => `
+            <div class="order-items">${((order.items) || []).map(item => {
+                const view = pickItemView(item, order);
+                const name = view ? view.name : item.name;
+                const tag = view ? (view.revealed ? '<i>大厨做的</i>' : '<i>待填 · 开火时填上</i>') : '<i>×1</i>';
+                return `
                 <div class="order-item">
                     ${photoHTML(item)}
-                    <span class="order-item-name">${esc(item.name)}<i>×1</i></span>
+                    <span class="order-item-name">${esc(name)}${tag}</span>
                     <span class="order-item-price">${item.price} 币</span>
-                </div>`).join('')}</div>
+                </div>`;
+            }).join('')}</div>
+            ${pendingPick ? `<p class="a-hint" style="margin-top:7px;padding:6px 8px;color:#8a7351;background:#fdf6e6;border-radius:7px;font-size:9px;line-height:1.55">用户在等这一道的名字。点「开始制作」时填上，随后发出「开始下厨了」通知。</p>` : ''}
             ${order.note ? `<p class="order-note">“${esc(order.note)}”</p>` : ''}
             ${extras.length ? `<p class="order-extra">${extras.map(esc).join(' · ')}</p>` : ''}
             <div class="order-foot">
@@ -2638,10 +2713,118 @@
         </article>`;
     }
 
+    /* ---------- 「你做的我都爱吃」填菜 ---------- */
+    let pickState = { orderId: null, button: null, dishId: '', photo: '', busy: false };
+
+    async function orderHasPendingPick(id) {
+        try {
+            const order = await getOrder(id);
+            return !!pendingChefPickItem(order);
+        } catch (error) {
+            return false;
+        }
+    }
+
+    function pickCandidates() {
+        // 「你做的我都爱吃」本身不能当答案，从候选里排除
+        return ((adminData && adminData.menu && adminData.menu.dishes) || [])
+            .filter(dish => dish.available !== false && !isChefPickDish(dish));
+    }
+
+    function renderPickList() {
+        const list = $('pick-list');
+        const dishes = pickCandidates();
+        if (!dishes.length) {
+            list.innerHTML = '<p class="admin-small admin-muted">菜单里还没有菜，可以直接在下面手写。</p>';
+            return;
+        }
+        list.innerHTML = dishes.map(dish => `
+            <button class="pick-row${String(dish.id) === String(pickState.dishId) ? ' is-on' : ''}" type="button" data-pick-dish="${esc(dish.id)}">
+                ${dish.image ? `<img src="${esc(dish.image)}" alt="">` : `<span class="pick-photo-empty">${esc(dish.icon || '🍽️')}</span>`}
+                <span class="pick-row-main"><b>${esc(dish.name)}</b><small>${dish.prepMinutes} 分钟 · 菜单价 ${dish.price} 币</small></span>
+                <i>✓</i>
+            </button>`).join('');
+    }
+
+    function updatePickConfirm() {
+        const name = $('pick-name').value.trim();
+        const dish = pickCandidates().find(item => String(item.id) === String(pickState.dishId));
+        const ready = !!(dish || name);
+        const confirm = $('pick-confirm');
+        confirm.disabled = !ready || pickState.busy;
+        confirm.textContent = pickState.busy ? '填写中…' : '填上并开始制作';
+    }
+
+    async function openPickModal(orderId, button) {
+        try {
+            const order = await getOrder(orderId);
+            if (!order || !pendingChefPickItem(order)) {
+                showMessage('这一单没有待填的这一道');
+                return;
+            }
+            pickState = { orderId, button, dishId: '', busy: false };
+            $('pick-order-id').textContent = orderId;
+            $('pick-name').value = '';
+            renderPickList();
+            updatePickConfirm();
+            $('pick-modal').classList.add('is-open');
+            $('pick-modal').setAttribute('aria-hidden', 'false');
+            document.body.classList.add('admin-modal-open');
+        } catch (error) {
+            showMessage(error.message, 'error');
+        }
+    }
+
+    function closePickModal() {
+        $('pick-modal').classList.remove('is-open');
+        $('pick-modal').setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('admin-modal-open');
+        pickState = { orderId: null, button: null, dishId: '', busy: false };
+    }
+
+    async function confirmPick() {
+        if (!pickState.orderId || pickState.busy) return;
+        const name = $('pick-name').value.trim();
+        const dish = pickCandidates().find(item => String(item.id) === String(pickState.dishId));
+        const pick = dish
+            ? { dishId: dish.id, name: dish.name, image: dish.image || '', prepMinutes: dish.prepMinutes, categoryId: dish.categoryId }
+            : { dishId: '', name, image: '', prepMinutes: 60, categoryId: '' };
+        if (!pick.name) {
+            showMessage('先选一道菜，或者写个菜名', 'error');
+            return;
+        }
+        pickState.busy = true;
+        updatePickConfirm();
+        const orderId = pickState.orderId;
+        try {
+            await fillChefPick(orderId, pick);
+            const fresh = await getOrder(orderId);
+            if (fresh && fresh.status === 'accepted') {
+                await setOrderStatus(orderId, 'prepping', { by: 'admin' });
+            }
+            await setOrderStatus(orderId, 'cooking', { by: 'admin' });
+            closePickModal();
+            showMessage(`已填上「${pick.name}」，已开始制作`);
+            await refreshAdminOrders();
+            if (adminView === 'order-detail') await loadOrderDetail(orderId);
+        } catch (error) {
+            showMessage(error.message, 'error');
+            pickState.busy = false;
+            updatePickConfirm();
+        }
+    }
+
     async function changeOrderStatus(id, status, button) {
         if (status === 'served') {
             await openServeModal(id);
             return;
+        }
+        if (status === 'cooking') {
+            const pending = await orderHasPendingPick(id);
+            if (pending) {
+                await openPickModal(id, button);
+                return;
+            }
         }
         if (button) button.disabled = true;
         try {
@@ -2773,15 +2956,20 @@
                 <div class="od-col">
                     <div class="od-panel">
                         <div class="od-panel-head"><b>菜品明细</b><small>${itemCount} 道 · 点图看大图</small></div>
-                        ${items.length ? items.map(item => `
+                        ${items.length ? items.map(item => {
+                            const view = pickItemView(item, order);
+                            const name = view ? view.name : item.name;
+                            const note = view && !view.revealed ? '待填 · 开始制作时填上' : (item.prepMinutes ? `预计 ${item.prepMinutes} 分钟` : '');
+                            return `
                             <div class="od-item">
                                 ${photoHTML(item, 'order-item-photo', true)}
                                 <span class="od-item-main">
-                                    <b>${esc(item.name)}</b>
-                                    <small>${item.prepMinutes ? `预计 ${item.prepMinutes} 分钟` : ''}</small>
+                                    <b>${esc(name)}${view && view.revealed ? ' <i>大厨做的</i>' : ''}</b>
+                                    <small>${esc(note)}</small>
                                 </span>
                                 <span class="od-item-price">${item.price} 币</span>
-                            </div>`).join('') : '<p class="od-note">这一单没有菜品记录。</p>'}
+                            </div>`;
+                        }).join('') : '<p class="od-note">这一单没有菜品记录。</p>'}
                         <div class="od-item-total"><span>合计 · ${payment.refundedAt ? '已退款' : '已支付'}</span><b>${order.total} 币</b></div>
                     </div>
 
@@ -2832,7 +3020,8 @@
     function detailActionsHTML(order, next) {
         const buttons = [];
         if (next) {
-            buttons.push(`<button class="admin-btn primary" type="button" data-detail-next="${esc(order.id)}" data-next-status="${next.status}">${next.label}</button>`);
+            const label = (next.status === 'cooking' && pendingChefPickItem(order)) ? '填上并开始制作' : next.label;
+            buttons.push(`<button class="admin-btn primary" type="button" data-detail-next="${esc(order.id)}" data-next-status="${next.status}">${label}</button>`);
         }
         if (ADMIN_CANCELABLE.includes(order.status)) {
             buttons.push(`<button class="admin-btn danger" type="button" data-detail-cancel="${esc(order.id)}">${order.status === 'pending' ? '拒单退款' : '取消退款'}</button>`);
@@ -2841,8 +3030,12 @@
     }
 
     /* ---------- serving photos ---------- */
+    function serveKey(index) {
+        return 'item-' + index;
+    }
+
     function renderServeModal() {
-        const done = serveItems.filter(item => servePhotos[item.dishId]).length;
+        const done = serveItems.filter((item, index) => servePhotos[serveKey(index)]).length;
         const uploading = serveUploading.size > 0;
         $('serve-progress').innerHTML = `已拍 <b>${done}</b> / ${serveItems.length}`;
         const confirm = $('serve-confirm');
@@ -2850,8 +3043,9 @@
         confirm.textContent = `确认出餐（${done}/${serveItems.length}）`;
 
         $('serve-items').innerHTML = serveItems.length ? serveItems.map((item, index) => {
-            const url = servePhotos[item.dishId];
-            const busy = serveUploading.has(item.dishId);
+            const key = serveKey(index);
+            const url = servePhotos[key];
+            const busy = serveUploading.has(key);
             const thumb = url
                 ? `<img src="${esc(url)}" alt="">`
                 : item.image
@@ -2908,15 +3102,16 @@
         const item = serveItems[index];
         const file = input.files && input.files[0];
         if (!item || !file) return;
-        serveUploading.add(item.dishId);
+        const key = serveKey(index);
+        serveUploading.add(key);
         renderServeModal();
         try {
             const url = await uploadDishImage(file);
-            servePhotos[item.dishId] = url;
+            servePhotos[key] = url;
         } catch (error) {
             showMessage(error.message || '照片上传失败，请重试', 'error');
         } finally {
-            serveUploading.delete(item.dishId);
+            serveUploading.delete(key);
             input.value = '';
             renderServeModal();
         }
@@ -2924,13 +3119,12 @@
 
     async function confirmServe() {
         if (!serveOrderId) return;
-        const missing = serveItems.filter(item => !servePhotos[item.dishId]);
+        const missing = serveItems.filter((item, index) => !servePhotos[serveKey(index)]);
         if (missing.length) {
             showMessage(`还需要给「${missing[0].name}」拍照`, 'error');
             return;
         }
-        const photos = {};
-        serveItems.forEach(item => { photos[item.dishId] = servePhotos[item.dishId]; });
+        const photos = { items: serveItems.map((item, index) => servePhotos[serveKey(index)] || '') };
         const orderId = serveOrderId;
         const button = $('serve-confirm');
         button.disabled = true;
@@ -3111,7 +3305,9 @@
     function renderMenu() {
         if (!adminData) return;
         const menu = adminData.menu || { categories: [], dishes: [] };
-        const dishes = (menu.dishes || []).slice().sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+        const dishes = (menu.dishes || []).slice().sort((a, b) =>
+            (Number(a.order) === -1 ? -1 : 0) - (Number(b.order) === -1 ? -1 : 0)
+            || (Number(a.order) || 0) - (Number(b.order) || 0));
         $('system-menu-count').textContent = `${dishes.length} 道 · ${dishes.filter(dish => dish.available !== false).length} 道上架`;
         $('menu-summary').textContent = `${dishes.length} 道菜 · ${dishes.filter(dish => dish.available !== false).length} 道上架`;
 
@@ -3149,7 +3345,7 @@
             <div class="menu-row" data-dish-id="${esc(dish.id)}">
                 ${photoHTML(dish, 'menu-photo', true)}
                 <span class="menu-main">
-                    <b>${esc(dish.name)}</b>
+                    <b>${esc(dish.name)}${isChefPickDish(dish) ? ' <em class="menu-row-flag">随机</em>' : ''}</b>
                     <small>${esc(categoryName(dish.categoryId))} · ${dish.price} 币 · ${nearestTime(dish.prepMinutes)} 分钟</small>
                     ${(dish.tags || []).length ? `<span class="menu-tags">${dish.tags.filter(tag => MENU_TAGS.includes(tag)).map(tag => `<span>${esc(tag)}</span>`).join('')}</span>` : ''}
                 </span>
@@ -4979,8 +5175,9 @@
     $('home-todos').addEventListener('click', event => {
         if (event.target.closest('[data-home-greeting-resend]')) handleGreetingResend();
     });
-    // 详情页的按钮随 innerHTML 重建，所以用 body 上的委托
-    $('order-detail-body').addEventListener('click', event => {
+    // 详情页的按钮随 innerHTML 重建，所以用委托。注意动作按钮在
+    // #order-detail-actions（od-head 里），不在 #order-detail-body 内。
+    const detailClick = event => {
         const preview = event.target.closest('[data-image-preview]');
         if (preview) {
             openImageLightbox(preview.dataset.imagePreview);
@@ -4993,11 +5190,32 @@
         }
         const cancel = event.target.closest('[data-detail-cancel]');
         if (cancel) cancelAdminOrder(cancel.dataset.detailCancel, cancel);
-    });
+    };
+    $('order-detail-body').addEventListener('click', detailClick);
+    $('order-detail-actions').addEventListener('click', detailClick);
     $('open-user-site').addEventListener('click', openUserSite);
     $('home-next-meal').addEventListener('click', event => {
         if (event.target.closest('[data-go-orders]')) switchView('orders');
     });
+    $('pick-list').addEventListener('click', event => {
+        const row = event.target.closest('[data-pick-dish]');
+        if (!row) return;
+        pickState.dishId = String(row.dataset.pickDish) === pickState.dishId ? '' : String(row.dataset.pickDish);
+        $('pick-name').value = '';
+        renderPickList();
+        updatePickConfirm();
+    });
+    $('pick-name').addEventListener('input', () => {
+        if ($('pick-name').value.trim()) pickState.dishId = '';
+        renderPickList();
+        updatePickConfirm();
+    });
+
+    $('pick-confirm').addEventListener('click', confirmPick);
+    document.querySelectorAll('[data-pick-close]').forEach(button => {
+        button.addEventListener('click', closePickModal);
+    });
+
     $('serve-items').addEventListener('change', handleServeFile);
     $('serve-confirm').addEventListener('click', confirmServe);
     document.querySelectorAll('[data-serve-close]').forEach(button => {

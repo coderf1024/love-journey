@@ -36,6 +36,17 @@ const DISH_TIME_OPTIONS = [40, 60, 90, 120];
 // 每个菜最多 2 个标签：用户端卡片和详情都只展示这 2 个，多选没有展示位。
 const DISH_TAG_OPTIONS = ['下饭', '香辣', '酸甜', '咸鲜', '拿手菜', '酱香', '暖胃', '红烧'];
 const DISH_TAG_MAX = 2;
+// 「你做的我都爱吃」：菜单里的一张虚拟卡，不写进 menu.dishes。
+// 一单最多一道；用户实付固定价，大厨在「开始制作」时填上真实菜名。
+const CHEF_PICK_ID = 'chef_choice';
+const CHEF_PICK_NAME = '你做的我都爱吃';
+const CHEF_PICK_DESC = '这道我来定，开火时告诉你';
+const CHEF_PICK_IMAGE = 'https://love-config.oss-cn-beijing.aliyuncs.com/love-journey/uploads/dishes/chef-choice-20261118040007.jpg';
+// 种子值；建好之后它就是一道普通菜，价格、时长、分类都能像别的菜一样改。
+const CHEF_PICK_PRICE = 20;
+const CHEF_PICK_MINUTES = 60;
+const CHEF_PICK_SEED_CATEGORY = 'quick';
+
 const DEFAULT_SERVING = {
     slots: [
         { id: 'sat-lunch', day: 6, time: '12:00', label: '午餐', emoji: '☀️' },
@@ -50,6 +61,45 @@ const DEFAULT_SERVING = {
 
 const DEFAULT_OVERDRAFT = 50;
 const DEFAULT_BALANCE = 520;
+
+// 「你做的我都爱吃」现在就是 menu.dishes 里的一道普通菜：
+// 用 chefPick: true 标记，排在列表第一；上下架就是开关，其它字段都能像普通菜一样编辑。
+function isChefPickDish(dish) {
+    return !!(dish && (dish.id === CHEF_PICK_ID || dish.chefPick === true));
+}
+
+function chefPickDish(menu) {
+    return ((menu && menu.dishes) || []).find(isChefPickDish) || null;
+}
+
+function chefPickOrderItem(dish) {
+    return {
+        kind: 'chefPick',
+        pending: true,
+        dishId: '',
+        name: dish.name,
+        icon: dish.icon || '♡',
+        image: dish.image || '',
+        chefPickImage: dish.image || '',
+        price: Number(dish.price) || CHEF_PICK_PRICE,
+        prepMinutes: Number(dish.prepMinutes) || CHEF_PICK_MINUTES,
+        categoryId: dish.categoryId || '',
+        servedImage: ''
+    };
+}
+
+function isChefPickId(id) {
+    return String(id) === CHEF_PICK_ID;
+}
+
+function isChefPickItem(item) {
+    return !!(item && item.kind === 'chefPick');
+}
+
+// 订单里还没填的这一道；没有则返回 null。
+function pendingChefPickItem(order) {
+    return ((order && order.items) || []).find(item => isChefPickItem(item) && item.pending !== false) || null;
+}
 
 function pad2(value) {
     return String(value).padStart(2, '0');
@@ -560,7 +610,10 @@ function orderSlotText(order) {
 }
 
 function orderItemsText(order) {
-    return ((order && order.items) || []).map(item => item.name).join('、');
+    return ((order && order.items) || [])
+        .map(item => item.name)
+        .filter(Boolean)
+        .join('、');
 }
 
 function firstServedImage(order) {
@@ -585,9 +638,12 @@ function orderSummary(order) {
         itemCount: order.items.length,
         items: order.items.map(item => ({
             dishId: item.dishId,
+            kind: item.kind || '',
+            pending: isChefPickItem(item) ? item.pending !== false : false,
             name: item.name,
             icon: item.icon,
             image: item.image || '',
+            chefPickImage: item.chefPickImage || '',
             servedImage: item.servedImage || '',
             price: item.price
         })),
@@ -936,6 +992,17 @@ function snapshotDish(dish) {
     };
 }
 
+function orderEtaMinutes(items) {
+    const list = Array.isArray(items) ? items : [];
+    const prep = list.map(item => Number(item.prepMinutes) || 0);
+    // 还没填的空位不参与估时
+    const real = list
+        .filter(item => !(isChefPickItem(item) && item.pending !== false))
+        .map(item => Number(item.prepMinutes) || 0);
+    if (!real.length) return Math.min(90, Math.max(10, ...prep) + 5);
+    return Math.min(90, Math.max(10, ...real) + 5);
+}
+
 async function placeOrder({ slotKey, dishIds, note }) {
     ensureStorage();
     const ids = Array.isArray(dishIds) ? [...new Set(dishIds)] : [];
@@ -964,7 +1031,7 @@ async function placeOrder({ slotKey, dishIds, note }) {
     if (dishes.some(dish => !dish)) throw makeError('MISSING_DISH', '有菜品已经下架了，刷新一下菜单吧');
     if (dishes.some(dish => !dish.available)) throw makeError('SOLD_OUT', '有菜品刚刚售罄了，换一道吧');
 
-    const items = dishes.map(snapshotDish);
+    const items = dishes.map(dish => isChefPickDish(dish) ? chefPickOrderItem(dish) : snapshotDish(dish));
     const total = items.reduce((sum, item) => sum + item.price, 0);
     const available = wallet.balance + wallet.overdraftLimit;
 
@@ -977,7 +1044,7 @@ async function placeOrder({ slotKey, dishIds, note }) {
     const sequence = orders.filter(order => order.slotKey === slot.key).length + 1;
     const orderId = `${slot.key}-${pad2(sequence)}`;
     const now = nowStamp();
-    const etaMinutes = Math.min(90, Math.max(10, ...items.map(item => item.prepMinutes)) + 5);
+    const etaMinutes = orderEtaMinutes(items);
 
     const transactionId = `tx_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
     const newBalance = wallet.balance - total;
@@ -1072,11 +1139,17 @@ async function setOrderStatus(orderId, status, options = {}) {
     if (status === 'completed' && by === 'user' && order.status !== 'served') {
         throw makeError('BAD_TRANSITION', '还没有出餐哦');
     }
+    // 「你做的我都爱吃」只在开始制作时填：有空位没填时不允许进入 cooking。
+    const waitingPick = pendingChefPickItem(order);
+    if (status === 'cooking' && waitingPick) {
+        throw makeError('CHEF_PICK_PENDING', '这一单还有一道没填，先填上再开火');
+    }
 
     const now = nowStamp();
     order.status = status;
     order.updatedAt = now;
     order.statusHistory.push({ status, at: now, by });
+    if (status === 'cooking') order.etaMinutes = orderEtaMinutes(order.items);
     if (status === 'served') order.servedAt = now;
     if (status === 'completed') order.completedAt = now;
 
@@ -1097,6 +1170,36 @@ async function setOrderStatus(orderId, status, options = {}) {
     return order;
 }
 
+/* 大厨在「开始制作」时填上这一道。pick: { dishId, name, image, prepMinutes } */
+async function fillChefPick(orderId, pick) {
+    ensureStorage();
+    const order = await getOrder(orderId);
+    if (!order) throw makeError('MISSING_ORDER', '找不到这一单');
+    const item = pendingChefPickItem(order);
+    if (!item) throw makeError('NO_CHEF_PICK', '这一单没有待填的这一道');
+    if (!['accepted', 'prepping'].includes(order.status)) {
+        throw makeError('BAD_STAGE', '这一道要在开始制作时填');
+    }
+    const name = String((pick && pick.name) || '').trim().slice(0, 30);
+    if (!name) throw makeError('EMPTY_PICK', '先选一道菜，或者写个菜名');
+    const now = nowStamp();
+    item.pending = false;
+    item.name = name;
+    item.dishId = String((pick && pick.dishId) || '');
+    // 手写菜没有菜品图，沿用这张卡的海报图；从菜单选的才换成菜品图。
+    item.image = item.dishId
+        ? String((pick && pick.image) || item.image || '')
+        : String(item.chefPickImage || item.image || '');
+    item.prepMinutes = nearestDishTime((pick && pick.prepMinutes) || item.prepMinutes || DISH_TIME_OPTIONS[0]);
+    item.categoryId = String((pick && pick.categoryId) || '');
+    item.pickedAt = now;
+    item.pickedBy = 'admin';
+    order.updatedAt = now;
+    order.etaMinutes = orderEtaMinutes(order.items);
+    await orderCollection.save(orderId, order);
+    return order;
+}
+
 async function serveOrder(orderId, photos, options = {}) {
     ensureStorage();
     const by = options.by || 'admin';
@@ -1107,18 +1210,27 @@ async function serveOrder(orderId, photos, options = {}) {
     const items = Array.isArray(order.items) ? order.items : [];
     if (!items.length) throw makeError('EMPTY_ORDER', '这一单没有菜品');
 
-    const urls = {};
-    for (const item of items) {
-        const url = String((photos || {})[item.dishId] || '').trim();
+    // 按订单项下标取照片：手写 / 置顶的那一道没有 dishId，不能按 dishId 做键。
+    // 兼容旧调用方：{ [dishId]: url } 仍然可用。
+    const byIndex = photos && typeof photos === 'object' && Object.prototype.hasOwnProperty.call(photos, 'items')
+        ? photos.items
+        : null;
+    const urls = items.map((item, index) => {
+        const raw = byIndex
+            ? (Array.isArray(byIndex) ? byIndex[index] : byIndex[index])
+            : (photos || {})[item.dishId];
+        const url = String(raw || '').trim();
         if (!url) throw makeError('SERVE_PHOTO_REQUIRED', `请先给「${item.name}」拍一张成品图`);
-        urls[item.dishId] = url;
-    }
+        return url;
+    });
 
     const menu = await loadMenu();
     const now = nowStamp();
-    for (const item of items) {
-        const url = urls[item.dishId];
+    items.forEach((item, index) => {
+        const url = urls[index];
         item.servedImage = url;
+        // 「你做的我都爱吃」无论选的是菜单菜还是手写菜，出餐照只留在这一单里。
+        if (isChefPickItem(item)) return;
         const dish = menu.dishes.find(entry => String(entry.id) === String(item.dishId));
         if (dish) {
             const gallery = dishImages(dish);
@@ -1126,7 +1238,7 @@ async function serveOrder(orderId, photos, options = {}) {
             dish.images = gallery;
             if (!dish.image) dish.image = gallery[0] || '';
         }
-    }
+    });
 
     await saveMenu(menu);
 
@@ -1404,6 +1516,7 @@ async function upsertDish(input) {
         if (mainIndex > 0) gallery.splice(mainIndex, 1);
         if (mainIndex !== 0) gallery.unshift(mainImage);
     }
+    const chefPick = isChefPickDish(existing) || isChefPickId(input.id) || input.chefPick === true;
     const dish = {
         id: input.id || `dish_${Date.now().toString(36)}`,
         categoryId: input.categoryId || (menu.categories[0] && menu.categories[0].id) || 'quick',
@@ -1421,7 +1534,9 @@ async function upsertDish(input) {
         todaySpecial: input.todaySpecial == null
             ? !!(existing && existing.todaySpecial)
             : !!input.todaySpecial,
-        order: existing ? (existing.order || index + 1) : menu.dishes.length + 1
+        // 随机菜的标记必须保留，否则保存一次就退化成普通菜
+        chefPick: chefPick || undefined,
+        order: chefPick ? -1 : (existing ? (existing.order || index + 1) : menu.dishes.length + 1)
     };
 
     if (existing) menu.dishes[index] = dish;

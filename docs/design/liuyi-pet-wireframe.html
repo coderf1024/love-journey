@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>六一宠物 · 设计原型</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+        --paper: #fbf6ec;
+        --paper-soft: #fffdf8;
+        --ink: #2b2231;
+        --ink-2: #453a4b;
+        --muted: #72656f;
+        --faint: #a29a94;
+        --stamp: #df5f7e;
+        --stamp-deep: #c44766;
+        --route: #2f9b98;
+        --petal: #ffd9e2;
+        --mint: #ddf1e8;
+        --lemon: #f6d478;
+        --line: rgba(43, 34, 49, .1);
+        --line-strong: rgba(43, 34, 49, .2);
+        --radius: 18px;
+        --radius-s: 12px;
+        --radius-l: 26px;
+        --font-display: "Noto Serif SC", "Songti SC", "STSong", serif;
+        --font-ui: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        --shadow-soft: 0 18px 40px -26px rgba(77, 48, 61, .42);
+    }
+    body {
+        min-height: 100vh;
+        padding: 34px 24px 90px;
+        color: var(--ink);
+        font-family: var(--font-ui);
+        line-height: 1.6;
+        background: #e9e7e3;
+    }
+    .wrap { max-width: 1240px; margin: 0 auto; }
+    .eyebrow { color: #8a7b78; font-size: 11px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
+    h1 { margin-top: 6px; font-family: var(--font-display); font-size: 30px; font-weight: 700; line-height: 1.25; }
+    .lead { max-width: 780px; margin-top: 8px; color: #5e555d; font-size: 14px; }
+    .lead b { color: var(--ink); }
+
+    .decisions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .decision { padding: 6px 12px; background: #fffdf8; border: 1px solid var(--line-strong); border-radius: 999px; font-size: 12px; }
+    .decision b { color: var(--stamp-deep); }
+
+    .frames { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 34px 30px; margin-top: 30px; }
+    .frame { width: 340px; }
+    .frame.wide { width: 100%; }
+    .frame-label { margin-bottom: 8px; font-size: 12px; font-weight: 700; color: #4a4148; }
+    .frame-label span { display: block; color: #8a7b78; font-size: 11px; font-weight: 400; }
+    .frame-tools { display: flex; gap: 5px; margin-bottom: 8px; }
+    .tool { padding: 3px 10px; background: #fffdf8; border: 1px solid var(--line-strong); border-radius: 999px; color: #6b6560; font-family: inherit; font-size: 11px; cursor: pointer; }
+    .tool.is-on { background: var(--ink); border-color: var(--ink); color: #fff; }
+    .frame-note { margin-top: 8px; color: #7a7178; font-size: 11px; line-height: 1.6; }
+
+    /* ---------- phone shells ---------- */
+    .phone {
+        width: 340px; height: 704px; display: flex; flex-direction: column; overflow: hidden;
+        background: var(--paper); border: 2px solid #2a2a2a; border-radius: 28px;
+        box-shadow: 0 18px 34px -22px rgba(0, 0, 0, .45);
+    }
+    .phone.narrow { width: 320px; height: 640px; }
+    .u-top, .a-top {
+        display: flex; align-items: center; gap: 8px; flex: 0 0 auto;
+        padding: 12px 14px 10px; background: var(--paper-soft); border-bottom: 1px solid var(--line);
+    }
+    .u-brand { font-family: var(--font-display); font-size: 15px; font-weight: 700; }
+    .u-nav { display: flex; gap: 9px; margin-left: auto; }
+    .u-nav span { color: var(--muted); font-size: 9.5px; }
+    .u-nav .on { color: var(--ink); font-weight: 700; }
+    .a-back { color: var(--muted); font-size: 19px; line-height: 1; }
+    .a-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; }
+    .a-save { margin-left: auto; padding: 4px 11px; background: var(--ink); border-radius: 999px; color: #fff; font-size: 10px; }
+    .u-main, .a-main { flex: 1; overflow-x: hidden; overflow-y: auto; padding: 12px 14px 20px; }
+    .u-tab {
+        flex: 0 0 auto; display: grid; grid-template-columns: repeat(4, 1fr);
+        padding: 7px 0 10px; background: var(--paper-soft); border-top: 1px solid var(--line);
+    }
+    .u-tab span { display: grid; justify-items: center; gap: 3px; color: var(--muted); font-size: 9px; }
+    .u-tab .on { color: var(--stamp-deep); font-weight: 700; }
+    .u-tab i { display: block; width: 15px; height: 15px; border: 1.4px solid currentColor; border-radius: 4px; opacity: .65; }
+
+    /* ---------- user: home ---------- */
+    .u-eyebrow { color: var(--muted); font-size: 7.5px; font-weight: 700; letter-spacing: .16em; }
+    .u-hero-title { margin-top: 3px; font-family: var(--font-display); font-size: 25px; font-weight: 700; }
+    .u-hero-copy { margin-top: 3px; color: var(--muted); font-size: 10px; line-height: 1.55; }
+    .timer-card {
+        position: relative; margin-top: 12px; padding: 12px 14px 14px;
+        background: linear-gradient(150deg, #fffdf8, #fff2f5);
+        border: 1px solid var(--line); border-radius: var(--radius-l); box-shadow: var(--shadow-soft);
+    }
+    .timer-head { display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: 9px; }
+    .timer-main { display: flex; align-items: baseline; gap: 4px; margin-top: 2px; }
+    .timer-days { font-family: var(--font-display); font-size: 40px; font-weight: 700; line-height: 1.1; }
+    .timer-unit { color: var(--muted); font-size: 10px; }
+    .timer-sub { display: flex; gap: 12px; margin-top: 4px; color: var(--muted); font-size: 9px; }
+    .dinner-card {
+        display: flex; align-items: center; gap: 10px; margin-top: 22px; padding: 13px;
+        background: linear-gradient(135deg, rgba(255, 253, 248, .98), rgba(255, 239, 243, .92));
+        border: 1px solid var(--line); border-radius: var(--radius-l); box-shadow: var(--shadow-soft);
+    }
+    .dinner-kicker { color: var(--muted); font-size: 7px; font-weight: 700; letter-spacing: .16em; }
+    .dinner-title { display: block; font-family: var(--font-display); font-size: 15px; font-weight: 700; }
+    .dinner-desc { display: block; color: var(--muted); font-size: 9.5px; }
+    .dinner-cta { margin-left: auto; padding: 4px 10px; background: var(--ink); border-radius: 999px; color: #fff; font-size: 9px; }
+    .sec-head { display: flex; align-items: baseline; justify-content: space-between; margin: 20px 2px 6px; }
+    .sec-head b { font-family: var(--font-display); font-size: 16px; }
+    .sec-head span { color: var(--muted); font-size: 9px; }
+    .carousel-strip { display: flex; gap: 8px; overflow: hidden; }
+    .carousel-strip div { flex: 0 0 118px; height: 88px; background: linear-gradient(160deg, #fff4f6, #f7ece0); border: 1px solid var(--line); border-radius: 14px; }
+
+    /* 素材占位：只画一个虚线轮廓，不推测猫的外形 */
+    .pet-ph {
+        display: grid; place-content: center; gap: 2px; text-align: center;
+        border: 1.5px dashed rgba(196, 71, 102, .45);
+        background: repeating-linear-gradient(135deg, rgba(255, 217, 226, .38) 0 6px, rgba(255, 253, 248, .38) 6px 12px);
+        color: var(--stamp-deep); font-size: 8px; line-height: 1.35;
+    }
+    .pet-ph small { color: #b1848f; font-size: 7px; }
+    /* 真实照片已经处理成透明底 WebP，直接叠放，不再需要 mix-blend-mode。 */
+    .pet-photo { display: block; width: 100%; height: 100%; object-fit: contain; }
+    .pet-photo.icon { object-fit: cover; object-position: 50% 42%; transform: scale(1.35); }
+    /* 我们页：趴姿压在计时卡下沿，卡片裁掉身体下半截 */
+    .pet-spot {
+        position: absolute; right: -2px; bottom: -10px; width: 186px; height: 108px;
+        padding: 0; overflow: hidden; background: none; border: 0; cursor: pointer;
+    }
+    .pet-spot img { object-fit: contain; object-position: 50% 100%; }
+    .pet-hint { position: absolute; right: 194px; bottom: 4px; color: #b08a95; font-size: 7.5px; white-space: nowrap; }
+    /* 空间页：睡姿待素材，先用虚线占位 */
+    .pet-sleep { position: absolute; right: 10px; bottom: 10px; width: 118px; height: 62px; border-radius: 46px 46px 14px 14px; }
+
+    /* ---------- user: space menu ---------- */
+    .u-page-eyebrow { color: var(--muted); font-size: 8px; font-weight: 700; letter-spacing: .16em; }
+    .u-page-title { font-family: var(--font-display); font-size: 30px; font-weight: 700; line-height: 1.15; }
+    .u-page-note { color: var(--muted); font-size: 10px; }
+    .menu-group { overflow: hidden; margin-top: 10px; background: var(--paper-soft); border: 1px solid var(--line); border-radius: var(--radius-s); box-shadow: var(--shadow-soft); }
+    .menu-row { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 13px; background: none; border: 0; border-bottom: 1px solid var(--line); color: inherit; font-family: inherit; text-align: left; cursor: pointer; }
+    .menu-row:last-child { border-bottom: 0; }
+    .menu-row:active { background: rgba(43, 34, 49, .03); }
+    .menu-icon { flex: 0 0 30px; width: 30px; height: 30px; display: grid; place-items: center; background: rgba(223, 95, 126, .1); border-radius: 9px; color: var(--stamp-deep); font-family: var(--font-display); font-size: 11px; }
+    .menu-icon.photo { overflow: hidden; background: linear-gradient(145deg, var(--petal), var(--lemon)); }
+    .menu-icon.photo .pet-ph { width: 100%; height: 100%; border: 0; border-radius: inherit; font-size: 0; background: repeating-linear-gradient(135deg, rgba(255, 255, 255, .5) 0 4px, rgba(196, 71, 102, .12) 4px 8px); }
+    .menu-main { flex: 1; min-width: 0; display: grid; gap: 1px; }
+    .menu-main b { font-size: 12.5px; font-weight: 600; }
+    .menu-main small { color: var(--muted); font-size: 9px; }
+    .menu-chev { color: var(--faint); font-size: 16px; line-height: 1; }
+    .u-profile { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding: 12px; background: var(--paper-soft); border: 1px solid var(--line); border-radius: var(--radius-s); }
+    .u-avatar { width: 42px; height: 42px; flex: 0 0 42px; overflow: hidden; background: linear-gradient(145deg, var(--petal), var(--lemon)); border-radius: 999px; }
+    .u-profile b { display: block; font-family: var(--font-display); font-size: 14px; }
+    .u-profile small { color: var(--muted); font-size: 9px; }
+    .u-hint { margin-top: 12px; color: var(--muted); font-size: 9px; text-align: center; }
+
+    /* ---------- user: pet sub page ---------- */
+    .sub-head { position: sticky; top: 0; z-index: 4; display: flex; align-items: center; gap: 8px; margin: -12px -14px 12px; padding: 9px 14px; background: linear-gradient(180deg, var(--paper) 70%, rgba(251, 246, 236, 0)); }
+    .sub-back { color: var(--ink); font-size: 19px; line-height: 1; }
+    .sub-head strong { font-family: var(--font-display); font-size: 16px; }
+    .pet-hero { position: relative; padding: 16px 14px 14px; background: linear-gradient(160deg, #fffdf8, #ffeef2 62%, #fdf3e2); border: 1px solid var(--line); border-radius: var(--radius-l); box-shadow: var(--shadow-soft); text-align: center; }
+    .pet-hero-art { width: 208px; height: 118px; margin: 0 auto; }
+    .pet-hero h2 { margin-top: 12px; font-family: var(--font-display); font-size: 24px; font-weight: 700; }
+    .pet-hero p { margin-top: 2px; color: var(--muted); font-size: 10px; }
+    .pet-stats { display: flex; justify-content: center; gap: 18px; margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line); }
+    .pet-stat { display: grid; gap: 1px; }
+    .pet-stat b { font-family: var(--font-display); font-size: 15px; }
+    .pet-stat small { color: var(--muted); font-size: 8.5px; }
+    .info-card { margin-top: 10px; background: var(--paper-soft); border: 1px solid var(--line); border-radius: var(--radius-s); }
+    .info-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 10px 13px; border-bottom: 1px dashed var(--line); font-size: 11px; }
+    .info-row:last-child { border-bottom: 0; }
+    .info-row span { color: var(--muted); font-size: 10px; }
+    .info-row b { font-weight: 600; }
+    .timeline { position: relative; margin-top: 4px; padding-left: 60px; }
+    .timeline::before { content: ''; position: absolute; left: 49px; top: 6px; bottom: 6px; width: 1px; background: var(--line); }
+    .tl-item { position: relative; padding: 10px 0; }
+    .tl-item::before { content: ''; position: absolute; left: -13px; top: 16px; width: 8px; height: 8px; background: var(--paper); border: 1.5px solid var(--stamp); border-radius: 999px; }
+    .tl-date { position: absolute; left: -60px; top: 12px; width: 40px; color: var(--muted); font-size: 8.5px; line-height: 1.3; text-align: right; }
+    .tl-date b { display: block; color: var(--ink-2); font-size: 9.5px; font-weight: 700; }
+    .tl-card { padding: 10px 12px; background: var(--paper-soft); border: 1px solid var(--line); border-radius: var(--radius-s); box-shadow: var(--shadow-soft); }
+    .tl-tag { display: inline-block; margin-bottom: 3px; padding: 1px 7px; background: rgba(246, 212, 120, .28); border-radius: 999px; color: #8a6a1f; font-size: 8px; }
+    .tl-card b { display: block; font-size: 11.5px; font-weight: 600; line-height: 1.45; }
+    .tl-card p { margin-top: 2px; color: var(--muted); font-size: 9.5px; line-height: 1.55; }
+    .tl-photo { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+    .tl-photo i { display: block; width: 52px; height: 52px; border-radius: 8px; background: linear-gradient(150deg, #f3e7dc, #ffd9e2); }
+    .tl-photo i.more { display: grid; place-items: center; background: #f1ece4; color: var(--muted); font-family: var(--font-ui); font-size: 9px; font-style: normal; }
+    .info-note { color: var(--muted); font-size: 8.5px; }
+    .tl-empty { padding: 18px 0; color: var(--muted); font-size: 10px; text-align: center; }
+    .phone.narrow .timeline { padding-left: 16px; }
+    .phone.narrow .timeline::before,
+    .phone.narrow .tl-item::before { display: none; }
+    .phone.narrow .tl-date { position: static; width: auto; margin-bottom: 2px; text-align: left; }
+    .phone.narrow .tl-date b { display: inline; margin-right: 5px; }
+    /* 睡姿落点示意：空间页右下角 */
+    .sleep-slot { margin-top: 10px; padding: 12px; background: rgba(255, 253, 248, .8); border: 1px dashed var(--line-strong); border-radius: var(--radius-s); }
+    .sleep-label { margin-bottom: 8px; color: #4a4148; font-size: 11px; font-weight: 700; }
+    .sleep-slot p:last-child { margin-top: 8px; color: var(--muted); font-size: 10px; line-height: 1.6; }
+    .sleep-stage { position: relative; height: 120px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+    .sleep-stage::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 26px; background: var(--paper-soft); border-top: 1px solid var(--line); }
+    .sleep-box { position: absolute; right: 10px; bottom: 12px; width: 118px; height: 62px; border-radius: 46px 46px 14px 14px; z-index: 1; }
+
+    /* ---------- admin ---------- */
+    .a-eyebrow { color: var(--muted); font-size: 7.5px; font-weight: 700; letter-spacing: .12em; }
+    .a-h1 { font-family: var(--font-display); font-size: 19px; font-weight: 700; }
+    .a-sub { color: var(--muted); font-size: 9px; line-height: 1.5; }
+    .section-title { display: flex; align-items: baseline; gap: 6px; margin: 15px 2px 6px; font-size: 11px; font-weight: 700; }
+    .section-title small { color: var(--faint); font-size: 9px; font-weight: 400; }
+    .group { overflow: hidden; background: var(--paper-soft); border: 1px solid var(--line); border-radius: var(--radius-s); }
+    .row { display: flex; align-items: center; gap: 9px; padding: 10px 12px; border-bottom: 1px dashed var(--line); }
+    .row:last-child { border-bottom: 0; }
+    .row-icon { flex: 0 0 26px; width: 26px; height: 26px; display: grid; place-items: center; background: #f4eee8; border-radius: 8px; color: #8a7351; font-size: 10px; }
+    .row-main { flex: 1; min-width: 0; display: grid; gap: 1px; }
+    .row-main b { font-size: 11px; }
+    .row-main small { color: var(--muted); font-size: 9px; line-height: 1.45; }
+    .chev { color: var(--faint); font-size: 16px; line-height: 1; }
+    .a-field { display: grid; gap: 4px; padding: 10px 12px; border-bottom: 1px dashed var(--line); }
+    .a-field:last-child { border-bottom: 0; }
+    .a-label { color: var(--muted); font-size: 9px; }
+    .a-input { display: flex; align-items: center; min-height: 34px; padding: 0 10px; background: #fff; border: 1px solid var(--line-strong); border-radius: 9px; font-size: 11px; }
+    .a-input.is-ph { color: #b3aca5; }
+    .a-input .end { margin-left: auto; color: var(--faint); font-size: 12px; }
+    .a-hint { color: var(--faint); font-size: 8.5px; }
+    .a-hint.is-error { color: var(--stamp-deep); }
+    .choice-row { display: flex; flex-wrap: wrap; gap: 5px; }
+    .choice { padding: 4px 9px; background: #fff; border: 1px solid var(--line-strong); border-radius: 999px; color: #6b6560; font-family: inherit; font-size: 9.5px; }
+    .choice.is-on { background: #f4e9dc; border-color: #d6c3a7; color: #8a7351; font-weight: 700; }
+    .pose-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px 12px 12px; }
+    .pose-tile { display: grid; gap: 5px; }
+    .pose-box { position: relative; aspect-ratio: 1 / 1; border-radius: 10px; }
+    .pose-box .done { position: absolute; right: 5px; bottom: 5px; padding: 1px 6px; background: rgba(255, 253, 248, .92); border-radius: 999px; color: #447a6d; font-size: 7.5px; }
+    .pose-tile small { color: var(--muted); font-size: 8.5px; }
+    .ev-row { display: flex; align-items: center; gap: 9px; padding: 9px 12px; border-bottom: 1px dashed var(--line); }
+    .ev-row:last-child { border-bottom: 0; }
+    .ev-date { flex: 0 0 54px; color: var(--muted); font-size: 8.5px; line-height: 1.3; }
+    .ev-main { flex: 1; min-width: 0; display: grid; gap: 1px; }
+    .ev-main b { overflow: hidden; font-size: 10.5px; text-overflow: ellipsis; white-space: nowrap; }
+    .ev-main small { color: var(--muted); font-size: 8.5px; }
+    .ev-tag { flex: 0 0 auto; padding: 1px 6px; background: rgba(246, 212, 120, .28); border-radius: 999px; color: #8a6a1f; font-size: 7.5px; }
+    .a-note { margin-top: 10px; padding: 8px 10px; background: #f4eee8; border: 1px dashed var(--line-strong); border-radius: 9px; color: var(--muted); font-size: 8.5px; line-height: 1.55; }
+    .a-mini-btn { padding: 3px 9px; background: #fff; border: 1px solid var(--line-strong); border-radius: 999px; color: #6b6560; font-family: inherit; font-size: 9px; }
+    .a-mini-btn.dark { background: var(--ink); border-color: var(--ink); color: #fff; }
+    .ev-photos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 0; }
+    .ev-photo { position: relative; aspect-ratio: 1 / 1; overflow: hidden; border: 1px solid var(--line-strong); border-radius: 9px; }
+    .ev-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .ev-photo .del { position: absolute; top: 2px; right: 2px; display: grid; place-items: center; width: 14px; height: 14px; background: rgba(43, 34, 49, .62); border-radius: 999px; color: #fff; font-size: 8px; }
+    .ev-photo.add { display: grid; place-items: center; border-style: dashed; background: rgba(255, 217, 226, .16); color: var(--stamp-deep); font-size: 8px; line-height: 1.4; text-align: center; }
+    .ev-photo.main::after { content: '主图'; position: absolute; left: 0; bottom: 0; padding: 0 5px; background: rgba(43, 34, 49, .62); border-radius: 0 6px 0 0; color: #fff; font-size: 7px; }
+    .a-add { margin-left: auto; }
+
+    /* admin: modal frame */
+    .phone.modal-frame { position: relative; }
+    .modal-backdrop { position: absolute; inset: 0; background: rgba(43, 34, 49, .34); }
+    .modal-sheet {
+        position: absolute; left: 0; right: 0; bottom: 0; max-height: 92%; overflow: hidden;
+        display: flex; flex-direction: column; background: var(--paper-soft);
+        border-radius: 18px 18px 0 0; box-shadow: 0 -14px 34px -18px rgba(0, 0, 0, .4);
+    }
+    .modal-head { display: flex; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+    .modal-head b { font-size: 12px; }
+    .modal-head span { margin-left: auto; color: var(--faint); font-size: 13px; }
+    .modal-body { flex: 1; overflow-y: auto; padding: 2px 14px 10px; }
+    .modal-foot { display: flex; gap: 8px; padding: 10px 14px 14px; border-top: 1px solid var(--line); }
+    .modal-foot .a-btn { flex: 1; min-height: 36px; display: grid; place-items: center; border-radius: 10px; font-size: 11px; }
+    .a-btn.ghost { background: #fff; border: 1px solid var(--line-strong); color: #6b6560; }
+    .a-btn.primary { background: var(--ink); border: 1px solid var(--ink); color: #fff; }
+
+    /* desktop */
+    .browser { width: 100%; height: 720px; display: flex; overflow: hidden; background: var(--paper); border: 2px solid #2a2a2a; border-radius: 18px; box-shadow: 0 20px 40px -26px rgba(0, 0, 0, .45); }
+    .b-side { flex: 0 0 200px; display: flex; flex-direction: column; padding: 16px 12px 12px; background: var(--paper-soft); border-right: 1px solid var(--line); }
+    .b-brand { display: flex; align-items: center; gap: 8px; padding: 0 4px 12px; border-bottom: 1px dashed var(--line); }
+    .b-brand i { width: 30px; height: 30px; background: linear-gradient(145deg, var(--petal), var(--lemon)); border-radius: 999px; }
+    .b-brand b { font-size: 11px; }
+    .b-brand small { display: block; color: var(--muted); font-size: 7.5px; }
+    .b-group { padding: 12px 8px 3px; color: var(--muted); font-size: 8px; font-weight: 700; letter-spacing: .14em; }
+    .b-item { display: flex; align-items: center; gap: 8px; padding: 7px 9px; border-radius: 9px; color: var(--muted); font-size: 10px; }
+    .b-item b { width: 15px; font-size: 11px; font-weight: 400; text-align: center; }
+    .b-item.is-active { background: var(--ink); color: #fff; }
+    .b-main { flex: 1; overflow-y: auto; padding: 20px 24px 30px; }
+    .b-head { display: flex; align-items: flex-end; gap: 10px; }
+    .b-head h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; }
+    .b-head p { color: var(--muted); font-size: 10px; }
+    .b-head .a-save { align-self: center; margin-left: auto; }
+    .b-cols { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 18px; margin-top: 16px; align-items: start; }
+
+    /* review notes */
+    .notes { margin-top: 44px; display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+    .note-card { padding: 16px 18px; background: #fffdf8; border: 1px solid var(--line); border-radius: 16px; }
+    .note-card h3 { font-family: var(--font-display); font-size: 15px; }
+    .note-card ul { margin-top: 8px; padding-left: 16px; color: #5e555d; font-size: 12px; line-height: 1.75; }
+    .note-card li + li { margin-top: 3px; }
+    .note-card code { padding: 1px 5px; background: #f1ece4; border-radius: 5px; font-family: ui-monospace, Menlo, monospace; font-size: 10.5px; }
+    .note-card.warn { background: #fff6f1; border-color: rgba(196, 71, 102, .28); }
+    .q { margin-top: 8px; padding-left: 26px; text-indent: -26px; }
+    .q b { display: inline-block; width: 26px; text-indent: 0; color: var(--stamp-deep); }
+    @media (max-width: 760px) {
+        body { padding: 22px 14px 60px; }
+        .frames { justify-content: center; }
+        .frame { width: 100%; max-width: 360px; }
+        .phone, .phone.narrow { width: 100%; max-width: 340px; }
+        .browser { height: auto; flex-direction: column; }
+        .b-side { flex: 0 0 auto; }
+        .b-cols { grid-template-columns: 1fr; }
+    }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <p class="eyebrow">原型 · 六一宠物（LJ-20261113-001）</p>
+    <h1>把六一放进恋爱空间</h1>
+    <p class="lead">一期只做<b>真实照片抠图</b>、<b>基本资料</b>和<b>重要事件</b>；用户端只查看，管理端编辑。本页是可点的线框，<b>不访问 OSS、不发送 Bark、不改任何线上数据</b>；下方所有姓名、日期、事件都是<b>示例值</b>，不代表六一的真实资料。形象用你放进 <code>assets/media/cat/</code> 的真实照片：趴姿已重新抠成透明底（<code>liuyi-lie.webp</code>）；睡姿还没有素材，先用虚线占位，不推测猫的外形和毛色。</p>
+
+    <div class="decisions">
+        <span class="decision">事件：<b>统一事件 + 自由标签</b></span>
+        <span class="decision">日期：<b>完整日期，必填</b></span>
+        <span class="decision">用户端：<b>我们页角落 + 空间子页</b></span>
+        <span class="decision">底栏仍是 <b>我们 / 小灶 / 恋爱卡 / 空间</b></span>
+    </div>
+
+    <div class="frames">
+
+        <!-- A · 用户端我们页 -->
+        <div class="frame">
+            <p class="frame-label">A · 用户端「我们」<span>只在计时卡下沿放趴姿；点击进入六一页（不是互动，二期才做）</span></p>
+            <div class="phone" id="home-phone">
+                <div class="u-top">
+                    <span class="u-brand">恋爱空间</span>
+                    <span class="u-nav"><span class="on">我们</span><span>小灶</span><span>恋爱卡</span><span>空间</span></span>
+                </div>
+                <div class="u-main">
+                    <p class="u-eyebrow">TINY LOVE SCRAPBOOK · SINCE 2020</p>
+                    <h2 class="u-hero-title">福福 &amp; 老李</h2>
+                    <p class="u-hero-copy">把每天的小心动、一起去过的城市，都贴进我们的手帐里。</p>
+
+                    <div class="timer-card">
+                        <div class="timer-head"><span>● 在一起</span><span>2020.12.20</span></div>
+                        <div class="timer-main"><span class="timer-days">2153</span><span class="timer-unit">天</span></div>
+                        <div class="timer-sub"><span>12 时</span><span>08 分</span><span>36 秒</span></div>
+
+                        <button class="pet-spot" type="button" aria-label="打开六一">
+                            <img class="pet-photo" src="../../assets/media/cat/liuyi-lie.webp" alt="六一">
+                        </button>
+                        <span class="pet-hint">点六一 →</span>
+                    </div>
+
+                    <div class="dinner-card">
+                        <span>
+                            <span class="dinner-kicker">OUR WEEKEND KITCHEN</span>
+                            <span class="dinner-title">周末吃什么</span>
+                            <span class="dinner-desc">只在周末开饭，先约下一顿吧。</span>
+                        </span>
+                        <span class="dinner-cta">去预约 →</span>
+                    </div>
+
+                    <div class="sec-head"><b>岁月留痕</b><span>全部 41</span></div>
+                    <div class="carousel-strip"><div></div><div></div><div></div></div>
+                </div>
+                <div class="u-tab">
+                    <span class="on"><i></i>我们</span><span><i></i>小灶</span><span><i></i>恋爱卡</span><span><i></i>空间</span>
+                </div>
+            </div>
+            <p class="frame-note"><b>我们页只放趴姿</b>：压在计时卡右下沿，卡片裁掉身体下半截，像趴着探出头。<b>睡姿</b>放在空间页面（见 C 段页脚），不占我们页。两者都是静态图片，点一下打开六一页。</p>
+        </div>
+
+        <!-- B · 用户端空间一级菜单 -->
+        <div class="frame">
+            <p class="frame-label">B · 用户端「空间」一级菜单<span>新增一组「六一」，排在资料卡下面</span></p>
+            <div class="phone">
+                <div class="u-top">
+                    <span class="u-brand">恋爱空间</span>
+                    <span class="u-nav"><span>我们</span><span>小灶</span><span>恋爱卡</span><span class="on">空间</span></span>
+                </div>
+                <div class="u-main">
+                    <p class="u-page-eyebrow">OUR SPACE</p>
+                    <h2 class="u-page-title">空间</h2>
+                    <p class="u-page-note">预约、流水，还有吃完的每一顿。</p>
+
+                    <div class="u-profile">
+                        <span class="u-avatar"></span>
+                        <span><b>恋爱空间</b><small>一起吃饭，一起过日子</small></span>
+                    </div>
+
+                    <div class="menu-group">
+                        <button class="menu-row" type="button">
+                            <span class="menu-icon photo"><img class="pet-photo icon" src="../../assets/media/cat/liuyi-lie.webp" alt=""></span>
+                            <span class="menu-main"><b>六一</b><small>到家 1232 天 · 3 件小事</small></span>
+                            <span class="menu-chev">›</span>
+                        </button>
+                    </div>
+
+                    <div class="menu-group">
+                        <button class="menu-row" type="button">
+                            <span class="menu-icon">币</span>
+                            <span class="menu-main"><b>恋爱币</b><small>最多可欠 50 币</small></span>
+                            <span class="menu-chev">›</span>
+                        </button>
+                    </div>
+
+                    <div class="menu-group">
+                        <button class="menu-row" type="button">
+                            <span class="menu-icon">订</span>
+                            <span class="menu-main"><b>我的订单</b><small>待接单 0 · 进行中 1 · 全部 12</small></span>
+                            <span class="menu-chev">›</span>
+                        </button>
+                        <button class="menu-row" type="button">
+                            <span class="menu-icon">卡</span>
+                            <span class="menu-main"><b>恋爱卡记录</b><small>获得 8 次 · 使用 5 次</small></span>
+                            <span class="menu-chev">›</span>
+                        </button>
+                    </div>
+
+                    <div class="menu-group">
+                        <button class="menu-row" type="button">
+                            <span class="menu-icon">告</span>
+                            <span class="menu-main"><b>更新公告</b><small>看看这次更新了什么</small></span>
+                            <span class="menu-chev">›</span>
+                        </button>
+                    </div>
+
+                    <p class="u-hint">日子和账单，都收在这里。</p>
+                </div>
+                <div class="u-tab">
+                    <span><i></i>我们</span><span><i></i>小灶</span><span><i></i>恋爱卡</span><span class="on"><i></i>空间</span>
+                </div>
+            </div>
+            <p class="frame-note">不再有「生日」：<b>到家日就是六一的生日</b>，摘要只放到家天数和事件数。点进去是子页，<b>底栏隐藏</b>，左上返回。不新增第五个底栏。</p>
+        </div>
+
+        <!-- C · 用户端六一子页 -->
+        <div class="frame">
+            <p class="frame-label">C · 用户端「六一」子页<span>只读：资料 + 事件时间线，没有任何编辑入口</span></p>
+            <div class="phone">
+                <div class="u-top">
+                    <span class="u-brand">恋爱空间</span>
+                    <span class="u-nav"><span>我们</span><span>小灶</span><span>恋爱卡</span><span class="on">空间</span></span>
+                </div>
+                <div class="u-main">
+                    <div class="sub-head"><span class="sub-back">‹</span><strong>六一</strong></div>
+
+                    <div class="pet-hero">
+                        <div class="pet-hero-art"><img class="pet-photo" src="../../assets/media/cat/liuyi-lie.webp" alt="六一的真实抠图"></div>
+                        <h2>六一</h2>
+                        <p>睡在阳光里的小家伙</p>
+                        <div class="pet-stats">
+                            <span class="pet-stat"><b>1232</b><small>到家天数</small></span>
+                            <span class="pet-stat"><b>3</b><small>记下的小事</small></span>
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <div class="info-row"><span>到家日</span><b>2023.07.01</b></div>
+                    </div>
+
+                    <div class="section-title" style="margin:16px 2px 2px">六一的小事 <small>按日期倒序</small></div>
+                    <div class="timeline">
+                        <div class="tl-item">
+                            <span class="tl-date"><b>11.02</b>2026</span>
+                            <div class="tl-card">
+                                <span class="tl-tag">第一次</span>
+                                <b>第一次自己钻进被窝</b>
+                                <p>半夜发现脚边多了一团热乎的。</p>
+                                <div class="tl-photo"><i></i><i></i><i></i><i class="more">+2</i></div>
+                            </div>
+                        </div>
+                        <div class="tl-item">
+                            <span class="tl-date"><b>03.02</b>2025</span>
+                            <div class="tl-card">
+                                <span class="tl-tag">疫苗</span>
+                                <b>疫苗 · 第三针</b>
+                                <p>回来睡了一下午，晚上就好了。</p>
+                            </div>
+                        </div>
+                        <div class="tl-item">
+                            <span class="tl-date"><b>06.01</b>2024</span>
+                            <div class="tl-card">
+                                <span class="tl-tag">纪念</span>
+                                <b>第一个一起过的六一</b>
+                                <p>名字的来历。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="frame-note">没有事件时显示「还没有记下小事」。事件照片可选、<b>可以多张</b>（每张 52px 缩略图，超过 4 张折成「+N」）；点击行为一期不做（二期接大图查看）。<br><b>睡姿放空间页</b>：就在这一页的页脚位置（示意见下方 320 段），不占「我们」页。</p>
+        </div>
+
+        <!-- D · 管理端系统导航 -->
+        <div class="frame">
+            <p class="frame-label">D · 管理端「系统」<span>内容组新增一行「六一」；系统页仍然只做导航</span></p>
+            <div class="phone">
+                <div class="a-top"><span class="a-title">系统</span></div>
+                <div class="a-main">
+                    <p class="a-eyebrow">系统 · 导航</p>
+                    <h2 class="a-h1">系统</h2>
+                    <p class="a-sub">内容、通知和空间资料都在这里进。</p>
+
+                    <div class="section-title">内容</div>
+                    <div class="group">
+                        <div class="row"><span class="row-icon">菜</span><span class="row-main"><b>菜单管理</b><small>14 道 · 12 道上架</small></span><span class="chev">›</span></div>
+                        <div class="row"><span class="row-icon">忆</span><span class="row-main"><b>岁月留痕</b><small>41 条回忆 · 13 条有封面</small></span><span class="chev">›</span></div>
+                        <div class="row"><span class="row-icon">告</span><span class="row-main"><b>更新公告</b><small>1 条已发布 · 0 条草稿</small></span><span class="chev">›</span></div>
+                        <div class="row" style="background:rgba(255,217,226,.22)">
+                            <span class="row-icon">六</span>
+                            <span class="row-main"><b>六一</b><small>基本资料 · 形象素材 · 3 条事件</small></span>
+                            <span class="chev">›</span>
+                        </div>
+                    </div>
+
+                    <div class="section-title">设置</div>
+                    <div class="group">
+                        <div class="row"><span class="row-icon">铃</span><span class="row-main"><b>通知</b><small>Bark 推送 · 已配置</small></span><span class="chev">›</span></div>
+                        <div class="row"><span class="row-icon">空</span><span class="row-main"><b>空间资料</b><small>名称 / 头像 / 成员</small></span><span class="chev">›</span></div>
+                    </div>
+                    <div class="a-note">这一页只做导航；六一的所有编辑都在二级页里。</div>
+                </div>
+            </div>
+            <p class="frame-note">桌面侧栏「系统」组同样加一项「六一」，位置在「更新公告」之后、「通知」之前。</p>
+        </div>
+
+        <!-- E · 管理端六一页 -->
+        <div class="frame">
+            <p class="frame-label">E · 管理端「六一」<span>可滚动：资料 → 形象素材 → 事件列表；顶部保存</span></p>
+            <div class="phone">
+                <div class="a-top"><span class="a-back">‹</span><span class="a-title">六一</span><span class="a-save">保存</span></div>
+                <div class="a-main">
+                    <p class="a-eyebrow">系统 · 六一</p>
+                    <h2 class="a-h1">六一</h2>
+                    <p class="a-sub">用户端只查看；资料和事件都在这里编辑。</p>
+
+                    <div class="section-title">基本资料</div>
+                    <div class="group">
+                        <div class="a-field"><span class="a-label">名字</span><span class="a-input">六一</span></div>
+                        <div class="a-field">
+                            <span class="a-label">到家日 *</span>
+                            <span class="a-input">2023.07.01<span class="end">日历</span></span>
+                            <span class="a-hint">系统只记到家日；它就是六一的生日，用户端显示的「生日」也从这里来</span>
+                        </div>
+                        <div class="a-field"><span class="a-label">一句话</span><span class="a-input is-ph">睡在阳光里的小家伙</span></div>
+                    </div>
+
+                    <div class="section-title">形象素材 <small>一期只用真实照片</small></div>
+                    <div class="group">
+                        <div class="pose-grid">
+                            <span class="pose-tile">
+                                <span class="pose-box" style="display:grid;place-items:center;overflow:hidden;background:repeating-conic-gradient(#f4eee8 0 25%, #fffdf8 0 50%) 0 0/12px 12px;border:1px solid var(--line-strong);border-radius:10px"><img class="pet-photo" src="../../assets/media/cat/liuyi-lie.webp" alt=""><span class="done">已上传</span></span>
+                                <small>趴姿 · 我们页</small>
+                            </span>
+                            <span class="pose-tile">
+                                <span class="pose-box pet-ph">睡姿抠图<small>待上传</small></span>
+                                <small>睡姿 · 空间页</small>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="a-note">透明底 PNG / WebP，长边 ≤ 1200px。3D 多角度、动作视频和录音二期再收集。</div>
+
+                    <div class="section-title">重要事件 <small>3 条</small><span class="a-add a-mini-btn dark">＋ 新增</span></div>
+                    <div class="group">
+                        <div class="ev-row">
+                            <span class="ev-date">2026.11.02</span>
+                            <span class="ev-main"><b>第一次自己钻进被窝</b><small>有备注 · 5 张照片</small></span>
+                            <span class="ev-tag">第一次</span>
+                            <span class="chev">›</span>
+                        </div>
+                        <div class="ev-row">
+                            <span class="ev-date">2025.03.02</span>
+                            <span class="ev-main"><b>疫苗 · 第三针</b><small>有备注</small></span>
+                            <span class="ev-tag">疫苗</span>
+                            <span class="chev">›</span>
+                        </div>
+                        <div class="ev-row">
+                            <span class="ev-date">2024.06.01</span>
+                            <span class="ev-main"><b>第一个一起过的六一</b><small>有备注</small></span>
+                            <span class="ev-tag">纪念</span>
+                            <span class="chev">›</span>
+                        </div>
+                    </div>
+                    <div class="a-note">日期和标题必填；标签、备注可空。<b>照片至少 1 张</b>，可多张，第一张为主图。事件按日期倒序，不做提醒。</div>
+                </div>
+            </div>
+            <p class="frame-note">整页「顶部保存」：名字 / 到家日 / 一句话 / 两张素材一次性保存。事件单独增删改，保存后立刻回写列表。截图里的趴姿用的就是已处理好的透明底素材。</p>
+        </div>
+
+        <!-- F · 事件编辑弹窗 -->
+        <div class="frame">
+            <p class="frame-label">F · 管理端「新增事件」弹窗<span>日期、标题必填；标签是自由输入 + 快捷词</span></p>
+            <div class="phone modal-frame">
+                <div class="modal-backdrop"></div>
+                <div class="modal-sheet">
+                    <div class="modal-head"><b>新增事件</b><span>✕</span></div>
+                    <div class="modal-body">
+                        <div class="a-field"><span class="a-label">标题 *</span><span class="a-input">第一次自己钻进被窝</span></div>
+                        <div class="a-field">
+                            <span class="a-label">日期 *</span>
+                            <span class="a-input" style="border-color:rgba(196,71,102,.5)"><span style="color:#b3aca5">请选择日期</span><span class="end">日历</span></span>
+                            <span class="a-hint is-error">请选择日期</span>
+                        </div>
+                        <div class="a-field">
+                            <span class="a-label">标签</span>
+                            <span class="a-input" style="margin-bottom:5px">第一次</span>
+                            <div class="choice-row">
+                                <button class="choice is-on" type="button">纪念</button>
+                                <button class="choice" type="button">第一次</button>
+                                <button class="choice" type="button">到家</button>
+                                <button class="choice" type="button">疫苗</button>
+                                <button class="choice" type="button">就诊</button>
+                                <button class="choice" type="button">驱虫</button>
+                            </div>
+                            <span class="a-hint">可以直接输入；快捷词只是填进去，不限制</span>
+                        </div>
+                        <div class="a-field">
+                            <span class="a-label">备注</span>
+                            <span class="a-input is-ph" style="min-height:56px;align-items:flex-start;padding-top:8px">想记的就写，可以空着</span>
+                        </div>
+                        <div class="a-field">
+                            <span class="a-label">照片 *</span>
+                            <div class="ev-photos">
+                                <span class="ev-photo main"><img src="../../assets/media/cat/liuyi-lie.webp" alt=""><span class="del">✕</span></span>
+                                <span class="ev-photo add">＋ 加一张</span>
+                            </div>
+                            <span class="a-hint">至少 1 张，可以多张；第一张是主图，长按拖动可调整顺序</span>
+                        </div>
+                    </div>
+                    <div class="modal-foot">
+                        <span class="a-btn ghost">取消</span>
+                        <span class="a-btn primary">保存</span>
+                    </div>
+                </div>
+            </div>
+            <p class="frame-note">这是「日期还没选就点保存」的校验态。标签用分段按钮（管理端没有原生 select），快捷词可增删。<b>照片至少 1 张、可以多张</b>，第一张是主图，删除后不能少于 1 张。</p>
+        </div>
+
+        <!-- H · 320 -->
+        <div class="frame">
+            <p class="frame-label">H · 用户端「六一」子页 · 320<span>时间线日期改到标题上方，无横向滚动</span></p>
+            <div class="phone narrow">
+                <div class="u-top">
+                    <span class="u-brand">恋爱空间</span>
+                    <span class="u-nav"><span>我们</span><span>小灶</span><span>恋爱卡</span><span class="on">空间</span></span>
+                </div>
+                <div class="u-main">
+                    <div class="sub-head"><span class="sub-back">‹</span><strong>六一</strong></div>
+                    <div class="pet-hero">
+                        <div class="pet-hero-art" style="width:176px;height:100px"><img class="pet-photo" src="../../assets/media/cat/liuyi-lie.webp" alt="六一的真实抠图"></div>
+                        <h2>六一</h2>
+                        <p>睡在阳光里的小家伙</p>
+                        <div class="pet-stats">
+                            <span class="pet-stat"><b>1232</b><small>到家天数</small></span>
+                            <span class="pet-stat"><b>3</b><small>记下的小事</small></span>
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-row"><span>到家日</span><b>2023.07.01</b></div>
+                        <div class="info-row"><span>生日</span><b class="info-note">同到家日</b></div>
+                    </div>
+                    <div class="section-title" style="margin:14px 2px 2px">六一的小事</div>
+                    <div class="timeline">
+                        <div class="tl-item">
+                            <span class="tl-date"><b>2026.11.02</b></span>
+                            <div class="tl-card">
+                                <span class="tl-tag">第一次</span>
+                                <b>第一次自己钻进被窝</b>
+                                <p>半夜发现脚边多了一团热乎的。</p>
+                                <div class="tl-photo"><i></i><i></i><i class="more">+1</i></div>
+                            </div>
+                        </div>
+                        <div class="tl-item">
+                            <span class="tl-date"><b>2025.03.02</b></span>
+                            <div class="tl-card">
+                                <span class="tl-tag">疫苗</span>
+                                <b>疫苗 · 第三针</b>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="sleep-slot">
+                <p class="sleep-label">睡姿落点 · 空间页右下角</p>
+                <div class="sleep-stage">
+                    <div class="sleep-box pet-ph">睡姿抠图<small>待真实素材</small></div>
+                </div>
+                <p>睡着的六一贴在「空间」页右下角、底栏上方，不遮任何文字。素材到位后换成透明底图。</p>
+            </div>
+            <p class="frame-note">320 下统计减为两段，日期不占左栏。`scrollWidth === clientWidth` 是验收项。</p>
+        </div>
+
+        <!-- G · 桌面端 -->
+        <div class="frame wide">
+            <p class="frame-label">G · 管理端「六一」· 桌面 1280<span>侧栏系统组新增「六一」；主区两栏：资料与素材 ｜ 事件</span></p>
+            <div class="browser">
+                <aside class="b-side">
+                    <div class="b-brand"><i></i><span><b>恋爱空间</b><small>管理端</small></span></div>
+                    <div class="b-group">经营</div>
+                    <div class="b-item"><b>⌂</b>首页</div>
+                    <div class="b-item"><b>单</b>订单</div>
+                    <div class="b-item"><b>卡</b>恋爱卡</div>
+                    <div class="b-item"><b>币</b>恋爱币</div>
+                    <div class="b-group">系统</div>
+                    <div class="b-item"><b>菜</b>菜单</div>
+                    <div class="b-item"><b>忆</b>岁月留痕</div>
+                    <div class="b-item"><b>告</b>更新公告</div>
+                    <div class="b-item"><b>铃</b>通知</div>
+                    <div class="b-item"><b>空</b>空间资料</div>
+                    <div class="b-item is-active"><b>六</b>六一</div>
+                </aside>
+                <div class="b-main">
+                    <div class="b-head">
+                        <div>
+                            <p class="a-eyebrow">系统 · 六一</p>
+                            <h2>六一</h2>
+                            <p>用户端只查看；资料和事件都在这里编辑。</p>
+                        </div>
+                        <span class="a-save">保存</span>
+                    </div>
+                    <div class="b-cols">
+                        <div>
+                            <div class="section-title" style="margin-top:0">基本资料</div>
+                            <div class="group">
+                                <div class="a-field"><span class="a-label">名字</span><span class="a-input">六一</span></div>
+                                <div class="a-field"><span class="a-label">到家日 *</span><span class="a-input">2023.07.01<span class="end">日历</span></span><span class="a-hint">系统只记到家日；它就是六一的生日</span></div>
+                                <div class="a-field"><span class="a-label">一句话</span><span class="a-input">睡在阳光里的小家伙</span></div>
+                            </div>
+                            <div class="section-title">形象素材 <small>一期只用真实照片</small></div>
+                            <div class="group">
+                                <div class="pose-grid" style="grid-template-columns:1fr 1fr">
+                                    <span class="pose-tile"><span class="pose-box" style="display:grid;place-items:center;overflow:hidden;background:repeating-conic-gradient(#f4eee8 0 25%, #fffdf8 0 50%) 0 0/12px 12px;border:1px solid var(--line-strong);border-radius:10px"><img class="pet-photo" src="../../assets/media/cat/liuyi-lie.webp" alt=""></span><small>趴姿 · 我们页</small></span>
+                                    <span class="pose-tile"><span class="pose-box pet-ph">睡姿<small>待上传</small></span><small>睡姿 · 空间页</small></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="section-title" style="margin-top:0">重要事件 <small>3 条</small><span class="a-add a-mini-btn dark">＋ 新增</span></div>
+                            <div class="group">
+                                <div class="ev-row"><span class="ev-date">2026.11.02</span><span class="ev-main"><b>第一次自己钻进被窝</b><small>有备注 · 5 张照片</small></span><span class="ev-tag">第一次</span><span class="chev">›</span></div>
+                                <div class="ev-row"><span class="ev-date">2025.03.02</span><span class="ev-main"><b>疫苗 · 第三针</b><small>有备注</small></span><span class="ev-tag">疫苗</span><span class="chev">›</span></div>
+                                <div class="ev-row"><span class="ev-date">2024.06.01</span><span class="ev-main"><b>第一个一起过的六一</b><small>有备注</small></span><span class="ev-tag">纪念</span><span class="chev">›</span></div>
+                            </div>
+                            <div class="a-note">日期与标题必填，照片至少 1 张可多张。事件只在管理端维护，用户端按日期倒序只读展示；不做提醒、打卡或亲密度。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notes">
+        <div class="note-card">
+            <h3>原型验收入口</h3>
+            <ul>
+                <li>导航：底栏仍是 4 个；「我们」页只有趴姿，「空间」一级菜单进子页。</li>
+                <li>子页：隐藏底栏、左上返回，回到「空间」一级菜单，不跳 tab。</li>
+                <li>管理端：系统页只导航，六一管理是二级页；选择项都是分段按钮。</li>
+                <li>数据：全部为示例值；页面不访问 OSS、不发 Bark、不写 localStorage。</li>
+                <li>宽度：340（≈390）与 320 两档原型；桌面在 1280 下看 G 段。</li>
+                <li>素材：趴姿用 <code>assets/media/cat/liuyi-lie.webp</code>（透明底，47 KB）。</li>
+            </ul>
+        </div>
+        <div class="note-card">
+            <h3>本轮已定（v3）</h3>
+            <ul>
+                <li><b>我们页只放趴姿</b>；<b>睡姿</b>后放到空间页，不占我们页。</li>
+                <li><b>没有「生日」字段</b>：系统只记到家日，用户端把它当生日展示。</li>
+                <li>事件照片<b>至少 1 张、可多张</b>，第一张为主图。</li>
+                <li>趴姿素材已重新抠图，输出透明底 WebP/PNG（见下）。</li>
+            </ul>
+            <h3 style="margin-top:14px">仍待确认</h3>
+            <p class="q"><b>1</b>标签快捷词：纪念 / 第一次 / 到家 / 疫苗 / 就诊 / 驱虫，就这 6 个吗？</p>
+            <p class="q"><b>2</b>「到家 1232 天」「3 件小事」这两个统计保留吗？（实时算，不写库）</p>
+            <p class="q"><b>3</b>事件照片有张数上限吗？（例如最多 9 张，或按上传体积限制）</p>
+            <p class="q"><b>4</b>睡姿素材什么时候能给？现在空间页只有虚线占位。</p>
+        </div>
+        <div class="note-card warn">
+            <h3>与简报不一致的一处</h3>
+            <p style="margin-top:8px;color:#5e555d;font-size:12px;line-height:1.7">简报第 3 条写「生日与到家日期可空」。2026-11-13 确认：<b>日期一律完整且必填</b>；并且<b>不再设生日字段</b>，到家日就是六一的生日。因此原型里只有「到家日」和事件日期必填。</p>
+        </div>
+        <div class="note-card">
+            <h3>不在一期</h3>
+            <ul>
+                <li>3D 拟真形象、点击互动、伸懒腰露肚皮、声音——二期。</li>
+                <li>日常片段、提醒、打卡、亲密度——当前提案不含。</li>
+                <li>用户端任何编辑入口——只读。</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('[data-pose-set]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            document.querySelectorAll('[data-pose-set]').forEach(function (other) {
+                other.classList.toggle('is-on', other === button);
+            });
+            var phone = document.getElementById('home-phone');
+            if (phone) phone.dataset.pose = button.dataset.poseSet;
+        });
+    });
+</script>
+</body>
+</html>

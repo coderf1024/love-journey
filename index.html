@@ -62,6 +62,8 @@
                         <div class="timer-unit"><span id="minutes">0</span><small>分</small></div>
                         <div class="timer-unit"><span id="seconds">0</span><small>秒</small></div>
                     </div>
+                    <img class="timer-pet" src="assets/media/cat/liuyi-lie.webp?v=20261113-03"
+                         alt="六一趴在计时卡上" width="760" height="523" decoding="async">
                 </div>
             </div>
 
@@ -192,8 +194,13 @@
 
             <div class="menu-area" id="menu-area">
                 <div class="menu-head">
-                    <h2 class="section-title">菜单</h2>
-                    <span class="menu-count" id="menu-count"></span>
+                    <div class="menu-head-left">
+                        <h2 class="section-title">菜单</h2>
+                        <span class="menu-count" id="menu-count"></span>
+                    </div>
+                    <button class="menu-random" id="menu-random" type="button" aria-label="随机选一道">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.6 12.4h16.8a8.4 8.4 0 0 1-8.4 8.2 8.4 8.4 0 0 1-8.4-8.2Z"/><path d="M9.2 20.9h5.6"/><path d="M17.1 2.8l1 2.3 2.3 1-2.3 1-1 2.3-1-2.3-2.3-1 2.3-1 1-2.3Z" fill="currentColor" stroke="none"/></svg>
+                    </button>
                 </div>
                 <div class="menu-categories" id="menu-categories" role="tablist" aria-label="菜品分类"></div>
                 <div class="menu-list" id="menu-container"></div>
@@ -241,6 +248,8 @@
                         <b id="me-space-title">恋爱空间</b>
                         <small id="me-space-sub">一起吃饭，一起过日子</small>
                     </div>
+                    <img class="me-pet" src="assets/media/cat/liuyi-sleep.webp?v=20261113-03"
+                         alt="六一的睡姿" width="760" height="397" decoding="async">
                 </div>
 
                 <div class="me-menu-group">
@@ -524,6 +533,32 @@
         </div>
     </div>
 
+    <div class="draw" id="draw" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="draw-title">
+        <div class="draw-backdrop" data-draw-close></div>
+        <div class="draw-card">
+            <button class="draw-close" type="button" data-draw-close aria-label="关闭">✕</button>
+            <p class="draw-title" id="draw-title">正在选取…</p>
+            <p class="draw-sub" id="draw-sub"></p>
+            <div class="draw-photo" id="draw-photo">
+                <img id="draw-photo-img" alt="">
+                <div class="draw-box" id="draw-box" aria-hidden="true">
+                    <span class="draw-box-lid"></span>
+                    <span class="draw-box-body"></span>
+                </div>
+                <div class="draw-burst" id="draw-burst" aria-hidden="true"></div>
+            </div>
+            <div class="draw-result" id="draw-result">
+                <h3 class="draw-name" id="draw-name"></h3>
+                <p class="draw-meta" id="draw-meta"></p>
+                <span class="draw-price" id="draw-price"></span>
+            </div>
+            <div class="draw-actions" id="draw-actions">
+                <button class="draw-btn" id="draw-again" type="button">再抽一次</button>
+                <button class="draw-btn is-primary" id="draw-take" type="button">就它了，加进购物车</button>
+            </div>
+        </div>
+    </div>
+
     <div class="sheet" id="cycle-day-sheet" aria-hidden="true">
         <div class="sheet-backdrop" data-close></div>
         <div class="sheet-panel sheet-panel-cycle" role="dialog" aria-modal="true" aria-label="这一天">
@@ -553,7 +588,7 @@
         </div>
     </div>
 
-    <div class="dialog" id="confirm-dialog" aria-hidden="true">    <div class="dialog" id="confirm-dialog" aria-hidden="true">
+    <div class="dialog" id="confirm-dialog" aria-hidden="true">
         <div class="dialog-backdrop" data-confirm="cancel"></div>
         <div class="dialog-panel" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
             <h2 id="confirm-title">确认</h2>

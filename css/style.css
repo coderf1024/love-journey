@@ -572,6 +572,43 @@ select:focus-visible {
     z-index: 1;
 }
 
+/* 六一趴在计时卡右沿，卡片裁掉身体下半截 */
+.timer-pet {
+    position: absolute;
+    right: -4px;
+    bottom: -6px;
+    z-index: 2;
+    width: clamp(140px, 30vw, 208px);
+    height: auto;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
+    filter: drop-shadow(0 6px 10px rgba(20, 12, 24, 0.28));
+}
+
+/* 计时数字让出右侧空间，避免被六一的头挡到 */
+.timer-main,
+.timer-sub {
+    padding-right: clamp(104px, 34vw, 150px);
+}
+
+@media (max-width: 359px) {
+    .timer-pet {
+        right: 0;
+        bottom: -2px;
+        width: 112px;
+    }
+
+    .timer-main,
+    .timer-sub {
+        padding-right: 124px;
+    }
+
+    .timer-unit small {
+        font-size: 0.62rem;
+    }
+}
+
 .timer-head {
     display: flex;
     align-items: center;
@@ -2577,6 +2614,22 @@ select:focus-visible {
     font-size: 0.76rem;
 }
 
+.order-item.is-chef-pick .item-name,
+.order-item-name.is-chef-pick {
+    color: var(--stamp-deep);
+}
+
+.order-item-tag {
+    margin-left: 5px;
+    padding: 1px 5px;
+    color: var(--stamp-deep);
+    font-family: var(--font-ui);
+    font-size: 0.6rem;
+    font-style: normal;
+    background: rgba(223, 95, 126, 0.12);
+    border-radius: 5px;
+}
+
 .order-user-note {
     margin-top: 12px;
     padding: 9px 12px;
@@ -2624,9 +2677,16 @@ select:focus-visible {
 
 .menu-head {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     gap: 12px;
+}
+
+.menu-head-left {
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+    min-width: 0;
 }
 
 .menu-head .section-title {
@@ -2637,6 +2697,35 @@ select:focus-visible {
     color: var(--muted);
     font-family: var(--font-ui);
     font-size: 0.7rem;
+}
+
+/* 随机选一道：深墨实心方钮，紧挨「菜单」右侧 */
+.menu-random {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    color: var(--paper-soft);
+    background: var(--ink);
+    border: 1px solid var(--ink);
+    border-radius: 8px;
+    box-shadow: 0 6px 14px -9px rgba(43, 34, 49, 0.75);
+    transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.menu-random svg {
+    width: 15px;
+    height: 15px;
+}
+
+.menu-random:active {
+    background: var(--ink-2);
+    transform: scale(0.94);
+}
+
+.menu-random:disabled {
+    opacity: 0.4;
 }
 
 .menu-cat.menu-cat-wish {
@@ -3060,6 +3149,13 @@ select:focus-visible {
 .cart-line-name {
     flex: 1;
     font-size: 0.9rem;
+}
+
+.cart-line-note {
+    display: block;
+    color: var(--muted);
+    font-size: 0.68rem;
+    line-height: 1.4;
 }
 
 .cart-line-price {
@@ -4295,6 +4391,25 @@ body.me-subpage .app-main {
     text-align: center;
 }
 
+/* 六一睡在「我们的时光」资料卡右侧 */
+.me-profile {
+    position: relative;
+    overflow: hidden;
+    min-height: 92px;
+    padding-right: 112px;
+}
+
+.me-pet {
+    position: absolute;
+    right: 8px;
+    bottom: 4px;
+    width: 104px;
+    height: auto;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
 /* sub pages */
 
 .me-sub-head {
@@ -4673,6 +4788,386 @@ body.me-fixed-view .wallet-entries.me-ledger {
 }
 
 /* ---------- confirm dialog ---------- */
+
+/* ---------- 随机选一道：抽奖弹窗 ---------- */
+.draw {
+    position: fixed;
+    inset: 0;
+    z-index: 610;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.draw.is-open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.draw-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(24, 18, 30, 0.48);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+}
+
+.draw-card {
+    position: relative;
+    z-index: 1;
+    width: min(320px, 100%);
+    padding: 16px 16px 14px;
+    text-align: center;
+    background: var(--paper-soft);
+    border-radius: 24px;
+    box-shadow: 0 30px 70px -24px rgba(24, 18, 30, 0.55);
+    transform: translateY(10px) scale(0.97);
+    transition: transform 0.24s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+}
+
+.draw.is-open .draw-card {
+    transform: translateY(0) scale(1);
+}
+
+.draw-close {
+    position: absolute;
+    right: 10px;
+    top: 8px;
+    width: 28px;
+    height: 28px;
+    color: var(--muted);
+    font-size: 0.9rem;
+    background: transparent;
+    border: 0;
+}
+
+.draw-title {
+    font-family: var(--font-ui);
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+.draw-sub {
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 0.68rem;
+}
+
+.draw-sub:empty {
+    display: none;
+}
+
+/* 礼盒和结果叠在同一格里：弹窗高度恒定，只做缩放切换 */
+.draw-viewport {
+    position: relative;
+    display: grid;
+    margin-top: 6px;
+}
+
+.draw-viewport > .draw-stage,
+.draw-viewport > .draw-result {
+    grid-area: 1 / 1;
+}
+
+.draw-stage {
+    position: relative;
+    display: grid;
+    place-items: center;
+    height: 100%;
+    min-height: 148px;
+}
+
+.draw-box {
+    position: relative;
+    width: 104px;
+    height: 92px;
+}
+
+.draw-box-lid {
+    position: absolute;
+    left: -6px;
+    right: -6px;
+    top: 10px;
+    height: 21px;
+    background: linear-gradient(160deg, #f0829d, #d25677);
+    border-radius: 6px;
+    transform-origin: 50% 100%;
+}
+
+.draw-box-lid::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: -10px;
+    width: 27px;
+    height: 12px;
+    margin-left: -13.5px;
+    background: linear-gradient(160deg, #f6b7c6, #e08aa3);
+    border-radius: 5px 5px 2px 2px;
+}
+
+.draw-box-lid::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 15px;
+    margin-left: -7.5px;
+    background: rgba(255, 253, 248, 0.85);
+}
+
+.draw-box-body {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 67px;
+    background: linear-gradient(160deg, #e5738f, #c44766);
+    border-radius: 7px 7px 9px 9px;
+    box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.06);
+}
+
+.draw-box-body::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 15px;
+    margin-left: -7.5px;
+    background: rgba(255, 253, 248, 0.85);
+}
+
+.draw-box.is-shaking {
+    animation: drawShake 0.13s ease-in-out 3;
+}
+
+@keyframes drawShake {
+    0%, 100% { transform: translateX(0) rotate(0); }
+    25% { transform: translateX(-4px) rotate(-3deg); }
+    75% { transform: translateX(4px) rotate(3deg); }
+}
+
+.draw-stage.is-hidden {
+    opacity: 0;
+    transition: opacity 0.18s ease;
+    pointer-events: none;
+}
+
+.draw-box.is-open .draw-box-lid {
+    animation: drawLid 0.26s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+
+@keyframes drawLid {
+    0% { transform: translate(0, 0) rotate(0); opacity: 1; }
+    100% { transform: translate(22px, -70px) rotate(42deg); opacity: 0; }
+}
+
+.draw-box.is-open .draw-box-body {
+    animation: drawPop 0.24s ease-out forwards;
+}
+
+@keyframes drawPop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.07, 0.9); }
+    100% { transform: scale(1.02); }
+}
+
+.draw-burst {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+.draw-burst span {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 8px;
+    height: 8px;
+    margin: -4px 0 0 -4px;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.55);
+    border-radius: 2px;
+    opacity: 0;
+}
+
+.draw-burst.is-go span {
+    animation: drawSpark 0.46s cubic-bezier(0.15, 0.7, 0.3, 1) forwards;
+}
+
+@keyframes drawSpark {
+    0% { opacity: 1; transform: translate(0, 0) scale(0.5) rotate(0); }
+    70% { opacity: 1; }
+    100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1) rotate(var(--rot)); }
+}
+
+.draw-result {
+    position: relative;
+    z-index: 2;
+    align-self: start;
+    padding: 0;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.86);
+    transition: opacity 0.2s ease, transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2), visibility 0.2s;
+}
+
+.draw-result.is-show {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+}
+
+.draw-photo {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    margin: 0 auto;
+    overflow: hidden;
+    background: rgba(43, 34, 49, 0.05);
+    border-radius: 14px;
+}
+
+.draw-photo img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.18s ease;
+}
+
+.draw-photo img.is-visible {
+    opacity: 1;
+}
+
+/* 抽取中：同一块 4:3 区域里放礼盒，结果图出现时原地替换。
+   用 inset + margin:auto 居中，避免被抖动动画的 transform 顶偏。 */
+.draw-photo .draw-box {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    z-index: 2;
+}
+
+.draw-photo .draw-burst {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 3;
+}
+
+/* 结果图出现时礼盒淡出，不再盖在菜上 */
+.draw-photo.is-revealed .draw-box,
+.draw-photo.is-revealed .draw-burst {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.16s ease, visibility 0.16s;
+}
+
+/* 结果文字出现前先占位，弹窗高度从「正在选取」到出结果完全不变 */
+.draw-name:empty::after,
+.draw-meta:empty::after,
+.draw-price:empty::after {
+    content: "占位";
+    visibility: hidden;
+}
+
+.draw-name {
+    margin-top: 8px;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.draw-meta {
+    margin-top: 1px;
+    color: var(--muted);
+    font-size: 0.7rem;
+}
+
+.draw-price {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 2px 10px;
+    color: var(--stamp-deep);
+    font-family: var(--font-ui);
+    font-size: 0.76rem;
+    font-weight: 800;
+    background: rgba(223, 95, 126, 0.1);
+    border: 1px solid rgba(223, 95, 126, 0.3);
+    border-radius: 999px;
+}
+
+.draw-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.18s ease, visibility 0.18s;
+}
+
+.draw-actions.is-armed {
+    opacity: 1;
+    visibility: visible;
+}
+
+.draw-btn {
+    flex: 1;
+    min-height: 40px;
+    padding: 0 10px;
+    color: var(--ink-2);
+    font-size: 0.8rem;
+    background: var(--paper);
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+}
+
+.draw-btn.is-primary {
+    color: #fff;
+    font-weight: 600;
+    background: var(--ink);
+    border-color: var(--ink);
+}
+
+.draw-btn:disabled {
+    opacity: 0.5;
+}
+
+.draw-hint {
+    margin-top: 7px;
+    color: #a2948f;
+    font-size: 0.62rem;
+}
+
+.draw-hint[hidden] {
+    display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .draw-box.is-shaking,
+    .draw-box.is-open .draw-box-lid,
+    .draw-box.is-open .draw-box-body,
+    .draw-burst.is-go span {
+        animation: none !important;
+    }
+
+    .draw-result {
+        transition: none;
+    }
+}
 
 .dialog {
     position: fixed;

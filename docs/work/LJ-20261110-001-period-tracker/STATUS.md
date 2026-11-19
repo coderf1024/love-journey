@@ -2,8 +2,8 @@
 
 - 状态：in-review（v1 已实现，等人工验收）
 - 分支：`work/261110-dym-tracker`
-- 最后更新：2026-11-18 15:10
-- 当前负责人：人（决策）
+- 最后更新：2026-11-19
+- 当前负责人：人（验收）/ 待交接给新的 AI 会话
 
 ## 已完成
 
@@ -30,6 +30,24 @@
 2. 人提供美柚导出文件，确认文件形态（xlsx/csv、一天一行还是一次一行、日期格式）。
 3. 人工验收整套生理期功能（本地 db-test 已自测通过）。
 4. ~~合并 main~~ 2026-11-13 完成；~~部署 Worker~~ 2026-11-18 完成（`love-cycle-reminder`，版本 `eb1ad017`，cron `0 1 * * *`，两个 Secret；无公开 URL）。
+
+## 交接说明（2026-11-19）
+
+已合并 `origin/main` 的最新进展（六一形象、你做的我都爱吃 + 随机选一道）。
+本分支相对 main 的差异只剩生理期相关文件，可以直接交给新会话继续。
+
+**接手前必读**：
+1. `docs/work/LJ-20261110-001-period-tracker/brief.md` — 范围与验收标准
+2. 同目录 `plan.md` — 实现结构；`notes.md` — 所有决策的理由（尤其「预测不重算」和 3 天窗口）
+3. `QA.md` — 已验证 / 待验证清单
+4. `docs/runbooks/cycle-reminder.md` — Worker 部署状态与安全默认
+
+**最容易踩的坑**：
+- 预测只在写成功后重算（`writeCycleRecords`）；读永远用缓存。不要让「过期」触发重算。
+- 区间永远 3 天，不因周期不规律放宽。
+- Worker 只写 `settings.lastPush`，不碰 `periods.json`，且没有公网 URL。
+- 管理端不加载 `css/style.css`，样式要写在 `admin.html` 的 `<style>` 里。
+- 改任何 JS/CSS 都要 bump 三个页面 + `css/style.css` + `js/app.js` + `js/oss-utils.js` 的 `?v=`。
 
 ## 阻塞
 

@@ -4325,7 +4325,7 @@
         `).join('');
     }
 
-    async function savePetProfile() {
+    async function handleSavePetProfile() {
         const button = $('pet-save-profile');
         const name = $('pet-name').value.trim();
         const homeDate = $('pet-home-date').value;
@@ -5239,7 +5239,7 @@
         button.addEventListener('click', closeServeModal);
     });
 
-    $('pet-save-profile').addEventListener('click', savePetProfile);
+    $('pet-save-profile').addEventListener('click', handleSavePetProfile);
     $('pet-home-date-button').addEventListener('click', () => openCalendarFor('pet-home-date', syncPetHomeDate));
     $('pet-event-add').addEventListener('click', () => openPetEventModal(null));
     $('pet-event-date-button').addEventListener('click', () => openCalendarFor('pet-event-date', syncPetEventDate));

@@ -14,6 +14,7 @@
 | [morning-greeting-wireframe.html](./morning-greeting-wireframe.html) | 每日早安问候（08:14 Bark 推送）：管理端「系统 → 通知」新增早安开关与收件人勾选、Cloudflare Cron → Worker → OSS 数据流、通知锁屏示例；待确认 5 个问题 |
 | [thanks-reward-announcement-wireframe.html](./thanks-reward-announcement-wireframe.html) | 谢谢大厨返 10 恋爱币 + 新功能公告：用户端订单卡 / 钱包流水 / 公告弹窗与列表；管理端公告严格状态流转（草稿 → 发布 → 下线 → 重新发布）、发布版本号按时间自动生成（精确到秒）、纯文本条目、CTA 文案 + 跳转地址、代码先上线公告后发布 |
 | [liuyi-pet-wireframe.html](./liuyi-pet-wireframe.html) | 六一宠物（LJ-20261113-001）v3：我们页只放趴姿（睡姿放空间页）+ 空间一级菜单新增「六一」+ 只读子页（到家日即生日、多图事件时间线）；管理端「系统」导航新增一行 + 二级页（资料、形象素材、事件多图列表与弹窗）；含 320 / 1280 与待确认项。一期只做真实照片抠图，不访问 OSS |
+| [liuyi-pet-moments-wireframe.html](./liuyi-pet-moments-wireframe.html) | 六一动态（改版，2026-11-21）：朋友圈式个人主页——顶部背景图 + 压左下角头像 + 资料 + 按时间降序的文字/多图动态流；用户端右下角发动态，管理端也能发且只管理基本信息（名字/头像/背景图/一句话/到家日）；含发动态面板、空间菜单摘要、管理端移动与桌面、320 布局与 5 个待确认 |
 | [chef-choice-wireframe.html](./chef-choice-wireframe.html) | 小灶「你做的我都爱吃」+ 随机选一道（LJ-20261118-001）v4：它就是菜品列表里的一道普通菜（`chefPick`、默认快手菜、上下架即开关）、大厨开始制作时填、复用 cooking 通知；随机为菜品栅格图标 + 礼盒动画弹窗（池子排除自身）；含三案按钮对比与素材清理说明 |
 
 本地查看：

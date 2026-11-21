@@ -13,12 +13,12 @@ let lastCityColumns = 0;
 
 // Self-hosted: cdn.jsdelivr.net is unreliable in WeChat / mainland mobile networks.
 const LIBS = {
-    echarts: 'assets/vendor/echarts.min.js?v=20261118-01',
-    qrcode: 'assets/vendor/qrcode.min.js?v=20261118-01'
+    echarts: 'assets/vendor/echarts.min.js?v=20261121-01',
+    qrcode: 'assets/vendor/qrcode.min.js?v=20261121-01'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261118-01';
-const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261118-01';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261121-01';
+const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261121-01';
 // First-paint fallback only. The live story document always wins once it loads.
 const LOVE_START_FALLBACK = '2020-12-20';
 
@@ -356,6 +356,7 @@ const state = {
     selectedOrder: null,
     menuCategory: 'all',
     meView: 'menu',
+    pet: null,
     meOrderFilter: 'all',
     meCardFilter: 'all',
     meOrderId: null,
@@ -535,6 +536,7 @@ function applyAppData(data) {
     state.orders = data.orders || [];
     state.cities = data.cities || [];
     state.coupons = data.coupons || [];
+    state.pet = data.pet || null;
 
     config = {
         space: state.space,
@@ -2817,6 +2819,67 @@ function announcementCardHTML(item, unread) {
     `;
 }
 
+/** 六一的只读子页：形象 + 到家天数 + 事件时间线。生日即到家日，没有单独字段。 */
+function renderMePet() {
+    const body = $('me-sub-body');
+    if (!body) return;
+
+    const pet = state.pet;
+    if (!pet || !pet.name) {
+        body.innerHTML = '<div class="me-empty">还没有六一的小档案。</div>';
+        return;
+    }
+
+    const days = petHomeDays(pet.homeDate);
+    const events = Array.isArray(pet.events) ? pet.events : [];
+    const hero = pet.poses && pet.poses.lie ? pet.poses.lie.url : '';
+    const sleeping = pet.poses && pet.poses.sleep ? pet.poses.sleep.url : '';
+
+    const stats = [
+        days == null ? '' : `<span class="pet-stat"><b>${days}</b><small>到家天数</small></span>`,
+        `<span class="pet-stat"><b>${events.length}</b><small>记下的小事</small></span>`
+    ].filter(Boolean).join('');
+
+    const timeline = events.length
+        ? events.map(event => {
+            const photos = (event.images || []).slice(0, 4);
+            const more = (event.images || []).length - photos.length;
+            return `
+                <div class="tl-item">
+                    <span class="tl-date"><b>${cleanText(event.date.slice(5).replace('-', '.'))}</b>${cleanText(event.date.slice(0, 4))}</span>
+                    <div class="tl-card">
+                        ${event.tag ? `<span class="tl-tag">${cleanText(event.tag)}</span>` : ''}
+                        <b>${cleanText(event.title)}</b>
+                        ${event.note ? `<p>${cleanText(event.note)}</p>` : ''}
+                        ${photos.length ? `<div class="tl-photo">${photos.map(url =>
+                            `<i style="background-image:url('${cleanText(url)}')"></i>`).join('')}${more > 0
+                            ? `<i class="more">+${more}</i>` : ''}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('')
+        : '<div class="tl-empty">还没有记下小事。</div>';
+
+    body.innerHTML = `
+        <div class="pet-hero">
+            <div class="pet-hero-art">
+                ${hero ? `<img src="${cleanText(hero)}" alt="${cleanText(pet.name)}" decoding="async">` : ''}
+            </div>
+            <h2>${cleanText(pet.name)}</h2>
+            ${pet.tagline ? `<p>${cleanText(pet.tagline)}</p>` : ''}
+            <div class="pet-stats">${stats}</div>
+        </div>
+        ${pet.homeDate ? `
+            <div class="info-card">
+                <div class="info-row"><span>到家日</span><b>${formatDate(pet.homeDate)}</b></div>
+                <div class="info-row"><span>生日</span><b class="info-note">同到家日</b></div>
+            </div>` : ''}
+        <div class="section-title pet-section-title">六一的小事 <small>按日期倒序</small></div>
+        <div class="timeline">${timeline}</div>
+        ${sleeping ? `<div class="pet-sleep"><img src="${cleanText(sleeping)}" alt="" loading="lazy" decoding="async"></div>` : ''}
+    `;
+}
+
 function renderMeAnnouncements() {
     const body = $('me-sub-body');
     if (!body) return;
@@ -2883,7 +2946,7 @@ function scrollAppTop() {
 }
 
 function openMeView(view) {
-    if (!['orders', 'wallet', 'cards', 'announcements'].includes(view)) return;
+    if (!['orders', 'wallet', 'cards', 'announcements', 'pet'].includes(view)) return;
     state.meView = view;
     state.meOrderId = null;
     document.body.classList.add('me-subpage');
@@ -2978,6 +3041,27 @@ function renderMeMenu() {
     const cardsSub = $('me-menu-cards-sub');
     if (cardsSub) cardsSub.textContent = `获得 ${acquired} 次 · 使用 ${used} 次`;
 
+    const petGroup = $('me-pet-group');
+    if (petGroup) {
+        const pet = state.pet;
+        const show = !!(pet && pet.name);
+        petGroup.hidden = !show;
+        if (show) {
+            const petSub = $('me-menu-pet-sub');
+            if (petSub) {
+                const days = petHomeDays(pet.homeDate);
+                const count = (pet.events || []).length;
+                petSub.textContent = [days == null ? '' : `到家 ${days} 天`, `${count} 件小事`]
+                    .filter(Boolean).join(' · ');
+            }
+            const icon = $('me-pet-icon');
+            if (icon) {
+                const url = pet.poses && pet.poses.lie && pet.poses.lie.url;
+                if (url) icon.src = url;
+            }
+        }
+    }
+
     const announcementGroup = $('me-announcement-group');
     const announcementSub = $('me-menu-announcements-sub');
     const announcementBadge = $('me-menu-announcements-badge');
@@ -3031,6 +3115,7 @@ function renderMePage() {
         wallet: '恋爱币',
         cards: '恋爱卡流水',
         announcements: '更新公告',
+        pet: '六一',
         'order-detail': '订单详情'
     }[state.meView] || '空间';
 
@@ -3041,6 +3126,7 @@ function renderMePage() {
     else if (state.meView === 'wallet') renderMeWallet();
     else if (state.meView === 'cards') renderMeCards();
     else if (state.meView === 'announcements') renderMeAnnouncements();
+    else if (state.meView === 'pet') renderMePet();
     else if (state.meView === 'order-detail') renderMeOrderDetail(state.meOrderId);
 }
 

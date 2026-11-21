@@ -6,14 +6,14 @@
 
 @font-face {
     font-family: 'Ma Shan Zheng';
-    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261118-01') format('woff2');    font-weight: 400;
+    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261121-01') format('woff2');    font-weight: 400;
     font-style: normal;
     font-display: swap;
 }
 
 @font-face {
     font-family: 'Noto Serif SC';
-    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261118-01') format('woff2');    font-weight: 700;
+    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261121-01') format('woff2');    font-weight: 700;
     font-style: normal;
     font-display: swap;
 }
@@ -88,7 +88,7 @@ body::after {
 }
 
 body::before {
-    background: url('../assets/texture-noise.png?v=20261118-01') repeat;    opacity: 0.06;
+    background: url('../assets/texture-noise.png?v=20261121-01') repeat;    opacity: 0.06;
     mix-blend-mode: multiply;
 }
 
@@ -560,7 +560,7 @@ select:focus-visible {
     content: '';
     position: absolute;
     inset: 0;
-    background: url('../assets/texture-noise.png?v=20261118-01') repeat;    opacity: 0.1;
+    background: url('../assets/texture-noise.png?v=20261121-01') repeat;    opacity: 0.1;
     mix-blend-mode: soft-light;
     pointer-events: none;
 }
@@ -4408,6 +4408,286 @@ body.me-subpage .app-main {
     pointer-events: none;
     user-select: none;
     -webkit-user-drag: none;
+}
+
+/* ---------- 六一 ---------- */
+
+.me-menu-icon.pet-icon {
+    overflow: hidden;
+    padding: 0;
+    background: linear-gradient(145deg, var(--petal), var(--lemon));
+}
+
+.me-menu-icon.pet-icon img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: 50% 88%;
+}
+
+.pet-hero {
+    position: relative;
+    padding: 18px 14px 14px;
+    text-align: center;
+    background: linear-gradient(160deg, var(--paper-soft), #ffeef2 62%, #fdf3e2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    box-shadow: var(--shadow-soft);
+}
+
+.pet-hero-art {
+    width: min(66%, 220px);
+    height: 128px;
+    margin: 0 auto;
+}
+
+.pet-hero-art img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: 50% 100%;
+}
+
+.pet-hero h2 {
+    margin-top: 10px;
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.pet-hero p {
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 0.78rem;
+}
+
+.pet-stats {
+    display: flex;
+    justify-content: center;
+    gap: 26px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--line);
+}
+
+.pet-stat {
+    display: grid;
+    gap: 1px;
+}
+
+.pet-stat b {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.pet-stat small {
+    color: var(--muted);
+    font-size: 0.66rem;
+}
+
+.info-card {
+    margin-top: 12px;
+    background: var(--paper-soft);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-s);
+}
+
+.info-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 14px;
+    border-bottom: 1px dashed var(--line);
+    font-size: 0.86rem;
+}
+
+.info-row:last-child {
+    border-bottom: 0;
+}
+
+.info-row span {
+    color: var(--muted);
+    font-size: 0.78rem;
+}
+
+.info-row b {
+    font-weight: 600;
+}
+
+.info-note {
+    color: var(--muted);
+    font-weight: 400;
+}
+
+.pet-section-title {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin: 18px 2px 2px;
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.pet-section-title small {
+    color: var(--muted);
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    font-weight: 400;
+}
+
+.timeline {
+    position: relative;
+    margin-top: 6px;
+    padding-left: 62px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 51px;
+    top: 8px;
+    bottom: 8px;
+    width: 1px;
+    background: var(--line);
+}
+
+.tl-item {
+    position: relative;
+    padding: 9px 0;
+}
+
+.tl-item::before {
+    content: '';
+    position: absolute;
+    left: -14px;
+    top: 16px;
+    width: 8px;
+    height: 8px;
+    background: var(--paper);
+    border: 1.5px solid var(--stamp);
+    border-radius: 999px;
+}
+
+.tl-date {
+    position: absolute;
+    left: -62px;
+    top: 12px;
+    width: 42px;
+    color: var(--muted);
+    font-size: 0.62rem;
+    line-height: 1.3;
+    text-align: right;
+}
+
+.tl-date b {
+    display: block;
+    color: var(--ink-2);
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.tl-card {
+    padding: 10px 12px;
+    background: var(--paper-soft);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-s);
+    box-shadow: var(--shadow-soft);
+}
+
+.tl-tag {
+    display: inline-block;
+    margin-bottom: 4px;
+    padding: 1px 8px;
+    color: #8a6a1f;
+    font-size: 0.64rem;
+    background: rgba(246, 212, 120, 0.28);
+    border-radius: 999px;
+}
+
+.tl-card b {
+    display: block;
+    font-size: 0.92rem;
+    font-weight: 600;
+    line-height: 1.45;
+}
+
+.tl-card p {
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 0.78rem;
+    line-height: 1.6;
+}
+
+.tl-photo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 8px;
+}
+
+.tl-photo i {
+    display: block;
+    width: 54px;
+    height: 54px;
+    background: linear-gradient(150deg, #f3e7dc, var(--petal)) center / cover no-repeat;
+    border-radius: 8px;
+}
+
+.tl-photo i.more {
+    display: grid;
+    place-items: center;
+    background: #f1ece4;
+    color: var(--muted);
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    font-style: normal;
+}
+
+.tl-empty {
+    padding: 22px 0;
+    color: var(--muted);
+    font-size: 0.82rem;
+    text-align: center;
+}
+
+.pet-sleep {
+    margin: 20px auto -4px;
+    width: min(58%, 200px);
+}
+
+.pet-sleep img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+@media (max-width: 359px) {
+    .timeline {
+        padding-left: 0;
+    }
+
+    .timeline::before,
+    .tl-item::before {
+        display: none;
+    }
+
+    .tl-date {
+        position: static;
+        width: auto;
+        margin-bottom: 3px;
+        text-align: left;
+    }
+
+    .tl-date b {
+        display: inline;
+        margin-right: 5px;
+    }
 }
 
 /* sub pages */

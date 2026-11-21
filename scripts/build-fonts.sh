@@ -33,6 +33,7 @@ DB_DOCS=(
     "love-journey/db/content/milestones.json"
     "love-journey/db/content/goals.json"
     "love-journey/db/content/cities.json"
+    "love-journey/db/content/pet.json"
     "love-journey/db/commerce/menu.json"
     "love-journey/db/commerce/coupons/index.json"
     "love-journey/db/commerce/dish-requests/index.json"
@@ -137,6 +138,7 @@ story = live('content/story.json')
 milestones = live('content/milestones.json')
 goals = live('content/goals.json')
 cities = live('content/cities.json')
+pet = live('content/pet.json')
 menu = live('commerce/menu.json')
 coupons = live('commerce/coupons/index.json')
 requests = live('commerce/dish-requests/index.json')
@@ -157,6 +159,11 @@ for value in (
     [item.get('name') for item in menu.get('categories', []) if isinstance(item, dict)],
     coupon_titles,
     [item.get('name') for item in requests.get('items', []) if isinstance(item, dict)],
+    # 六一的资料与事件标题：名字、一句话、事件标题和标签都会进显示字体
+    pet.get('name'),
+    pet.get('tagline'),
+    [item.get('title') for item in pet.get('events', []) if isinstance(item, dict)],
+    [item.get('tag') for item in pet.get('events', []) if isinstance(item, dict)],
 ):
     walk(display, value)
 display |= ASCII

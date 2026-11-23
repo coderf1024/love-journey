@@ -69,7 +69,8 @@
         background: var(--paper); border: 1px solid rgba(0, 0, 0, .16); border-radius: 46px;
         box-shadow: 0 30px 60px -34px rgba(30, 20, 35, .5), 0 0 0 10px #1d1a1e, 0 0 0 11px #3a343c;
     }
-    .phone.tall { height: 1040px; }
+    .phone.tall { height: 1120px; }
+    .phone.small { height: 820px; }
     .screen { position: absolute; inset: 0; display: flex; flex-direction: column; }
     .scroll { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; }
     .notch {
@@ -89,7 +90,7 @@
 
     /* ---------------- 朋友圈封面（顶到状态栏） ---------------- */
     .cover {
-        position: relative; height: 272px; overflow: hidden;
+        position: relative; aspect-ratio: 1 / 1; overflow: hidden;
         background:
             radial-gradient(80% 90% at 78% 12%, rgba(255, 255, 255, .5), transparent 66%),
             linear-gradient(146deg, #cfdfd4 0%, #f0e2c6 46%, #eec3cd 100%);
@@ -110,7 +111,7 @@
         box-shadow: 0 4px 12px -8px rgba(0, 0, 0, .5);
     }
     .cover-empty {
-        position: absolute; left: 0; right: 0; top: 56%; z-index: 2;
+        position: absolute; left: 0; right: 0; top: 54%; z-index: 2;
         display: grid; justify-items: center; gap: 5px; transform: translateY(-50%);
         color: rgba(64, 54, 62, .48);
     }
@@ -264,7 +265,8 @@
         border: 1px dashed var(--line-strong); border-radius: 12px;
         color: var(--muted); font-size: 11px;
     }
-    .media-box.cover-box { aspect-ratio: 16 / 8; }
+    .media-box.cover-box { aspect-ratio: 1 / 1; }
+    .media-adjust { margin-top: 4px; padding: 3px 9px; background: #fff; border: 1px solid var(--line-strong); border-radius: 999px; color: #6b6560; font-family: inherit; font-size: 10px; }
     .media-box.avatar-box { aspect-ratio: 1 / 1; }
     .media-box .plus { display: grid; place-items: center; gap: 1px; }
     .media-box .plus b { font-size: 19px; font-weight: 300; line-height: 1; color: #9c8f97; }
@@ -280,10 +282,42 @@
     .a-add { margin-left: auto; padding: 4px 11px; background: var(--ink); border: 0; border-radius: 999px; color: #fff; font-family: inherit; font-size: 11px; }
     .a-note { margin-top: 12px; padding: 10px 12px; background: #f4eee8; border: 1px dashed var(--line-strong); border-radius: 10px; color: var(--muted); font-size: 11px; line-height: 1.6; }
 
+    /* ---------------- 背景图位置 ---------------- */
+    .crop-scrim { position: absolute; inset: 0; z-index: 20; display: grid; place-items: center; padding: 20px; background: rgba(28, 22, 31, .5); }
+    .crop-card { width: 100%; max-width: 332px; overflow: hidden; background: var(--paper-soft); border-radius: 18px; box-shadow: 0 30px 60px -30px rgba(0, 0, 0, .6); }
+    .crop-head { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+    .crop-head b { font-size: 14px; }
+    .crop-head span { margin-left: auto; color: var(--faint); font-size: 13px; }
+    .crop-body { padding: 14px 16px 4px; }
+    .crop-viewport {
+        position: relative; aspect-ratio: 1 / 1; overflow: hidden;
+        background: url('../../assets/media/cat/liuyi-lie.webp') 42% 30% / cover no-repeat, #f1e8df;
+        border: 1px solid var(--line-strong); border-radius: 12px; cursor: grab;
+    }
+    .crop-viewport::before {
+        content: ''; position: absolute; inset: 0;
+        background:
+            linear-gradient(to right, transparent calc(33.333% - .5px), rgba(255,255,255,.45) 33.333%, transparent calc(33.333% + .5px)),
+            linear-gradient(to right, transparent calc(66.666% - .5px), rgba(255,255,255,.45) 66.666%, transparent calc(66.666% + .5px)),
+            linear-gradient(to bottom, transparent calc(33.333% - .5px), rgba(255,255,255,.45) 33.333%, transparent calc(33.333% + .5px)),
+            linear-gradient(to bottom, transparent calc(66.666% - .5px), rgba(255,255,255,.45) 66.666%, transparent calc(66.666% + .5px));
+        pointer-events: none;
+    }
+    .crop-drag {
+        position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%);
+        padding: 3px 10px; background: rgba(28, 22, 31, .55); border-radius: 999px;
+        color: #fff; font-size: 10px; white-space: nowrap;
+    }
+    .crop-hint { margin-top: 9px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+    .crop-foot { display: flex; gap: 8px; padding: 12px 16px 16px; }
+    .crop-foot button { flex: 1; padding: 10px; border-radius: 10px; font-family: inherit; font-size: 12.5px; }
+    .crop-foot .ghost { background: #fff; border: 1px solid var(--line-strong); color: #6b6560; }
+    .crop-foot .primary { background: var(--ink); border: 1px solid var(--ink); color: #fff; }
+
     /* ---------------- 320 ---------------- */
     .phone.small { width: 320px; height: 760px; border-radius: 38px; }
     .phone.small .statusbar { padding: 0 20px 0 24px; font-size: 12px; }
-    .phone.small .cover { height: 236px; }
+    .phone.small .cover { height: auto; }
     .phone.small .cover-back { top: 50px; left: 12px; width: 30px; height: 30px; font-size: 19px; }
     .phone.small .avatar { width: 72px; height: 72px; margin-top: -36px; border-radius: 20px; }
     .phone.small .profile-name b { font-size: 20px; }
@@ -598,7 +632,7 @@
                             <div class="media-row">
                                 <span class="media-tile">
                                     <span class="media-box cover-box"><span class="plus"><b>＋</b>上传背景图</span></span>
-                                    <small>顶部 16:8，居中裁切</small>
+                                    <small>顶部 1:1，可拖动选位置</small>
                                 </span>
                                 <span class="media-tile">
                                     <span class="media-box avatar-box" style="border-style:solid;border-color:transparent;background:linear-gradient(150deg,var(--petal),var(--lemon))"><img src="../../assets/media/cat/liuyi-sleep.webp" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 42%"></span>
@@ -629,12 +663,65 @@
                     </div>
                 </div>
             </div>
-            <p class="frame-note">背景图这里是唯一的上传入口；上传前用户端显示渐变占位。头像也只在管理端换。</p>
+            <p class="frame-note">背景图这里是唯一的上传入口；上传前用户端显示渐变占位。<b>上传后点这张图，会打开 E 段的位置调整</b>。头像也只在管理端换。</p>
         </div>
 
-        <!-- E · 320 -->
+        <!-- E · 背景图位置 -->
         <div class="frame">
-            <p class="frame-label">E · 320 适配<span>收窄封面与字号，结构不变</span></p>
+            <p class="frame-label">E · 选择背景图显示位置<span>上传后点背景图，拖动选择显示区域</span></p>
+            <div class="phone admin">
+                <div class="screen">
+                    <div class="statusbar">
+                        <span>9:41</span>
+                        <div class="notch"></div>
+                        <span class="right">
+                            <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.6" width="3" height="8.4" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+                            <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 11.2 6.1 9.1a2.7 2.7 0 0 1 3.8 0L8 11.2Zm0-3.6a5.4 5.4 0 0 0-3.8 1.6L2.8 7.8a7.4 7.4 0 0 1 10.4 0l-1.4 1.4A5.4 5.4 0 0 0 8 7.6Zm0-3.7c-2.6 0-5 .9-6.9 2.5L0 5.1a11.4 11.4 0 0 1 16 0l-1.1 1.3A9.4 9.4 0 0 0 8 3.9Z"/></svg>
+                            <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".8" width="21" height="10.4" rx="3" stroke="currentColor" stroke-opacity=".4"/><rect x="2" y="2.3" width="15" height="7.4" rx="1.8" fill="currentColor"/><path d="M23 4.2v3.6c1-.4 1.5-1 1.5-1.8S24 4.6 23 4.2Z" fill="currentColor" fill-opacity=".45"/></svg>
+                        </span>
+                    </div>
+                    <div class="a-top"><span class="a-back">‹</span><span class="a-title">六一</span><span class="a-save">保存</span></div>
+                    <div class="a-scroll">
+                        <p class="a-eyebrow">系统 · 六一</p>
+                        <h2 class="a-h1">六一</h2>
+                        <p class="a-sub">用户端只查看；名字、两张图、两个日期都在这里改。</p>
+                        <div class="a-section">图片 <small>背景图与头像</small></div>
+                        <div class="a-group">
+                            <div class="media-row">
+                                <span class="media-tile">
+                                    <span class="media-box cover-box" style="border-style:solid;border-color:transparent;background:url('../../assets/media/cat/liuyi-lie.webp') 42% 30% / cover no-repeat"></span>
+                                    <small>顶部 1:1 · 已选位置</small>
+                                </span>
+                                <span class="media-tile">
+                                    <span class="media-box avatar-box" style="border-style:solid;border-color:transparent;background:linear-gradient(150deg,var(--petal),var(--lemon))"><img src="../../assets/media/cat/liuyi-sleep.webp" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 42%"></span>
+                                    <small>方形头像</small>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="crop-scrim">
+                        <div class="crop-card" role="dialog" aria-label="调整背景图位置">
+                            <div class="crop-head"><b>调整背景图位置</b><span>✕</span></div>
+                            <div class="crop-body">
+                                <div class="crop-viewport">
+                                    <span class="crop-drag">按住拖动图片，选择显示区域</span>
+                                </div>
+                                <p class="crop-hint">预览是用户端顶部的实际比例（1:1）。拖动到任意位置都可以，确定后会记住这个位置，之后换设备也保持一致。</p>
+                            </div>
+                            <div class="crop-foot">
+                                <button class="ghost" type="button">取消</button>
+                                <button class="primary" type="button">确定</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="frame-note">位置用<b>百分比坐标</b>保存（例如 42% / 30%），用户端用 <code>object-position</code> 还原；默认 50% / 50%，不再写死居中。</p>
+        </div>
+
+        <!-- F · 320 -->
+        <div class="frame">
+            <p class="frame-label">F · 320 适配<span>收窄封面与字号，结构不变</span></p>
             <div class="phone small">
                 <div class="screen">
                     <div class="scroll">
@@ -686,9 +773,9 @@
             <p class="frame-note">320 下三个统计都保留，字号收小；页面 <code>scrollWidth === clientWidth</code>。</p>
         </div>
 
-        <!-- F · 桌面 -->
+        <!-- G · 桌面 -->
         <div class="frame wide">
-            <p class="frame-label">F · 管理端桌面 1280<span>左：资料与图片 ｜ 右：动态列表</span></p>
+            <p class="frame-label">G · 管理端桌面 1280<span>左：资料与图片 ｜ 右：动态列表</span></p>
             <div class="browser">
                 <aside class="side">
                     <div class="side-brand">
@@ -738,7 +825,7 @@
                                 <div class="media-row">
                                     <span class="media-tile">
                                         <span class="media-box cover-box"><span class="plus"><b>＋</b>上传背景图</span></span>
-                                        <small>顶部 16:8，居中裁切</small>
+                                        <small>顶部 1:1，可拖动选位置</small>
                                     </span>
                                     <span class="media-tile">
                                         <span class="media-box avatar-box" style="border-style:solid;border-color:transparent;background:linear-gradient(150deg,var(--petal),var(--lemon))"><img src="../../assets/media/cat/liuyi-sleep.webp" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 42%"></span>
@@ -785,6 +872,7 @@
             <ul>
                 <li><b>所有动态都属于六一</b>：管理端发的也不显示大厨，头像和名字统一是六一。</li>
                 <li><b>生日和到家日拆成两个字段</b>，管理端分开填，用户端分开显示。</li>
+                <li>背景图改成 <b>1:1 方图</b>；上传后可<b>拖动选择显示位置</b>，不再写死居中裁切。</li>
                 <li>六一页<b>去掉了 app 头部和返回条</b>，背景图顶到状态栏，空间全给封面（左上角只留一个悬浮返回键）。</li>
                 <li>编辑<b>原地改</b>，发布时间和列表位置不变。</li>
                 <li>图片上限 <b>9 张</b>；动态<b>不做清理</b>，全保留。</li>
@@ -803,6 +891,7 @@
             <h3>实现要点（供参考）</h3>
             <ul>
                 <li><code>content/pet.json</code>：<code>name / tagline / birthday / homeDate / avatar / cover / moments[]</code>。</li>
+                <li><code>cover</code> 存 <code>{ url, x, y }</code>（x/y 为 0–100 的百分比），用户端用 <code>object-position: x% y%</code> 还原裁切位置。</li>
                 <li><code>moments[]</code> 每条：<code>id / text / images[] / createdAt / updatedAt</code>，不再存作者。</li>
                 <li>用户端发动态要写 OSS；图片走保留 alpha 的上传函数。</li>
                 <li>「到家 N 天」按 <code>homeDate</code> 算；生日只用于展示。</li>

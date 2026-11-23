@@ -9,18 +9,18 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="管理端">
 <title>管理端 · 恋爱空间</title>
-<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261118-01" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261118-01" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261121-01" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261121-01" as="font" type="font/woff2" crossorigin>
 <style>
     @font-face {
         font-family: 'Ma Shan Zheng';
-        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261118-01') format('woff2');        font-weight: 400;
+        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261121-01') format('woff2');        font-weight: 400;
         font-style: normal;
         font-display: swap;
     }
     @font-face {
         font-family: 'Noto Serif SC';
-        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261118-01') format('woff2');        font-weight: 700;
+        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261121-01') format('woff2');        font-weight: 700;
         font-style: normal;
         font-display: swap;
     }
@@ -86,7 +86,7 @@
         pointer-events: none;
     }
     body.admin-body::before {
-        background: url('assets/texture-noise.png?v=20261118-01') repeat;        opacity: .06;
+        background: url('assets/texture-noise.png?v=20261121-01') repeat;        opacity: .06;
         mix-blend-mode: multiply;
     }
     body.admin-body::after {
@@ -680,6 +680,10 @@
     .setting-main b { font-size: 11px; }
     .setting-main small { color: var(--admin-muted); font-size: 9px; line-height: 1.45; }
     .setting-row > .admin-btn { margin-left: auto; }
+    /* 生理期「她的记录」的值：和开关同行、右对齐，数字用显示字体 */
+    .cycle-stat { margin-left: auto; flex: 0 0 auto; color: var(--admin-ink, #2b2231); font-family: var(--font-display); font-size: 13px; font-weight: 700; white-space: nowrap; }
+    .cycle-stat small { margin-left: 1px; font-family: var(--font-body); font-size: 9px; font-weight: 500; color: var(--admin-muted); }
+    .cycle-stat.is-bad { color: #a4434f; }
     .admin-switch { position: relative; width: 34px; height: 20px; flex: 0 0 34px; padding: 2px; background: #d9d4ce; border: 0; border-radius: 999px; transition: background .18s ease; }
     .admin-switch i { display: block; width: 16px; height: 16px; background: #fff; border-radius: 999px; transition: transform .18s ease; }
     .admin-switch[aria-pressed="true"] { background: var(--admin-stamp); }
@@ -1575,6 +1579,7 @@
                     <span class="setting-main"><b>提醒总开关</b><small>关掉后不发任何生理期推送</small></span>
                     <button class="admin-switch" id="cycle-remind-enabled" type="button" role="switch" aria-pressed="true" aria-label="生理期提醒"><i></i></button>
                 </div>
+                <p class="admin-small admin-muted" id="cycle-settings-note" hidden>这个空间还没有保存过生理期设置，提醒默认是关的。确认要开始提醒后再打开。</p>
                 <div class="setting-row">
                     <span class="setting-icon">算</span>
                     <span class="setting-main"><b>算法自动重选</b><small>每次记录后重新回测 27 种组合</small></span>
@@ -1584,11 +1589,6 @@
                     <span class="setting-icon">卵</span>
                     <span class="setting-main"><b>显示排卵日 / 排卵期</b><small>日历上的青色标记，默认开启</small></span>
                     <button class="admin-switch" id="cycle-show-ovulation" type="button" role="switch" aria-pressed="true" aria-label="显示排卵日"><i></i></button>
-                </div>
-                <div class="setting-row">
-                    <span class="setting-icon">导</span>
-                    <span class="setting-main"><b>允许用户端导入</b><small>关闭后「从美柚导入」入口隐藏</small></span>
-                    <button class="admin-switch" id="cycle-allow-import" type="button" role="switch" aria-pressed="true" aria-label="允许导入"><i></i></button>
                 </div>
             </div>
 
@@ -1616,12 +1616,19 @@
             <div class="admin-card">
                 <div class="admin-card-head"><b>发送测试</b><span>只验证文案，不验证定时</span></div>
                 <p class="admin-small admin-muted">
-                    用<strong>当前已保存</strong>的文案和真实预测渲染，发一条到用户手机。
+                    用<strong>当前已保存</strong>的文案和真实预测渲染，发一条测试消息。
                     不写 <code>lastPush</code>、不改任何设置，也不影响明天的定时判断。
                     定时任务是否真的执行，看 Cloudflare 日志，这里测不到。
                 </p>
                 <div class="setting-row" style="margin-top:9px">
-                    <span class="setting-main"><b>场景</b><small>三种文案一次看全</small></span>
+                    <span class="setting-main"><b>发给谁</b><small>测试默认发给自己</small></span>
+                    <div class="choice-row" id="cycle-test-targets" role="group" aria-label="测试收件人">
+                        <button type="button" data-cycle-test-target="admin" class="is-on">大厨</button>
+                        <button type="button" data-cycle-test-target="user">她</button>
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-main"><b>发哪个模板</b><small>三种文案一次看全</small></span>
                     <div class="choice-row" id="cycle-test-kinds" role="group" aria-label="测试场景">
                         <button type="button" data-cycle-test-kind="before">即将开始</button>
                         <button type="button" data-cycle-test-kind="start">当天</button>
@@ -1632,23 +1639,13 @@
                 <div id="cycle-test-preview" class="cycle-test-preview"></div>
                 <button class="admin-btn block" id="cycle-test" type="button" style="margin-top:9px">发送测试</button>
             </div>
-            </div>
 
             <div class="admin-card">
-                <div class="admin-card-head"><b>数据</b><span>只读</span></div>
+                <div class="admin-card-head"><b>她的记录</b><span>只读</span></div>
                 <div id="cycle-admin-summary"></div>
                 <p class="admin-small admin-muted" style="margin-top:8px">
                     大厨能改配置，但不能替她记录、也看不到逐日明细——健康数据的写权限只在她手里。
                 </p>
-            </div>
-
-            <div class="admin-card">
-                <div class="admin-card-head"><b>危险操作</b><span>不可恢复</span></div>
-                <p class="admin-small admin-muted">清空全部生理期记录和预测历史。需要在下面的输入框里写「清空」确认。</p>
-                <div class="admin-two-col" style="margin-top:9px">
-                    <div class="admin-field"><input class="admin-input" id="cycle-clear-confirm" type="text" placeholder="输入 清空"></div>
-                    <button class="admin-btn danger" id="cycle-clear" type="button">清空全部记录</button>
-                </div>
             </div>
         </section>
 
@@ -1953,11 +1950,11 @@
 
 <div class="admin-toast" id="message" role="status" aria-live="polite"></div>
 
-<script src="js/oss-config.js?v=20261118-01"></script>
-<script src="js/crypto-utils.js?v=20261118-01"></script>
-<script src="js/oss-utils.js?v=20261118-01"></script>
-<script src="js/cycle.js?v=20261118-01"></script>
-<script src="js/store.js?v=20261118-01"></script><script>
+<script src="js/oss-config.js?v=20261121-01"></script>
+<script src="js/crypto-utils.js?v=20261121-01"></script>
+<script src="js/oss-utils.js?v=20261121-01"></script>
+<script src="js/cycle.js?v=20261121-01"></script>
+<script src="js/store.js?v=20261121-01"></script><script>
     const ORDER_LABEL = {
         pending: '待接单',
         accepted: '已接单',
@@ -4451,7 +4448,8 @@
 
     function renderCycle() {
         const cycle = cycleAdmin();
-        const settings = cycle ? cycle.settings : normalizeCycleSettings(null);
+        const settings = cycle ? cycle.settings
+            : Object.assign(normalizeCycleSettings(null), { remindEnabled: false });
         const countEl = $('system-cycle-count');
         if (countEl) {
             const items = cycle ? cycle.items.length : 0;
@@ -4464,13 +4462,14 @@
         if (!$('cycle-threshold')) return;
 
         $('cycle-threshold').value = String(settings.homeStripThresholdDays);
+        const settingsNote = $('cycle-settings-note');
+        if (settingsNote) settingsNote.hidden = !!(cycle && cycle.settingsExists);
         $('cycle-remind-time').value = settings.remindTime;
         $('cycle-remind-before').value = settings.remindDaysBefore.join(',');
         $('cycle-overdue').value = settings.overdueRemindDays.join(',');
         setSwitch($('cycle-remind-enabled'), settings.remindEnabled);
         setSwitch($('cycle-auto-tune'), settings.autoTune);
         setSwitch($('cycle-show-ovulation'), settings.showOvulation);
-        setSwitch($('cycle-allow-import'), settings.allowUserImport);
 
         $('cycle-tpl-before-title').value = settings.templates.before.title;
         $('cycle-tpl-before-body').value = settings.templates.before.body;
@@ -4484,21 +4483,46 @@
         const summary = $('cycle-admin-summary');
         if (!summary) return;
         if (!cycle || !cycle.items.length) {
-            summary.innerHTML = '<p class="admin-small admin-muted">还没有任何记录。她在用户端记录后，这里会显示条数和上次推送状态。</p>';
+            summary.innerHTML = '<p class="admin-small admin-muted">还没有任何记录。她在用户端记一次之后，这里才会显示条数和预测。</p>';
             return;
         }
         const prediction = cycle.prediction || {};
         const last = cycle.items[cycle.items.length - 1];
-        const imported = cycle.items.filter(item => item.source === 'import').length;
         const backtest = prediction.backtest || {};
         const lastPush = settings.lastPush || {};
+        const ok = prediction.status === 'ok';
+        const pushText = lastPush.ok === true ? '已送达' : lastPush.ok === false ? '失败' : '—';
+        const pushKind = { before: '即将开始', start: '当天', overdue: '过期补录' }[lastPush.kind] || '还没推过';
+        /* Same row shape as the switches above: icon, label+sub, value on the
+           right. The old version stacked label over a dashed JSON-ish dump and
+           did not match anything else on the page. */
         summary.innerHTML = `
             <div class="settings-group">
-                <div class="setting-row"><span class="setting-main"><b>记录条数</b><small>其中 ${imported} 条来自导入</small></span><span class="admin-muted" style="margin-left:auto">${cycle.items.length} 次</span></div>
-                <div class="setting-row"><span class="setting-main"><b>最近一次</b><small>${last.end ? '已结束' : '进行中'}</small></span><span class="admin-muted" style="margin-left:auto">${esc(cycleFmtShort(last.start))}</span></div>
-                <div class="setting-row"><span class="setting-main"><b>下一次预测</b><small>${prediction.status === 'ok' ? `${cycleFmtAgree(prediction.confidence)} 置信度` : '数据还不够'}</small></span><span class="admin-muted" style="margin-left:auto">${prediction.status === 'ok' ? `${esc(cycleFmtShort(prediction.range[0]))} – ${esc(cycleFmtShort(prediction.range[1]))}` : '—'}</span></div>
-                <div class="setting-row"><span class="setting-main"><b>回测</b><small>${backtest.total ? `平均偏差 ${backtest.mae} 天` : '样本不足'}</small></span><span class="admin-muted" style="margin-left:auto">${backtest.total ? `${backtest.hit}/${backtest.total} 落在区间内` : '—'}</span></div>
-                <div class="setting-row"><span class="setting-main"><b>上次推送</b><small>${lastPush.kind || '无记录'}</small></span><span class="admin-muted" style="margin-left:auto">${lastPush.ok === true ? '已送达' : lastPush.ok === false ? '失败' : '—'}</span></div>
+                <div class="setting-row">
+                    <span class="setting-icon">记</span>
+                    <span class="setting-main"><b>记录</b><small>都是她自己记的</small></span>
+                    <span class="cycle-stat">${cycle.items.length}<small>次</small></span>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-icon">近</span>
+                    <span class="setting-main"><b>最近一次</b><small>${last.end ? `${esc(cycleFmtShort(last.start))} – ${esc(cycleFmtShort(last.end))}` : `${esc(cycleFmtShort(last.start))} 至今`}</small></span>
+                    <span class="cycle-stat">${last.end ? '已结束' : '进行中'}</span>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-icon">预</span>
+                    <span class="setting-main"><b>下一次预测</b><small>${ok ? `${cycleFmtAgree(prediction.confidence)}置信度 · 基于 ${prediction.sampleSize} 个周期` : '数据还不够，暂不预测'}</small></span>
+                    <span class="cycle-stat">${ok ? `${esc(cycleFmtShort(prediction.range[0]))}–${esc(cycleFmtShort(prediction.range[1]))}` : '—'}</span>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-icon">准</span>
+                    <span class="setting-main"><b>回测</b><small>${backtest.total ? `平均偏差 ${backtest.mae} 天` : '样本不足，还测不准'}</small></span>
+                    <span class="cycle-stat">${backtest.total ? `${backtest.hit}/${backtest.total}<small>次</small>` : '—'}</span>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-icon">铃</span>
+                    <span class="setting-main"><b>上次推送</b><small>${pushKind}</small></span>
+                    <span class="cycle-stat ${lastPush.ok === false ? 'is-bad' : ''}">${pushText}</span>
+                </div>
             </div>`;
     }
 
@@ -4514,7 +4538,6 @@
             overdueRemindDays: overdue.length ? overdue : [3, 5, 7, 10],
             autoTune: $('cycle-auto-tune').getAttribute('aria-pressed') === 'true',
             showOvulation: $('cycle-show-ovulation').getAttribute('aria-pressed') === 'true',
-            allowUserImport: $('cycle-allow-import').getAttribute('aria-pressed') === 'true',
             templates: {
                 before: {
                     title: $('cycle-tpl-before-title').value,
@@ -4540,39 +4563,24 @@
         }
     }
 
-    async function clearCycleAdmin() {
-        if (!adminData) return;
-        if ($('cycle-clear-confirm').value.trim() !== '清空') {
-            showMessage('先输入「清空」两个字', 'error');
-            return;
-        }
-        const ok = await adminConfirm({
-            title: '清空全部生理期记录？',
-            message: '会删除所有经期记录和预测历史，不能恢复。',
-            okText: '清空',
-            danger: true
-        });
-        if (!ok) return;
-        try {
-            const cycle = cycleAdmin();
-            const saved = await saveCycle([], cycle ? cycle.settings : null, null);
-            adminData.cycle = { ...saved, settings: saved.settings || (cycle && cycle.settings), items: [], prediction: null };
-            $('cycle-clear-confirm').value = '';
-            renderCycle();
-            showMessage('已清空');
-        } catch (error) {
-            showMessage(error.message || '清空失败', 'error');
-        }
-    }
-
     /* ---------- 生理期：发送测试（只管文案，不管定时） ---------- */
 
     let cycleTestKind = 'all';
+    let cycleTestTarget = 'admin';
     let cycleTesting = false;
 
     function selectedCycleTestKind() {
         const pressed = document.querySelector('#cycle-test-kinds [data-cycle-test-kind].is-on');
         return (pressed && pressed.dataset.cycleTestKind) || 'all';
+    }
+
+    function selectedCycleTestTarget() {
+        const pressed = document.querySelector('#cycle-test-targets [data-cycle-test-target].is-on');
+        return (pressed && pressed.dataset.cycleTestTarget) || 'admin';
+    }
+
+    function cycleTestTargetLabel() {
+        return cycleTestTarget === 'user' ? '她的手机' : '你的手机（大厨）';
     }
 
     function renderCycleTestPreview() {
@@ -4624,17 +4632,17 @@
             const ok = await adminConfirm({
                 title: '发送测试提醒',
                 message: kind === 'all'
-                    ? '会把三种文案各发一条到用户手机。不写发送记录，不影响定时任务。'
-                    : '会发一条到用户手机。不写发送记录，不影响定时任务。',
+                    ? `会把三种文案各发一条到${cycleTestTargetLabel()}。不写发送记录，不影响定时任务。`
+                    : `会发一条到${cycleTestTargetLabel()}。不写发送记录，不影响定时任务。`,
                 okText: '发送测试'
             });
             if (!ok) return;
-            const { results } = await sendCycleReminderTest({ kind });
+            const { results } = await sendCycleReminderTest({ kind, audience: cycleTestTarget });
             const failed = results.filter(item => !item.ok);
             showMessage(
                 failed.length
                     ? failed.map(item => `${item.kind}：${item.error}`).join('；')
-                    : `测试已发送（${results.length} 条），请看手机`,
+                    : `测试已发送（${results.length} 条）到${cycleTestTargetLabel()}，请看手机`,
                 failed.length ? 'error' : 'success'
             );
         } catch (error) {
@@ -4648,9 +4656,7 @@
     function bindCycleAdmin() {
         const save = $('cycle-save');
         if (save) save.addEventListener('click', saveCycleAdminSettings);
-        const clear = $('cycle-clear');
-        if (clear) clear.addEventListener('click', clearCycleAdmin);
-        ['cycle-remind-enabled', 'cycle-auto-tune', 'cycle-show-ovulation', 'cycle-allow-import'].forEach(id => {
+        ['cycle-remind-enabled', 'cycle-auto-tune', 'cycle-show-ovulation'].forEach(id => {
             const button = $(id);
             if (!button) return;
             button.addEventListener('click', () => {
@@ -4665,6 +4671,13 @@
                 document.querySelectorAll('[data-cycle-test-kind]').forEach(item => item.classList.remove('is-on'));
                 button.classList.add('is-on');
                 renderCycleTestPreview();
+            });
+        });
+        document.querySelectorAll('[data-cycle-test-target]').forEach(button => {
+            button.addEventListener('click', () => {
+                cycleTestTarget = button.dataset.cycleTestTarget;
+                document.querySelectorAll('[data-cycle-test-target]').forEach(item => item.classList.remove('is-on'));
+                button.classList.add('is-on');
             });
         });
     }

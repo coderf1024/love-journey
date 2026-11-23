@@ -72,14 +72,14 @@
 - 页面：`index.html` 「我们」首页按需细条 +「空间 → 生理期」子页（日历 / 预测 / 记录三视图）；`admin.html` 「系统 → 生理期」配置卡（阈值、提醒、模板、算法、清空）。
 - 数据/OSS：新增 `love-journey/db/cycle/periods.json`（含顶部 `prediction` 缓存）+ `settings.json`（管理端写、用户端读）。整份读写，参照 `milestones.json`。
 - 通知/Bark：新增事件；需要**每日定时触发**（一期最大的外部依赖，见开放问题 1）。
-- 导入：浏览器内解析 `.xlsx` / `.csv`；是否自托管 SheetJS 见开放问题 2。
+- ~~导入：浏览器内解析 `.xlsx` / `.csv`~~ → 2026-11-20 下线，历史数据改由 `scripts/cycle-history.js` 一次性写入。
 - 缓存版本：改 `index.html` / `js/app.js` / `css/style.css` / `js/store.js` 需 bump `?v=`。
 
 ## 风险与开放问题
 
 - [x] 定时方案：Cloudflare Workers Cron（已定，待账号授权）。
 - [x] 首页入口、提醒文案、区间上限、是否自动结束：已定，见 notes.md 决策记录。
-- [ ] 美柚导出文件的确切列名未验证（只有第三方摘要）。需要人实际导出一份确认。
-- [ ] 导入解析是否引入 SheetJS（约 800KB，自托管 + 懒加载）。
+- [x] 美柚导出文件的确切列名未验证 → **2026-11-20 不再需要**：用户端的文件导入、粘贴导入、手动补记全部下线。历史数据由 `scripts/cycle-history.js` 一次性写入 OSS（只认日期，不认厂商 schema），界面只剩「今天来了」。
+- [x] ~~导入解析是否引入 SheetJS~~ → 导入功能已下线，SheetJS 一并移除。
 - [x] 明文存 OSS：人已判断不敏感，接受（路径可预测，知道 `js/oss-config.js` 就能读到）。
 - [ ] 分支名与任务 ID 不一致。

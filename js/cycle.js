@@ -338,6 +338,50 @@ function cyclePredict(items, settings, today) {
     };
 }
 
+/* ---------- reading the cache ----------
+
+   预测只在 writeCycleRecords() 里算一次；读的时候只能动和「今天」有关的
+   字段：overdueDays，以及 90 天没有新记录时的 stale 状态。range / center /
+   asOf 一律原样返回——这样回测才对得上，「预测于某天生成 · 没有重算」
+   这句话也才是真的。缓存缺失（老文档、刚清空）时在内存里现算一次，不写回。
+   ------------------------------------------------------------------------ */
+
+function cycleReadPrediction(cached, items, settings, today) {
+    const now = cycleToday(today);
+    const periods = cycleNormalizePeriods(items);
+    const last = periods[periods.length - 1] || null;
+
+    /* No cache, or nothing to predict from: compute for display only and
+       never persist it. */
+    if (!cached || typeof cached !== 'object' || !cached.status || !last) {
+        return Object.assign(cyclePredict(items, settings, now), { ephemeral: true });
+    }
+
+    if (cached.status !== 'ok' || !Array.isArray(cached.range) || cached.range.length !== 2) {
+        return Object.assign({}, cached, { ephemeral: false });
+    }
+
+    const sinceLast = cycleDiffDays(last.start, now);
+    if (sinceLast > CYCLE_MAX_GAP_DAYS) {
+        return {
+            status: 'none',
+            reason: 'stale',
+            asOf: cached.asOf,
+            sampleSize: cached.sampleSize,
+            center: cached.center,
+            range: cached.range,
+            lastStart: last ? last.start : '',
+            lastEnd: (last && last.end) || '',
+            ephemeral: false
+        };
+    }
+
+    return Object.assign({}, cached, {
+        overdueDays: Math.max(0, cycleDiffDays(cached.range[1], now)),
+        ephemeral: false
+    });
+}
+
 /* ---------- ovulation ---------- */
 
 function cycleOvulation(prediction) {

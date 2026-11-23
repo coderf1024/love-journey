@@ -6,14 +6,14 @@
 
 @font-face {
     font-family: 'Ma Shan Zheng';
-    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261118-01') format('woff2');    font-weight: 400;
+    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261121-01') format('woff2');    font-weight: 400;
     font-style: normal;
     font-display: swap;
 }
 
 @font-face {
     font-family: 'Noto Serif SC';
-    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261118-01') format('woff2');    font-weight: 700;
+    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261121-01') format('woff2');    font-weight: 700;
     font-style: normal;
     font-display: swap;
 }
@@ -88,7 +88,7 @@ body::after {
 }
 
 body::before {
-    background: url('../assets/texture-noise.png?v=20261118-01') repeat;    opacity: 0.06;
+    background: url('../assets/texture-noise.png?v=20261121-01') repeat;    opacity: 0.06;
     mix-blend-mode: multiply;
 }
 
@@ -560,7 +560,7 @@ select:focus-visible {
     content: '';
     position: absolute;
     inset: 0;
-    background: url('../assets/texture-noise.png?v=20261118-01') repeat;    opacity: 0.1;
+    background: url('../assets/texture-noise.png?v=20261121-01') repeat;    opacity: 0.1;
     mix-blend-mode: soft-light;
     pointer-events: none;
 }
@@ -2241,10 +2241,10 @@ select:focus-visible {
     position: relative;
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
     width: 100%;
     margin: 30px 0 4px;
-    padding: 15px;
+    padding: 13px 15px;
     overflow: hidden;
     text-align: left;
     background: linear-gradient(135deg, rgba(255, 253, 248, 0.98), rgba(255, 239, 243, 0.92));
@@ -2271,19 +2271,15 @@ select:focus-visible {
     box-shadow: var(--shadow);
 }
 
+/* Two cards in a row cannot both carry 30px of air. Only tighten when the
+   cycle strip is actually showing above it. */
+.cycle-strip:not([hidden]) + .dinner-card { margin-top: 14px; }
+
 .dinner-body {
     flex: 1;
     min-width: 0;
     display: grid;
     gap: 1px;
-}
-
-.dinner-kicker {
-    font-family: var(--font-ui);
-    font-size: 0.56rem;
-    font-weight: 700;
-    letter-spacing: 0.18em;
-    color: var(--muted);
 }
 
 .dinner-title {
@@ -5587,114 +5583,140 @@ body.me-fixed-view .wallet-entries.me-ledger {
 
 body { --cycle: #df5f7e; --cycle-deep: #c44766; --cycle-soft: #ffe6ec; --cycle-ovu: #2f9b98; --cycle-ovu-soft: rgba(47, 155, 152, 0.16); }
 
-/* ---------- home strip ---------- */
+/* ---------- home strip ----------
+
+   Same visual family as the 小灶 card right below it: shared soft gradient,
+   large radius, one-line title, muted sub-line, and the action on the right.
+   The old pill-on-the-left version read as a different product bolted onto
+   the page. */
 .cycle-strip {
     position: relative;
     display: flex;
     align-items: center;
-    gap: 11px;
+    gap: 12px;
     width: 100%;
-    margin-top: 20px;
-    padding: 11px 13px 11px 15px;
+    margin: 20px 0 4px;
+    padding: 13px 15px;
+    overflow: hidden;
     text-align: left;
-    background: var(--paper-soft);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
+    background: linear-gradient(135deg, rgba(255, 253, 248, 0.98), rgba(255, 233, 240, 0.9));
+    border: 1px solid rgba(223, 95, 126, 0.22);
+    border-radius: var(--radius-l);
     box-shadow: var(--shadow-soft);
     transition: transform 0.22s ease, box-shadow 0.22s ease;
 }
 
 .cycle-strip[hidden] { display: none; }
 
-.cycle-strip::before {
-    content: '';
+/* The product mark, drawn the way 小灶 draws its watermark. */
+.cycle-strip::after {
+    content: '期';
     position: absolute;
-    left: 0;
-    top: 13px;
-    bottom: 13px;
-    width: 3px;
-    border-radius: 3px;
-    background: var(--cycle);
+    right: 76px;
+    top: -6px;
+    color: rgba(223, 95, 126, 0.06);
+    font-family: var(--font-cute);
+    font-size: 4.4rem;
+    line-height: 1;
+    pointer-events: none;
 }
 
-.cycle-strip:active { transform: translateY(1px); }
+.cycle-strip:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.cycle-strip:active { transform: translateY(0); }
 
 .cycle-strip.is-live {
-    background: linear-gradient(135deg, #fff7f9, #ffeff3);
-    border-color: rgba(223, 95, 126, 0.3);
+    background: linear-gradient(135deg, #fff7f9, #ffe4ec);
+    border-color: rgba(223, 95, 126, 0.38);
 }
 
-.cycle-strip.is-live::before { background: var(--cycle-deep); }
+.cycle-strip.is-overdue {
+    background: linear-gradient(135deg, rgba(255, 253, 248, 0.98), rgba(246, 240, 232, 0.95));
+    border-color: #e3d9cd;
+}
 
-.cycle-strip.is-overdue::before { background: #b3a79c; }
-
-.cycle-mark {
-    flex: 0 0 36px;
+.cycle-strip-text {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    min-width: 0;
     display: grid;
-    place-items: center;
-    width: 36px;
-    height: 36px;
-    color: var(--cycle-deep);
-    font-family: var(--font-display);
-    font-size: 0.95rem;
-    font-weight: 700;
-    line-height: 1;
-    background: var(--cycle-soft);
-    border-radius: 999px;
-    text-align: center;
+    gap: 2px;
 }
-
-.cycle-mark small {
-    display: block;
-    font-family: var(--font-body);
-    font-size: 0.5rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    opacity: 0.8;
-}
-
-.cycle-strip-text { flex: 1; min-width: 0; }
 
 .cycle-strip-text b {
-    display: block;
     font-family: var(--font-display);
-    font-size: 0.92rem;
+    font-size: 1.15rem;
     font-weight: 700;
+    line-height: 1.35;
+    color: var(--ink);
 }
 
 .cycle-strip-text small {
-    display: block;
-    margin-top: 2px;
     color: var(--muted);
-    font-size: 0.68rem;
+    font-size: 0.78rem;
     line-height: 1.5;
 }
 
-.cycle-strip-btn {
+/* Right rail mirrors the 小灶 card: a value chip on top, the action under it,
+   both flush right — that is what makes the two cards read as one system. */
+.cycle-strip-side {
+    position: relative;
+    z-index: 1;
     flex: 0 0 auto;
-    padding: 6px 12px;
-    color: #fff;
-    font-size: 0.7rem;
-    font-weight: 700;
-    background: var(--cycle);
+    display: grid;
+    justify-items: end;
+    gap: 6px;
+}
+
+.cycle-strip-mark {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 2px;
+    padding: 3px 10px;
+    color: var(--cycle-deep);
+    font-family: var(--font-display);
+    font-size: 0.92rem;
+    font-weight: 800;
+    background: rgba(223, 95, 126, 0.12);
     border-radius: 999px;
     white-space: nowrap;
 }
 
-.cycle-strip.is-ghost .cycle-strip-btn {
-    color: var(--cycle-deep);
-    background: transparent;
-    border: 1px solid rgba(223, 95, 126, 0.5);
+.cycle-strip-mark small {
+    font-family: var(--font-body);
+    font-size: 0.56rem;
+    font-weight: 600;
+    opacity: 0.85;
 }
+
+.cycle-strip-btn {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+}
+
+.cycle-strip.is-ghost .cycle-strip-btn { color: var(--cycle-deep); }
+
+.cycle-strip.is-overdue .cycle-strip-mark { color: #8a6a52; background: rgba(140, 106, 82, 0.12); }
+.cycle-strip.is-overdue .cycle-strip-btn { color: #a8846a; }
 
 /* ---------- me sub page ---------- */
 .me-menu-icon.is-cycle { background: rgba(223, 95, 126, 0.14); }
 
 .cycle-view { display: grid; gap: 14px; }
 
+/* The pane holds several cards; without this they stack flush and read as one
+   block. Gap lives here, not on .cycle-view, which only sees the tab row. */
+.cycle-pane { display: grid; gap: 12px; }
+
 .cycle-seg {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 3px;
     padding: 3px;
     background: var(--paper-soft);
@@ -5714,6 +5736,57 @@ body { --cycle: #df5f7e; --cycle-deep: #c44766; --cycle-soft: #ffe6ec; --cycle-o
     font-weight: 700;
     background: var(--ink);
 }
+
+/* forecast card — the summary that replaced the 预测 tab */
+.cycle-forecast {
+    position: relative;
+    display: grid;
+    gap: 2px;
+    width: 100%;
+    padding: 15px 44px 15px 17px;
+    text-align: left;
+    background:
+        radial-gradient(120% 140% at 100% 0%, rgba(223, 95, 126, 0.14), transparent 58%),
+        var(--paper-soft);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-soft);
+}
+
+.cycle-forecast:active { transform: translateY(1px); }
+
+.cycle-forecast-label {
+    color: var(--muted);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+}
+
+.cycle-forecast-main {
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.cycle-forecast-main b { font-size: 1.55rem; }
+.cycle-forecast-range { color: var(--muted); font-size: 0.68rem; }
+
+.cycle-forecast-go {
+    position: absolute;
+    right: 15px;
+    bottom: 15px;
+    color: var(--cycle-deep);
+    font-size: 0.66rem;
+    font-weight: 600;
+}
+
+.cycle-forecast.is-live .cycle-forecast-main,
+.cycle-forecast.is-live .cycle-forecast-go { color: var(--cycle-deep); }
+.cycle-forecast.is-overdue { background: var(--paper-soft); border-color: #e3d9cd; }
+.cycle-forecast.is-overdue .cycle-forecast-main { color: #8a6a52; }
+.cycle-forecast.is-overdue .cycle-forecast-go { color: #b8a08a; }
+.cycle-forecast.is-empty .cycle-forecast-main { font-family: var(--font-body); font-size: 0.9rem; }
 
 /* hero */
 .cycle-hero {
@@ -5896,6 +5969,14 @@ body { --cycle: #df5f7e; --cycle-deep: #c44766; --cycle-soft: #ffe6ec; --cycle-o
     color: var(--muted);
     font-size: 0.68rem;
     line-height: 1.65;
+}
+
+.cycle-note code {
+    padding: 1px 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.65rem;
+    background: rgba(43, 34, 49, 0.06);
+    border-radius: 4px;
 }
 
 .cycle-dotline {
@@ -6228,16 +6309,6 @@ body { --cycle: #df5f7e; --cycle-deep: #c44766; --cycle-soft: #ffe6ec; --cycle-o
     border-radius: 999px;
 }
 
-.cycle-day.is-today::after {
-    content: '';
-    position: absolute;
-    bottom: 3px;
-    width: 4px;
-    height: 4px;
-    background: var(--ink);
-    border-radius: 999px;
-}
-
 .cycle-day.is-import::after {
     content: '';
     position: absolute;
@@ -6249,13 +6320,35 @@ body { --cycle: #df5f7e; --cycle-deep: #c44766; --cycle-soft: #ffe6ec; --cycle-o
     border-radius: 999px;
 }
 
-.cycle-day.is-today.is-import::after {
-    top: 5px;
-    right: 8px;
-    bottom: auto;
+/* Today carries its own layer: a bigger bold number and an underline drawn on
+   the inner span. A ring would collide with the ovulation circle (and a filled
+   period cell has no room for one), and the old 4px dot was swallowed by the
+   import dot whenever today happened to be an imported day. */
+.cycle-day.is-today > span {
+    font-weight: 700;
+    font-size: 0.86rem;
+    color: var(--ink);
 }
 
-.cycle-day.is-today.is-import::before { content: none; }
+.cycle-day.is-today > span::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    /* The span is a 22.7px line box around a 13.76px glyph, so its bottom edge
+       is ~4px below the digits. Anchoring 3px up puts the rule just under the
+       glyph and still inside the 30px period circle. */
+    bottom: 3px;
+    width: 13px;
+    height: 2px;
+    margin-left: -6.5px;
+    background: var(--ink);
+    border-radius: 2px;
+}
+
+.cycle-day.is-today.is-period > span { color: #fff; }
+.cycle-day.is-today.is-period > span::after { background: #fff; }
+.cycle-day.is-today.is-prediction > span,
+.cycle-day.is-today.is-ovulation > span { color: var(--ink); }
 
 .cycle-cal-legend {
     display: flex;
@@ -6276,7 +6369,7 @@ body { --cycle: #df5f7e; --cycle-deep: #c44766; --cycle-soft: #ffe6ec; --cycle-o
 .cycle-cal-legend i.is-ring { border: 1.5px dashed rgba(223, 95, 126, 0.85); }
 .cycle-cal-legend i.is-band { background: var(--cycle-ovu-soft); border-radius: 3px; width: 11px; }
 .cycle-cal-legend i.is-ovu { border: 1.5px solid rgba(47, 155, 152, 0.9); }
-.cycle-cal-legend i.is-today { background: var(--ink); width: 4px; height: 4px; }
+.cycle-cal-legend i.is-today { background: var(--ink); width: 10px; height: 2px; border-radius: 2px; }
 .cycle-cal-legend i.is-import { background: #c9a227; width: 4px; height: 4px; }
 
 /* sheet internals */
@@ -6368,62 +6461,6 @@ body { --cycle: #df5f7e; --cycle-deep: #c44766; --cycle-soft: #ffe6ec; --cycle-o
     border: 0;
     outline: none;
 }
-
-.cycle-steps { display: flex; gap: 5px; margin-bottom: 12px; }
-.cycle-steps i { flex: 1; height: 3px; background: #e3ddd6; border-radius: 3px; }
-.cycle-steps i.is-on { background: var(--cycle); }
-
-/* import mapping */
-.cycle-map-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 0;
-    border-bottom: 1px dashed var(--line);
-    font-size: 0.72rem;
-}
-
-.cycle-map-row:last-child { border-bottom: 0; }
-
-.cycle-map-src {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    padding: 4px 7px;
-    color: #6d645e;
-    font-family: var(--font-ui);
-    font-size: 0.66rem;
-    background: #f2eee8;
-    border-radius: 6px;
-}
-
-.cycle-map-arrow { color: #bcb4ad; }
-
-.cycle-map-select {
-    flex: 0 0 118px;
-    padding: 5px 6px;
-    color: var(--ink-2);
-    font-size: 0.68rem;
-    background: var(--paper-soft);
-    border: 1px solid var(--line-strong);
-    border-radius: 8px;
-}
-
-.cycle-drop {
-    display: grid;
-    place-items: center;
-    gap: 6px;
-    padding: 24px 14px;
-    text-align: center;
-    border: 1.5px dashed var(--line-strong);
-    border-radius: 14px;
-    background: rgba(255, 253, 248, 0.6);
-}
-
-.cycle-drop b { font-size: 0.85rem; }
-.cycle-drop small { color: var(--muted); font-size: 0.66rem; }
 
 /* saved dialog */
 .dialog-panel-cycle {

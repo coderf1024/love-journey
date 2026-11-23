@@ -1,11 +1,10 @@
 /* ============================================================
    生理期 · 界面层
-   Owns the home strip, the 空间 sub-page (calendar / forecast /
-   records), the record sheets, the import flow and the saved dialog.
+   Owns the home strip, the 空间 sub-page (calendar / list), the record
+   sheets and the saved dialog. History import is not a UI feature: it is a
+   one-off OSS write (scripts/cycle-history.js).
    Data comes from js/store.js; maths comes from js/cycle.js.
    ============================================================ */
-
-const CYCLE_XLSX_SRC = 'assets/vendor/xlsx.mini.min.js?v=20261118-01';
 
 const CycleUI = (() => {
     const ui = {
@@ -17,11 +16,6 @@ const CycleUI = (() => {
         view: 'calendar',
         month: null,
         lastSaved: null,
-        importStep: null,
-        importFile: null,
-        importTable: null,
-        importMapping: null,
-        importEntries: null,
         busy: false
     };
 
@@ -100,13 +94,16 @@ const CycleUI = (() => {
         }
 
         if (!prediction || prediction.status !== 'ok') {
+            // 90 天没有新记录时不再预测；这时候「记满 3 次」的提示是错的，
+            // 她已经记过，只是太久了。
+            const stale = !!prediction && prediction.reason === 'stale';
             return {
                 live: false,
                 ghost: false,
                 mark: '?',
                 markSub: '',
-                title: '开始记录吧',
-                sub: '记满 3 次就能预测',
+                title: stale ? '该记一次了' : '开始记录吧',
+                sub: stale ? '上次记录在 90 天以前' : '记满 3 次就能预测',
                 cta: '今天来了',
                 action: 'start'
             };
@@ -135,7 +132,7 @@ const CycleUI = (() => {
             mark: days <= 0 ? '今' : String(days),
             markSub: days <= 0 ? '' : '天后',
             title: days <= 0 ? '可能就是今天' : `大概快来了`,
-            sub: `预计 ${cycleFmtShort(prediction.range[0])} – ${cycleFmtShort(prediction.range[1])} · ${prediction.sampleSize} 个周期`,
+            sub: `${cycleFmtShort(prediction.range[0])} – ${cycleFmtShort(prediction.range[1])} · ${prediction.sampleSize} 个周期`,
             cta: '记录',
             action: 'start'
         };
@@ -203,8 +200,10 @@ const CycleUI = (() => {
             return;
         }
         if (!prediction || prediction.status !== 'ok') {
-            sub.textContent = ui.items.length ? '数据还不够，再记几次' : '还没开始记录';
-            value.textContent = '';
+            const stale = !!prediction && prediction.reason === 'stale';
+            sub.textContent = stale ? '上次记录在 90 天以前'
+                : (ui.items.length ? '数据还不够，再记几次' : '还没开始记录');
+            value.textContent = stale ? '该记一次了' : '';
             return;
         }
         if (prediction.overdueDays > 0) {
@@ -219,7 +218,10 @@ const CycleUI = (() => {
 
     /* ---------- hero panes ---------- */
 
-    function heroHTML() {
+    /* `actions: false` is for the forecast sheet: it explains, it does not
+       record. Recording lives on the calendar page only. */
+    function heroHTML(options = {}) {
+        const withActions = options.actions !== false;
         const now = today();
         const active = cycleActivePeriod(ui.items, now);
         const prediction = ui.prediction;
@@ -245,10 +247,11 @@ const CycleUI = (() => {
                         <span>${esc(cycleFmtShort(expectedEnd))} 预计结束</span>
                     </div>
                 </div>
+                ${withActions ? `
                 <div class="cycle-btn-row cycle-actions">
                     <button class="cycle-btn primary" type="button" data-cycle-action="end">今天结束了</button>
                     <button class="cycle-btn ghost" type="button" data-cycle-action="edit-active">记录细节</button>
-                </div>`;
+                </div>` : ''}`;
         }
 
         if (!prediction || prediction.status !== 'ok') {
@@ -274,10 +277,10 @@ const CycleUI = (() => {
                         : count >= need ? '记录够了，但周期还不够稳定' : `再记 ${need - count} 次就能开始预测`}</div>
                     <div class="cycle-hero-meta">数据不够时不硬给日期，日历上也不画预测</div>
                 </div>
-                <div class="cycle-btn-row cycle-actions">
+                ${withActions ? `
+                <div class="cycle-actions">
                     <button class="cycle-btn primary" type="button" data-cycle-action="start">今天来了</button>
-                    ${settings.allowUserImport ? '<button class="cycle-btn ghost" type="button" data-cycle-action="import">从美柚导入</button>' : ''}
-                </div>`;
+                </div>` : ''}`;
         }
 
         if (prediction.overdueDays > 0) {
@@ -299,10 +302,10 @@ const CycleUI = (() => {
                     如果已经来了，记一下为准；如果确实还没来，也可以再等等。<br>
                     过期第 ${settings.overdueRemindDays.join(' / ')} 天各提醒一次，之后不再提。
                 </div>
-                <div class="cycle-btn-row cycle-actions">
+                ${withActions ? `
+                <div class="cycle-actions">
                     <button class="cycle-btn primary" type="button" data-cycle-action="start">今天来了</button>
-                    <button class="cycle-btn ghost" type="button" data-cycle-action="backfill">补记前几天</button>
-                </div>`;
+                </div>` : ''}`;
         }
 
         const days = cycleDiffDays(now, prediction.range[0]);
@@ -324,9 +327,10 @@ const CycleUI = (() => {
                     <span>${esc(cycleFmtShort(prediction.center))} 预计</span>
                 </div>
             </div>
+            ${withActions ? `
             <div class="cycle-actions">
                 <button class="cycle-btn primary" type="button" data-cycle-action="start">今天来了</button>
-            </div>`;
+            </div>` : ''}`;
     }
 
     function escapeMeta(active, prediction) {
@@ -471,14 +475,14 @@ const CycleUI = (() => {
         const ovulation = settings.showOvulation ? cycleOvulation(ui.prediction) : null;
         const prediction = ui.prediction;
         const active = cycleActivePeriod(ui.items, today());
-        const upcoming = prediction && prediction.status === 'ok'
-            ? `<div class="cycle-kv"><span>下一次</span><b style="color:var(--cycle-deep)">${esc(cycleFmtShort(prediction.range[0]))} – ${esc(cycleFmtShort(prediction.range[1]))}</b></div>`
-            : '<div class="cycle-kv"><span>下一次</span><b>数据还不够</b></div>';
+        /* 下一次预测已经在顶部卡片里，这里只留日历回答不了的事实：
+           上一次什么时候、排卵日、周期多长。 */
         const ovuRow = ovulation
             ? `<div class="cycle-kv"><span>排卵日</span><b style="color:var(--cycle-ovu)">${esc(cycleFmtShort(ovulation.day))}</b></div>`
             : '';
 
         return `
+            ${forecastCardHTML()}
             <div class="cycle-card">
                 <div class="cycle-cal-head">
                     <b>${esc(cycleMonthLabel(year, month))}</b>
@@ -505,7 +509,6 @@ const CycleUI = (() => {
                 ${active
                     ? `<div class="cycle-kv"><span>进行中</span><b>${esc(cycleFmtShort(active.start))} – 至今 · 第 ${cycleDiffDays(active.start, today()) + 1} 天</b></div>`
                     : `<div class="cycle-kv"><span>上次</span><b>${esc(lastPeriodLabel())}</b></div>`}
-                ${upcoming}
                 ${ovuRow}
                 ${prediction && prediction.status === 'ok' ? `<div class="cycle-kv"><span>周期</span><b>${prediction.cycleLength} 天</b></div>` : ''}
             </div>`;
@@ -532,15 +535,19 @@ const CycleUI = (() => {
 
     /* ---------- views ---------- */
 
+    /* Two tabs only: the calendar is the page, the list is the archive. The
+       forecast is no longer its own tab — it is a summary strip above the
+       calendar, and everything behind it (range, samples, backtest, why) opens
+       in a sheet. A separate tab made people choose between "when is it" and
+       "what happened", which are the same question. */
     function renderSubPage() {
         const body = $('me-sub-body');
         if (!body) return;
-        const view = ui.view;
+        const view = ui.view === 'records' ? 'records' : 'calendar';
         const settings = settingsSafe();
         const tabs = [
             ['calendar', '日历'],
-            ['forecast', '预测'],
-            ['records', '记录']
+            ['records', '列表']
         ];
         body.innerHTML = `
             <div class="cycle-view">
@@ -549,31 +556,89 @@ const CycleUI = (() => {
                         <button type="button" role="tab" aria-selected="${view === id}" class="${view === id ? 'is-active' : ''}" data-cycle-view="${id}">${label}</button>
                     `).join('')}
                 </div>
-                <div id="cycle-pane">
-                    ${view === 'calendar' ? calendarHTML() : ''}
-                    ${view === 'forecast' ? forecastHTML() : ''}
-                    ${view === 'records' ? recordsHTML() + recordsActionsHTML(settings) : ''}
+                <div class="cycle-pane" id="cycle-pane">
+                    ${view === 'calendar' ? calendarHTML() + recordsActionsHTML(settings) : ''}
+                    ${view === 'records' ? recordsHTML() : ''}
                 </div>
             </div>`;
     }
 
-    /* The forecast tab used to stack hero + a five-row evidence card + a
-       chart + the last six records, which repeated what 记录 already shows.
-       Order here is "answer → why → how sure", and the record list is gone. */
-    function forecastHTML() {
+    /* The forecast used to be a full tab that stacked hero + evidence +
+       backtest + records. Now it is a card at the top of the calendar that
+       answers "when", and the detail behind it lives in a sheet. */
+    function forecastCardHTML() {
         const prediction = ui.prediction;
-        const hasPrediction = prediction && prediction.status === 'ok';
-        return heroHTML() + (hasPrediction ? backtestHTML() + evidenceHTML() : recordsHTML(3));
+        const now = today();
+        const active = cycleActivePeriod(ui.items, now);
+        const settings = settingsSafe();
+        const overdueDays = settings.overdueRemindDays.join(' / ');
+
+        if (active) {
+            const dayIndex = cycleDiffDays(active.start, now) + 1;
+            return `
+                <button class="cycle-forecast is-live" type="button" data-cycle-forecast>
+                    <span class="cycle-forecast-label">经期中</span>
+                    <span class="cycle-forecast-main">第 <b>${dayIndex}</b> 天</span>
+                    <span class="cycle-forecast-range">${esc(cycleFmtShort(active.start))} 开始</span>
+                    <span class="cycle-forecast-go">详情 ›</span>
+                </button>`;
+        }
+
+        if (!prediction || prediction.status !== 'ok') {
+            const stale = !!prediction && prediction.reason === 'stale';
+            const count = ui.items.length;
+            return `
+                <button class="cycle-forecast is-empty" type="button" data-cycle-forecast>
+                    <span class="cycle-forecast-label">还不预测</span>
+                    <span class="cycle-forecast-main">${stale ? '该记一次了' : `${Math.min(count, 3)}/3 次记录`}</span>
+                    <span class="cycle-forecast-range">${stale ? '上次记录在 90 天以前' : count >= 3 ? '记录够了，周期还不够稳定' : '记满 3 次就能预测'}</span>
+                    <span class="cycle-forecast-go">详情 ›</span>
+                </button>`;
+        }
+
+        if (prediction.overdueDays > 0) {
+            return `
+                <button class="cycle-forecast is-overdue" type="button" data-cycle-forecast>
+                    <span class="cycle-forecast-label">已过预计时间</span>
+                    <span class="cycle-forecast-main"><b>${prediction.overdueDays}</b> 天</span>
+                    <span class="cycle-forecast-range">当时预计 ${esc(cycleFmtShort(prediction.range[0]))} – ${esc(cycleFmtShort(prediction.range[1]))}</span>
+                    <span class="cycle-forecast-go">详情 ›</span>
+                </button>`;
+        }
+
+        const days = cycleDiffDays(now, prediction.range[0]);
+        return `
+            <button class="cycle-forecast" type="button" data-cycle-forecast>
+                <span class="cycle-forecast-label">距离下次</span>
+                <span class="cycle-forecast-main"><b>${days > 0 ? days : '今'}</b>${days > 0 ? ' 天' : ''}</span>
+                <span class="cycle-forecast-range">预计 ${esc(cycleFmtShort(prediction.range[0]))} – ${esc(cycleFmtShort(prediction.range[1]))}</span>
+                <span class="cycle-forecast-go">详情 ›</span>
+            </button>`;
     }
 
-    function recordsActionsHTML(settings) {
+    /* Everything the old forecast tab showed, now behind the card. Order is
+       answer → how sure → how it was computed. */
+    function openForecastSheet() {
+        const body = $('cycle-forecast-body');
+        if (!body) return;
+        const prediction = ui.prediction;
+        const hasPrediction = prediction && prediction.status === 'ok';
+        body.innerHTML = `
+            <div class="cycle-sheet-title">预测</div>
+            <p class="cycle-sheet-sub">一次只算下一次，区间固定 3 天。</p>
+            <div class="cycle-pane">
+                ${heroHTML({ actions: false })}
+                ${hasPrediction ? backtestHTML() + evidenceHTML() : ''}
+            </div>`;
+        openSheet('cycle-forecast-sheet');
+    }
+
+    /* 2026-11-20：导入和补记入口按人的要求下线。历史数据由脚本一次性写入
+       OSS（scripts/cycle-history.js），界面只留「今天来了」这一个写入口。 */
+    function recordsActionsHTML() {
         return `
             <div class="cycle-actions">
                 <button class="cycle-btn primary" type="button" data-cycle-action="start">今天来了</button>
-                <div class="cycle-btn-row">
-                    <button class="cycle-btn ghost" type="button" data-cycle-action="backfill">补记</button>
-                    ${settings.allowUserImport ? '<button class="cycle-btn ghost" type="button" data-cycle-action="import">从美柚导入</button>' : ''}
-                </div>
             </div>`;
     }
 
@@ -596,33 +661,18 @@ const CycleUI = (() => {
 
     /* ---------- record flow ---------- */
 
-    function openRecordSheet(mode) {
+    /* 唯一的写入口：今天来了。没有补记、没有导入——历史数据由
+       scripts/cycle-history.js 一次性写 OSS。 */
+    function openRecordSheet() {
         const body = $('cycle-record-body');
         if (!body) return;
         const now = today();
         const iso = cycleDayKey(now);
-        const active = cycleActivePeriod(ui.items, now);
 
-        if (mode === 'ask') {
-            body.innerHTML = `
-                <div class="cycle-sheet-title">记一笔</div>
-                <p class="cycle-sheet-sub">今天（${esc(cycleFmtShort(iso))}）开始。日期不对可以改。</p>
-                <button class="cycle-opt is-primary" type="button" data-cycle-opt="today">
-                    <span class="cycle-opt-icon">✓</span>
-                    <span class="cycle-opt-main"><b>就是今天，${esc(cycleFmtShort(iso))}</b><span class="cycle-opt-sub">记完直接回上一页</span></span>
-                </button>
-                <button class="cycle-opt" type="button" data-cycle-opt="backfill">
-                    <span class="cycle-opt-icon">↺</span>
-                    <span class="cycle-opt-main"><b>其实前几天就来了</b><span class="cycle-opt-sub">补记开始日期</span></span>
-                </button>`;
-            openSheet('cycle-record-sheet');
-            return;
-        }
-
-        const startValue = mode === 'backfill' ? cycleDayKey(cycleAddDays(now, -2)) : iso;
+        const startValue = iso;
         body.innerHTML = `
             <div class="cycle-sheet-title">什么时候开始的？</div>
-            <p class="cycle-sheet-sub">补记得越准，预测越准。记不清就选「记不清了」。</p>
+            <p class="cycle-sheet-sub">默认是今天，日期不对可以改。</p>
             <div class="cycle-date-row">
                 <div class="cycle-date-field">
                     <label for="cycle-start-input">开始</label>
@@ -636,12 +686,11 @@ const CycleUI = (() => {
             <div class="cycle-chips" data-cycle-quick>
                 ${[0, 1, 2].map(offset => {
                     const day = cycleDayKey(cycleAddDays(now, -offset));
-                    return `<button class="cycle-chip${offset === (mode === 'backfill' ? 2 : 0) ? ' is-on' : ''}" type="button" data-cycle-quick-day="${day}">${esc(cycleFmtShort(day))}</button>`;
+                    return `<button class="cycle-chip${offset === 0 ? ' is-on' : ''}" type="button" data-cycle-quick-day="${day}">${esc(cycleFmtShort(day))}</button>`;
                 }).join('')}
                 <button class="cycle-chip is-empty" type="button" data-cycle-quick-uncertain>记不清了</button>
             </div>
             <button class="cycle-btn primary" style="margin-top:14px" type="button" data-cycle-opt="save" id="cycle-save-btn">保存</button>`;
-        body.dataset.mode = mode;
         body.dataset.uncertain = '';
         openSheet('cycle-record-sheet');
     }
@@ -757,12 +806,7 @@ const CycleUI = (() => {
                 await handleAction('end');
                 return;
             }
-            openRecordSheet('ask');
-            return;
-        }
-        if (action === 'backfill') {
-            await load();
-            openRecordSheet('backfill');
+            openRecordSheet();
             return;
         }
         if (action === 'edit-active') {
@@ -780,9 +824,6 @@ const CycleUI = (() => {
                 toast('已记下结束');
             });
             return;
-        }
-        if (action === 'import') {
-            openImport();
         }
     }
 
@@ -873,6 +914,38 @@ const CycleUI = (() => {
         openSheet('cycle-day-sheet');
     }
 
+    /* 列表 tab 是只读的档案：看发生过什么，不改。修改/删除在日历里点那一天。 */
+    function openRecordView(id) {
+        const period = ui.items.find(item => item.id === id);
+        if (!period) return;
+        const body = $('cycle-record-body');
+        if (!body) return;
+        const now = today();
+        const index = ui.items.findIndex(entry => entry.id === id);
+        const previous = index > 0 ? ui.items[index - 1] : null;
+        const gap = previous ? cycleDiffDays(previous.start, period.start) : null;
+        const length = cyclePeriodLength(period);
+        const active = cycleIsActive(period, now);
+        const flowLabels = { light: '少', normal: '正常', heavy: '多' };
+        body.innerHTML = `
+            <div class="cycle-sheet-title">${esc(cycleFmtLong(period.start))}</div>
+            <p class="cycle-sheet-sub">${esc(cycleWeekday(period.start))}${period.source === 'import' ? ' · 美柚导入' : ''}${period.uncertain ? ' · 记不清' : ''}</p>
+            <div class="cycle-card" style="margin-top:12px">
+                <div class="cycle-kv"><span>开始</span><b>${esc(cycleFmtShort(period.start))}</b></div>
+                <div class="cycle-kv"><span>结束</span><b>${period.end ? esc(cycleFmtShort(period.end)) : active ? '进行中' : '单日'}</b></div>
+                <div class="cycle-kv"><span>持续</span><b>${active ? `第 ${cycleDiffDays(period.start, now) + 1} 天` : length ? `${length} 天` : '—'}</b></div>
+                <div class="cycle-kv"><span>距上次</span><b>${gap != null ? `${gap} 天` : '—'}</b></div>
+                ${period.flow ? `<div class="cycle-kv"><span>流量</span><b>${esc(flowLabels[period.flow] || period.flow)}</b></div>` : ''}
+                ${period.symptoms && period.symptoms.length ? `<div class="cycle-kv"><span>症状</span><b>${esc(period.symptoms.join(' · '))}</b></div>` : ''}
+            </div>
+            <p class="cycle-sheet-sub" style="margin-top:12px">要修改或删除，去「日历」点这一天。</p>`;
+        // Drop any editing state left by a previous 修改 sheet.
+        delete body.dataset.editingId;
+        delete body.dataset.flow;
+        delete body.dataset.symptoms;
+        openSheet('cycle-record-sheet');
+    }
+
     function openRecordDetail(id) {
         const period = ui.items.find(item => item.id === id);
         if (!period) return;
@@ -933,140 +1006,6 @@ const CycleUI = (() => {
         }, '保存中…');
     }
 
-    /* ---------- import ---------- */
-
-    function openImport() {
-        const body = $('cycle-import-body');
-        if (!body) return;
-        ui.importStep = 'pick';
-        ui.importFile = null;
-        ui.importTable = null;
-        ui.importMapping = null;
-        ui.importEntries = null;
-        renderImport();
-        openSheet('cycle-import-sheet');
-    }
-
-    function renderImport() {
-        const body = $('cycle-import-body');
-        if (!body) return;
-        const step = ui.importStep;
-
-        if (step === 'pick') {
-            body.innerHTML = `
-                <div class="cycle-steps"><i class="is-on"></i><i></i><i></i></div>
-                <div class="cycle-sheet-title">从美柚导入</div>
-                <p class="cycle-sheet-sub">在美柚里打开「记录 → 分析 → 导出数据」，把文件保存到手机，再从这里选。</p>
-                <button class="cycle-drop" type="button" data-cycle-import="file" style="width:100%;margin-top:12px">
-                    <b>选择文件</b>
-                    <small>支持 .xlsx / .csv · 只在浏览器里解析</small>
-                </button>
-                <input id="cycle-import-file" type="file" accept=".xlsx,.xls,.csv,text/csv" hidden>
-                <div class="cycle-card" style="margin-top:12px">
-                    <div class="cycle-card-head">文件不会离开这台设备</div>
-                    <p class="cycle-note">解析在本地完成，只有你确认后的经期记录会写入空间。原始文件不保存、不上传。</p>
-                </div>
-                <div class="cycle-banner" style="margin-top:12px">找不到导出入口也没关系，可以直接手动补录最近 3–6 次，预测一样能跑起来。</div>
-                <div class="cycle-actions" style="margin-top:12px">
-                    <button class="cycle-btn ghost" type="button" data-cycle-action="backfill">手动补录</button>
-                </div>`;
-            return;
-        }
-
-        if (step === 'map') {
-            const headers = ui.importTable.headers;
-            const mapping = ui.importMapping;
-            body.innerHTML = `
-                <div class="cycle-steps"><i class="is-on"></i><i class="is-on"></i><i></i></div>
-                <div class="cycle-sheet-title">确认字段</div>
-                <p class="cycle-sheet-sub">自动识别了 ${mapping.filter(Boolean).length} 个字段。对不上的可以手动改。</p>
-                <div class="cycle-card" style="margin-top:12px">
-                    ${headers.map((header, index) => `
-                        <div class="cycle-map-row">
-                            <span class="cycle-map-src" title="${esc(header)}">${esc(header || `第 ${index + 1} 列`)}</span>
-                            <span class="cycle-map-arrow">→</span>
-                            <select class="cycle-map-select" data-cycle-map="${index}">
-                                <option value="">忽略</option>
-                                ${CYCLE_IMPORT_FIELDS.map(field => `
-                                    <option value="${field.id}" ${mapping[index] === field.id ? 'selected' : ''}>${esc(field.label)}</option>
-                                `).join('')}
-                            </select>
-                        </div>
-                    `).join('')}
-                </div>
-                <div class="cycle-banner is-warn" style="margin-top:12px">「预测」一类的列不要映射进来——那是美柚的推算，不是发生过的事实。</div>
-                <div class="cycle-actions" style="margin-top:12px">
-                    <button class="cycle-btn primary" type="button" data-cycle-import="preview">下一步 · 预览</button>
-                </div>`;
-            return;
-        }
-
-        if (step === 'preview') {
-            const result = ui.importEntries || { entries: [], bad: 0 };
-            const first = result.entries.slice(0, 3);
-            body.innerHTML = `
-                <div class="cycle-steps"><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i></div>
-                <div class="cycle-sheet-title">预览</div>
-                <p class="cycle-sheet-sub">识别出 ${result.entries.length} 次经期（${result.shape === 'day' ? '按每日记录合并' : '按开始/结束列'}）。</p>
-                <div class="cycle-card" style="margin-top:12px">
-                    <div class="cycle-kv"><span>可导入</span><b>${result.entries.length} 次</b></div>
-                    <div class="cycle-kv"><span>最早</span><b>${esc(result.entries.length ? result.entries[0].start : '—')}</b></div>
-                    <div class="cycle-kv"><span>最晚</span><b>${esc(result.entries.length ? result.entries[result.entries.length - 1].start : '—')}</b></div>
-                    <div class="cycle-kv"><span>格式异常</span><b>${result.bad ? `${result.bad} 行（已忽略）` : '无'}</b></div>
-                </div>
-                ${first.length ? `
-                    <div class="cycle-card" style="margin-top:10px">
-                        <div class="cycle-card-head">最前面 ${first.length} 条</div>
-                        <div class="cycle-records">
-                            ${first.map(entry => `
-                                <div class="cycle-record is-import">
-                                    <span class="cycle-record-dot"></span>
-                                    <span class="cycle-record-main">
-                                        <b>${esc(entry.start)}${entry.end ? ` – ${esc(entry.end)}` : ''}</b>
-                                        <small>${entry.end ? cycleDiffDays(entry.start, entry.end) + 1 + ' 天' : '单日'}</small>
-                                    </span>
-                                </div>`).join('')}
-                        </div>
-                    </div>` : ''}
-                <div class="cycle-actions" style="margin-top:12px">
-                    <button class="cycle-btn primary" type="button" data-cycle-import="commit" ${result.entries.length ? '' : 'disabled'}>导入 ${result.entries.length} 次</button>
-                </div>
-                <p class="cycle-note" style="text-align:center">开始日期相同即视为同一次，已存在的会跳过</p>`;
-        }
-    }
-
-    async function readImportFile(file) {
-        if (!file) return;
-        await guard(async () => {
-            const rows = await cycleImportReadTable(file);
-            ui.importFile = file;
-            ui.importTable = cycleImportAnalyze(rows);
-            ui.importMapping = ui.importTable.mapping.slice();
-            ui.importStep = 'map';
-            renderImport();
-        }, '解析中…');
-    }
-
-    function buildPreview() {
-        const table = ui.importTable;
-        if (!table) return;
-        const result = cycleImportBuildEntries(table.headers, ui.importMapping, table.body);
-        ui.importEntries = result;
-        ui.importStep = 'preview';
-        renderImport();
-    }
-
-    async function commitImport() {
-        const result = ui.importEntries;
-        if (!result || !result.entries.length) return;
-        await guard(async () => {
-            const saved = await importCyclePeriods(result.entries);
-            apply(saved.state);
-            closeSheet('cycle-import-sheet');
-            toast(`导入了 ${saved.added} 次，跳过 ${saved.skipped} 次`);
-        }, '导入中…');
-    }
-
     /* ---------- render entry points ---------- */
 
     function renderSubPageIfOpen() {
@@ -1109,6 +1048,12 @@ const CycleUI = (() => {
                 return;
             }
 
+            const forecastBtn = target.closest('[data-cycle-forecast]');
+            if (forecastBtn) {
+                openForecastSheet();
+                return;
+            }
+
             const whyToggle = target.closest('[data-cycle-why-toggle]');
             if (whyToggle) {
                 const panel = $('cycle-why');
@@ -1130,6 +1075,7 @@ const CycleUI = (() => {
             if (actionBtn && !strip) {
                 event.preventDefault();
                 closeSheet('cycle-day-sheet');
+                closeSheet('cycle-forecast-sheet');
                 await handleAction(actionBtn.dataset.cycleAction);
                 return;
             }
@@ -1142,7 +1088,7 @@ const CycleUI = (() => {
 
             const recordBtn = target.closest('[data-cycle-record]');
             if (recordBtn) {
-                openRecordDetail(recordBtn.dataset.cycleRecord);
+                openRecordView(recordBtn.dataset.cycleRecord);
                 return;
             }
 
@@ -1159,10 +1105,6 @@ const CycleUI = (() => {
                         openEditResult({ ...result.state, entry }, 'new', before);
                         toast('已记录');
                     }, '保存中…');
-                    return;
-                }
-                if (mode === 'backfill') {
-                    openRecordSheet('backfill');
                     return;
                 }
                 if (mode === 'save') {
@@ -1256,43 +1198,11 @@ const CycleUI = (() => {
                 return;
             }
 
-            const importBtn = target.closest('[data-cycle-import]');
-            if (importBtn) {
-                const step = importBtn.dataset.cycleImport;
-                if (step === 'file') {
-                    const input = $('cycle-import-file');
-                    if (input) input.click();
-                    return;
-                }
-                if (step === 'preview') {
-                    await guard(async () => buildPreview(), '');
-                    return;
-                }
-                if (step === 'commit') {
-                    await commitImport();
-                }
-                return;
-            }
-
             const savedBtn = target.closest('[data-cycle-saved]');
             if (savedBtn) {
                 if (savedBtn.dataset.cycleSaved === 'undo') await undoLastSaved();
                 else closeSavedDialog();
                 return;
-            }
-        });
-
-        document.addEventListener('change', event => {
-            const mapSelect = event.target.closest('[data-cycle-map]');
-            if (mapSelect) {
-                const index = Number(mapSelect.dataset.cycleMap);
-                ui.importMapping[index] = mapSelect.value;
-                return;
-            }
-
-            const fileInput = event.target.closest('#cycle-import-file');
-            if (fileInput && fileInput.files && fileInput.files[0]) {
-                readImportFile(fileInput.files[0]);
             }
         });
 

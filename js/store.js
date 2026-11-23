@@ -1823,7 +1823,6 @@ const CYCLE_DEFAULT_SETTINGS = {
     autoTune: true,
     algorithmOverride: null,
     showOvulation: true,
-    allowUserImport: true,
     lastPush: { date: '', kind: '', ok: null }
 };
 
@@ -1870,7 +1869,6 @@ function normalizeCycleSettings(raw) {
             }
             : null,
         showOvulation: value.showOvulation !== false,
-        allowUserImport: value.allowUserImport !== false,
         lastPush: {
             date: String((value.lastPush && value.lastPush.date) || ''),
             kind: String((value.lastPush && value.lastPush.kind) || ''),
@@ -1887,23 +1885,40 @@ async function loadCycle() {
         dbGetOrNull(CYCLE_SETTINGS_PATH)
     ]);
     const items = cycleNormalizePeriods(periodsDoc && periodsDoc.items);
+    /* Missing document = the feature was never configured. The browser default
+       is "on", which is right for a space that already runs it; for a space
+       that has never saved, default the reminder off so the first visit to the
+       admin page cannot silently switch the Worker on. */
+    const settingsExists = !!settingsDoc;
     const settings = normalizeCycleSettings(settingsDoc);
-    const prediction = recalcCyclePrediction(items, settings);
+    if (!settingsExists) settings.remindEnabled = false;
+    const prediction = readCyclePrediction(periodsDoc, items, settings);
     return {
         items,
         settings,
+        settingsExists,
         prediction,
         updatedAt: String((periodsDoc && periodsDoc.updatedAt) || '')
     };
 }
 
+/* Read path: the cached prediction is the truth. Only "today"-dependent
+   fields may move (overdueDays, stale); the range and asOf never do. */
+function readCyclePrediction(periodsDoc, items, settings) {
+    const cached = periodsDoc && periodsDoc.prediction;
+    return cycleReadPrediction(cached, items, settings, cycleToday());
+}
+
+/* Write path only. This is the single moment a prediction is recalculated.
+   dataVersion records when the numbers were computed, for debugging only —
+   nothing on the read path compares it. */
 function recalcCyclePrediction(items, settings) {
     const prediction = cyclePredict(items, settings);
     prediction.dataVersion = nowStamp();
     return prediction;
 }
 
-async function saveCycle(items, settings, prediction) {
+async function saveCycle(items, settings, prediction, options = {}) {
     const stamp = nowStamp();
     const payload = {
         version: 1,
@@ -1911,15 +1926,22 @@ async function saveCycle(items, settings, prediction) {
         items: cycleNormalizePeriods(items),
         prediction: prediction || null
     };
-    await dbPut(CYCLE_PERIODS_PATH, payload);
+    // Display-only settings changes must not rewrite periods.json: every extra
+    // write is another read-modify-write window against her records.
+    if (!options.settingsOnly) {
+        await dbPut(CYCLE_PERIODS_PATH, payload);
+    }
     if (settings) {
         await dbPut(CYCLE_SETTINGS_PATH, normalizeCycleSettings(settings));
     }
     return {
         items: payload.items,
         settings: settings ? normalizeCycleSettings(settings) : null,
+        settingsExists: !!settings,
         prediction: payload.prediction,
-        updatedAt: stamp
+        updatedAt: options.settingsOnly
+            ? String(options.updatedAt || '')
+            : stamp
     };
 }
 
@@ -1979,8 +2001,14 @@ function cycleTestRender(template, variables, url) {
  * 返回 { sent, results: [{ kind, ok, error?, preview }] }
  * 不写 lastPush，不修改 settings。
  */
-async function sendCycleReminderTest({ kind = 'before' } = {}) {
+/* kind: 'before' | 'start' | 'overdue' | 'all'
+   audience: 'admin' | 'user' — a test must land on a phone the chef can look
+   at, so admin is the default; sending to her is an explicit choice.
+   返回 { sent, results: [{ kind, ok, error?, preview }] }
+   不写 lastPush，不修改 settings。 */
+async function sendCycleReminderTest({ kind = 'before', audience = 'admin' } = {}) {
     ensureStorage();
+    if (!['admin', 'user'].includes(audience)) throw makeError('BAD_CYCLE_AUDIENCE', '未知的收件人');
     const space = await loadSpace();
     const state = await loadCycle();
     const settings = state.settings;
@@ -1992,13 +2020,19 @@ async function sendCycleReminderTest({ kind = 'before' } = {}) {
 
     const bark = (space && space.settings && space.settings.bark) || {};
     if (bark.enabled === false) throw makeError('BARK_DISABLED', '先在「通知」里打开 Bark 推送');
-    const key = String(bark.userKey || bark.key || '').trim();
-    if (!key) throw makeError('BARK_NO_KEY', '先填用户密钥');
+    const key = String(audience === 'user'
+        ? (bark.userKey || bark.key || '')
+        : (bark.adminKey || bark.key || '')).trim();
+    if (!key) {
+        throw makeError('BARK_NO_KEY', audience === 'user' ? '先填用户密钥' : '先填大厨密钥');
+    }
 
+    /* The click-through URL differs per audience: a test aimed at the chef
+       should open the admin page, not her calendar. */
     const links = (space.settings && space.settings.links) || {};
-    const pageUrl = links.user || (typeof window !== 'undefined'
-        ? new URL('index.html', window.location.href).href
-        : '');
+    const origin = typeof window !== 'undefined' ? window.location.href : '';
+    const pageUrl = (audience === 'user' ? links.user : links.admin)
+        || (origin ? new URL(audience === 'user' ? 'index.html' : 'admin.html', origin).href : '');
     const variables = cycleTestVariables(prediction);
     const results = [];
 
@@ -2008,7 +2042,7 @@ async function sendCycleReminderTest({ kind = 'before' } = {}) {
         // 用 template 传入已经渲染好的内容：sendBark 会再 render 一次，
         // 但文本里已无 { 变量 }，等价于原样发送。
         const ok = await sendBark(space, {
-            audience: 'user',
+            audience,
             template: {
                 title: `[测试] ${preview.title}`,
                 subtitle: preview.subtitle,
@@ -2026,6 +2060,18 @@ async function sendCycleReminderTest({ kind = 'before' } = {}) {
     return { sent: results.some(item => item.ok), results };
 }
 
+/* Two settings actually change the numbers: autoTune and algorithmOverride.
+   Anything else (thresholds, templates, switches) is display-only, so saving
+   it must not refresh asOf — otherwise a card she read yesterday would claim
+   it was generated today. */
+function cyclePredictionSettingsKey(settings) {
+    const value = settings || {};
+    return JSON.stringify({
+        autoTune: value.autoTune !== false,
+        algorithmOverride: value.algorithmOverride || null
+    });
+}
+
 async function saveCycleSettings(patch) {
     ensureStorage();
     const [periodsDoc, settingsDoc] = await Promise.all([
@@ -2033,7 +2079,20 @@ async function saveCycleSettings(patch) {
         dbGetOrNull(CYCLE_SETTINGS_PATH)
     ]);
     const items = cycleNormalizePeriods(periodsDoc && periodsDoc.items);
-    const settings = normalizeCycleSettings({ ...normalizeCycleSettings(settingsDoc), ...(patch || {}) });
+    const before = normalizeCycleSettings(settingsDoc);
+    const settings = normalizeCycleSettings({ ...before, ...(patch || {}) });
+    const cached = periodsDoc && periodsDoc.prediction;
+    const affectsPrediction = cyclePredictionSettingsKey(before) !== cyclePredictionSettingsKey(settings);
+    if (cached && !affectsPrediction) {
+        // Keep the cached prediction untouched (including its asOf); only the
+        // settings document moves. Overdue days still follow today.
+        const saved = await saveCycle(items, settings, cached, {
+            settingsOnly: true,
+            updatedAt: String((periodsDoc && periodsDoc.updatedAt) || '')
+        });
+        saved.prediction = readCyclePrediction({ prediction: cached }, items, settings);
+        return saved;
+    }
     return writeCycleRecords(items, settings);
 }
 
@@ -2193,41 +2252,6 @@ async function markCycleDay(day) {
         updatedAt: nowStamp()
     });
     return writeCycleRecords(items, state.settings);
-}
-
-/* Merge an imported batch. Same start date wins; existing records are kept. */
-async function importCyclePeriods(entries) {
-    ensureStorage();
-    const state = await loadCycle();
-    const existing = new Set(state.items.map(item => item.start));
-    const added = [];
-    const skipped = [];
-    (Array.isArray(entries) ? entries : []).forEach(raw => {
-        const start = cycleDayKey(cycleParseDay(raw && raw.start));
-        if (!start) return;
-        if (existing.has(start)) {
-            skipped.push(start);
-            return;
-        }
-        existing.add(start);
-        const end = cycleParseDay(raw && raw.end);
-        added.push({
-            id: `pd_${start.replace(/-/g, '')}`,
-            start,
-            end: end && cycleDiffDays(start, end) >= 0 ? cycleDayKey(end) : '',
-            flow: ['light', 'normal', 'heavy'].includes(raw && raw.flow) ? raw.flow : '',
-            symptoms: Array.isArray(raw && raw.symptoms) ? raw.symptoms.slice(0, 8).map(String) : [],
-            mood: '',
-            source: 'import',
-            note: '',
-            uncertain: !!(raw && raw.uncertain),
-            createdAt: nowStamp(),
-            updatedAt: nowStamp()
-        });
-    });
-    const items = [...state.items, ...added].sort((a, b) => a.start.localeCompare(b.start));
-    const saved = await writeCycleRecords(items, state.settings);
-    return { state: saved, added: added.length, skipped: skipped.length };
 }
 
 /* ---------- space ---------- */

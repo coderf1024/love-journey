@@ -117,6 +117,8 @@ static = set()
 for name in [
     'index.html', 'use.html', 'admin.html',
     'js/app.js', 'js/store.js', 'js/oss-utils.js', 'css/style.css',
+    # 生理期的界面与计算层：细条标题、日历按钮、弹层文案都用显示字体渲染。
+    'js/cycle-ui.js', 'js/cycle.js',
     'scripts/migrate-storage.js', 'scripts/menu-seed.js',
     'scripts/serving-seed.js', 'scripts/update-schedule-menu.js',
 ]:

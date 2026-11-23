@@ -69,8 +69,11 @@ love-journey/db/
 ```
 
 - 整份读写，不走 `dbCollection`：一次经期一条记录，几年也就 60–100 条。
-- `prediction` 是缓存。**只在写成功后重算**（`writeCycleRecords`）；读取永远用缓存，所以预测日过了也不会自动改数字，`overdueDays` 只是让它换个说法。
-- `dataVersion` 是生成时的 `updatedAt` 快照，用于发现「有人绕过 store 改了数据」。
+- `prediction` 是缓存。**只在写成功后重算**（`writeCycleRecords`）；读取永远用缓存（`loadCycle` → `cycleReadPrediction`），所以预测日过了也不会自动改数字，`overdueDays` 只是让它换个说法。
+- 读路径只允许动两个和「今天」有关的字段：`overdueDays`（按 `range[1]` 重算）和「距上次开始 > 90 天」时的 `status: none / reason: stale`；`center` / `range` / `asOf` 一律原样返回，否则「预测于某天生成 · 没有重算」这句话就是假的，回测也对不上。
+- 缓存缺失（老文档、从未写过、刚清空）时在内存里算一次给界面用，**不写回**，返回的 `ephemeral: true` 只用于调试。
+- 管理端保存设置时，只有 `autoTune` / `algorithmOverride` 会重算；阈值、模板、开关这类显示项只写 `settings.json`，不动 `periods.json`。
+- `dataVersion` 是生成时刻的时间戳，仅供排查使用；读路径不比较它。
 
 ```jsonc
 // cycle/settings.json —— 管理端写，用户端只读
@@ -92,8 +95,9 @@ love-journey/db/
 ```
 
 - 用户端不写这个文档；管理端「系统 → 生理期」是唯一入口。
+- 文档不存在时，管理端把 `remindEnabled` 显示为**关**（fail closed）：从没配置过的空间不应因为打开一次管理页就替她把 Worker 打开。第一次保存之后以文档里的值为准。
 - `overdueRemindDays` 固定 4 次，之后停；期间一旦记录，剩余提醒作废。
-- `lastPush` 预留给提醒 Worker（**尚未实现**）：Worker 只读两个文档、只写这一处，绝不写 `periods.json`。
+- `lastPush` 由提醒 Worker 写（已部署，`workers/cycle-reminder/`）：Worker 只读两个文档、只写这一处，绝不写 `periods.json`。
 
 ## cities.json
 

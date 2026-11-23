@@ -18,7 +18,6 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-        /* 与 css/style.css 保持一致 */
         --paper: #fbf6ec;
         --paper-soft: #fffdf8;
         --ink: #2b2231;
@@ -29,13 +28,11 @@
         --stamp-deep: #c44766;
         --petal: #ffd9e2;
         --lemon: #f6d478;
-        --mint: #ddf1e8;
         --line: rgba(43, 34, 49, .1);
         --line-strong: rgba(43, 34, 49, .2);
         --font-cute: 'Ma Shan Zheng', 'Noto Serif SC', 'Songti SC', serif;
         --font-display: 'Noto Serif SC', 'Songti SC', serif;
         --font-ui: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
-        --header-h: 56px;
         --shadow-soft: 0 18px 40px -26px rgba(77, 48, 61, .42);
     }
     html { -webkit-text-size-adjust: 100%; }
@@ -51,7 +48,7 @@
     .wrap { max-width: 1300px; margin: 0 auto; }
     .doc-eyebrow { color: #8a7b78; font-size: 11px; font-weight: 700; letter-spacing: .2em; }
     .doc-title { margin-top: 6px; font-family: var(--font-display); font-size: 32px; font-weight: 700; line-height: 1.22; }
-    .doc-lead { max-width: 820px; margin-top: 10px; color: #5e555d; font-size: 14px; line-height: 1.7; }
+    .doc-lead { max-width: 840px; margin-top: 10px; color: #5e555d; font-size: 14px; line-height: 1.7; }
     .doc-lead b { color: var(--ink); }
     .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
     .chip { padding: 6px 13px; background: var(--paper-soft); border: 1px solid var(--line-strong); border-radius: 999px; font-size: 12px; }
@@ -64,6 +61,7 @@
     .frame-label span { display: block; margin-top: 2px; color: #8a7b78; font-size: 11.5px; font-weight: 400; }
     .frame-note { margin-top: 10px; color: #6f666d; font-size: 12px; line-height: 1.65; }
     .frame-note b { color: var(--ink-2); }
+    .frame-note code { padding: 1px 5px; background: #f1ece4; border-radius: 5px; font-family: ui-monospace, Menlo, monospace; font-size: 10.5px; }
 
     /* ---------------- 手机框 ---------------- */
     .phone {
@@ -71,62 +69,57 @@
         background: var(--paper); border: 1px solid rgba(0, 0, 0, .16); border-radius: 46px;
         box-shadow: 0 30px 60px -34px rgba(30, 20, 35, .5), 0 0 0 10px #1d1a1e, 0 0 0 11px #3a343c;
     }
-    .statusbar {
-        position: relative; z-index: 5; display: flex; align-items: center; justify-content: space-between;
-        height: 44px; padding: 0 26px 0 30px; color: var(--ink); font-size: 13px; font-weight: 600;
-    }
-    .statusbar .right { display: flex; align-items: center; gap: 5px; }
-    .statusbar svg { display: block; }
+    .phone.tall { height: 1040px; }
+    .screen { position: absolute; inset: 0; display: flex; flex-direction: column; }
+    .scroll { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; }
     .notch {
         position: absolute; top: 9px; left: 50%; width: 112px; height: 30px; margin-left: -56px;
         background: #1d1a1e; border-radius: 999px;
     }
-    .app-header {
-        position: relative; z-index: 4; display: flex; align-items: center; gap: 10px;
-        height: var(--header-h); padding: 0 18px; background: rgba(255, 253, 248, .92);
-        border-bottom: 1px solid var(--line); backdrop-filter: blur(8px);
+    .statusbar {
+        position: relative; z-index: 6; display: flex; align-items: center; justify-content: space-between;
+        height: 44px; padding: 0 26px 0 30px; font-size: 13px; font-weight: 600;
     }
-    .brand-title { display: block; font-family: var(--font-cute); font-size: 1.32rem; line-height: 1.1; }
-    .brand-sub { display: block; margin-top: 1px; color: var(--muted); font-size: 7.5px; letter-spacing: .16em; }
-    .header-actions { margin-left: auto; }
-    .music-btn {
-        display: grid; place-items: center; width: 34px; height: 34px;
-        background: var(--ink); border-radius: 999px;
+    .statusbar.over {
+        position: absolute; top: 0; left: 0; right: 0;
+        color: #fff; text-shadow: 0 1px 2px rgba(20, 12, 24, .28);
     }
-    .music-btn svg { width: 17px; height: 17px; fill: none; stroke: #fff; stroke-width: 1.7; stroke-linecap: round; }
+    .statusbar .right { display: flex; align-items: center; gap: 5px; }
+    .statusbar svg { display: block; }
 
-    .subhead {
-        position: relative; z-index: 4; display: flex; align-items: center; gap: 8px;
-        height: 48px; padding: 0 16px; background: var(--paper);
-    }
-    .subback { display: grid; place-items: center; width: 24px; height: 24px; color: var(--ink); font-size: 22px; line-height: 1; }
-    .subhead strong { font-family: var(--font-display); font-size: 17px; font-weight: 700; }
-
-    .screen { position: absolute; top: 44px; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; }
-    .scroll { flex: 1; overflow-y: auto; overflow-x: hidden; }
-
-    /* ---------------- 朋友圈式封面 ---------------- */
+    /* ---------------- 朋友圈封面（顶到状态栏） ---------------- */
     .cover {
-        position: relative; height: 206px; overflow: hidden;
+        position: relative; height: 272px; overflow: hidden;
         background:
             radial-gradient(80% 90% at 78% 12%, rgba(255, 255, 255, .5), transparent 66%),
-            linear-gradient(146deg, #d7e7dc 0%, #f3e6cb 46%, #f0cad2 100%);
+            linear-gradient(146deg, #cfdfd4 0%, #f0e2c6 46%, #eec3cd 100%);
+    }
+    .cover::before {
+        content: ''; position: absolute; inset: 0; z-index: 1;
+        background: linear-gradient(180deg, rgba(24, 16, 26, .22), rgba(24, 16, 26, .04) 34%, transparent 52%);
     }
     .cover::after {
-        content: ''; position: absolute; inset: 0;
+        content: ''; position: absolute; inset: 0; z-index: 1;
         background: url('../../assets/texture-noise.png') repeat; opacity: .06; mix-blend-mode: multiply;
     }
+    .cover-back {
+        position: absolute; top: 54px; left: 14px; z-index: 4;
+        display: grid; place-items: center; width: 34px; height: 34px;
+        background: rgba(255, 253, 248, .58); border: 0; border-radius: 999px;
+        color: var(--ink); font-size: 21px; line-height: 1; backdrop-filter: blur(6px);
+        box-shadow: 0 4px 12px -8px rgba(0, 0, 0, .5);
+    }
     .cover-empty {
-        position: absolute; left: 0; right: 0; top: 50%; z-index: 1;
-        display: grid; justify-items: center; gap: 5px; transform: translateY(-58%);
-        color: rgba(74, 65, 72, .5);
+        position: absolute; left: 0; right: 0; top: 56%; z-index: 2;
+        display: grid; justify-items: center; gap: 5px; transform: translateY(-50%);
+        color: rgba(64, 54, 62, .48);
     }
     .cover-empty svg { width: 30px; height: 30px; stroke: currentColor; fill: none; stroke-width: 1.4; }
     .cover-empty span { padding: 2px 9px; background: rgba(255, 253, 248, .5); border-radius: 999px; font-size: 10px; }
 
-    .profile { position: relative; padding: 0 16px 15px; background: var(--paper-soft); border-bottom: 8px solid #f3ece2; }
+    .profile { position: relative; padding: 0 16px 16px; background: var(--paper-soft); border-bottom: 8px solid #f3ece2; }
     .avatar {
-        position: relative; z-index: 3; width: 82px; height: 82px; margin-top: -41px; overflow: hidden;
+        position: relative; z-index: 3; width: 84px; height: 84px; margin-top: -42px; overflow: hidden;
         background: linear-gradient(150deg, var(--petal), var(--lemon));
         border: 3px solid var(--paper-soft); border-radius: 22px;
         box-shadow: 0 10px 20px -14px rgba(43, 34, 49, .6);
@@ -136,11 +129,11 @@
     .profile-name b { font-family: var(--font-display); font-size: 22px; font-weight: 700; }
     .profile-name small { color: var(--muted); font-size: 12px; }
     .profile-tagline { margin-top: 2px; color: var(--muted); font-size: 13px; }
-    .profile-stats { display: flex; align-items: center; gap: 18px; margin-top: 12px; }
-    .profile-stat { display: grid; gap: 0; }
-    .profile-stat b { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .profile-stats { display: flex; align-items: center; gap: 16px; margin-top: 12px; }
+    .profile-stat { display: grid; gap: 1px; }
+    .profile-stat b { font-size: 14.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
     .profile-stat small { color: var(--muted); font-size: 10.5px; }
-    .profile-stat + .profile-stat { padding-left: 18px; border-left: 1px solid var(--line); }
+    .profile-stat + .profile-stat { padding-left: 16px; border-left: 1px solid var(--line); }
 
     /* ---------------- 动态流 ---------------- */
     .feed { background: var(--paper-soft); }
@@ -154,8 +147,8 @@
     .m-time { color: var(--faint); font-size: 11.5px; }
     .m-more {
         display: grid; place-items: center; width: 30px; height: 22px; margin: -4px -6px -4px auto;
-        background: transparent; border: 0; border-radius: 6px;
-        color: var(--faint); font-size: 15px; letter-spacing: 1px;
+        background: transparent; border: 0; border-radius: 6px; color: var(--faint);
+        font-size: 15px; letter-spacing: 1px;
     }
     .m-more:active { background: rgba(43, 34, 49, .05); }
     .m-text { margin-top: 5px; color: var(--ink-2); font-size: 15px; line-height: 1.62; word-break: break-word; }
@@ -169,8 +162,7 @@
         background-size: cover; background-repeat: no-repeat; background-position: center;
     }
     .photos.n1 .ph { aspect-ratio: 4 / 3; }
-    .photos.n2 .ph { aspect-ratio: 1 / 1; }
-    .photos.n3 .ph { aspect-ratio: 1 / 1; }
+    .photos.n2 .ph, .photos.n3 .ph { aspect-ratio: 1 / 1; }
     .ph.cat-lie { background-image: url('../../assets/media/cat/liuyi-lie.webp'); background-color: #fdf8f2; }
     .ph.cat-sleep { background-image: url('../../assets/media/cat/liuyi-sleep.webp'); background-color: #fdf6f2; }
     .ph.p1 { background-position: 18% 40%; background-size: 190%; }
@@ -179,9 +171,7 @@
     .ph.p4 { background-position: 68% 60%; background-size: 150%; }
     .ph.p5 { background-position: 30% 78%; background-size: 165%; }
     .ph.p6 { background-position: 50% 40%; background-size: 135%; }
-    .m-empty { padding: 44px 20px; color: var(--muted); font-size: 13px; text-align: center; }
 
-    /* ---------------- 悬浮发动态 ---------------- */
     .fab {
         position: absolute; right: 16px; bottom: 26px; z-index: 6;
         display: grid; place-items: center; width: 52px; height: 52px;
@@ -239,10 +229,8 @@
     .action-sheet button.muted { margin-top: 6px; color: var(--muted); border-top: 6px solid #f3ece2; }
     .action-sheet p { padding: 10px 4px 4px; color: var(--muted); font-size: 11.5px; text-align: center; }
 
-    .phone.tall { height: 1040px; }
-
     /* ---------------- 管理端 ---------------- */
-    .phone.admin { height: 940px; }
+    .phone.admin { height: 980px; }
     .a-top {
         position: relative; z-index: 4; display: flex; align-items: center; gap: 8px;
         height: 52px; padding: 0 16px; background: var(--paper-soft); border-bottom: 1px solid var(--line);
@@ -295,20 +283,21 @@
     /* ---------------- 320 ---------------- */
     .phone.small { width: 320px; height: 760px; border-radius: 38px; }
     .phone.small .statusbar { padding: 0 20px 0 24px; font-size: 12px; }
-    .phone.small .app-header { padding: 0 14px; }
-    .phone.small .cover { height: 172px; }
+    .phone.small .cover { height: 236px; }
+    .phone.small .cover-back { top: 50px; left: 12px; width: 30px; height: 30px; font-size: 19px; }
     .phone.small .avatar { width: 72px; height: 72px; margin-top: -36px; border-radius: 20px; }
     .phone.small .profile-name b { font-size: 20px; }
     .phone.small .moment { grid-template-columns: 36px 1fr; gap: 9px; padding: 14px 14px 13px; }
     .phone.small .m-avatar { width: 36px; height: 36px; }
     .phone.small .m-text { font-size: 14px; }
-    .phone.small .profile-stats { gap: 14px; }
-    .phone.small .profile-stat + .profile-stat { padding-left: 14px; }
+    .phone.small .profile-stats { gap: 12px; }
+    .phone.small .profile-stat + .profile-stat { padding-left: 12px; }
+    .phone.small .profile-stat b { font-size: 12.5px; }
     .phone.small .fab { right: 14px; bottom: 20px; width: 48px; height: 48px; font-size: 24px; }
 
     /* ---------------- 桌面 ---------------- */
     .browser {
-        width: 100%; height: 780px; display: flex; overflow: hidden;
+        width: 100%; height: 800px; display: flex; overflow: hidden;
         background: var(--paper); border: 1px solid rgba(0, 0, 0, .16); border-radius: 16px;
         box-shadow: 0 26px 60px -36px rgba(30, 20, 35, .5);
     }
@@ -355,14 +344,16 @@
 </head>
 <body>
 <div class="wrap">
-    <p class="doc-eyebrow">原型 · 六一动态 · 高保真</p>
+    <p class="doc-eyebrow">原型 · 六一动态 · 高保真 v3</p>
     <h1 class="doc-title">六一的朋友圈</h1>
-    <p class="doc-lead">顶部背景图 + 左下角头像 + 按时间倒序的动态流；每条动态是文字加多张图片，<b>文字可以没有</b>。用户端右下角发动态，自己的动态可以编辑和删除；管理端只维护名字、头像、背景图、一句话和到家日，也能补发和删除。<b>没有点赞、评论和标签</b>。本页是线框，不访问 OSS。</p>
+    <p class="doc-lead">六一页去掉顶部栏和返回条，<b>背景图直接顶到状态栏</b>（左上角只留一个悬浮返回键），下面压着头像和资料，再往下是按时间倒序的动态流。<b>所有动态都属于六一</b>，谁发都显示六一；文字可以空，图片最多 9 张。用户端右下角发动态，自己的动态可以原地编辑和删除；管理端维护名字、一句话、<b>生日</b>、<b>到家日</b>、背景图和头像，也能补发和删除。<b>没有点赞、评论和标签</b>。</p>
 
     <div class="chips">
-        <span class="chip">背景：<b>留空等管理端上传</b></span>
-        <span class="chip">动态：<b>文字可空，图片可多张</b></span>
-        <span class="chip">自己的动态：<b>可编辑 / 可删除</b></span>
+        <span class="chip">顶部：<b>无导航栏，背景图顶格</b></span>
+        <span class="chip">动态：<b>全部属于六一</b></span>
+        <span class="chip">生日 / 到家日：<b>两个字段，分开配置</b></span>
+        <span class="chip">编辑：<b>原地改，时间不变</b></span>
+        <span class="chip">图片：<b>最多 9 张</b></span>
         <span class="chip">不做：<b>点赞 · 评论 · 标签</b></span>
     </div>
 
@@ -370,39 +361,33 @@
 
         <!-- A · 用户端动态页 -->
         <div class="frame">
-            <p class="frame-label">A · 用户端「六一」动态页<span>隐藏底栏的子页；返回箭头回到「空间」</span></p>
+            <p class="frame-label">A · 用户端「六一」动态页<span>无 app 头部、无返回条；背景图顶到状态栏</span></p>
             <div class="phone tall">
-                <div class="statusbar">
-                    <span>9:41</span>
-                    <div class="notch"></div>
-                    <span class="right">
-                        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.6" width="3" height="8.4" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
-                        <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 11.2 6.1 9.1a2.7 2.7 0 0 1 3.8 0L8 11.2Zm0-3.6a5.4 5.4 0 0 0-3.8 1.6L2.8 7.8a7.4 7.4 0 0 1 10.4 0l-1.4 1.4A5.4 5.4 0 0 0 8 7.6Zm0-3.7c-2.6 0-5 .9-6.9 2.5L0 5.1a11.4 11.4 0 0 1 16 0l-1.1 1.3A9.4 9.4 0 0 0 8 3.9Z"/></svg>
-                        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".8" width="21" height="10.4" rx="3" stroke="currentColor" stroke-opacity=".4"/><rect x="2" y="2.3" width="15" height="7.4" rx="1.8" fill="currentColor"/><path d="M23 4.2v3.6c1-.4 1.5-1 1.5-1.8S24 4.6 23 4.2Z" fill="currentColor" fill-opacity=".45"/></svg>
-                    </span>
-                </div>
                 <div class="screen">
-                    <header class="app-header">
-                        <div>
-                            <span class="brand-title">我们的时光</span>
-                            <span class="brand-sub">TINY LOVE SCRAPBOOK</span>
-                        </div>
-                        <div class="header-actions">
-                            <button class="music-btn" type="button" aria-label="背景音乐">
-                                <svg viewBox="0 0 24 24"><path d="M9.5 17.5V6.2l8.5-1.8v11.3"/><circle cx="6.8" cy="18" r="2.6"/><circle cx="15.3" cy="16.2" r="2.6"/></svg>
-                            </button>
-                        </div>
-                    </header>
-                    <div class="subhead"><span class="subback">‹</span><strong>六一</strong></div>
                     <div class="scroll">
-                        <div class="cover"><span class="cover-empty"><svg viewBox="0 0 24 24"><rect x="3" y="6.5" width="18" height="13" rx="3"/><circle cx="12" cy="13" r="3.6"/><path d="M8.5 6.5 9.8 4h4.4l1.3 2.5"/></svg><span>背景图会在管理端上传后显示</span></span></div>
+                        <div class="cover">
+                            <div class="notch"></div>
+                            <div class="statusbar over">
+                                <span>9:41</span>
+                                <span class="right">
+                                    <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.6" width="3" height="8.4" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+                                    <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 11.2 6.1 9.1a2.7 2.7 0 0 1 3.8 0L8 11.2Zm0-3.6a5.4 5.4 0 0 0-3.8 1.6L2.8 7.8a7.4 7.4 0 0 1 10.4 0l-1.4 1.4A5.4 5.4 0 0 0 8 7.6Zm0-3.7c-2.6 0-5 .9-6.9 2.5L0 5.1a11.4 11.4 0 0 1 16 0l-1.1 1.3A9.4 9.4 0 0 0 8 3.9Z"/></svg>
+                                    <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".8" width="21" height="10.4" rx="3" stroke="currentColor" stroke-opacity=".5"/><rect x="2" y="2.3" width="15" height="7.4" rx="1.8" fill="currentColor"/><path d="M23 4.2v3.6c1-.4 1.5-1 1.5-1.8S24 4.6 23 4.2Z" fill="currentColor" fill-opacity=".55"/></svg>
+                                </span>
+                            </div>
+                            <button class="cover-back" type="button" aria-label="返回空间">‹</button>
+                            <span class="cover-empty">
+                                <svg viewBox="0 0 24 24"><rect x="3" y="6.5" width="18" height="13" rx="3"/><circle cx="12" cy="13" r="3.6"/><path d="M8.5 6.5 9.8 4h4.4l1.3 2.5"/></svg>
+                                <span>背景图会在管理端上传后显示</span>
+                            </span>
+                        </div>
                         <div class="profile">
                             <div class="avatar"><img src="../../assets/media/cat/liuyi-sleep.webp" alt="六一"></div>
                             <div class="profile-name"><b>六一</b><small>到家 1240 天</small></div>
                             <p class="profile-tagline">睡在阳光里的小家伙</p>
                             <div class="profile-stats">
                                 <span class="profile-stat"><b>23</b><small>动态</small></span>
-                                <span class="profile-stat"><b>5.20</b><small>生日</small></span>
+                                <span class="profile-stat"><b>2023.05.20</b><small>生日</small></span>
                                 <span class="profile-stat"><b>2023.07.01</b><small>到家</small></span>
                             </div>
                         </div>
@@ -446,9 +431,12 @@
                             </article>
 
                             <article class="moment">
-                                <span class="m-avatar"><img src="../../assets/media/space-avatar.svg" alt=""></span>
+                                <span class="m-avatar"><img src="../../assets/media/cat/liuyi-sleep.webp" alt=""></span>
                                 <div class="m-body">
-                                    <div class="m-head"><span class="m-name">大厨</span><span class="m-time">11.02</span></div>
+                                    <div class="m-head">
+                                        <span class="m-name">六一</span><span class="m-time">11.02</span>
+                                        <button class="m-more" type="button" aria-label="更多">⋯</button>
+                                    </div>
                                     <p class="m-text">疫苗第三针，回来睡了一下午，晚上就好了。</p>
                                     <div class="photos n1"><span class="ph cat-sleep p6"></span></div>
                                 </div>
@@ -458,39 +446,34 @@
                     <button class="fab" type="button" aria-label="发动态">＋</button>
                 </div>
             </div>
-            <p class="frame-note">第二条是 <b>纯图片</b>（没有文字），第三条是 <b>纯文字</b>。只有自己的动态（发帖人是「六一」）才有 <b>⋯</b> 菜单；大厨发的那条没有。</p>
+            <p class="frame-note">第二条是 <b>纯图片</b>，第三条是 <b>纯文字</b>。四条动态的发帖人都是六一，<b>右上角都有 ⋯</b>；大厨在管理端发的动态也一样显示成六一。</p>
         </div>
 
         <!-- B · 编辑 / 删除 -->
         <div class="frame">
-            <p class="frame-label">B · 动态的编辑与删除<span>点自己动态右上角「⋯」弹出的操作面板</span></p>
+            <p class="frame-label">B · 动态的编辑与删除<span>点「⋯」弹出的操作面板</span></p>
             <div class="phone">
-                <div class="statusbar">
-                    <span>9:41</span>
-                    <div class="notch"></div>
-                    <span class="right">
-                        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.6" width="3" height="8.4" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
-                        <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 11.2 6.1 9.1a2.7 2.7 0 0 1 3.8 0L8 11.2Zm0-3.6a5.4 5.4 0 0 0-3.8 1.6L2.8 7.8a7.4 7.4 0 0 1 10.4 0l-1.4 1.4A5.4 5.4 0 0 0 8 7.6Zm0-3.7c-2.6 0-5 .9-6.9 2.5L0 5.1a11.4 11.4 0 0 1 16 0l-1.1 1.3A9.4 9.4 0 0 0 8 3.9Z"/></svg>
-                        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".8" width="21" height="10.4" rx="3" stroke="currentColor" stroke-opacity=".4"/><rect x="2" y="2.3" width="15" height="7.4" rx="1.8" fill="currentColor"/><path d="M23 4.2v3.6c1-.4 1.5-1 1.5-1.8S24 4.6 23 4.2Z" fill="currentColor" fill-opacity=".45"/></svg>
-                    </span>
-                </div>
                 <div class="screen">
-                    <header class="app-header">
-                        <div><span class="brand-title">我们的时光</span><span class="brand-sub">TINY LOVE SCRAPBOOK</span></div>
-                        <div class="header-actions"><button class="music-btn" type="button" aria-label="背景音乐">
-                            <svg viewBox="0 0 24 24"><path d="M9.5 17.5V6.2l8.5-1.8v11.3"/><circle cx="6.8" cy="18" r="2.6"/><circle cx="15.3" cy="16.2" r="2.6"/></svg>
-                        </button></div>
-                    </header>
-                    <div class="subhead"><span class="subback">‹</span><strong>六一</strong></div>
                     <div class="scroll">
-                        <div class="cover"><span class="cover-empty"><svg viewBox="0 0 24 24"><rect x="3" y="6.5" width="18" height="13" rx="3"/><circle cx="12" cy="13" r="3.6"/><path d="M8.5 6.5 9.8 4h4.4l1.3 2.5"/></svg><span>背景图会在管理端上传后显示</span></span></div>
+                        <div class="cover">
+                            <div class="notch"></div>
+                            <div class="statusbar over">
+                                <span>9:41</span>
+                                <span class="right">
+                                    <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.6" width="3" height="8.4" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+                                    <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 11.2 6.1 9.1a2.7 2.7 0 0 1 3.8 0L8 11.2Zm0-3.6a5.4 5.4 0 0 0-3.8 1.6L2.8 7.8a7.4 7.4 0 0 1 10.4 0l-1.4 1.4A5.4 5.4 0 0 0 8 7.6Zm0-3.7c-2.6 0-5 .9-6.9 2.5L0 5.1a11.4 11.4 0 0 1 16 0l-1.1 1.3A9.4 9.4 0 0 0 8 3.9Z"/></svg>
+                                    <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".8" width="21" height="10.4" rx="3" stroke="currentColor" stroke-opacity=".5"/><rect x="2" y="2.3" width="15" height="7.4" rx="1.8" fill="currentColor"/><path d="M23 4.2v3.6c1-.4 1.5-1 1.5-1.8S24 4.6 23 4.2Z" fill="currentColor" fill-opacity=".55"/></svg>
+                                </span>
+                            </div>
+                            <button class="cover-back" type="button" aria-label="返回空间">‹</button>
+                        </div>
                         <div class="profile">
                             <div class="avatar"><img src="../../assets/media/cat/liuyi-sleep.webp" alt=""></div>
                             <div class="profile-name"><b>六一</b><small>到家 1240 天</small></div>
                             <p class="profile-tagline">睡在阳光里的小家伙</p>
                             <div class="profile-stats">
                                 <span class="profile-stat"><b>23</b><small>动态</small></span>
-                                <span class="profile-stat"><b>5.20</b><small>生日</small></span>
+                                <span class="profile-stat"><b>2023.05.20</b><small>生日</small></span>
                                 <span class="profile-stat"><b>2023.07.01</b><small>到家</small></span>
                             </div>
                         </div>
@@ -516,38 +499,33 @@
                             <button type="button">编辑动态</button>
                             <button type="button">删除动态</button>
                             <button type="button" class="muted">取消</button>
-                            <p>编辑可以改文字、增删照片；删除需要再确认一次。</p>
+                            <p>编辑打开同一个面板并带上原文与原图，发布时间不变；删除需要再确认一次。</p>
                         </div>
                     </div>
                     <button class="fab" type="button" aria-label="发动态" style="z-index:7">＋</button>
                 </div>
             </div>
-            <p class="frame-note">「编辑」打开的是同一个发动态面板，带着原来的文字和照片；「删除」先走一次自绘确认框，再真删。</p>
+            <p class="frame-note">所有动态都属于六一，所以<b>每条都有编辑和删除</b>。管理端发的那条，用户端也可以改——如果你想限制成「只有用户端发的那条能改」，告诉我。</p>
         </div>
 
         <!-- C · 发动态 -->
         <div class="frame">
-            <p class="frame-label">C · 发动态 / 编辑动态<span>文字可空、图片可多张；两者至少有一个</span></p>
+            <p class="frame-label">C · 发动态 / 编辑动态<span>文字可空；图片最多 9 张；两者至少一个</span></p>
             <div class="phone">
-                <div class="statusbar">
-                    <span>9:41</span>
-                    <div class="notch"></div>
-                    <span class="right">
-                        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.6" width="3" height="8.4" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
-                        <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 11.2 6.1 9.1a2.7 2.7 0 0 1 3.8 0L8 11.2Zm0-3.6a5.4 5.4 0 0 0-3.8 1.6L2.8 7.8a7.4 7.4 0 0 1 10.4 0l-1.4 1.4A5.4 5.4 0 0 0 8 7.6Zm0-3.7c-2.6 0-5 .9-6.9 2.5L0 5.1a11.4 11.4 0 0 1 16 0l-1.1 1.3A9.4 9.4 0 0 0 8 3.9Z"/></svg>
-                        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".8" width="21" height="10.4" rx="3" stroke="currentColor" stroke-opacity=".4"/><rect x="2" y="2.3" width="15" height="7.4" rx="1.8" fill="currentColor"/><path d="M23 4.2v3.6c1-.4 1.5-1 1.5-1.8S24 4.6 23 4.2Z" fill="currentColor" fill-opacity=".45"/></svg>
-                    </span>
-                </div>
                 <div class="screen">
-                    <header class="app-header">
-                        <div><span class="brand-title">我们的时光</span><span class="brand-sub">TINY LOVE SCRAPBOOK</span></div>
-                        <div class="header-actions"><button class="music-btn" type="button" aria-label="背景音乐">
-                            <svg viewBox="0 0 24 24"><path d="M9.5 17.5V6.2l8.5-1.8v11.3"/><circle cx="6.8" cy="18" r="2.6"/><circle cx="15.3" cy="16.2" r="2.6"/></svg>
-                        </button></div>
-                    </header>
-                    <div class="subhead"><span class="subback">‹</span><strong>六一</strong></div>
                     <div class="scroll">
-                        <div class="cover"><span class="cover-empty"><svg viewBox="0 0 24 24"><rect x="3" y="6.5" width="18" height="13" rx="3"/><circle cx="12" cy="13" r="3.6"/><path d="M8.5 6.5 9.8 4h4.4l1.3 2.5"/></svg><span>背景图会在管理端上传后显示</span></span></div>
+                        <div class="cover">
+                            <div class="notch"></div>
+                            <div class="statusbar over">
+                                <span>9:41</span>
+                                <span class="right">
+                                    <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.6" width="3" height="8.4" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+                                    <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 11.2 6.1 9.1a2.7 2.7 0 0 1 3.8 0L8 11.2Zm0-3.6a5.4 5.4 0 0 0-3.8 1.6L2.8 7.8a7.4 7.4 0 0 1 10.4 0l-1.4 1.4A5.4 5.4 0 0 0 8 7.6Zm0-3.7c-2.6 0-5 .9-6.9 2.5L0 5.1a11.4 11.4 0 0 1 16 0l-1.1 1.3A9.4 9.4 0 0 0 8 3.9Z"/></svg>
+                                    <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".8" width="21" height="10.4" rx="3" stroke="currentColor" stroke-opacity=".5"/><rect x="2" y="2.3" width="15" height="7.4" rx="1.8" fill="currentColor"/><path d="M23 4.2v3.6c1-.4 1.5-1 1.5-1.8S24 4.6 23 4.2Z" fill="currentColor" fill-opacity=".55"/></svg>
+                                </span>
+                            </div>
+                            <button class="cover-back" type="button" aria-label="返回空间">‹</button>
+                        </div>
                         <div class="profile">
                             <div class="avatar"><img src="../../assets/media/cat/liuyi-sleep.webp" alt=""></div>
                             <div class="profile-name"><b>六一</b><small>到家 1240 天</small></div>
@@ -576,37 +554,42 @@
                     <button class="fab" type="button" aria-label="发动态" style="z-index:7">＋</button>
                 </div>
             </div>
-            <p class="frame-note">只发图片时文字框留空即可，<b>「发布」在文字和图片都为空时置灰</b>。图片最多 9 张；发布后直接插到列表最上面。</p>
+            <p class="frame-note">只发图片时文字留空；文字和图片都为空时「发布」置灰。编辑用的是同一个面板，发布后<b>发布时间不变</b>，列表位置也不动。</p>
         </div>
 
         <!-- D · 管理端 -->
         <div class="frame">
-            <p class="frame-label">D · 管理端「六一」<span>只管基本信息与图片；动态可补发、可删除</span></p>
+            <p class="frame-label">D · 管理端「六一」<span>基本信息 + 两种图片；生日与到家日分开填</span></p>
             <div class="phone admin">
-                <div class="statusbar">
-                    <span>9:41</span>
-                    <div class="notch"></div>
-                    <span class="right">
-                        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.6" width="3" height="8.4" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
-                        <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 11.2 6.1 9.1a2.7 2.7 0 0 1 3.8 0L8 11.2Zm0-3.6a5.4 5.4 0 0 0-3.8 1.6L2.8 7.8a7.4 7.4 0 0 1 10.4 0l-1.4 1.4A5.4 5.4 0 0 0 8 7.6Zm0-3.7c-2.6 0-5 .9-6.9 2.5L0 5.1a11.4 11.4 0 0 1 16 0l-1.1 1.3A9.4 9.4 0 0 0 8 3.9Z"/></svg>
-                        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".8" width="21" height="10.4" rx="3" stroke="currentColor" stroke-opacity=".4"/><rect x="2" y="2.3" width="15" height="7.4" rx="1.8" fill="currentColor"/><path d="M23 4.2v3.6c1-.4 1.5-1 1.5-1.8S24 4.6 23 4.2Z" fill="currentColor" fill-opacity=".45"/></svg>
-                    </span>
-                </div>
                 <div class="screen">
+                    <div class="statusbar">
+                        <span>9:41</span>
+                        <div class="notch"></div>
+                        <span class="right">
+                            <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.6" width="3" height="8.4" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+                            <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 11.2 6.1 9.1a2.7 2.7 0 0 1 3.8 0L8 11.2Zm0-3.6a5.4 5.4 0 0 0-3.8 1.6L2.8 7.8a7.4 7.4 0 0 1 10.4 0l-1.4 1.4A5.4 5.4 0 0 0 8 7.6Zm0-3.7c-2.6 0-5 .9-6.9 2.5L0 5.1a11.4 11.4 0 0 1 16 0l-1.1 1.3A9.4 9.4 0 0 0 8 3.9Z"/></svg>
+                            <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".8" width="21" height="10.4" rx="3" stroke="currentColor" stroke-opacity=".4"/><rect x="2" y="2.3" width="15" height="7.4" rx="1.8" fill="currentColor"/><path d="M23 4.2v3.6c1-.4 1.5-1 1.5-1.8S24 4.6 23 4.2Z" fill="currentColor" fill-opacity=".45"/></svg>
+                        </span>
+                    </div>
                     <div class="a-top"><span class="a-back">‹</span><span class="a-title">六一</span><span class="a-save">保存</span></div>
                     <div class="a-scroll">
                         <p class="a-eyebrow">系统 · 六一</p>
                         <h2 class="a-h1">六一</h2>
-                        <p class="a-sub">用户端只查看；名字、头像、背景图在这里改。</p>
+                        <p class="a-sub">用户端只查看；名字、两张图、两个日期都在这里改。</p>
 
                         <div class="a-section">基本信息</div>
                         <div class="a-group">
                             <div class="a-field"><span class="a-label">名字</span><div class="a-input">六一</div></div>
                             <div class="a-field"><span class="a-label">一句话</span><div class="a-input">睡在阳光里的小家伙</div></div>
                             <div class="a-field">
+                                <span class="a-label">生日 <em>*</em></span>
+                                <div class="a-input">2023 · 05 · 20<span class="end">日历</span></div>
+                                <span class="a-hint">生日和到家日是两件事，分开填写、分开展示。</span>
+                            </div>
+                            <div class="a-field">
                                 <span class="a-label">到家日 <em>*</em></span>
                                 <div class="a-input">2023 · 07 · 01<span class="end">日历</span></div>
-                                <span class="a-hint">用户端的「生日」也从这里来。</span>
+                                <span class="a-hint">「到家 N 天」按这一天算。</span>
                             </div>
                         </div>
 
@@ -627,57 +610,54 @@
                         <div class="a-section">动态 <small>23 条</small><button class="a-add" type="button">＋ 发一条</button></div>
                         <div class="a-group">
                             <div class="moment-row">
-                                <span class="moment-thumb cat-sleep p1" style="background-image:url('../../assets/media/cat/liuyi-sleep.webp');background-position:18% 40%;background-size:190%"></span>
-                                <span class="moment-main"><b>今天阳光很好，在飘窗上睡了一整个下午…</b><small>2 小时前 · 3 张照片 · 六一</small></span>
+                                <span class="moment-thumb" style="background-image:url('../../assets/media/cat/liuyi-sleep.webp');background-position:18% 40%;background-size:190%"></span>
+                                <span class="moment-main"><b>今天阳光很好，在飘窗上睡了一整个下午…</b><small>2 小时前 · 3 张照片</small></span>
                                 <button class="mini-btn" type="button">删除</button>
                             </div>
                             <div class="moment-row">
                                 <span class="moment-thumb" style="background-image:url('../../assets/media/cat/liuyi-lie.webp');background-position:68% 60%;background-size:150%"></span>
-                                <span class="moment-main"><b>2 张照片</b><small>昨天 20:14 · 无文字 · 六一</small></span>
+                                <span class="moment-main"><b>2 张照片</b><small>昨天 20:14 · 无文字</small></span>
                                 <button class="mini-btn" type="button">删除</button>
                             </div>
                             <div class="moment-row">
-                                <span class="moment-thumb" style="background-image:url('../../assets/media/cat/liuyi-sleep.webp');background-position:50% 40%;background-size:135%"></span>
-                                <span class="moment-main"><b>疫苗第三针，回来睡了一下午，晚上就好了。</b><small>11.02 · 1 张照片 · 大厨</small></span>
+                                <span class="moment-thumb" style="background-image:url('../../assets/media/cat/liuyi-lie.webp');background-position:50% 88%;background-size:170%"></span>
+                                <span class="moment-main"><b>第一次自己钻进被窝，半夜发现脚边多了一团热乎的。</b><small>10.28 · 无图片</small></span>
                                 <button class="mini-btn" type="button">删除</button>
                             </div>
                         </div>
-                        <div class="a-note">管理端不编辑别人的文字，只补发和删错。删除走二次确认。</div>
+                        <div class="a-note">动态统一属于六一，管理端只补发和删错，不改文字；用户端可以编辑和删除。</div>
                     </div>
                 </div>
             </div>
-            <p class="frame-note">背景图这里就是<b>唯一的入口</b>；上传前用户端显示的是 A 段中间那个渐变占位。</p>
+            <p class="frame-note">背景图这里是唯一的上传入口；上传前用户端显示渐变占位。头像也只在管理端换。</p>
         </div>
 
         <!-- E · 320 -->
         <div class="frame">
-            <p class="frame-label">E · 320 适配<span>小屏只收窄，不改变结构</span></p>
+            <p class="frame-label">E · 320 适配<span>收窄封面与字号，结构不变</span></p>
             <div class="phone small">
-                <div class="statusbar">
-                    <span>9:41</span>
-                    <div class="notch" style="width:96px;margin-left:-48px"></div>
-                    <span class="right">
-                        <svg width="16" height="10" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.6" width="3" height="8.4" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
-                        <svg width="15" height="11" viewBox="0 0 16 12" fill="currentColor"><path d="M8 11.2 6.1 9.1a2.7 2.7 0 0 1 3.8 0L8 11.2Zm0-3.6a5.4 5.4 0 0 0-3.8 1.6L2.8 7.8a7.4 7.4 0 0 1 10.4 0l-1.4 1.4A5.4 5.4 0 0 0 8 7.6Zm0-3.7c-2.6 0-5 .9-6.9 2.5L0 5.1a11.4 11.4 0 0 1 16 0l-1.1 1.3A9.4 9.4 0 0 0 8 3.9Z"/></svg>
-                    </span>
-                </div>
                 <div class="screen">
-                    <header class="app-header">
-                        <div><span class="brand-title" style="font-size:1.18rem">我们的时光</span><span class="brand-sub">TINY LOVE SCRAPBOOK</span></div>
-                        <div class="header-actions"><button class="music-btn" type="button" style="width:30px;height:30px" aria-label="背景音乐">
-                            <svg viewBox="0 0 24 24"><path d="M9.5 17.5V6.2l8.5-1.8v11.3"/><circle cx="6.8" cy="18" r="2.6"/><circle cx="15.3" cy="16.2" r="2.6"/></svg>
-                        </button></div>
-                    </header>
-                    <div class="subhead"><span class="subback">‹</span><strong>六一</strong></div>
                     <div class="scroll">
-                        <div class="cover"><span class="cover-empty"><svg viewBox="0 0 24 24"><rect x="3" y="6.5" width="18" height="13" rx="3"/><circle cx="12" cy="13" r="3.6"/><path d="M8.5 6.5 9.8 4h4.4l1.3 2.5"/></svg><span style="font-size:9px">背景图 · 待上传</span></span></div>
+                        <div class="cover">
+                            <div class="notch" style="width:96px;margin-left:-48px"></div>
+                            <div class="statusbar over">
+                                <span>9:41</span>
+                                <span class="right">
+                                    <svg width="16" height="10" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.6" width="3" height="8.4" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+                                    <svg width="15" height="11" viewBox="0 0 16 12" fill="currentColor"><path d="M8 11.2 6.1 9.1a2.7 2.7 0 0 1 3.8 0L8 11.2Zm0-3.6a5.4 5.4 0 0 0-3.8 1.6L2.8 7.8a7.4 7.4 0 0 1 10.4 0l-1.4 1.4A5.4 5.4 0 0 0 8 7.6Zm0-3.7c-2.6 0-5 .9-6.9 2.5L0 5.1a11.4 11.4 0 0 1 16 0l-1.1 1.3A9.4 9.4 0 0 0 8 3.9Z"/></svg>
+                                </span>
+                            </div>
+                            <button class="cover-back" type="button" aria-label="返回空间">‹</button>
+                            <span class="cover-empty"><span style="font-size:9px">背景图 · 待上传</span></span>
+                        </div>
                         <div class="profile">
                             <div class="avatar"><img src="../../assets/media/cat/liuyi-sleep.webp" alt=""></div>
                             <div class="profile-name"><b>六一</b><small>到家 1240 天</small></div>
                             <p class="profile-tagline">睡在阳光里的小家伙</p>
                             <div class="profile-stats">
                                 <span class="profile-stat"><b>23</b><small>动态</small></span>
-                                <span class="profile-stat"><b>5.20</b><small>生日</small></span>
+                                <span class="profile-stat"><b>2023.05.20</b><small>生日</small></span>
+                                <span class="profile-stat"><b>2023.07.01</b><small>到家</small></span>
                             </div>
                         </div>
                         <div class="feed">
@@ -703,12 +683,12 @@
                     <button class="fab" type="button" aria-label="发动态">＋</button>
                 </div>
             </div>
-            <p class="frame-note">320 下只把封面、头像和字号收小；统计从三段减到两段。页面 <code>scrollWidth === clientWidth</code>。</p>
+            <p class="frame-note">320 下三个统计都保留，字号收小；页面 <code>scrollWidth === clientWidth</code>。</p>
         </div>
 
         <!-- F · 桌面 -->
         <div class="frame wide">
-            <p class="frame-label">F · 管理端桌面 1280<span>左：基本信息与图片 ｜ 右：动态列表</span></p>
+            <p class="frame-label">F · 管理端桌面 1280<span>左：资料与图片 ｜ 右：动态列表</span></p>
             <div class="browser">
                 <aside class="side">
                     <div class="side-brand">
@@ -733,7 +713,7 @@
                         <div>
                             <p class="a-eyebrow">系统 · 六一</p>
                             <h2>六一</h2>
-                            <p>用户端只查看；名字、头像、背景图在这里改。</p>
+                            <p>用户端只查看；名字、两张图、两个日期都在这里改。</p>
                         </div>
                         <span class="a-save">保存</span>
                     </div>
@@ -744,9 +724,13 @@
                                 <div class="a-field"><span class="a-label">名字</span><div class="a-input">六一</div></div>
                                 <div class="a-field"><span class="a-label">一句话</span><div class="a-input">睡在阳光里的小家伙</div></div>
                                 <div class="a-field">
+                                    <span class="a-label">生日 <em>*</em></span>
+                                    <div class="a-input">2023 · 05 · 20<span class="end">日历</span></div>
+                                </div>
+                                <div class="a-field">
                                     <span class="a-label">到家日 <em>*</em></span>
                                     <div class="a-input">2023 · 07 · 01<span class="end">日历</span></div>
-                                    <span class="a-hint">用户端的「生日」也从这里来。</span>
+                                    <span class="a-hint">生日和到家日分开填写、分开展示。</span>
                                 </div>
                             </div>
                             <div class="a-section">图片 <small>背景图与头像</small></div>
@@ -768,26 +752,26 @@
                             <div class="a-group">
                                 <div class="moment-row">
                                     <span class="moment-thumb" style="background-image:url('../../assets/media/cat/liuyi-sleep.webp');background-position:18% 40%;background-size:190%"></span>
-                                    <span class="moment-main"><b>今天阳光很好，在飘窗上睡了一整个下午，连饭都不想起来吃。</b><small>2 小时前 · 3 张照片 · 六一</small></span>
+                                    <span class="moment-main"><b>今天阳光很好，在飘窗上睡了一整个下午，连饭都不想起来吃。</b><small>2 小时前 · 3 张照片</small></span>
                                     <button class="mini-btn" type="button">删除</button>
                                 </div>
                                 <div class="moment-row">
                                     <span class="moment-thumb" style="background-image:url('../../assets/media/cat/liuyi-lie.webp');background-position:68% 60%;background-size:150%"></span>
-                                    <span class="moment-main"><b>2 张照片</b><small>昨天 20:14 · 无文字 · 六一</small></span>
-                                    <button class="mini-btn" type="button">删除</button>
-                                </div>
-                                <div class="moment-row">
-                                    <span class="moment-thumb" style="background-image:url('../../assets/media/cat/liuyi-sleep.webp');background-position:50% 40%;background-size:135%"></span>
-                                    <span class="moment-main"><b>疫苗第三针，回来睡了一下午，晚上就好了。</b><small>11.02 · 1 张照片 · 大厨</small></span>
+                                    <span class="moment-main"><b>2 张照片</b><small>昨天 20:14 · 无文字</small></span>
                                     <button class="mini-btn" type="button">删除</button>
                                 </div>
                                 <div class="moment-row">
                                     <span class="moment-thumb" style="background-image:url('../../assets/media/cat/liuyi-lie.webp');background-position:50% 88%;background-size:170%"></span>
-                                    <span class="moment-main"><b>第一次自己钻进被窝，半夜发现脚边多了一团热乎的。</b><small>10.28 · 无图片 · 六一</small></span>
+                                    <span class="moment-main"><b>第一次自己钻进被窝，半夜发现脚边多了一团热乎的。</b><small>10.28 · 无图片</small></span>
+                                    <button class="mini-btn" type="button">删除</button>
+                                </div>
+                                <div class="moment-row">
+                                    <span class="moment-thumb" style="background-image:url('../../assets/media/cat/liuyi-sleep.webp');background-position:50% 40%;background-size:135%"></span>
+                                    <span class="moment-main"><b>疫苗第三针，回来睡了一下午，晚上就好了。</b><small>11.02 · 1 张照片</small></span>
                                     <button class="mini-btn" type="button">删除</button>
                                 </div>
                             </div>
-                            <div class="a-note">管理端不编辑别人的文字，只补发和删错；用户端自己的动态可以编辑和删除。</div>
+                            <div class="a-note">管理端不编辑动态文字，只补发和删错；用户端可以编辑和删除。</div>
                         </div>
                     </div>
                 </div>
@@ -797,34 +781,31 @@
 
     <div class="notes">
         <div class="note">
-            <h3>本版已按你的要求改掉</h3>
+            <h3>这一版按你的话改的</h3>
             <ul>
-                <li>背景图右下角的猫装饰<b>去掉</b>。</li>
-                <li>点赞、评论、标签<b>全部不做</b>。</li>
-                <li>动态<b>可以只有图片</b>：文字为空、图片至少一张也能发。</li>
-                <li>用户端<b>可以编辑和删除自己的动态</b>；大厨的动态没有操作入口。</li>
-                <li>背景图<b>先留空</b>，用户端显示渐变占位，之后在管理端上传。</li>
+                <li><b>所有动态都属于六一</b>：管理端发的也不显示大厨，头像和名字统一是六一。</li>
+                <li><b>生日和到家日拆成两个字段</b>，管理端分开填，用户端分开显示。</li>
+                <li>六一页<b>去掉了 app 头部和返回条</b>，背景图顶到状态栏，空间全给封面（左上角只留一个悬浮返回键）。</li>
+                <li>编辑<b>原地改</b>，发布时间和列表位置不变。</li>
+                <li>图片上限 <b>9 张</b>；动态<b>不做清理</b>，全保留。</li>
+                <li>删除<b>二次确认</b>；头像<b>只能管理端换</b>。</li>
             </ul>
         </div>
-        <div class="note warn">
-            <h3>顺手修掉的 bug</h3>
-            <p>你反馈管理端保存不上：<code>admin.html</code> 里的处理函数叫 <code>savePetProfile</code>，和 store 里的同名函数撞了，调用自己造成无限递归，所以永远存不上。已改名为 <code>handleSavePetProfile</code>。本地已验证能写入，修复只提交在本地分支。</p>
-        </div>
         <div class="note">
-            <h3>待你确认</h3>
-            <p class="q"><b>1</b>动态的<b>编辑</b>是「原地改」还是「删掉重建」？现在设计成原地改，发布时间不变。</p>
-            <p class="q"><b>2</b>单条动态有<b>图片上限</b>吗？现在按 9 张设计。</p>
-            <p class="q"><b>3</b>动态要不要<b>保留最近 N 条</b>？（数据越攒越多，建议先按 200 条封顶）</p>
-            <p class="q"><b>4</b>删除动态要不要<b>二次确认</b>？现在设计成要。</p>
-            <p class="q"><b>5</b>头像除了管理端上传，用户端要不要也能换？（现在只在管理端）</p>
+            <h3>需要你点头的一处</h3>
+            <p>动态都归属六一之后，<b>用户端每条都有编辑和删除</b>，包括管理端发的那条。如果希望「管理端发的只能在管理端删」，告诉我，我按来源区分权限。</p>
+        </div>
+        <div class="note warn">
+            <h3>顺带说明</h3>
+            <p>这一页不再显示音乐按钮，因为顶部栏整个去掉了；返回「空间」靠封面左上角的悬浮键。管理端仍然是完整的管理端外壳，不受影响。</p>
         </div>
         <div class="note">
             <h3>实现要点（供参考）</h3>
             <ul>
-                <li><code>content/pet.json</code>：<code>name / tagline / homeDate / avatar / cover / moments[]</code>；<code>moments[]</code> 每条有 <code>id / text / images[] / author / createdAt / updatedAt</code>。</li>
-                <li>用户端发动态要写 OSS，进入页面时预热写 SDK；图片走保留 alpha 的上传函数。</li>
-                <li>编辑和删除都只允许操作 <code>author === 'user'</code> 的动态。</li>
-                <li>列表一次读全量（封顶 200 条），不做分页。</li>
+                <li><code>content/pet.json</code>：<code>name / tagline / birthday / homeDate / avatar / cover / moments[]</code>。</li>
+                <li><code>moments[]</code> 每条：<code>id / text / images[] / createdAt / updatedAt</code>，不再存作者。</li>
+                <li>用户端发动态要写 OSS；图片走保留 alpha 的上传函数。</li>
+                <li>「到家 N 天」按 <code>homeDate</code> 算；生日只用于展示。</li>
             </ul>
         </div>
     </div>

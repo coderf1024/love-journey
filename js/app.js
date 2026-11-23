@@ -13,12 +13,12 @@ let lastCityColumns = 0;
 
 // Self-hosted: cdn.jsdelivr.net is unreliable in WeChat / mainland mobile networks.
 const LIBS = {
-    echarts: 'assets/vendor/echarts.min.js?v=20261123-01',
-    qrcode: 'assets/vendor/qrcode.min.js?v=20261123-01'
+    echarts: 'assets/vendor/echarts.min.js?v=20261123-03',
+    qrcode: 'assets/vendor/qrcode.min.js?v=20261123-03'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261123-01';
-const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261123-01';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261123-03';
+const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261123-03';
 // First-paint fallback only. The live story document always wins once it loads.
 const LOVE_START_FALLBACK = '2020-12-20';
 
@@ -2824,11 +2824,113 @@ let petComposerEditingId = null;
 let petComposerImages = [];
 let petComposerUploading = 0;
 let petMomentMenuId = null;
+let petCalendarSelected = '';
+let petCalendarYear = 0;
+let petCalendarMonth = 0;
 
 const PET_DEFAULT_AVATAR = 'assets/media/cat/liuyi-sleep.webp';
+const PET_WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+// 日期快捷行只保留这一段年份，避免把日历挤得太高。
+const PET_DATE_YEAR_MIN = 2026;
+const PET_DATE_YEAR_MAX = 2030;
 
 function petAvatarUrl(pet) {
     return (pet && pet.avatar) || PET_DEFAULT_AVATAR;
+}
+
+/** 发布面板的日期块：原生 input 透明覆盖，视觉用格式化后的文案。 */
+function syncPetComposerDate(value) {
+    const input = $('pet-composer-date');
+    if (!input) return;
+    const date = normalizePetDate(value) || nowStamp().slice(0, 10);
+    input.value = date;
+    const parsed = parseDate(date);
+    const label = $('pet-composer-date-label');
+    const hint = $('pet-composer-date-hint');
+    if (label) {
+        label.textContent = parsed
+            ? `${parsed.getFullYear()}年${pad2(parsed.getMonth() + 1)}月${pad2(parsed.getDate())}日`
+            : '选择日期';
+    }
+    if (hint) {
+        const today = nowStamp().slice(0, 10);
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayKey = `${yesterday.getFullYear()}-${pad2(yesterday.getMonth() + 1)}-${pad2(yesterday.getDate())}`;
+        const relative = date === today ? '今天' : date === yesterdayKey ? '昨天' : '';
+        hint.textContent = parsed
+            ? `${PET_WEEKDAYS[parsed.getDay()]}${relative ? ` · ${relative}` : ''}`
+            : '动态会排在这一天';
+    }
+}
+
+function shiftPetComposerDate(days) {
+    const date = new Date();
+    date.setDate(date.getDate() + Number(days || 0));
+    syncPetComposerDate(`${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`);
+}
+
+function petDateKey(date) {
+    return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+}
+
+/** 用户端自绘日期选择器：周一开始，一次显示 6 周。 */
+function renderPetCalendar() {
+    const grid = $('pet-calendar-grid');
+    if (!grid) return;
+    const now = new Date();
+    const years = $('pet-calendar-years');
+    if (years) {
+        const list = [];
+        for (let year = PET_DATE_YEAR_MIN; year <= PET_DATE_YEAR_MAX; year++) list.push(year);
+        years.innerHTML = list.map(year =>
+            `<button type="button" class="${year === petCalendarYear ? 'is-active' : ''}" data-pet-calendar-year="${year}">${year}</button>`
+        ).join('');
+    }
+
+    const month = $('pet-calendar-month');
+    if (month) month.textContent = `${petCalendarYear} 年 ${petCalendarMonth + 1} 月`;
+
+    const first = new Date(petCalendarYear, petCalendarMonth, 1);
+    const offset = (first.getDay() + 6) % 7;
+    const start = new Date(petCalendarYear, petCalendarMonth, 1 - offset);
+    const todayKey = petDateKey(now);
+    const cells = [];
+    for (let i = 0; i < 42; i++) {
+        const day = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+        const key = petDateKey(day);
+        const classes = [
+            day.getMonth() === petCalendarMonth ? '' : 'is-mute',
+            key === todayKey ? 'is-today' : '',
+            key === petCalendarSelected ? 'is-active' : ''
+        ].filter(Boolean).join(' ');
+        cells.push(`<button type="button" class="${classes}" data-pet-calendar-day="${key}" aria-label="${key}">${day.getDate()}</button>`);
+    }
+    grid.innerHTML = cells.join('');
+}
+
+function openPetCalendar(value) {
+    const selected = normalizePetDate(value) || nowStamp().slice(0, 10);
+    petCalendarSelected = selected;
+    const parsed = parseDate(selected) || new Date();
+    petCalendarYear = parsed.getFullYear();
+    petCalendarMonth = parsed.getMonth();
+    renderPetCalendar();
+    openSheet('pet-calendar');
+}
+
+function shiftPetCalendar(months) {
+    const next = new Date(petCalendarYear, petCalendarMonth + Number(months || 0), 1);
+    petCalendarYear = next.getFullYear();
+    petCalendarMonth = next.getMonth();
+    renderPetCalendar();
+}
+
+function pickPetCalendarDay(key) {
+    if (!normalizePetDate(key)) return;
+    petCalendarSelected = key;
+    syncPetComposerDate(key);
+    closeSheet('pet-calendar');
 }
 
 function petMomentTime(stamp) {
@@ -2942,11 +3044,13 @@ function renderMePet() {
 function renderPetComposer() {
     const grid = $('pet-composer-photos');
     const count = $('pet-composer-count');
+    const photoCount = $('pet-composer-photo-count');
     const text = $('pet-composer-text');
     const publish = $('pet-composer-publish');
     const title = $('pet-composer-title');
     if (title) title.textContent = petComposerEditingId ? '编辑动态' : '发动态';
     if (count) count.textContent = `${(text ? text.value.length : 0)} / 200`;
+    if (photoCount) photoCount.textContent = `${petComposerImages.length} / 9`;
 
     if (grid) {
         const tiles = petComposerImages.map((url, index) => `
@@ -2975,6 +3079,7 @@ function openPetComposer(moment) {
     petComposerUploading = 0;
     const text = $('pet-composer-text');
     if (text) text.value = moment ? moment.text || '' : '';
+    syncPetComposerDate(moment ? moment.createdAt.slice(0, 10) : nowStamp().slice(0, 10));
     renderPetComposer();
     openSheet('pet-composer');
     if (typeof warmOssSdk === 'function') warmOssSdk();
@@ -3009,6 +3114,8 @@ async function publishPetMoment() {
     const text = $('pet-composer-text');
     const publish = $('pet-composer-publish');
     const body = (text ? text.value : '').trim();
+    const date = $('pet-composer-date').value;
+    if (!normalizePetDate(date)) { toast('请选择日期'); return; }
     if (!body && !petComposerImages.length) {
         toast('写一句话，或者放一张照片');
         return;
@@ -3024,6 +3131,7 @@ async function publishPetMoment() {
     try {
         const result = await savePetMoment({
             id: petComposerEditingId || undefined,
+            date,
             text: body,
             images: petComposerImages.slice()
         });
@@ -3032,6 +3140,7 @@ async function publishPetMoment() {
         renderMePet();
         renderMeMenu();
         toast(petComposerEditingId ? '动态已更新' : '已发布');
+        petComposerEditingId = null;
     } catch (error) {
         console.error(error);
         toast(error.message || '发布失败');
@@ -3040,7 +3149,6 @@ async function publishPetMoment() {
             publish.disabled = false;
             publish.textContent = '发布';
         }
-        petComposerEditingId = null;
     }
 }
 
@@ -3099,6 +3207,35 @@ function initPetMoments() {
     if (text) {
         text.addEventListener('input', renderPetComposer);
     }
+    const dateButton = $('pet-composer-date-button');
+    if (dateButton) {
+        dateButton.addEventListener('click', () => openPetCalendar($('pet-composer-date').value));
+    }
+    const calendarYears = $('pet-calendar-years');
+    if (calendarYears) {
+        calendarYears.addEventListener('click', event => {
+            const button = event.target.closest('[data-pet-calendar-year]');
+            if (!button) return;
+            petCalendarYear = Number(button.dataset.petCalendarYear);
+            renderPetCalendar();
+        });
+    }
+    const calendarPrev = $('pet-calendar-prev');
+    if (calendarPrev) calendarPrev.addEventListener('click', () => shiftPetCalendar(-1));
+    const calendarNext = $('pet-calendar-next');
+    if (calendarNext) calendarNext.addEventListener('click', () => shiftPetCalendar(1));
+    const calendarGrid = $('pet-calendar-grid');
+    if (calendarGrid) {
+        calendarGrid.addEventListener('click', event => {
+            const button = event.target.closest('[data-pet-calendar-day]');
+            if (button) pickPetCalendarDay(button.dataset.petCalendarDay);
+        });
+    }
+    document.querySelectorAll('[data-pet-date-shortcut]').forEach(button => {
+        button.addEventListener('click', () => {
+            shiftPetComposerDate(button.dataset.petDateShortcut === 'yesterday' ? -1 : 0);
+        });
+    });
     const file = $('pet-composer-file');
     if (file) file.addEventListener('change', () => addPetComposerFiles(file));
     const photos = $('pet-composer-photos');

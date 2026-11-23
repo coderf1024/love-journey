@@ -9,18 +9,18 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="管理端">
 <title>管理端 · 恋爱空间</title>
-<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261123-01" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261123-01" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261123-03" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261123-03" as="font" type="font/woff2" crossorigin>
 <style>
     @font-face {
         font-family: 'Ma Shan Zheng';
-        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261123-01') format('woff2');        font-weight: 400;
+        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261123-03') format('woff2');        font-weight: 400;
         font-style: normal;
         font-display: swap;
     }
     @font-face {
         font-family: 'Noto Serif SC';
-        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261123-01') format('woff2');        font-weight: 700;
+        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261123-03') format('woff2');        font-weight: 700;
         font-style: normal;
         font-display: swap;
     }
@@ -86,7 +86,7 @@
         pointer-events: none;
     }
     body.admin-body::before {
-        background: url('assets/texture-noise.png?v=20261123-01') repeat;        opacity: .06;
+        background: url('assets/texture-noise.png?v=20261123-03') repeat;        opacity: .06;
         mix-blend-mode: multiply;
     }
     body.admin-body::after {
@@ -734,10 +734,10 @@
     .pet-moment-main b { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
     .pet-moment-main small { color: var(--admin-muted); font-size: 9px; }
     .pet-moment-row .admin-btn { align-self: center; flex: 0 0 auto; }
-    .pet-photo-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .pet-photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
     .pet-photo-tile { position: relative; display: grid; place-items: center; aspect-ratio: 1 / 1; overflow: hidden; background: #f4eee8; border: 1px solid var(--line-strong); border-radius: 9px; }
     .pet-photo-tile img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; }
-    .pet-photo-tile.is-add { border-style: dashed; background: rgba(255, 217, 226, .16); color: var(--admin-stamp); font-size: 9px; cursor: pointer; }
+    .pet-photo-tile.is-add { border-style: dashed; background: rgba(255, 217, 226, .16); color: var(--admin-stamp); font-size: 11px; cursor: pointer; }
     .pet-photo-tile.is-uploading { color: var(--admin-muted); font-size: 9px; }
     .pet-photo-del { position: absolute; top: 2px; right: 2px; display: grid; place-items: center; width: 15px; height: 15px; padding: 0; background: rgba(43, 34, 49, .62); border: 0; border-radius: 999px; color: #fff; font-size: 8px; }
     .pet-crop-viewport {
@@ -821,6 +821,7 @@
         text-align: left;
     }
     .date-picker-icon { width: 24px; height: 24px; flex: 0 0 24px; display: grid; place-items: center; background: #f4e4e6; border-radius: 7px; color: var(--admin-stamp); font-size: 11px; }
+    .date-picker-icon svg { width: 14px; height: 14px; }
     .date-picker-main { flex: 1; min-width: 0; display: grid; gap: 1px; }
     .date-picker-main b { font-size: 13px; font-variant-numeric: tabular-nums; }
     .date-picker-main b.is-empty { color: var(--admin-muted); font-weight: 400; }
@@ -828,6 +829,8 @@
     .date-picker-chev { color: #b3aca5; font-size: 18px; line-height: 1; }
     .date-quick-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
     .date-quick-row button { padding: 4px 10px; background: #fff; border: 1px solid var(--line); border-radius: 999px; color: var(--admin-muted); font-size: 9px; }
+    .pet-date-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .pet-date-head .date-quick-row { margin: 0; }
     .field-required { margin-left: 4px; color: var(--admin-stamp); font-size: 8.5px; letter-spacing: 0; }
     .milestone-delete-link { margin-right: auto; padding: 4px 2px; background: none; border: 0; color: var(--admin-stamp); font-size: 10px; }
     .milestone-delete-link[hidden] { display: none; }
@@ -1581,7 +1584,7 @@
                             <label for="pet-birthday-button">生日 <span class="field-required">必填</span></label>
                             <input type="hidden" id="pet-birthday">
                             <button class="date-picker-button" id="pet-birthday-button" type="button" aria-haspopup="dialog">
-                                <span class="date-picker-icon" aria-hidden="true">▦</span>
+                                <span class="date-picker-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3.5" y="5.5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3.5v4M16 3.5v4"/></svg></span>
                                 <span class="date-picker-main">
                                     <b id="pet-birthday-label" class="is-empty">选择日期</b>
                                     <small id="pet-birthday-hint">生日和到家日是两件事</small>
@@ -1593,7 +1596,7 @@
                             <label for="pet-home-date-button">到家日 <span class="field-required">必填</span></label>
                             <input type="hidden" id="pet-home-date">
                             <button class="date-picker-button" id="pet-home-date-button" type="button" aria-haspopup="dialog">
-                                <span class="date-picker-icon" aria-hidden="true">▦</span>
+                                <span class="date-picker-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3.5" y="5.5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3.5v4M16 3.5v4"/></svg></span>
                                 <span class="date-picker-main">
                                     <b id="pet-home-date-label" class="is-empty">选择日期</b>
                                     <small id="pet-home-date-hint">「到家 N 天」按这一天算</small>
@@ -1638,7 +1641,6 @@
                     <div class="admin-card">
                         <div id="pet-moment-list"></div>
                     </div>
-                    <div class="a-note">动态统一属于六一，管理端只补发和删错，不改文字；用户端可以编辑和删除。</div>
                 </div>
             </div>
         </section>
@@ -1761,6 +1763,24 @@
                 <textarea class="admin-textarea" id="pet-moment-text" rows="3" maxlength="200" placeholder="这一刻的想法…"></textarea>
             </div>
             <div class="admin-field">
+                <div class="pet-date-head">
+                    <label for="pet-moment-date-button">日期</label>
+                    <span class="date-quick-row" id="pet-moment-date-quick">
+                        <button type="button" data-pet-moment-quick="today">今天</button>
+                        <button type="button" data-pet-moment-quick="yesterday">昨天</button>
+                    </span>
+                </div>
+                <input id="pet-moment-date" type="hidden">
+                <button class="date-picker-button" id="pet-moment-date-button" type="button" aria-haspopup="dialog">
+                    <span class="date-picker-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3.5" y="5.5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3.5v4M16 3.5v4"/></svg></span>
+                    <span class="date-picker-main">
+                        <b id="pet-moment-date-label" class="is-empty">选择日期</b>
+                        <small id="pet-moment-date-hint">动态会排在这一天</small>
+                    </span>
+                    <span class="date-picker-chev" aria-hidden="true">›</span>
+                </button>
+            </div>
+            <div class="admin-field">
                 <label>照片（最多 9 张）</label>
                 <div class="pet-photo-grid" id="pet-moment-photos"></div>
                 <p class="admin-small admin-muted">文字和照片至少有一个；第一张作为列表缩略图。</p>
@@ -1797,7 +1817,7 @@
                     <label for="milestone-date-button">日期 <span class="field-required">必填</span></label>
                     <input type="hidden" id="milestone-date">
                     <button class="date-picker-button" id="milestone-date-button" type="button" aria-haspopup="dialog">
-                        <span class="date-picker-icon" aria-hidden="true">▦</span>
+                        <span class="date-picker-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3.5" y="5.5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3.5v4M16 3.5v4"/></svg></span>
                         <span class="date-picker-main">
                             <b id="milestone-date-label" class="is-empty">选择日期</b>
                             <small id="milestone-date-hint">决定这条回忆排在哪个年份</small>
@@ -1990,10 +2010,10 @@
 
 <div class="admin-toast" id="message" role="status" aria-live="polite"></div>
 
-<script src="js/oss-config.js?v=20261123-01"></script>
-<script src="js/crypto-utils.js?v=20261123-01"></script>
-<script src="js/oss-utils.js?v=20261123-01"></script>
-<script src="js/store.js?v=20261123-01"></script><script>
+<script src="js/oss-config.js?v=20261123-03"></script>
+<script src="js/crypto-utils.js?v=20261123-03"></script>
+<script src="js/oss-utils.js?v=20261123-03"></script>
+<script src="js/store.js?v=20261123-03"></script><script>
     const ORDER_LABEL = {
         pending: '待接单',
         accepted: '已接单',
@@ -3882,6 +3902,9 @@
     }
 
     const CAL_WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+    // 六一动态只发近年；生日/到家日/回忆仍保留宽范围，方便回到旧日期。
+    const PET_MOMENT_YEAR_MIN = 2026;
+    const PET_MOMENT_YEAR_MAX = 2030;
 
     function syncMilestoneDate(value) {
         const text = String(value || '').slice(0, 10);
@@ -3923,7 +3946,11 @@
     function renderMilestoneCalendar() {
         const today = new Date();
         const years = [];
-        for (let year = today.getFullYear() + 1; year >= today.getFullYear() - 12; year--) years.push(year);
+        if (calendarTarget && calendarTarget.inputId === 'pet-moment-date') {
+            for (let year = PET_MOMENT_YEAR_MIN; year <= PET_MOMENT_YEAR_MAX; year++) years.push(year);
+        } else {
+            for (let year = today.getFullYear() + 1; year >= today.getFullYear() - 12; year--) years.push(year);
+        }
         $('calendar-years').innerHTML = years.map(year =>
             `<button type="button" class="${year === calendarViewYear ? 'is-active' : ''}" data-calendar-year="${year}">${year}</button>`).join('');
         $('calendar-month-label').textContent = `${calendarViewYear} 年 ${calendarViewMonth + 1} 月`;
@@ -4528,10 +4555,33 @@
         grid.innerHTML = tiles + uploading + add;
     }
 
+    function syncPetMomentDate(value) {
+        const date = normalizePetDate(value) || nowStamp().slice(0, 10);
+        $('pet-moment-date').value = date;
+        const parsed = toDate(date);
+        const label = $('pet-moment-date-label');
+        const hint = $('pet-moment-date-hint');
+        label.classList.toggle('is-empty', !parsed);
+        label.textContent = parsed
+            ? `${parsed.getFullYear()} · ${pad2(parsed.getMonth() + 1)} · ${pad2(parsed.getDate())}`
+            : '选择日期';
+        if (hint) {
+            const today = nowStamp().slice(0, 10);
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayKey = `${yesterday.getFullYear()}-${pad2(yesterday.getMonth() + 1)}-${pad2(yesterday.getDate())}`;
+            const relative = date === today ? '今天' : date === yesterdayKey ? '昨天' : '';
+            hint.textContent = parsed
+                ? `${CAL_WEEKDAYS[parsed.getDay()]}${relative ? ` · ${relative}` : ''}`
+                : '动态会排在这一天';
+        }
+    }
+
     function openPetMomentModal() {
         petMomentPhotos = [];
         petMomentUploading = 0;
         $('pet-moment-text').value = '';
+        syncPetMomentDate(nowStamp().slice(0, 10));
         renderPetMomentPhotos();
         $('pet-moment-modal').classList.add('is-open');
         $('pet-moment-modal').setAttribute('aria-hidden', 'false');
@@ -4570,12 +4620,14 @@
 
     async function publishPetMomentFromAdmin() {
         const text = $('pet-moment-text').value.trim();
+        const date = $('pet-moment-date').value;
+        if (!normalizePetDate(date)) { showMessage('请选择日期', 'error'); return; }
         const button = $('pet-moment-publish');
         if (!text && !petMomentPhotos.length) { showMessage('写一句话，或者放一张照片', 'error'); return; }
         if (petMomentUploading > 0) { showMessage('照片还在上传，等一下', 'error'); return; }
         if (button) { button.classList.add('is-loading'); button.textContent = '发布中…'; }
         try {
-            await savePetMoment({ text, images: petMomentPhotos.slice() });
+            await savePetMoment({ text, date, images: petMomentPhotos.slice() });
             await refreshAdminPet();
             closePetMomentModal();
             showMessage('已发布');
@@ -5417,6 +5469,14 @@
         if (!remove) return;
         petMomentPhotos.splice(Number(remove.dataset.petMomentRemove), 1);
         renderPetMomentPhotos();
+    });
+    $('pet-moment-date-button').addEventListener('click', () => openCalendarFor('pet-moment-date', syncPetMomentDate));
+    $('pet-moment-date-quick').addEventListener('click', event => {
+        const button = event.target.closest('[data-pet-moment-quick]');
+        if (!button) return;
+        const date = new Date();
+        if (button.dataset.petMomentQuick === 'yesterday') date.setDate(date.getDate() - 1);
+        syncPetMomentDate(`${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`);
     });
     $('pet-moment-publish').addEventListener('click', publishPetMomentFromAdmin);
     document.querySelectorAll('[data-pet-moment-close]').forEach(button => {

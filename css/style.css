@@ -6,14 +6,14 @@
 
 @font-face {
     font-family: 'Ma Shan Zheng';
-    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261123-01') format('woff2');    font-weight: 400;
+    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261123-03') format('woff2');    font-weight: 400;
     font-style: normal;
     font-display: swap;
 }
 
 @font-face {
     font-family: 'Noto Serif SC';
-    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261123-01') format('woff2');    font-weight: 700;
+    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261123-03') format('woff2');    font-weight: 700;
     font-style: normal;
     font-display: swap;
 }
@@ -88,7 +88,7 @@ body::after {
 }
 
 body::before {
-    background: url('../assets/texture-noise.png?v=20261123-01') repeat;    opacity: 0.06;
+    background: url('../assets/texture-noise.png?v=20261123-03') repeat;    opacity: 0.06;
     mix-blend-mode: multiply;
 }
 
@@ -560,7 +560,7 @@ select:focus-visible {
     content: '';
     position: absolute;
     inset: 0;
-    background: url('../assets/texture-noise.png?v=20261123-01') repeat;    opacity: 0.1;
+    background: url('../assets/texture-noise.png?v=20261123-03') repeat;    opacity: 0.1;
     mix-blend-mode: soft-light;
     pointer-events: none;
 }
@@ -4765,7 +4765,8 @@ body.me-pet-page .app-main {
 }
 
 .pet-composer-head {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
     gap: 8px;
     padding: 14px 16px 12px;
@@ -4773,7 +4774,8 @@ body.me-pet-page .app-main {
 }
 
 .pet-composer-cancel {
-    padding: 4px 0;
+    justify-self: start;
+    padding: 6px 2px;
     color: var(--muted);
     font-size: 0.86rem;
     background: none;
@@ -4781,13 +4783,15 @@ body.me-pet-page .app-main {
 }
 
 .pet-composer-head h2 {
-    margin-left: auto;
+    margin: 0;
     font-size: 0.94rem;
     font-weight: 700;
+    text-align: center;
 }
 
 .pet-composer-publish {
-    padding: 5px 14px;
+    justify-self: end;
+    padding: 6px 14px;
     color: #fff;
     font-size: 0.8rem;
     background: var(--ink);
@@ -4800,13 +4804,18 @@ body.me-pet-page .app-main {
 }
 
 .pet-composer-body {
-    padding: 12px 16px calc(20px + var(--safe-bottom));
+    padding: 14px 16px calc(20px + var(--safe-bottom));
+}
+
+.pet-composer-writing {
+    position: relative;
 }
 
 .pet-composer-text {
+    display: block;
     width: 100%;
-    min-height: 106px;
-    padding: 11px 12px;
+    min-height: 124px;
+    padding: 12px 13px 28px;
     color: var(--ink-2);
     font-family: var(--font-body);
     font-size: 0.94rem;
@@ -4823,17 +4832,283 @@ body.me-pet-page .app-main {
 }
 
 .pet-composer-count {
-    margin-top: 5px;
+    position: absolute;
+    right: 12px;
+    bottom: 9px;
+    margin: 0;
     color: var(--faint);
     font-size: 0.68rem;
-    text-align: right;
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+}
+
+.pet-composer-date-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 15px 2px 7px;
+}
+
+.pet-composer-date-row > span:first-child {
+    color: var(--ink-2);
+    font-size: 0.78rem;
+}
+
+.pet-composer-quick {
+    display: flex;
+    gap: 5px;
+}
+
+.pet-composer-quick button {
+    padding: 4px 11px;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 0.7rem;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+}
+
+.pet-composer-quick button:active {
+    color: var(--stamp-deep);
+    border-color: var(--stamp);
+}
+
+.pet-date-field {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 9px 11px;
+    color: inherit;
+    font-family: inherit;
+    text-align: left;
+    background: #fff;
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.pet-date-field:focus-within {
+    border-color: var(--stamp);
+    box-shadow: 0 0 0 3px rgba(223, 95, 126, .12);
+}
+
+.pet-date-icon {
+    display: grid;
+    flex: 0 0 28px;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    color: var(--stamp-deep);
+    font-size: 12px;
+    background: rgba(255, 217, 226, .42);
+    border-radius: 8px;
+}
+
+.pet-date-icon svg {
+    width: 15px;
+    height: 15px;
+}
+
+.pet-date-main {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+    gap: 1px;
+}
+
+.pet-date-main b {
+    color: var(--ink);
+    font-size: 0.86rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.pet-date-main small {
+    color: var(--faint);
+    font-size: 0.7rem;
+}
+
+.pet-date-chev {
+    color: var(--faint);
+    font-size: 18px;
+    line-height: 1;
+}
+
+/* 日期选择面板 */
+.pet-calendar-panel {
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    max-height: 90dvh;
+}
+
+.pet-calendar-head {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--line);
+}
+
+.pet-calendar-cancel {
+    justify-self: start;
+    padding: 6px 2px;
+    color: var(--muted);
+    font-size: 0.86rem;
+    background: none;
+    border: 0;
+}
+
+.pet-calendar-head h2 {
+    margin: 0;
+    font-size: 0.94rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.pet-calendar-body {
+    flex: 1;
+    min-height: 0;
+    padding: 12px 16px calc(18px + var(--safe-bottom));
+    overflow-y: auto;
+}
+
+.pet-calendar-years {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.pet-calendar-years button {
+    padding: 4px 11px;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 0.7rem;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+}
+
+.pet-calendar-years button.is-active {
+    color: #fff;
+    background: var(--ink);
+    border-color: var(--ink);
+}
+
+.pet-calendar-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 2px 0 8px;
+}
+
+.pet-calendar-nav button {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    color: var(--ink-2);
+    font-family: inherit;
+    font-size: 20px;
+    line-height: 1;
+    background: none;
+    border: 0;
+    border-radius: 999px;
+}
+
+.pet-calendar-nav button:active {
+    background: rgba(43, 34, 49, .06);
+}
+
+.pet-calendar-nav b {
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 1rem;
+    letter-spacing: .02em;
+}
+
+.pet-calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 4px;
+    color: var(--faint);
+    font-size: 0.68rem;
+    text-align: center;
+}
+
+.pet-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+
+.pet-calendar-grid button {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1 / 1;
+    padding: 0;
+    color: var(--ink-2);
+    font-family: var(--font-body);
+    font-size: 0.86rem;
+    font-variant-numeric: tabular-nums;
+    background: none;
+    border: 0;
+    border-radius: 999px;
+}
+
+.pet-calendar-grid button.is-mute {
+    color: var(--faint);
+    opacity: .45;
+}
+
+.pet-calendar-grid button.is-today {
+    color: var(--stamp-deep);
+    box-shadow: inset 0 0 0 1px var(--stamp);
+}
+
+.pet-calendar-grid button.is-active {
+    color: #fff;
+    background: var(--ink);
+    box-shadow: none;
+}
+
+.pet-calendar-grid button:active {
+    background: rgba(255, 217, 226, .4);
+}
+
+.pet-calendar-grid button.is-active:active {
+    background: var(--ink);
+}
+
+.pet-composer-photo-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 15px 2px 7px;
+    color: var(--ink-2);
+    font-size: 0.78rem;
+}
+
+.pet-composer-photo-head small {
+    color: var(--faint);
+    font-size: 0.7rem;
+    font-variant-numeric: tabular-nums;
 }
 
 .pet-composer-photos {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 7px;
-    margin-top: 10px;
+    margin-top: 0;
 }
 
 .pet-edit-tile {
@@ -6037,6 +6312,14 @@ body.me-fixed-view .wallet-entries.me-ledger {
         width: min(680px, calc(100% - 48px));
         height: auto;
         max-height: 90dvh;
+    }
+
+    .sheet-panel-pet {
+        width: min(560px, calc(100% - 48px));
+    }
+
+    .pet-calendar-panel {
+        width: min(400px, calc(100% - 48px));
     }
 
     .sheet-panel-center {

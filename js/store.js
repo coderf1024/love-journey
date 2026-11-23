@@ -1837,7 +1837,8 @@ function normalizePetDate(value) {
     if (!text) return '';
     if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return '';
     const parsed = new Date(text.replace(/-/g, '/'));
-    return isNaN(parsed.getTime()) ? '' : text;
+    return isNaN(parsed.getTime()) || parsed.getFullYear() !== Number(text.slice(0, 4)) ||
+        parsed.getMonth() + 1 !== Number(text.slice(5, 7)) || parsed.getDate() !== Number(text.slice(8, 10)) ? '' : text;
 }
 
 function clampPercent(value, fallback) {
@@ -1867,12 +1868,17 @@ function normalizePetMoment(input, existing) {
         .filter(Boolean)
         .slice(0, PET_MOMENT_IMAGE_LIMIT);
     if (!text && !images.length) throw makeError('PET_MOMENT_EMPTY', '写一句话，或者放一张照片');
+    const stamp = base.createdAt || now;
+    const date = input && input.date !== undefined ? normalizePetDate(input.date) : stamp.slice(0, 10);
+    if (!date) throw makeError('PET_MOMENT_DATE', '请选择有效日期');
+    // The timeline uses createdAt for both display and ordering; retain its time of day.
+    const createdAt = input && input.date !== undefined ? date + stamp.slice(10) : stamp;
 
     return {
         id: base.id || (input && input.id) || `pm_${now.replace(/[-: ]/g, '')}_${Math.random().toString(36).slice(2, 6)}`,
         text,
         images,
-        createdAt: base.createdAt || now,
+        createdAt,
         updatedAt: now
     };
 }

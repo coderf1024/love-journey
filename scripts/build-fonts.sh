@@ -159,11 +159,9 @@ for value in (
     [item.get('name') for item in menu.get('categories', []) if isinstance(item, dict)],
     coupon_titles,
     [item.get('name') for item in requests.get('items', []) if isinstance(item, dict)],
-    # 六一的资料与事件标题：名字、一句话、事件标题和标签都会进显示字体
+    # 六一：名字和一句话进显示字体；动态正文是长文，用正文字体，不进子集
     pet.get('name'),
     pet.get('tagline'),
-    [item.get('title') for item in pet.get('events', []) if isinstance(item, dict)],
-    [item.get('tag') for item in pet.get('events', []) if isinstance(item, dict)],
 ):
     walk(display, value)
 display |= ASCII

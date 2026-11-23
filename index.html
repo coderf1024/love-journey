@@ -15,9 +15,9 @@
     <link rel="apple-touch-icon" href="assets/icon-180.png">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="preconnect" href="https://love-config.oss-cn-beijing.aliyuncs.com" crossorigin>
-    <link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261121-01" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261121-01" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/style.css?v=20261121-01">
+    <link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261123-01" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261123-01" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="css/style.css?v=20261123-01">
 </head>
 <body>
     <header class="app-header" id="app-header">
@@ -62,7 +62,7 @@
                         <div class="timer-unit"><span id="minutes">0</span><small>分</small></div>
                         <div class="timer-unit"><span id="seconds">0</span><small>秒</small></div>
                     </div>
-                    <img class="timer-pet" src="assets/media/cat/liuyi-lie.webp?v=20261121-01"
+                    <img class="timer-pet" src="assets/media/cat/liuyi-lie.webp?v=20261123-01"
                          alt="六一趴在计时卡上" width="760" height="523" decoding="async">
                 </div>
             </div>
@@ -233,14 +233,14 @@
                         <b id="me-space-title">恋爱空间</b>
                         <small id="me-space-sub">一起吃饭，一起过日子</small>
                     </div>
-                    <img class="me-pet" src="assets/media/cat/liuyi-sleep.webp?v=20261121-01"
+                    <img class="me-pet" src="assets/media/cat/liuyi-sleep.webp?v=20261123-01"
                          alt="六一的睡姿" width="760" height="397" decoding="async">
                 </div>
 
                 <div class="me-menu-group" id="me-pet-group" hidden>
                     <button class="me-menu-row" type="button" data-me-view="pet">
-                        <span class="me-menu-icon pet-icon" aria-hidden="true"><img id="me-pet-icon" alt=""></span>
-                        <span class="me-menu-text"><b>六一</b><small id="me-menu-pet-sub">到家 0 天 · 0 件小事</small></span>
+                        <span class="me-menu-icon" aria-hidden="true">猫</span>
+                        <span class="me-menu-text"><b>六一</b><small id="me-menu-pet-sub">看看六一的日常</small></span>
                         <span class="me-menu-chev" aria-hidden="true">›</span>
                     </button>
                 </div>
@@ -324,6 +324,33 @@
             <span class="tab-label">空间</span>
         </button>
     </nav>
+
+    <div class="sheet" id="pet-composer" aria-hidden="true">
+        <div class="sheet-backdrop" data-close></div>
+        <div class="sheet-panel sheet-panel-pet" role="dialog" aria-modal="true" aria-labelledby="pet-composer-title">
+            <header class="pet-composer-head">
+                <button class="pet-composer-cancel" type="button" data-close>取消</button>
+                <h2 id="pet-composer-title">发动态</h2>
+                <button class="pet-composer-publish" id="pet-composer-publish" type="button">发布</button>
+            </header>
+            <div class="sheet-scroll pet-composer-body">
+                <textarea class="pet-composer-text" id="pet-composer-text" maxlength="200" placeholder="这一刻的想法…"></textarea>
+                <p class="pet-composer-count" id="pet-composer-count">0 / 200</p>
+                <div class="pet-composer-photos" id="pet-composer-photos"></div>
+                <input id="pet-composer-file" type="file" accept="image/*" multiple hidden>
+                <p class="pet-composer-hint">文字和图片至少有一个；最多 9 张照片。</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="sheet" id="pet-moment-sheet" aria-hidden="true">
+        <div class="sheet-backdrop" data-close></div>
+        <div class="sheet-panel sheet-panel-pet-actions" role="dialog" aria-modal="true" aria-label="动态操作">
+            <button class="pet-menu-action" id="pet-moment-edit" type="button">编辑动态</button>
+            <button class="pet-menu-action is-danger" id="pet-moment-delete" type="button">删除动态</button>
+            <button class="pet-menu-action is-muted" type="button" data-close>取消</button>
+        </div>
+    </div>
 
     <div class="sheet" id="memory-sheet" aria-hidden="true">
         <div class="sheet-backdrop" data-close></div>
@@ -557,10 +584,10 @@
 
     <audio id="bg-music" loop playsinline preload="none"></audio>
 
-    <script src="js/oss-config.js?v=20261121-01"></script>
-    <script src="js/crypto-utils.js?v=20261121-01"></script>
-    <script src="js/oss-utils.js?v=20261121-01"></script>
-    <script src="js/store.js?v=20261121-01"></script>
-    <script src="js/app.js?v=20261121-01"></script>
+    <script src="js/oss-config.js?v=20261123-01"></script>
+    <script src="js/crypto-utils.js?v=20261123-01"></script>
+    <script src="js/oss-utils.js?v=20261123-01"></script>
+    <script src="js/store.js?v=20261123-01"></script>
+    <script src="js/app.js?v=20261123-01"></script>
 </body>
 </html>

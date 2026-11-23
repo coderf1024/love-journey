@@ -13,12 +13,12 @@ let lastCityColumns = 0;
 
 // Self-hosted: cdn.jsdelivr.net is unreliable in WeChat / mainland mobile networks.
 const LIBS = {
-    echarts: 'assets/vendor/echarts.min.js?v=20261121-01',
-    qrcode: 'assets/vendor/qrcode.min.js?v=20261121-01'
+    echarts: 'assets/vendor/echarts.min.js?v=20261123-01',
+    qrcode: 'assets/vendor/qrcode.min.js?v=20261123-01'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261121-01';
-const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261121-01';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261123-01';
+const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261123-01';
 // First-paint fallback only. The live story document always wins once it loads.
 const LOVE_START_FALLBACK = '2020-12-20';
 
@@ -2819,65 +2819,310 @@ function announcementCardHTML(item, unread) {
     `;
 }
 
-/** 六一的只读子页：形象 + 到家天数 + 事件时间线。生日即到家日，没有单独字段。 */
+/** 六一的朋友圈式主页：封面 + 资料 + 动态流。所有动态都属于六一。 */
+let petComposerEditingId = null;
+let petComposerImages = [];
+let petComposerUploading = 0;
+let petMomentMenuId = null;
+
+const PET_DEFAULT_AVATAR = 'assets/media/cat/liuyi-sleep.webp';
+
+function petAvatarUrl(pet) {
+    return (pet && pet.avatar) || PET_DEFAULT_AVATAR;
+}
+
+function petMomentTime(stamp) {
+    const date = parseDate(stamp);
+    if (!date) return '';
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    if (diff >= 0 && diff < 60000) return '刚刚';
+    if (diff >= 0 && diff < 3600000) return `${Math.floor(diff / 60000)} 分钟前`;
+    const clock = `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+    if (date.toDateString() === now.toDateString()) return `今天 ${clock}`;
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    if (date.toDateString() === yesterday.toDateString()) return `昨天 ${clock}`;
+    if (date.getFullYear() === now.getFullYear()) {
+        return `${pad2(date.getMonth() + 1)}.${pad2(date.getDate())}`;
+    }
+    return `${date.getFullYear()}.${pad2(date.getMonth() + 1)}.${pad2(date.getDate())}`;
+}
+
+function petPhotoGrid(images) {
+    const list = (images || []).filter(Boolean);
+    if (!list.length) return '';
+    const layout = list.length === 1 ? 'n1' : list.length === 2 ? 'n2' : 'n3';
+    return `<div class="pet-photos ${layout}">${list.map(url =>
+        `<button class="pet-photo" type="button" data-pet-photo="${cleanText(url)}" aria-label="看大图">` +
+        `<img src="${cleanText(url)}" alt="" loading="lazy" decoding="async"></button>`).join('')}</div>`;
+}
+
+function petMomentHTML(pet, moment) {
+    return `
+        <article class="pet-moment" data-pet-moment="${cleanText(moment.id)}">
+            <span class="pet-moment-avatar"><img src="${cleanText(petAvatarUrl(pet))}" alt=""></span>
+            <div class="pet-moment-body">
+                <div class="pet-moment-head">
+                    <b>${cleanText(pet.name)}</b>
+                    <span>${cleanText(petMomentTime(moment.createdAt))}</span>
+                    <button class="pet-moment-more" type="button" data-pet-moment-menu="${cleanText(moment.id)}" aria-label="更多">⋯</button>
+                </div>
+                ${moment.text ? `<p class="pet-moment-text">${cleanText(moment.text)}</p>` : ''}
+                ${petPhotoGrid(moment.images)}
+            </div>
+        </article>
+    `;
+}
+
 function renderMePet() {
     const body = $('me-sub-body');
     if (!body) return;
 
     const pet = state.pet;
+    document.title = pet && pet.name ? `${pet.name} · 恋爱空间` : '六一 · 恋爱空间';
+
     if (!pet || !pet.name) {
-        body.innerHTML = '<div class="me-empty">还没有六一的小档案。</div>';
+        body.innerHTML = `
+            <div class="pet-page">
+                <div class="pet-cover">
+                    <button class="pet-back" type="button" data-pet-back aria-label="返回空间">‹</button>
+                    <span class="pet-cover-empty">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6.5" width="18" height="13" rx="3"/><circle cx="12" cy="13" r="3.6"/><path d="M8.5 6.5 9.8 4h4.4l1.3 2.5"/></svg>
+                        <span>还没有六一的小档案</span>
+                    </span>
+                </div>
+                <div class="pet-empty">在管理端「系统 → 六一」填上名字和日期，这里就会出现六一的动态。</div>
+            </div>
+        `;
         return;
     }
 
     const days = petHomeDays(pet.homeDate);
-    const events = Array.isArray(pet.events) ? pet.events : [];
-    const hero = pet.poses && pet.poses.lie ? pet.poses.lie.url : '';
-    const sleeping = pet.poses && pet.poses.sleep ? pet.poses.sleep.url : '';
+    const moments = Array.isArray(pet.moments) ? pet.moments : [];
+    const coverUrl = pet.cover && pet.cover.url;
+    const coverStyle = coverUrl
+        ? ` style="background-image:url('${cleanText(coverUrl)}');background-position:${Number(pet.cover.x) || 0}% ${Number(pet.cover.y) || 0}%"`
+        : '';
 
-    const stats = [
-        days == null ? '' : `<span class="pet-stat"><b>${days}</b><small>到家天数</small></span>`,
-        `<span class="pet-stat"><b>${events.length}</b><small>记下的小事</small></span>`
-    ].filter(Boolean).join('');
-
-    const timeline = events.length
-        ? events.map(event => {
-            const photos = (event.images || []).slice(0, 4);
-            const more = (event.images || []).length - photos.length;
-            return `
-                <div class="tl-item">
-                    <span class="tl-date"><b>${cleanText(event.date.slice(5).replace('-', '.'))}</b>${cleanText(event.date.slice(0, 4))}</span>
-                    <div class="tl-card">
-                        ${event.tag ? `<span class="tl-tag">${cleanText(event.tag)}</span>` : ''}
-                        <b>${cleanText(event.title)}</b>
-                        ${event.note ? `<p>${cleanText(event.note)}</p>` : ''}
-                        ${photos.length ? `<div class="tl-photo">${photos.map(url =>
-                            `<i style="background-image:url('${cleanText(url)}')"></i>`).join('')}${more > 0
-                            ? `<i class="more">+${more}</i>` : ''}</div>` : ''}
-                    </div>
-                </div>
-            `;
-        }).join('')
-        : '<div class="tl-empty">还没有记下小事。</div>';
+    const feed = moments.length
+        ? moments.map(moment => petMomentHTML(pet, moment)).join('')
+        : '<div class="pet-empty">还没有动态，点右下角的 ＋ 发一条。</div>';
 
     body.innerHTML = `
-        <div class="pet-hero">
-            <div class="pet-hero-art">
-                ${hero ? `<img src="${cleanText(hero)}" alt="${cleanText(pet.name)}" decoding="async">` : ''}
+        <div class="pet-page">
+            <div class="pet-cover${coverUrl ? ' has-image' : ''}"${coverStyle}>
+                <button class="pet-back" type="button" data-pet-back aria-label="返回空间">‹</button>
+                ${coverUrl ? '' : `
+                    <span class="pet-cover-empty">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6.5" width="18" height="13" rx="3"/><circle cx="12" cy="13" r="3.6"/><path d="M8.5 6.5 9.8 4h4.4l1.3 2.5"/></svg>
+                        <span>背景图会在管理端上传后显示</span>
+                    </span>`}
             </div>
-            <h2>${cleanText(pet.name)}</h2>
-            ${pet.tagline ? `<p>${cleanText(pet.tagline)}</p>` : ''}
-            <div class="pet-stats">${stats}</div>
+            <div class="pet-profile">
+                <span class="pet-avatar"><img src="${cleanText(petAvatarUrl(pet))}" alt="${cleanText(pet.name)}"></span>
+                <div class="pet-name-row">
+                    <b>${cleanText(pet.name)}</b>
+                    ${days == null ? '' : `<small>到家 ${days} 天</small>`}
+                </div>
+                ${pet.tagline ? `<p class="pet-tagline">${cleanText(pet.tagline)}</p>` : ''}
+                <div class="pet-stats">
+                    <span class="pet-stat"><b>${moments.length}</b><small>动态</small></span>
+                    ${pet.birthday ? `<span class="pet-stat"><b>${formatDate(pet.birthday)}</b><small>生日</small></span>` : ''}
+                    ${pet.homeDate ? `<span class="pet-stat"><b>${formatDate(pet.homeDate)}</b><small>到家</small></span>` : ''}
+                </div>
+            </div>
+            <div class="pet-feed">${feed}</div>
+            <button class="pet-fab" type="button" data-pet-compose aria-label="发动态">＋</button>
         </div>
-        ${pet.homeDate ? `
-            <div class="info-card">
-                <div class="info-row"><span>到家日</span><b>${formatDate(pet.homeDate)}</b></div>
-                <div class="info-row"><span>生日</span><b class="info-note">同到家日</b></div>
-            </div>` : ''}
-        <div class="section-title pet-section-title">六一的小事 <small>按日期倒序</small></div>
-        <div class="timeline">${timeline}</div>
-        ${sleeping ? `<div class="pet-sleep"><img src="${cleanText(sleeping)}" alt="" loading="lazy" decoding="async"></div>` : ''}
     `;
+}
+
+
+function renderPetComposer() {
+    const grid = $('pet-composer-photos');
+    const count = $('pet-composer-count');
+    const text = $('pet-composer-text');
+    const publish = $('pet-composer-publish');
+    const title = $('pet-composer-title');
+    if (title) title.textContent = petComposerEditingId ? '编辑动态' : '发动态';
+    if (count) count.textContent = `${(text ? text.value.length : 0)} / 200`;
+
+    if (grid) {
+        const tiles = petComposerImages.map((url, index) => `
+            <span class="pet-edit-tile">
+                <img src="${cleanText(url)}" alt="">
+                <button type="button" class="pet-edit-remove" data-pet-edit-remove="${index}" aria-label="删除这张">✕</button>
+            </span>
+        `).join('');
+        const uploading = petComposerUploading > 0 ? '<span class="pet-edit-tile is-uploading">上传中…</span>' : '';
+        const add = petComposerImages.length + petComposerUploading >= 9
+            ? ''
+            : '<label class="pet-edit-tile is-add" for="pet-composer-file"><span>＋</span>加照片</label>';
+        grid.innerHTML = tiles + uploading + add;
+    }
+
+    if (publish) {
+        const hasContent = (text && text.value.trim()) || petComposerImages.length;
+        publish.disabled = !hasContent;
+        publish.classList.toggle('is-disabled', !hasContent);
+    }
+}
+
+function openPetComposer(moment) {
+    petComposerEditingId = moment ? moment.id : null;
+    petComposerImages = moment ? (moment.images || []).slice() : [];
+    petComposerUploading = 0;
+    const text = $('pet-composer-text');
+    if (text) text.value = moment ? moment.text || '' : '';
+    renderPetComposer();
+    openSheet('pet-composer');
+    if (typeof warmOssSdk === 'function') warmOssSdk();
+    setTimeout(() => { if (text) text.focus({ preventScroll: true }); }, 240);
+}
+
+async function addPetComposerFiles(input) {
+    const files = Array.from(input.files || []);
+    input.value = '';
+    if (!files.length) return;
+    const room = 9 - petComposerImages.length;
+    const accepted = files.slice(0, Math.max(0, room));
+    if (files.length > accepted.length) toast('一条动态最多 9 张照片');
+    if (!accepted.length) return;
+    petComposerUploading += accepted.length;
+    renderPetComposer();
+    for (const file of accepted) {
+        try {
+            const url = await uploadPetImage(file);
+            petComposerImages.push(url);
+        } catch (error) {
+            console.error(error);
+            toast(error.message || '照片上传失败');
+        } finally {
+            petComposerUploading -= 1;
+            renderPetComposer();
+        }
+    }
+}
+
+async function publishPetMoment() {
+    const text = $('pet-composer-text');
+    const publish = $('pet-composer-publish');
+    const body = (text ? text.value : '').trim();
+    if (!body && !petComposerImages.length) {
+        toast('写一句话，或者放一张照片');
+        return;
+    }
+    if (petComposerUploading > 0) {
+        toast('照片还在上传，等一下');
+        return;
+    }
+    if (publish) {
+        publish.disabled = true;
+        publish.textContent = '发布中…';
+    }
+    try {
+        const result = await savePetMoment({
+            id: petComposerEditingId || undefined,
+            text: body,
+            images: petComposerImages.slice()
+        });
+        state.pet = result.doc;
+        closeSheet('pet-composer');
+        renderMePet();
+        renderMeMenu();
+        toast(petComposerEditingId ? '动态已更新' : '已发布');
+    } catch (error) {
+        console.error(error);
+        toast(error.message || '发布失败');
+    } finally {
+        if (publish) {
+            publish.disabled = false;
+            publish.textContent = '发布';
+        }
+        petComposerEditingId = null;
+    }
+}
+
+function openPetMomentMenu(id) {
+    petMomentMenuId = id;
+    openSheet('pet-moment-sheet');
+}
+
+async function deletePetMomentFromMenu() {
+    const id = petMomentMenuId;
+    const moment = (state.pet && state.pet.moments || []).find(item => String(item.id) === String(id));
+    if (!moment) return;
+    closeSheet('pet-moment-sheet');
+    const ok = await showConfirm({
+        title: '删除这条动态',
+        message: '删除后就找不回来了，确定删除吗？',
+        okText: '删除',
+        danger: true
+    });
+    if (!ok) return;
+    try {
+        const doc = await deletePetMoment(id);
+        state.pet = doc;
+        renderMePet();
+        renderMeMenu();
+        toast('已删除');
+    } catch (error) {
+        console.error(error);
+        toast(error.message || '删除失败');
+    }
+}
+
+function initPetMoments() {
+    const subBody = $('me-sub-body');
+    if (subBody) {
+        subBody.addEventListener('click', event => {
+            if (event.target.closest('[data-pet-back]')) {
+                closeMeView();
+                return;
+            }
+            if (event.target.closest('[data-pet-compose]')) {
+                openPetComposer(null);
+                return;
+            }
+            const menu = event.target.closest('[data-pet-moment-menu]');
+            if (menu) {
+                openPetMomentMenu(menu.dataset.petMomentMenu);
+                return;
+            }
+            const photo = event.target.closest('[data-pet-photo]');
+            if (photo) openPhotoViewer(photo.dataset.petPhoto);
+        });
+    }
+
+    const text = $('pet-composer-text');
+    if (text) {
+        text.addEventListener('input', renderPetComposer);
+    }
+    const file = $('pet-composer-file');
+    if (file) file.addEventListener('change', () => addPetComposerFiles(file));
+    const photos = $('pet-composer-photos');
+    if (photos) {
+        photos.addEventListener('click', event => {
+            const remove = event.target.closest('[data-pet-edit-remove]');
+            if (!remove) return;
+            petComposerImages.splice(Number(remove.dataset.petEditRemove), 1);
+            renderPetComposer();
+        });
+    }
+    const publish = $('pet-composer-publish');
+    if (publish) publish.addEventListener('click', publishPetMoment);
+
+    const edit = $('pet-moment-edit');
+    if (edit) {
+        edit.addEventListener('click', () => {
+            const moment = (state.pet && state.pet.moments || []).find(item => String(item.id) === String(petMomentMenuId));
+            closeSheet('pet-moment-sheet');
+            if (moment) openPetComposer(moment);
+        });
+    }
+    const remove = $('pet-moment-delete');
+    if (remove) remove.addEventListener('click', deletePetMomentFromMenu);
 }
 
 function renderMeAnnouncements() {
@@ -2935,6 +3180,7 @@ function resetMeView() {
     state.meOrderId = null;
     document.body.classList.remove('me-subpage');
     document.body.classList.remove('me-fixed-view');
+    document.body.classList.remove('me-pet-page');
 }
 
 function scrollAppTop() {
@@ -3048,17 +3294,7 @@ function renderMeMenu() {
         petGroup.hidden = !show;
         if (show) {
             const petSub = $('me-menu-pet-sub');
-            if (petSub) {
-                const days = petHomeDays(pet.homeDate);
-                const count = (pet.events || []).length;
-                petSub.textContent = [days == null ? '' : `到家 ${days} 天`, `${count} 件小事`]
-                    .filter(Boolean).join(' · ');
-            }
-            const icon = $('me-pet-icon');
-            if (icon) {
-                const url = pet.poses && pet.poses.lie && pet.poses.lie.url;
-                if (url) icon.src = url;
-            }
+            if (petSub) petSub.textContent = pet.tagline || '还没写一句话';
         }
     }
 
@@ -3097,6 +3333,7 @@ function renderMePage() {
         'me-fixed-view',
         ['orders', 'wallet', 'cards', 'announcements'].includes(state.meView)
     );
+    document.body.classList.toggle('me-pet-page', state.meView === 'pet');
 
     if (state.meView === 'menu') {
         document.body.classList.remove('me-subpage');
@@ -3121,6 +3358,8 @@ function renderMePage() {
 
     const title = $('me-sub-title');
     if (title) title.textContent = meta;
+
+    if (state.meView !== 'pet') renderSpaceChrome();
 
     if (state.meView === 'orders') renderMeOrders();
     else if (state.meView === 'wallet') renderMeWallet();
@@ -4222,6 +4461,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initCoupons();
     initOrderUI();
     initAnnouncements();
+    initPetMoments();
     initMapControls();
     initVisibilityRefresh();
     initBootError();

@@ -1810,21 +1810,24 @@ async function updateSpaceSettings(patch) {
 }
 
 /* ---------- 六一（宠物） ----------
-   One document: profile + poses + an embedded events array. The event count is
-   small (tens), so a single read is cheaper than a collection and keeps the
-   profile and its timeline in one atomic write. Dates are YYYY-MM-DD; the
-   homecoming date doubles as the birthday (there is no separate birthday).
+   One document: profile + cover + avatar + an embedded moments array. Every
+   moment belongs to 六一 (there is no separate author), which is why the feed
+   is one list and every item can be edited or deleted from the user page.
+   Dates are YYYY-MM-DD. Birthday and homecoming date are two independent
+   fields; the homecoming date only drives「到家 N 天」.
    ------------------------------------------------------------------ */
-const PET_EVENT_LIMIT = 200;
-const PET_POSE_KEYS = ['lie', 'sleep'];
+const PET_MOMENT_IMAGE_LIMIT = 9;
+const PET_MOMENT_TEXT_LIMIT = 200;
 
 function emptyPetDoc() {
     return {
         name: '',
-        homeDate: '',
         tagline: '',
-        poses: { lie: null, sleep: null },
-        events: [],
+        birthday: '',
+        homeDate: '',
+        avatar: '',
+        cover: null,
+        moments: [],
         updatedAt: ''
     };
 }
@@ -1832,124 +1835,156 @@ function emptyPetDoc() {
 function normalizePetDate(value) {
     const text = String(value || '').trim();
     if (!text) return '';
-    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
-    if (!match) return '';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return '';
     const parsed = new Date(text.replace(/-/g, '/'));
-    if (isNaN(parsed.getTime())) return '';
-    return text;
+    return isNaN(parsed.getTime()) ? '' : text;
 }
 
-function normalizePetEvent(input, existing) {
+function clampPercent(value, fallback) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return fallback;
+    return Math.max(0, Math.min(100, Math.round(number)));
+}
+
+/** Cover keeps both the image and the chosen crop position (percentages). */
+function normalizePetCover(cover) {
+    if (!cover) return null;
+    const url = typeof cover === 'string' ? cover : String(cover.url || '');
+    if (!url.trim()) return null;
+    return {
+        url: url.trim(),
+        x: clampPercent(typeof cover === 'object' ? cover.x : 50, 50),
+        y: clampPercent(typeof cover === 'object' ? cover.y : 50, 50)
+    };
+}
+
+function normalizePetMoment(input, existing) {
     const now = nowStamp();
     const base = existing || {};
-    const title = String((input && input.title) != null ? input.title : base.title || '').trim();
-    if (!title) throw makeError('PET_EVENT_TITLE', '给这件小事起个标题吧');
-    const date = normalizePetDate((input && input.date) != null ? input.date : base.date);
-    if (!date) throw makeError('PET_EVENT_DATE', '请选择日期');
+    const text = String((input && input.text) != null ? input.text : base.text || '').trim().slice(0, PET_MOMENT_TEXT_LIMIT);
     const images = (input && Array.isArray(input.images) ? input.images : base.images || [])
         .map(url => String(url || '').trim())
-        .filter(Boolean);
-    if (!images.length) throw makeError('PET_EVENT_IMAGES', '至少放一张照片');
+        .filter(Boolean)
+        .slice(0, PET_MOMENT_IMAGE_LIMIT);
+    if (!text && !images.length) throw makeError('PET_MOMENT_EMPTY', '写一句话，或者放一张照片');
 
     return {
-        id: base.id || input.id || `pe_${now.replace(/[-: ]/g, '')}_${Math.random().toString(36).slice(2, 6)}`,
-        date,
-        title: title.slice(0, 40),
-        tag: String((input && input.tag) != null ? input.tag : base.tag || '').trim().slice(0, 8),
-        note: String((input && input.note) != null ? input.note : base.note || '').trim().slice(0, 200),
-        images: images.slice(0, 9),
+        id: base.id || (input && input.id) || `pm_${now.replace(/[-: ]/g, '')}_${Math.random().toString(36).slice(2, 6)}`,
+        text,
+        images,
         createdAt: base.createdAt || now,
         updatedAt: now
     };
+}
+
+/** Old documents stored「事件」; fold them into moments so nothing is lost. */
+function legacyEventsToMoments(events) {
+    return (Array.isArray(events) ? events : [])
+        .filter(item => item && item.id)
+        .map(item => ({
+            id: String(item.id),
+            text: [item.title, item.note].filter(Boolean).join(' · ').slice(0, PET_MOMENT_TEXT_LIMIT),
+            images: (Array.isArray(item.images) ? item.images : []).filter(Boolean).map(String).slice(0, PET_MOMENT_IMAGE_LIMIT),
+            createdAt: item.createdAt || (item.date ? `${item.date} 12:00:00` : ''),
+            updatedAt: item.updatedAt || item.createdAt || ''
+        }))
+        .filter(item => item.text || item.images.length);
 }
 
 function normalizePetDoc(doc) {
     const base = emptyPetDoc();
     if (!doc || typeof doc !== 'object') return base;
     base.name = String(doc.name || '').trim().slice(0, 16);
-    base.homeDate = normalizePetDate(doc.homeDate);
     base.tagline = String(doc.tagline || '').trim().slice(0, 30);
-    PET_POSE_KEYS.forEach(key => {
-        const pose = doc.poses && doc.poses[key];
-        base.poses[key] = pose && pose.url ? { url: String(pose.url), updatedAt: pose.updatedAt || '' } : null;
-    });
-    base.events = (Array.isArray(doc.events) ? doc.events : [])
-        .filter(item => item && item.id && item.date && item.title)
+    base.birthday = normalizePetDate(doc.birthday);
+    base.homeDate = normalizePetDate(doc.homeDate);
+    base.avatar = String(doc.avatar || '').trim();
+    base.cover = normalizePetCover(doc.cover);
+    const moments = Array.isArray(doc.moments) ? doc.moments : legacyEventsToMoments(doc.events);
+    base.moments = moments
+        .filter(item => item && item.id)
         .map(item => ({
             id: String(item.id),
-            date: normalizePetDate(item.date),
-            title: String(item.title || ''),
-            tag: String(item.tag || ''),
-            note: String(item.note || ''),
-            images: (Array.isArray(item.images) ? item.images : []).filter(Boolean).map(String),
+            text: String(item.text || '').slice(0, PET_MOMENT_TEXT_LIMIT),
+            images: (Array.isArray(item.images) ? item.images : []).filter(Boolean).map(String).slice(0, PET_MOMENT_IMAGE_LIMIT),
             createdAt: item.createdAt || '',
-            updatedAt: item.updatedAt || ''
+            updatedAt: item.updatedAt || item.createdAt || ''
         }))
-        .sort((a, b) => String(b.date).localeCompare(String(a.date)))
-        .slice(0, PET_EVENT_LIMIT);
+        .filter(item => item.text || item.images.length)
+        .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
     base.updatedAt = doc.updatedAt || '';
     return base;
 }
 
-// The admin reads fresh: a save followed immediately by a re-render would
-// otherwise paint the previous document from the browser's heuristic cache,
-// the same problem announcements had (see loadAnnouncementsDoc).
+// Admin reads fresh: a save followed by a re-render would otherwise repaint the
+// previous document from the browser's heuristic cache.
 async function loadPet(options = {}) {
     const doc = await dbGetOrNull(PET_PATH, options.fresh ? { fresh: true } : undefined);
     return normalizePetDoc(doc);
 }
 
 async function savePetProfile(input) {
-    const doc = await loadPet();
+    const doc = await loadPet({ fresh: true });
     const name = String((input && input.name) != null ? input.name : doc.name || '').trim();
     if (!name) throw makeError('PET_NAME', '先给六一起个名字');
+    const birthday = normalizePetDate((input && input.birthday) != null ? input.birthday : doc.birthday);
+    if (!birthday) throw makeError('PET_BIRTHDAY', '请选择生日');
     const homeDate = normalizePetDate((input && input.homeDate) != null ? input.homeDate : doc.homeDate);
     if (!homeDate) throw makeError('PET_HOME_DATE', '请选择到家日');
     doc.name = name.slice(0, 16);
-    doc.homeDate = homeDate;
     doc.tagline = String((input && input.tagline) != null ? input.tagline : doc.tagline || '').trim().slice(0, 30);
+    doc.birthday = birthday;
+    doc.homeDate = homeDate;
     doc.updatedAt = nowStamp();
     await dbPut(PET_PATH, doc);
     return doc;
 }
 
-async function savePetPose(key, url) {
-    if (!PET_POSE_KEYS.includes(key)) throw makeError('PET_POSE', '未知的姿态');
-    const doc = await loadPet();
-    const clean = String(url || '').trim();
-    doc.poses[key] = clean ? { url: clean, updatedAt: nowStamp() } : null;
+async function savePetCover(input) {
+    const doc = await loadPet({ fresh: true });
+    const cover = normalizePetCover(input);
+    if (!cover) throw makeError('PET_COVER', '背景图地址无效');
+    doc.cover = cover;
     doc.updatedAt = nowStamp();
     await dbPut(PET_PATH, doc);
     return doc;
 }
 
-async function savePetEvent(input) {
-    const doc = await loadPet();
+async function savePetAvatar(url) {
+    const doc = await loadPet({ fresh: true });
+    doc.avatar = String(url || '').trim();
+    doc.updatedAt = nowStamp();
+    await dbPut(PET_PATH, doc);
+    return doc;
+}
+
+async function savePetMoment(input) {
+    const doc = await loadPet({ fresh: true });
     const existing = input && input.id
-        ? doc.events.find(item => String(item.id) === String(input.id))
+        ? doc.moments.find(item => String(item.id) === String(input.id))
         : null;
-    const event = normalizePetEvent(input, existing);
-    doc.events = existing
-        ? doc.events.map(item => String(item.id) === String(event.id) ? event : item)
-        : doc.events.concat(event);
-    if (doc.events.length > PET_EVENT_LIMIT) throw makeError('PET_EVENT_LIMIT', `最多记 ${PET_EVENT_LIMIT} 件小事`);
-    doc.events.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+    if (input && input.id && !existing) throw makeError('PET_MOMENT_MISSING', '这条动态已经不在了');
+    const moment = normalizePetMoment(input, existing);
+    doc.moments = existing
+        ? doc.moments.map(item => String(item.id) === String(moment.id) ? moment : item)
+        : doc.moments.concat(moment);
+    doc.moments.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
     doc.updatedAt = nowStamp();
     await dbPut(PET_PATH, doc);
-    return { doc, event };
+    return { doc, moment };
 }
 
-async function deletePetEvent(id) {
-    const doc = await loadPet();
-    const before = doc.events.length;
-    doc.events = doc.events.filter(item => String(item.id) !== String(id));
-    if (doc.events.length === before) throw makeError('PET_EVENT_MISSING', '这件小事已经不在了');
+async function deletePetMoment(id) {
+    const doc = await loadPet({ fresh: true });
+    const before = doc.moments.length;
+    doc.moments = doc.moments.filter(item => String(item.id) !== String(id));
+    if (doc.moments.length === before) throw makeError('PET_MOMENT_MISSING', '这条动态已经不在了');
     doc.updatedAt = nowStamp();
     await dbPut(PET_PATH, doc);
     return doc;
 }
 
-/** Whole days since the homecoming date. The homecoming date doubles as the birthday. */
+/** Whole days since the homecoming date; the birthday is display-only. */
 function petHomeDays(homeDate, now) {
     const start = parseDate(homeDate);
     if (!start) return null;

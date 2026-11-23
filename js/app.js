@@ -13,12 +13,12 @@ let lastCityColumns = 0;
 
 // Self-hosted: cdn.jsdelivr.net is unreliable in WeChat / mainland mobile networks.
 const LIBS = {
-    echarts: 'assets/vendor/echarts.min.js?v=20261123-06',
-    qrcode: 'assets/vendor/qrcode.min.js?v=20261123-06'
+    echarts: 'assets/vendor/echarts.min.js?v=20261123-07',
+    qrcode: 'assets/vendor/qrcode.min.js?v=20261123-07'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261123-06';
-const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261123-06';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261123-07';
+const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261123-07';
 // First-paint fallback only. The live story document always wins once it loads.
 const LOVE_START_FALLBACK = '2020-12-20';
 
@@ -992,12 +992,21 @@ function photoViewerOpen() {
     return !!viewer && !viewer.hidden;
 }
 
-function openPhotoViewer(src) {
+/* The viewer can hold a short gallery. 六一 moments pass the photos of that one
+   moment and nothing else — swiping never crosses into the next moment. */
+const photoViewerGallery = { list: [], index: 0 };
+
+function openPhotoViewer(src, gallery) {
     const viewer = $('photo-viewer');
     const image = $('photo-viewer-img');
     if (!viewer || !image) return;
     const url = String(src || '').trim();
     if (!url) return;
+    const list = (Array.isArray(gallery) ? gallery : [])
+        .map(item => String(item || '').trim())
+        .filter(Boolean);
+    photoViewerGallery.list = list.includes(url) ? list : [url];
+    photoViewerGallery.index = Math.max(0, photoViewerGallery.list.indexOf(url));
     image.onerror = () => {
         image.onerror = null;
         image.hidden = true;
@@ -1009,9 +1018,38 @@ function openPhotoViewer(src) {
         }
     };
     image.onload = () => { image.hidden = false; };
-    image.src = url;
     viewer.hidden = false;
     document.documentElement.classList.add('is-photo-viewer-open');
+    renderPhotoViewer();
+}
+
+function renderPhotoViewer() {
+    const image = $('photo-viewer-img');
+    const counter = $('photo-viewer-counter');
+    const viewer = $('photo-viewer');
+    if (!image || !viewer) return;
+    const note = viewer.querySelector('.photo-viewer-error');
+    if (note) note.remove();
+    const url = photoViewerGallery.list[photoViewerGallery.index] || '';
+    if (url !== image.getAttribute('src')) {
+        image.hidden = false;
+        image.src = url;
+    }
+    if (counter) {
+        const total = photoViewerGallery.list.length;
+        counter.hidden = total < 2;
+        counter.textContent = total > 1 ? `${photoViewerGallery.index + 1} / ${total}` : '';
+    }
+}
+
+function stepPhotoViewer(delta) {
+    const total = photoViewerGallery.list.length;
+    if (total < 2) return;
+    const next = photoViewerGallery.index + delta;
+    // Clamp, do not wrap: there is nothing after the last photo of this moment.
+    if (next < 0 || next >= total) return;
+    photoViewerGallery.index = next;
+    renderPhotoViewer();
 }
 
 function closePhotoViewer() {
@@ -1028,6 +1066,10 @@ function closePhotoViewer() {
         image.removeAttribute('src');
         image.hidden = false;
     }
+    photoViewerGallery.list = [];
+    photoViewerGallery.index = 0;
+    const counter = $('photo-viewer-counter');
+    if (counter) counter.hidden = true;
 }
 
 function currentMemoryImage() {
@@ -1045,16 +1087,49 @@ function initPhotoViewer() {
     if (close) close.addEventListener('click', closePhotoViewer);
 
     // Tap the dark background to close; the photo itself is shown at its natural fit.
+    let swipedAt = 0;
     stage.addEventListener('click', event => {
+        if (Date.now() - swipedAt < 400) return;
         if (event.target !== stage) return;
         closePhotoViewer();
     });
 
-    document.addEventListener('keydown', event => {
-        if (event.key !== 'Escape' || !photoViewerOpen()) return;
+    /* Swipe left/right inside one moment's photos. A swipe that moves far
+       enough is not also treated as the tap-to-close above. */
+    let swipe = null;
+    stage.addEventListener('pointerdown', event => {
+        if (!event.isPrimary || event.button !== 0) return;
+        swipe = { id: event.pointerId, x: event.clientX, y: event.clientY, at: Date.now() };
+    });
+    const endSwipe = event => {
+        if (!swipe || event.pointerId !== swipe.id) return;
+        const dx = event.clientX - swipe.x;
+        const dy = event.clientY - swipe.y;
+        const moved = Math.abs(dx) > 12 || Math.abs(dy) > 12;
+        if (!moved) { swipe = null; return; }
+        // Swallows the synthetic click that would otherwise close the viewer.
         event.preventDefault();
-        event.stopPropagation();
-        closePhotoViewer();
+        if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+            stepPhotoViewer(dx < 0 ? 1 : -1);
+            swipedAt = Date.now();
+        }
+        swipe = null;
+    };
+    stage.addEventListener('pointerup', endSwipe);
+    stage.addEventListener('pointercancel', () => { swipe = null; });
+
+    document.addEventListener('keydown', event => {
+        if (!photoViewerOpen()) return;
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            event.stopPropagation();
+            closePhotoViewer();
+            return;
+        }
+        if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+            event.preventDefault();
+            stepPhotoViewer(event.key === 'ArrowRight' ? 1 : -1);
+        }
     }, true);
 }
 
@@ -3199,7 +3274,13 @@ function initPetMoments() {
                 return;
             }
             const photo = event.target.closest('[data-pet-photo]');
-            if (photo) openPhotoViewer(photo.dataset.petPhoto);
+            if (photo) {
+                const moment = photo.closest('[data-pet-moment]');
+                const gallery = moment
+                    ? Array.from(moment.querySelectorAll('[data-pet-photo]')).map(btn => btn.dataset.petPhoto)
+                    : [photo.dataset.petPhoto];
+                openPhotoViewer(photo.dataset.petPhoto, gallery);
+            }
         });
     }
 

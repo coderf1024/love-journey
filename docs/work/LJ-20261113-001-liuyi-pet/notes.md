@@ -45,6 +45,22 @@
 同时修复一个线上 bug：`admin.html` 的 `savePetProfile` 处理函数调用了同名的 store 函数，
 造成自我递归，管理端「保存资料」永远存不上。已把处理函数改名为 `handleSavePetProfile()`。
 
+## 2026-11-23 第二版改版（高保真）
+
+用户在 11-21 版原型上继续收敛：
+
+- 背景图右下角的猫装饰**去掉**；背景图先留空，用户端显示渐变占位，之后由管理端上传。
+- **不做点赞和评论**（没有用户系统）；**不做标签**。
+- 动态**可以只有图片、没有文字**；文字和图片至少有一个。
+- 用户端**可以编辑和删除自己的动态**（发帖人为六一）；大厨发的动态没有操作入口。
+- 管理端只维护基本信息（名字 / 一句话 / 到家日）与图片（背景图 / 头像），并可以补发、删除动态。
+- 原型改成高保真：真实字体、真实猫图、状态栏与手机壳、贴近 `css/style.css` 的字号与配色。
+- 新原型仍在 `docs/design/liuyi-pet-moments-wireframe.html`（覆盖 11-21 版）。
+
+管理端「保存资料」存不上的根因：`admin.html` 的处理函数 `savePetProfile` 与 `js/store.js`
+同名，调用自身造成无限递归。已改名为 `handleSavePetProfile`，并在测试库实测：
+界面保存后 `db-test/content/pet.json` 写入成功（`2026-11-23 12:35:15`）。
+
 ## 发现
 
 - 用户端「空间」是 4 个固定子页（`orders` / `wallet` / `cards` / `announcements` + `order-detail`），`js/app.js:2984` 有一份白名单、`openMeView()` 又有一份；加 `pet` 要同时改这两处、`renderMePage` 的标题映射，并决定 `pet` 是否进 `me-fixed-view`（建议不进，时间线要跟页面一起滚）。

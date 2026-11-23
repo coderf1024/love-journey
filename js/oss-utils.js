@@ -64,7 +64,7 @@ function publicObjectUrl(key) {
     return `${ossEndpoint()}/${String(key).replace(/^\/+/, '')}`;
 }
 
-const OSS_SDK_URL = 'assets/vendor/aliyun-oss-sdk-6.18.0.min.js?v=20261121-01';
+const OSS_SDK_URL = 'assets/vendor/aliyun-oss-sdk-6.18.0.min.js?v=20261123-04';
 let ossSdkPromise = null;
 
 function loadOssSdk() {
@@ -324,6 +324,7 @@ function verifyPasscode(inputPasscode) {
 function dishUploadPrefix() { return `${uploadsRoot()}/dishes/`; }
 function dishRequestUploadPrefix() { return `${uploadsRoot()}/requests/`; }
 function spaceUploadPrefix() { return `${uploadsRoot()}/space/`; }
+function petUploadPrefix() { return `${uploadsRoot()}/pet/`; }
 const DISH_UPLOAD_MAX_BYTES = 20 * 1024 * 1024;
 const DISH_UPLOAD_MAX_DIMENSION = 1600;
 const DISH_UPLOAD_QUALITY = 0.82;
@@ -461,6 +462,83 @@ async function uploadDishRequestImage(file) {
 
 async function uploadSpaceImage(file) {
     return uploadBucketImage(file, spaceUploadPrefix());
+}
+
+/**
+ * 六一的形象素材和事件照片。形象需要透明底，所以不压成 JPEG：
+ * PNG/WebP 原样上传，只把过大的图缩到 1200px，保住 alpha 通道。
+ */
+async function uploadPetImage(file) {
+    await ensureOSS();
+    if (!file) throw new Error('请选择一张照片');
+    const type = String(file.type || '').toLowerCase();
+    const isImage = type.startsWith('image/') ||
+        /\.(jpe?g|png|gif|webp|bmp)$/i.test(String(file.name || ''));
+    if (!isImage) throw new Error('只能上传图片文件');
+    if (file.size > DISH_UPLOAD_MAX_BYTES) throw new Error('图片不能超过 20MB');
+
+    const keepAlpha = type === 'image/png' || type === 'image/webp';
+    let blob = file;
+    let contentType = type || 'application/octet-stream';
+    let extension = dishUploadExtension(file);
+
+    if (keepAlpha) {
+        try {
+            const shrunk = await compressAlphaImage(file, 1200);
+            if (shrunk) {
+                blob = shrunk.blob;
+                contentType = shrunk.type;
+                extension = shrunk.type === 'image/webp' ? 'webp' : 'png';
+            }
+        } catch (error) {
+            console.warn('图片压缩失败，改为上传原图:', error);
+        }
+    } else {
+        try {
+            const compressed = await compressDishImage(file);
+            if (compressed.scaled || compressed.blob.size < file.size) {
+                blob = compressed.blob;
+                contentType = 'image/jpeg';
+                extension = 'jpg';
+            }
+        } catch (error) {
+            console.warn('图片压缩失败，改为上传原图:', error);
+        }
+    }
+
+    const stamp = nowStamp().replace(/[-: ]/g, '');
+    const random = Math.random().toString(36).slice(2, 8);
+    const key = `${petUploadPrefix()}${stamp}-${random}-${sanitizeDishUploadName(file.name)}.${extension}`;
+    await ossClient.put(key, blob, { headers: { 'Content-Type': contentType } });
+    return dishUploadUrl(key);
+}
+
+/** Downscale without flattening; returns null when nothing needed changing. */
+async function compressAlphaImage(file, maxDim) {
+    const image = await loadImageSource(file);
+    const width = image.width || image.naturalWidth;
+    const height = image.height || image.naturalHeight;
+    if (!width || !height) throw new Error('无法读取图片尺寸');
+    const scale = Math.min(1, maxDim / Math.max(width, height));
+    if (scale >= 1) {
+        if (typeof image.close === 'function') image.close();
+        return null;
+    }
+    const targetWidth = Math.max(1, Math.round(width * scale));
+    const targetHeight = Math.max(1, Math.round(height * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('浏览器不支持图片压缩');
+    context.drawImage(image, 0, 0, targetWidth, targetHeight);
+    if (typeof image.close === 'function') image.close();
+
+    const supportsWebp = canvas.toDataURL('image/webp').startsWith('data:image/webp');
+    const mime = supportsWebp ? 'image/webp' : 'image/png';
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, mime, 0.92));
+    if (!blob) throw new Error('图片压缩失败');
+    return { blob, type: mime };
 }
 
 /* ---------- environment badge ---------- */

@@ -12,6 +12,7 @@ const MENU_PATH = 'commerce/menu.json';
 const WALLET_PATH = 'commerce/wallet.json';
 const COUNTERS_PATH = 'commerce/counters.json';
 const ANNOUNCEMENTS_PATH = 'content/announcements.json';
+const PET_PATH = 'content/pet.json';
 
 const ANNOUNCEMENT_STATUS = {
     draft: '草稿',
@@ -793,7 +794,7 @@ function writeAppDataCache(data) {
 }
 
 const APP_DATA_FIELDS = [
-    'space', 'story', 'milestones', 'goals', 'cities', 'menu', 'wallet', 'orders', 'coupons'
+    'space', 'story', 'milestones', 'goals', 'cities', 'menu', 'wallet', 'orders', 'coupons', 'pet'
 ];
 
 async function loadAppData(options = {}) {
@@ -808,7 +809,8 @@ async function loadAppData(options = {}) {
         dbGetOrNull(MENU_PATH),
         dbGetOrNull(WALLET_PATH),
         orderCollection.list(),
-        couponCollection.list()
+        couponCollection.list(),
+        dbGetOrNull(PET_PATH)
     ];
     const results = await Promise.allSettled(requests);
 
@@ -835,7 +837,7 @@ async function loadAppData(options = {}) {
         throw results[APP_DATA_FIELDS.indexOf(unresolved[0])].reason;
     }
 
-    const [space, story, milestonesDoc, goalsDoc, citiesDoc, menu, wallet, orders, coupons] =
+    const [space, story, milestonesDoc, goalsDoc, citiesDoc, menu, wallet, orders, coupons, petDoc] =
         results.map((result, index) => value(index));
 
     const pick = (field, fresh, empty) => {
@@ -863,7 +865,8 @@ async function loadAppData(options = {}) {
         menu: normalizeMenu(pick('menu', menu, null)),
         wallet: normalizeWallet(pick('wallet', wallet, null)),
         orders: Array.isArray(resolvedOrders) ? resolvedOrders : [],
-        coupons: Array.isArray(resolvedCoupons) ? resolvedCoupons : []
+        coupons: Array.isArray(resolvedCoupons) ? resolvedCoupons : [],
+        pet: normalizePetDoc(pick('pet', petDoc, null))
     };
 
     // Only a complete read replaces the snapshot. A merged read keeps the
@@ -2277,4 +2280,195 @@ async function updateSpaceSettings(patch) {
     const space = await loadSpace();
     space.settings = { ...(space.settings || {}), ...(patch || {}) };
     return saveSpace(space);
+}
+
+/* ---------- 六一（宠物） ----------
+   One document: profile + cover + avatar + an embedded moments array. Every
+   moment belongs to 六一 (there is no separate author), which is why the feed
+   is one list and every item can be edited or deleted from the user page.
+   Dates are YYYY-MM-DD. Birthday and homecoming date are two independent
+   fields; the homecoming date only drives「到家 N 天」.
+   ------------------------------------------------------------------ */
+const PET_MOMENT_IMAGE_LIMIT = 9;
+const PET_MOMENT_TEXT_LIMIT = 200;
+
+function emptyPetDoc() {
+    return {
+        name: '',
+        tagline: '',
+        birthday: '',
+        homeDate: '',
+        avatar: '',
+        cover: null,
+        moments: [],
+        updatedAt: ''
+    };
+}
+
+function normalizePetDate(value) {
+    const text = String(value || '').trim();
+    if (!text) return '';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return '';
+    const parsed = new Date(text.replace(/-/g, '/'));
+    return isNaN(parsed.getTime()) || parsed.getFullYear() !== Number(text.slice(0, 4)) ||
+        parsed.getMonth() + 1 !== Number(text.slice(5, 7)) || parsed.getDate() !== Number(text.slice(8, 10)) ? '' : text;
+}
+
+function clampPercent(value, fallback) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return fallback;
+    return Math.max(0, Math.min(100, Math.round(number)));
+}
+
+/** Cover keeps both the image and the chosen crop position (percentages). */
+function normalizePetCover(cover) {
+    if (!cover) return null;
+    const url = typeof cover === 'string' ? cover : String(cover.url || '');
+    if (!url.trim()) return null;
+    return {
+        url: url.trim(),
+        x: clampPercent(typeof cover === 'object' ? cover.x : 50, 50),
+        y: clampPercent(typeof cover === 'object' ? cover.y : 50, 50)
+    };
+}
+
+function normalizePetMoment(input, existing) {
+    const now = nowStamp();
+    const base = existing || {};
+    const text = String((input && input.text) != null ? input.text : base.text || '').trim().slice(0, PET_MOMENT_TEXT_LIMIT);
+    const images = (input && Array.isArray(input.images) ? input.images : base.images || [])
+        .map(url => String(url || '').trim())
+        .filter(Boolean)
+        .slice(0, PET_MOMENT_IMAGE_LIMIT);
+    if (!text && !images.length) throw makeError('PET_MOMENT_EMPTY', '写一句话，或者放一张照片');
+    const stamp = base.createdAt || now;
+    const date = input && input.date !== undefined ? normalizePetDate(input.date) : stamp.slice(0, 10);
+    if (!date) throw makeError('PET_MOMENT_DATE', '请选择有效日期');
+    // The timeline uses createdAt for both display and ordering; retain its time of day.
+    const createdAt = input && input.date !== undefined ? date + stamp.slice(10) : stamp;
+
+    return {
+        id: base.id || (input && input.id) || `pm_${now.replace(/[-: ]/g, '')}_${Math.random().toString(36).slice(2, 6)}`,
+        text,
+        images,
+        createdAt,
+        updatedAt: now
+    };
+}
+
+/** Old documents stored「事件」; fold them into moments so nothing is lost. */
+function legacyEventsToMoments(events) {
+    return (Array.isArray(events) ? events : [])
+        .filter(item => item && item.id)
+        .map(item => ({
+            id: String(item.id),
+            text: [item.title, item.note].filter(Boolean).join(' · ').slice(0, PET_MOMENT_TEXT_LIMIT),
+            images: (Array.isArray(item.images) ? item.images : []).filter(Boolean).map(String).slice(0, PET_MOMENT_IMAGE_LIMIT),
+            createdAt: item.createdAt || (item.date ? `${item.date} 12:00:00` : ''),
+            updatedAt: item.updatedAt || item.createdAt || ''
+        }))
+        .filter(item => item.text || item.images.length);
+}
+
+function normalizePetDoc(doc) {
+    const base = emptyPetDoc();
+    if (!doc || typeof doc !== 'object') return base;
+    base.name = String(doc.name || '').trim().slice(0, 16);
+    base.tagline = String(doc.tagline || '').trim().slice(0, 30);
+    base.birthday = normalizePetDate(doc.birthday);
+    base.homeDate = normalizePetDate(doc.homeDate);
+    base.avatar = String(doc.avatar || '').trim();
+    base.cover = normalizePetCover(doc.cover);
+    const moments = Array.isArray(doc.moments) ? doc.moments : legacyEventsToMoments(doc.events);
+    base.moments = moments
+        .filter(item => item && item.id)
+        .map(item => ({
+            id: String(item.id),
+            text: String(item.text || '').slice(0, PET_MOMENT_TEXT_LIMIT),
+            images: (Array.isArray(item.images) ? item.images : []).filter(Boolean).map(String).slice(0, PET_MOMENT_IMAGE_LIMIT),
+            createdAt: item.createdAt || '',
+            updatedAt: item.updatedAt || item.createdAt || ''
+        }))
+        .filter(item => item.text || item.images.length)
+        .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+    base.updatedAt = doc.updatedAt || '';
+    return base;
+}
+
+// Admin reads fresh: a save followed by a re-render would otherwise repaint the
+// previous document from the browser's heuristic cache.
+async function loadPet(options = {}) {
+    const doc = await dbGetOrNull(PET_PATH, options.fresh ? { fresh: true } : undefined);
+    return normalizePetDoc(doc);
+}
+
+async function savePetProfile(input) {
+    const doc = await loadPet({ fresh: true });
+    const name = String((input && input.name) != null ? input.name : doc.name || '').trim();
+    if (!name) throw makeError('PET_NAME', '先给六一起个名字');
+    const birthday = normalizePetDate((input && input.birthday) != null ? input.birthday : doc.birthday);
+    if (!birthday) throw makeError('PET_BIRTHDAY', '请选择生日');
+    const homeDate = normalizePetDate((input && input.homeDate) != null ? input.homeDate : doc.homeDate);
+    if (!homeDate) throw makeError('PET_HOME_DATE', '请选择到家日');
+    doc.name = name.slice(0, 16);
+    doc.tagline = String((input && input.tagline) != null ? input.tagline : doc.tagline || '').trim().slice(0, 30);
+    doc.birthday = birthday;
+    doc.homeDate = homeDate;
+    doc.updatedAt = nowStamp();
+    await dbPut(PET_PATH, doc);
+    return doc;
+}
+
+async function savePetCover(input) {
+    const doc = await loadPet({ fresh: true });
+    const cover = normalizePetCover(input);
+    if (!cover) throw makeError('PET_COVER', '背景图地址无效');
+    doc.cover = cover;
+    doc.updatedAt = nowStamp();
+    await dbPut(PET_PATH, doc);
+    return doc;
+}
+
+async function savePetAvatar(url) {
+    const doc = await loadPet({ fresh: true });
+    doc.avatar = String(url || '').trim();
+    doc.updatedAt = nowStamp();
+    await dbPut(PET_PATH, doc);
+    return doc;
+}
+
+async function savePetMoment(input) {
+    const doc = await loadPet({ fresh: true });
+    const existing = input && input.id
+        ? doc.moments.find(item => String(item.id) === String(input.id))
+        : null;
+    if (input && input.id && !existing) throw makeError('PET_MOMENT_MISSING', '这条动态已经不在了');
+    const moment = normalizePetMoment(input, existing);
+    doc.moments = existing
+        ? doc.moments.map(item => String(item.id) === String(moment.id) ? moment : item)
+        : doc.moments.concat(moment);
+    doc.moments.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+    doc.updatedAt = nowStamp();
+    await dbPut(PET_PATH, doc);
+    return { doc, moment };
+}
+
+async function deletePetMoment(id) {
+    const doc = await loadPet({ fresh: true });
+    const before = doc.moments.length;
+    doc.moments = doc.moments.filter(item => String(item.id) !== String(id));
+    if (doc.moments.length === before) throw makeError('PET_MOMENT_MISSING', '这条动态已经不在了');
+    doc.updatedAt = nowStamp();
+    await dbPut(PET_PATH, doc);
+    return doc;
+}
+
+/** Whole days since the homecoming date; the birthday is display-only. */
+function petHomeDays(homeDate, now) {
+    const start = parseDate(homeDate);
+    if (!start) return null;
+    const today = now ? new Date(now) : new Date();
+    const a = Date.UTC(start.getFullYear(), start.getMonth(), start.getDate());
+    const b = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+    return Math.max(0, Math.round((b - a) / 86400000));
 }

@@ -6,14 +6,14 @@
 
 @font-face {
     font-family: 'Ma Shan Zheng';
-    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261121-01') format('woff2');    font-weight: 400;
+    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261123-04') format('woff2');    font-weight: 400;
     font-style: normal;
     font-display: swap;
 }
 
 @font-face {
     font-family: 'Noto Serif SC';
-    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261121-01') format('woff2');    font-weight: 700;
+    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261123-04') format('woff2');    font-weight: 700;
     font-style: normal;
     font-display: swap;
 }
@@ -88,7 +88,7 @@ body::after {
 }
 
 body::before {
-    background: url('../assets/texture-noise.png?v=20261121-01') repeat;    opacity: 0.06;
+    background: url('../assets/texture-noise.png?v=20261123-04') repeat;    opacity: 0.06;
     mix-blend-mode: multiply;
 }
 
@@ -560,7 +560,7 @@ select:focus-visible {
     content: '';
     position: absolute;
     inset: 0;
-    background: url('../assets/texture-noise.png?v=20261121-01') repeat;    opacity: 0.1;
+    background: url('../assets/texture-noise.png?v=20261123-04') repeat;    opacity: 0.1;
     mix-blend-mode: soft-light;
     pointer-events: none;
 }
@@ -4406,6 +4406,808 @@ body.me-subpage .app-main {
     -webkit-user-drag: none;
 }
 
+/* ---------- 六一 · 朋友圈式主页 ---------- */
+
+/* 这一页是整页的封面，不要 app 头部、返回条和底栏 */
+body.me-pet-page .app-header,
+body.me-pet-page .tab-bar,
+body.me-pet-page .me-sub-head {
+    display: none;
+}
+
+body.me-pet-page .app-main {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+}
+
+body.me-pet-page .me-sub-view,
+body.me-pet-page .me-sub-body {
+    padding: 0;
+}
+
+/* .page.is-active 的入场动画带 transform，会让 position: fixed 的 FAB
+   相对页面而不是视口定位；这一页直接不做入场动画。 */
+body.me-pet-page .page.is-active {
+    animation: none;
+}
+
+body.me-pet-page .app-main {
+    padding-bottom: calc(24px + var(--safe-bottom));
+}
+
+.pet-page {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    min-height: 100vh;
+    margin: 0 auto;
+    background: var(--paper-soft);
+}
+
+.pet-cover {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    padding-top: env(safe-area-inset-top, 0px);
+    background:
+        radial-gradient(80% 90% at 78% 12%, rgba(255, 255, 255, .5), transparent 66%),
+        linear-gradient(146deg, #cfdfd4 0%, #f0e2c6 46%, #eec3cd 100%);
+}
+
+.pet-cover.has-image {
+    background-color: #f1e8df;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+.pet-cover::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(24, 16, 26, .22), rgba(24, 16, 26, .04) 34%, transparent 52%);
+    pointer-events: none;
+}
+
+.pet-back {
+    position: absolute;
+    top: calc(env(safe-area-inset-top, 0px) + 12px);
+    left: 14px;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    color: var(--ink);
+    font-size: 21px;
+    line-height: 1;
+    background: rgba(255, 253, 248, .6);
+    border: 0;
+    border-radius: 999px;
+    box-shadow: 0 4px 12px -8px rgba(0, 0, 0, .5);
+    backdrop-filter: blur(6px);
+}
+
+.pet-back:active {
+    background: rgba(255, 253, 248, .82);
+}
+
+.pet-cover-empty {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 54%;
+    z-index: 2;
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    color: rgba(64, 54, 62, .48);
+    transform: translateY(-50%);
+}
+
+.pet-cover-empty svg {
+    width: 30px;
+    height: 30px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+}
+
+.pet-cover-empty span {
+    padding: 2px 9px;
+    background: rgba(255, 253, 248, .5);
+    border-radius: 999px;
+    font-size: 10px;
+}
+
+.pet-profile {
+    position: relative;
+    z-index: 2;
+    padding: 0 16px 16px;
+    background: var(--paper-soft);
+    border-bottom: 8px solid #f3ece2;
+}
+
+.pet-avatar {
+    display: block;
+    width: 84px;
+    height: 84px;
+    margin-top: -42px;
+    overflow: hidden;
+    background: linear-gradient(150deg, var(--petal), var(--lemon));
+    border: 3px solid var(--paper-soft);
+    border-radius: 22px;
+    box-shadow: 0 10px 20px -14px rgba(43, 34, 49, .6);
+}
+
+.pet-avatar img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 42%;
+}
+
+.pet-name-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.pet-name-row b {
+    font-family: var(--font-display);
+    font-size: 1.45rem;
+    font-weight: 700;
+}
+
+.pet-name-row small {
+    color: var(--muted);
+    font-size: 0.75rem;
+}
+
+.pet-tagline {
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 0.82rem;
+}
+
+.pet-stats {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 12px;
+}
+
+.pet-stat {
+    display: grid;
+    gap: 1px;
+}
+
+.pet-stat b {
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.pet-stat small {
+    color: var(--muted);
+    font-size: 0.66rem;
+}
+
+.pet-stat + .pet-stat {
+    padding-left: 16px;
+    border-left: 1px solid var(--line);
+}
+
+.pet-feed {
+    padding-bottom: 76px;
+    background: var(--paper-soft);
+}
+
+.pet-moment {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 10px;
+    padding: 16px;
+    border-bottom: 1px solid var(--line);
+}
+
+.pet-moment:last-child {
+    border-bottom: 0;
+}
+
+.pet-moment-avatar {
+    width: 40px;
+    height: 40px;
+    overflow: hidden;
+    background: linear-gradient(150deg, var(--petal), var(--lemon));
+    border-radius: 10px;
+}
+
+.pet-moment-avatar img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 42%;
+}
+
+.pet-moment-body {
+    min-width: 0;
+}
+
+.pet-moment-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pet-moment-head b {
+    color: var(--stamp-deep);
+    font-size: 0.94rem;
+    font-weight: 600;
+}
+
+.pet-moment-head span {
+    color: var(--faint);
+    font-size: 0.72rem;
+}
+
+.pet-moment-more {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 22px;
+    margin: -4px -6px -4px auto;
+    padding: 0;
+    color: var(--faint);
+    font-size: 15px;
+    letter-spacing: 1px;
+    background: transparent;
+    border: 0;
+    border-radius: 6px;
+}
+
+.pet-moment-more:active {
+    background: rgba(43, 34, 49, .05);
+}
+
+.pet-moment-text {
+    margin-top: 5px;
+    color: var(--ink-2);
+    font-size: 0.94rem;
+    line-height: 1.62;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.pet-photos {
+    display: grid;
+    gap: 4px;
+    margin-top: 9px;
+}
+
+.pet-photos.n1 {
+    grid-template-columns: 1fr;
+    width: min(78%, 240px);
+}
+
+.pet-photos.n2 {
+    grid-template-columns: repeat(2, 1fr);
+    width: min(88%, 268px);
+}
+
+.pet-photos.n3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.pet-photo {
+    display: block;
+    padding: 0;
+    overflow: hidden;
+    background: #f1e8df;
+    border: 0;
+    border-radius: 5px;
+}
+
+.pet-photos.n1 .pet-photo { aspect-ratio: 4 / 3; }
+.pet-photos.n2 .pet-photo,
+.pet-photos.n3 .pet-photo { aspect-ratio: 1 / 1; }
+
+.pet-photo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.pet-empty {
+    padding: 44px 20px;
+    color: var(--muted);
+    font-size: 0.82rem;
+    line-height: 1.7;
+    text-align: center;
+}
+
+.pet-fab {
+    position: fixed;
+    right: 16px;
+    bottom: calc(24px + var(--safe-bottom));
+    z-index: 40;
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    padding: 0;
+    color: #fff;
+    font-size: 26px;
+    font-weight: 300;
+    line-height: 1;
+    background: var(--ink);
+    border: 0;
+    border-radius: 999px;
+    box-shadow: 0 0 0 3px rgba(255, 253, 248, .9), 0 16px 28px -14px rgba(43, 34, 49, .8);
+}
+
+/* 发动态 / 编辑动态 */
+.sheet-panel-pet {
+    display: flex;
+    flex-direction: column;
+    max-height: 88vh;
+}
+
+.pet-composer-head {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--line);
+}
+
+.pet-composer-cancel {
+    justify-self: start;
+    padding: 6px 2px;
+    color: var(--muted);
+    font-size: 0.86rem;
+    background: none;
+    border: 0;
+}
+
+.pet-composer-head h2 {
+    margin: 0;
+    font-size: 0.94rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.pet-composer-publish {
+    justify-self: end;
+    padding: 6px 14px;
+    color: #fff;
+    font-size: 0.8rem;
+    background: var(--ink);
+    border: 0;
+    border-radius: 999px;
+}
+
+.pet-composer-publish.is-disabled {
+    background: rgba(43, 34, 49, .22);
+}
+
+.pet-composer-body {
+    padding: 14px 16px calc(20px + var(--safe-bottom));
+}
+
+.pet-composer-writing {
+    position: relative;
+}
+
+.pet-composer-text {
+    display: block;
+    width: 100%;
+    min-height: 124px;
+    padding: 12px 13px 28px;
+    color: var(--ink-2);
+    font-family: var(--font-body);
+    font-size: 0.94rem;
+    line-height: 1.65;
+    background: #fff;
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    resize: none;
+}
+
+.pet-composer-text:focus {
+    outline: 2px solid rgba(223, 95, 126, .16);
+    border-color: var(--stamp);
+}
+
+.pet-composer-count {
+    position: absolute;
+    right: 12px;
+    bottom: 9px;
+    margin: 0;
+    color: var(--faint);
+    font-size: 0.68rem;
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+}
+
+.pet-composer-date-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 15px 2px 7px;
+}
+
+.pet-composer-date-row > span:first-child {
+    color: var(--ink-2);
+    font-size: 0.78rem;
+}
+
+.pet-composer-quick {
+    display: flex;
+    gap: 5px;
+}
+
+.pet-composer-quick button {
+    padding: 4px 11px;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 0.7rem;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+}
+
+.pet-composer-quick button:active {
+    color: var(--stamp-deep);
+    border-color: var(--stamp);
+}
+
+.pet-date-field {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 9px 11px;
+    color: inherit;
+    font-family: inherit;
+    text-align: left;
+    background: #fff;
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.pet-date-field:focus-within {
+    border-color: var(--stamp);
+    box-shadow: 0 0 0 3px rgba(223, 95, 126, .12);
+}
+
+.pet-date-icon {
+    display: grid;
+    flex: 0 0 28px;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    color: var(--stamp-deep);
+    font-size: 12px;
+    background: rgba(255, 217, 226, .42);
+    border-radius: 8px;
+}
+
+.pet-date-icon svg {
+    width: 15px;
+    height: 15px;
+}
+
+.pet-date-main {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+    gap: 1px;
+}
+
+.pet-date-main b {
+    color: var(--ink);
+    font-size: 0.86rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.pet-date-main small {
+    color: var(--faint);
+    font-size: 0.7rem;
+}
+
+.pet-date-chev {
+    color: var(--faint);
+    font-size: 18px;
+    line-height: 1;
+}
+
+/* 日期选择面板 */
+.pet-calendar-panel {
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    max-height: 90dvh;
+}
+
+.pet-calendar-head {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--line);
+}
+
+.pet-calendar-cancel {
+    justify-self: start;
+    padding: 6px 2px;
+    color: var(--muted);
+    font-size: 0.86rem;
+    background: none;
+    border: 0;
+}
+
+.pet-calendar-head h2 {
+    margin: 0;
+    font-size: 0.94rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.pet-calendar-body {
+    flex: 1;
+    min-height: 0;
+    padding: 12px 16px calc(18px + var(--safe-bottom));
+    overflow-y: auto;
+}
+
+.pet-calendar-years {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.pet-calendar-years button {
+    padding: 4px 11px;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 0.7rem;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+}
+
+.pet-calendar-years button.is-active {
+    color: #fff;
+    background: var(--ink);
+    border-color: var(--ink);
+}
+
+.pet-calendar-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 2px 0 8px;
+}
+
+.pet-calendar-nav button {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    color: var(--ink-2);
+    font-family: inherit;
+    font-size: 20px;
+    line-height: 1;
+    background: none;
+    border: 0;
+    border-radius: 999px;
+}
+
+.pet-calendar-nav button:active {
+    background: rgba(43, 34, 49, .06);
+}
+
+.pet-calendar-nav b {
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 1rem;
+    letter-spacing: .02em;
+}
+
+.pet-calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 4px;
+    color: var(--faint);
+    font-size: 0.68rem;
+    text-align: center;
+}
+
+.pet-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+
+.pet-calendar-grid button {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1 / 1;
+    padding: 0;
+    color: var(--ink-2);
+    font-family: var(--font-body);
+    font-size: 0.86rem;
+    font-variant-numeric: tabular-nums;
+    background: none;
+    border: 0;
+    border-radius: 999px;
+}
+
+.pet-calendar-grid button.is-mute {
+    color: var(--faint);
+    opacity: .45;
+}
+
+.pet-calendar-grid button.is-today {
+    color: var(--stamp-deep);
+    box-shadow: inset 0 0 0 1px var(--stamp);
+}
+
+.pet-calendar-grid button.is-active {
+    color: #fff;
+    background: var(--ink);
+    box-shadow: none;
+}
+
+.pet-calendar-grid button:active {
+    background: rgba(255, 217, 226, .4);
+}
+
+.pet-calendar-grid button.is-active:active {
+    background: var(--ink);
+}
+
+.pet-composer-photo-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 15px 2px 7px;
+    color: var(--ink-2);
+    font-size: 0.78rem;
+}
+
+.pet-composer-photo-head small {
+    color: var(--faint);
+    font-size: 0.7rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.pet-composer-photos {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+    margin-top: 0;
+}
+
+.pet-edit-tile {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    background: #f1e8df;
+    border-radius: 8px;
+}
+
+.pet-edit-tile img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.pet-edit-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: grid;
+    place-items: center;
+    width: 19px;
+    height: 19px;
+    padding: 0;
+    color: #fff;
+    font-size: 10px;
+    background: rgba(30, 23, 34, .62);
+    border: 0;
+    border-radius: 999px;
+}
+
+.pet-edit-tile.is-add {
+    display: grid;
+    place-items: center;
+    gap: 2px;
+    color: var(--stamp-deep);
+    font-size: 0.68rem;
+    text-align: center;
+    background: rgba(255, 217, 226, .14);
+    border: 1px dashed var(--line-strong);
+    cursor: pointer;
+}
+
+.pet-edit-tile.is-add span {
+    font-size: 20px;
+    font-weight: 200;
+    line-height: 1;
+}
+
+.pet-edit-tile.is-uploading {
+    display: grid;
+    place-items: center;
+    color: var(--muted);
+    font-size: 0.68rem;
+}
+
+.pet-composer-hint {
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 0.7rem;
+    line-height: 1.6;
+}
+
+/* 动态操作面板 */
+.sheet-panel-pet-actions {
+    padding: 8px 16px calc(16px + var(--safe-bottom));
+}
+
+.pet-menu-action {
+    display: block;
+    width: 100%;
+    padding: 14px 0;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 1rem;
+    text-align: center;
+    background: none;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.pet-menu-action:last-child {
+    border-bottom: 0;
+}
+
+.pet-menu-action.is-danger {
+    color: var(--stamp-deep);
+}
+
+.pet-menu-action.is-muted {
+    margin-top: 6px;
+    color: var(--muted);
+    border-top: 6px solid #f3ece2;
+}
+
+@media (min-width: 820px) {
+    .pet-fab {
+        right: calc(50% - 280px + 16px);
+    }
+}
+
 /* sub pages */
 
 .me-sub-head {
@@ -5506,6 +6308,14 @@ body.me-fixed-view .wallet-entries.me-ledger {
         width: min(680px, calc(100% - 48px));
         height: auto;
         max-height: 90dvh;
+    }
+
+    .sheet-panel-pet {
+        width: min(560px, calc(100% - 48px));
+    }
+
+    .pet-calendar-panel {
+        width: min(400px, calc(100% - 48px));
     }
 
     .sheet-panel-center {

@@ -9,18 +9,18 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="管理端">
 <title>管理端 · 恋爱空间</title>
-<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261121-01" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261121-01" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261123-04" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261123-04" as="font" type="font/woff2" crossorigin>
 <style>
     @font-face {
         font-family: 'Ma Shan Zheng';
-        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261121-01') format('woff2');        font-weight: 400;
+        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261123-04') format('woff2');        font-weight: 400;
         font-style: normal;
         font-display: swap;
     }
     @font-face {
         font-family: 'Noto Serif SC';
-        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261121-01') format('woff2');        font-weight: 700;
+        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261123-04') format('woff2');        font-weight: 700;
         font-style: normal;
         font-display: swap;
     }
@@ -86,7 +86,7 @@
         pointer-events: none;
     }
     body.admin-body::before {
-        background: url('assets/texture-noise.png?v=20261121-01') repeat;        opacity: .06;
+        background: url('assets/texture-noise.png?v=20261123-04') repeat;        opacity: .06;
         mix-blend-mode: multiply;
     }
     body.admin-body::after {
@@ -709,6 +709,64 @@
     .admin-field { min-width: 0; }
     .logout-btn { margin-top: 16px; }
 
+    /* 六一 */
+    .pet-admin-layout { display: grid; gap: 14px; }
+    .pet-admin-col { min-width: 0; }
+    .pet-admin-col .section-title:first-child { margin-top: 0; }
+    .pet-media-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 10px; padding: 12px 13px; }
+    .pet-media { display: grid; gap: 5px; min-width: 0; }
+    .pet-media-box {
+        position: relative; display: grid; place-items: center; width: 100%; padding: 0; overflow: hidden;
+        background: repeating-conic-gradient(#f4eee8 0 25%, #fffdf8 0 50%) 0 0/14px 14px;
+        border: 1px dashed var(--line-strong); border-radius: 12px; cursor: pointer;
+    }
+    .pet-media-box.pet-cover-box { aspect-ratio: 1 / 1; background-size: cover; background-repeat: no-repeat; }
+    .pet-media-box.pet-avatar-box { aspect-ratio: 1 / 1; }
+    .pet-media-box img { width: 100%; height: 100%; object-fit: cover; }
+    .pet-media-box.has-image { background-color: #f6efe6; background-image: none; background-size: cover; background-position: center; }
+    .pet-media-empty { display: grid; justify-items: center; gap: 1px; color: var(--admin-muted); font-size: 9px; }
+    .pet-media-empty b { color: #9c8f97; font-size: 18px; font-weight: 300; line-height: 1; }
+    .pet-media-row { display: flex; align-items: center; gap: 6px; }
+    .pet-media-label { color: var(--admin-muted); font-size: 9px; }
+    .pet-media-row .admin-btn { margin-left: auto; padding: 2px 7px; font-size: 8.5px; }
+    .pet-moment-row { display: flex; gap: 9px; padding: 10px 12px; border-bottom: 1px dashed var(--line); }
+    .pet-moment-row:last-child { border-bottom: 0; }
+    .pet-moment-thumb { flex: 0 0 46px; width: 46px; height: 46px; overflow: hidden; background: #f4eee8; border-radius: 9px; }
+    .pet-moment-thumb.is-text { display: grid; place-items: center; color: #b3aca5; font-family: var(--font-display); font-size: 15px; }
+    .pet-moment-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .pet-moment-main { flex: 1; min-width: 0; display: grid; gap: 1px; }
+    .pet-moment-main b { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    .pet-moment-main small { color: var(--admin-muted); font-size: 9px; }
+    .pet-moment-row .admin-btn { align-self: center; flex: 0 0 auto; }
+    .pet-photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+    .pet-photo-tile { position: relative; display: grid; place-items: center; aspect-ratio: 1 / 1; overflow: hidden; background: #f4eee8; border: 1px solid var(--line-strong); border-radius: 9px; }
+    .pet-photo-tile img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; }
+    .pet-photo-tile.is-add { border-style: dashed; background: rgba(255, 217, 226, .16); color: var(--admin-stamp); font-size: 11px; cursor: pointer; }
+    .pet-photo-tile.is-uploading { color: var(--admin-muted); font-size: 9px; }
+    .pet-photo-del { position: absolute; top: 2px; right: 2px; display: grid; place-items: center; width: 15px; height: 15px; padding: 0; background: rgba(43, 34, 49, .62); border: 0; border-radius: 999px; color: #fff; font-size: 8px; }
+    .pet-crop-viewport {
+        position: relative; aspect-ratio: 1 / 1; overflow: hidden;
+        background: #f1e8df center / cover no-repeat;
+        border: 1px solid var(--line-strong); border-radius: 12px;
+        cursor: grab; touch-action: none;
+    }
+    .pet-crop-viewport::before {
+        content: ''; position: absolute; inset: 0; pointer-events: none;
+        background:
+            linear-gradient(to right, transparent calc(33.333% - .5px), rgba(255,255,255,.45) 33.333%, transparent calc(33.333% + .5px)),
+            linear-gradient(to right, transparent calc(66.666% - .5px), rgba(255,255,255,.45) 66.666%, transparent calc(66.666% + .5px)),
+            linear-gradient(to bottom, transparent calc(33.333% - .5px), rgba(255,255,255,.45) 33.333%, transparent calc(33.333% + .5px)),
+            linear-gradient(to bottom, transparent calc(66.666% - .5px), rgba(255,255,255,.45) 66.666%, transparent calc(66.666% + .5px));
+    }
+    .pet-crop-drag {
+        position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%);
+        padding: 3px 10px; background: rgba(28, 22, 31, .55); border-radius: 999px;
+        color: #fff; font-size: 9px; white-space: nowrap; pointer-events: none;
+    }
+    @media (min-width: 900px) {
+        .pet-admin-layout { grid-template-columns: minmax(0, 380px) minmax(0, 1fr); align-items: start; }
+    }
+
     /* menu */
     .menu-layout { display: grid; gap: 14px; }
     .menu-toolbar { display: grid; gap: 8px; }
@@ -767,6 +825,7 @@
         text-align: left;
     }
     .date-picker-icon { width: 24px; height: 24px; flex: 0 0 24px; display: grid; place-items: center; background: #f4e4e6; border-radius: 7px; color: var(--admin-stamp); font-size: 11px; }
+    .date-picker-icon svg { width: 14px; height: 14px; }
     .date-picker-main { flex: 1; min-width: 0; display: grid; gap: 1px; }
     .date-picker-main b { font-size: 13px; font-variant-numeric: tabular-nums; }
     .date-picker-main b.is-empty { color: var(--admin-muted); font-weight: 400; }
@@ -774,6 +833,8 @@
     .date-picker-chev { color: #b3aca5; font-size: 18px; line-height: 1; }
     .date-quick-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
     .date-quick-row button { padding: 4px 10px; background: #fff; border: 1px solid var(--line); border-radius: 999px; color: var(--admin-muted); font-size: 9px; }
+    .pet-date-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .pet-date-head .date-quick-row { margin: 0; }
     .field-required { margin-left: 4px; color: var(--admin-stamp); font-size: 8.5px; letter-spacing: 0; }
     .milestone-delete-link { margin-right: auto; padding: 4px 2px; background: none; border: 0; color: var(--admin-stamp); font-size: 10px; }
     .milestone-delete-link[hidden] { display: none; }
@@ -1168,6 +1229,7 @@
             <button class="side-item" type="button" data-view="milestones"><b>忆</b>岁月留痕</button>
             <button class="side-item" type="button" data-view="cycle"><b>期</b>生理期</button>
             <button class="side-item" type="button" data-view="announcements"><b>告</b>更新公告</button>
+            <button class="side-item" type="button" data-view="pet"><b>六</b>六一</button>
             <button class="side-item" type="button" data-view="notification"><b>铃</b>通知</button>
             <button class="side-item" type="button" data-view="space"><b>空</b>空间资料</button>
         </nav>
@@ -1306,6 +1368,10 @@
                     <span class="setting-icon">期</span>
                     <span class="setting-main"><b>生理期</b><small id="system-cycle-count">还没有记录</small></span>
                     <span class="admin-muted" style="margin-left:auto">›</span>
+                <button class="setting-row" type="button" data-view="pet">
+                    <span class="setting-icon">六</span>
+                    <span class="setting-main"><b>六一</b><small id="system-pet-count">资料未填 · 0 条动态</small></span>
+                    <span class="setting-chev">›</span>
                 </button>
             </div>
             <div class="section-title"><h2>设置</h2></div>
@@ -1649,6 +1715,92 @@
             </div>
         </section>
 
+        <section class="admin-view" data-panel="pet" hidden>
+            <div class="view-head">
+                <div>
+                    <p class="eyebrow">系统 · 六一</p>
+                    <h1>六一</h1>
+                    <p>用户端只查看；名字、两张图、两个日期都在这里改。</p>
+                </div>
+                <div class="head-actions"><button class="admin-btn primary sm" id="pet-save-profile" type="button">保存资料</button></div>
+            </div>
+            <div class="pet-admin-layout">
+                <div class="pet-admin-col">
+                    <div class="section-title"><h2>基本信息</h2><span>生日与到家日分开填</span></div>
+                    <div class="admin-card">
+                        <div class="admin-field">
+                            <label for="pet-name">名字</label>
+                            <input class="admin-input" id="pet-name" type="text" maxlength="16" placeholder="六一">
+                        </div>
+                        <div class="admin-field">
+                            <label for="pet-tagline">一句话</label>
+                            <input class="admin-input" id="pet-tagline" type="text" maxlength="30" placeholder="睡在阳光里的小家伙">
+                        </div>
+                        <div class="admin-field">
+                            <label for="pet-birthday-button">生日 <span class="field-required">必填</span></label>
+                            <input type="hidden" id="pet-birthday">
+                            <button class="date-picker-button" id="pet-birthday-button" type="button" aria-haspopup="dialog">
+                                <span class="date-picker-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3.5" y="5.5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3.5v4M16 3.5v4"/></svg></span>
+                                <span class="date-picker-main">
+                                    <b id="pet-birthday-label" class="is-empty">选择日期</b>
+                                    <small id="pet-birthday-hint">生日和到家日是两件事</small>
+                                </span>
+                                <span class="date-picker-chev" aria-hidden="true">›</span>
+                            </button>
+                        </div>
+                        <div class="admin-field">
+                            <label for="pet-home-date-button">到家日 <span class="field-required">必填</span></label>
+                            <input type="hidden" id="pet-home-date">
+                            <button class="date-picker-button" id="pet-home-date-button" type="button" aria-haspopup="dialog">
+                                <span class="date-picker-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3.5" y="5.5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3.5v4M16 3.5v4"/></svg></span>
+                                <span class="date-picker-main">
+                                    <b id="pet-home-date-label" class="is-empty">选择日期</b>
+                                    <small id="pet-home-date-hint">「到家 N 天」按这一天算</small>
+                                </span>
+                                <span class="date-picker-chev" aria-hidden="true">›</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="section-title"><h2>图片</h2><span>背景图与头像</span></div>
+                    <div class="admin-card">
+                        <div class="pet-media-grid">
+                            <div class="pet-media">
+                                <button class="pet-media-box pet-cover-box" id="pet-cover-box" type="button" aria-label="上传背景图">
+                                    <span class="pet-media-empty" id="pet-cover-empty"><b>＋</b>上传背景图</span>
+                                </button>
+                                <div class="pet-media-row">
+                                    <span class="pet-media-label">背景图 · 1:1</span>
+                                    <button class="admin-btn ghost sm" id="pet-cover-adjust" type="button" hidden>调整位置</button>
+                                </div>
+                            </div>
+                            <div class="pet-media">
+                                <button class="pet-media-box pet-avatar-box" id="pet-avatar-box" type="button" aria-label="上传头像">
+                                    <img id="pet-avatar-img" alt="" hidden>
+                                    <span class="pet-media-empty" id="pet-avatar-empty"><b>＋</b>上传头像</span>
+                                </button>
+                                <span class="pet-media-label">头像 · 方形</span>
+                            </div>
+                        </div>
+                        <input id="pet-cover-file" type="file" accept="image/*" hidden>
+                        <input id="pet-avatar-file" type="file" accept="image/*" hidden>
+                        <p class="admin-small admin-muted" style="padding:0 13px 12px">背景图上传后可以拖动选择显示位置；头像只在管理端换。</p>
+                    </div>
+                </div>
+
+                <div class="pet-admin-col">
+                    <div class="section-title">
+                        <h2>动态</h2>
+                        <span id="pet-moment-count">0 条</span>
+                        <button class="admin-btn primary sm" id="pet-moment-add" type="button" style="margin-left:auto">＋ 发一条</button>
+                    </div>
+                    <div class="admin-card">
+                        <div id="pet-moment-list"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section class="admin-view" data-panel="announcements" hidden>
             <div class="view-head">
                 <div>
@@ -1733,6 +1885,70 @@
     </div>
 </div>
 
+<div class="admin-modal" id="pet-cover-modal" aria-hidden="true">
+    <div class="admin-modal-backdrop" data-pet-cover-close></div>
+    <div class="admin-modal-card" role="dialog" aria-modal="true" aria-labelledby="pet-cover-title">
+        <div class="admin-modal-head">
+            <b id="pet-cover-title">调整背景图位置</b>
+            <button class="admin-modal-close" type="button" data-pet-cover-close aria-label="关闭">✕</button>
+        </div>
+        <div class="admin-modal-body">
+            <div class="pet-crop-viewport" id="pet-crop-viewport">
+                <span class="pet-crop-drag">按住拖动图片，选择显示区域</span>
+            </div>
+            <p class="admin-small admin-muted" style="margin-top:8px">预览是用户端顶部的实际比例（1:1）。拖动到任意位置都可以，确定后会记住这个位置。</p>
+        </div>
+        <div class="admin-modal-foot">
+            <button class="admin-btn ghost" type="button" data-pet-cover-close>取消</button>
+            <button class="admin-btn primary" id="pet-cover-save" type="button">确定</button>
+        </div>
+    </div>
+</div>
+
+<div class="admin-modal" id="pet-moment-modal" aria-hidden="true">
+    <div class="admin-modal-backdrop" data-pet-moment-close></div>
+    <div class="admin-modal-card" role="dialog" aria-modal="true" aria-labelledby="pet-moment-title">
+        <div class="admin-modal-head">
+            <b id="pet-moment-title">发一条动态</b>
+            <button class="admin-modal-close" type="button" data-pet-moment-close aria-label="关闭">✕</button>
+        </div>
+        <div class="admin-modal-body">
+            <input id="pet-moment-file" type="file" accept="image/*" multiple hidden>
+            <div class="admin-field">
+                <label for="pet-moment-text">文字（可空）</label>
+                <textarea class="admin-textarea" id="pet-moment-text" rows="3" maxlength="200" placeholder="这一刻的想法…"></textarea>
+            </div>
+            <div class="admin-field">
+                <div class="pet-date-head">
+                    <label for="pet-moment-date-button">日期</label>
+                    <span class="date-quick-row" id="pet-moment-date-quick">
+                        <button type="button" data-pet-moment-quick="today">今天</button>
+                        <button type="button" data-pet-moment-quick="yesterday">昨天</button>
+                    </span>
+                </div>
+                <input id="pet-moment-date" type="hidden">
+                <button class="date-picker-button" id="pet-moment-date-button" type="button" aria-haspopup="dialog">
+                    <span class="date-picker-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3.5" y="5.5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3.5v4M16 3.5v4"/></svg></span>
+                    <span class="date-picker-main">
+                        <b id="pet-moment-date-label" class="is-empty">选择日期</b>
+                        <small id="pet-moment-date-hint">动态会排在这一天</small>
+                    </span>
+                    <span class="date-picker-chev" aria-hidden="true">›</span>
+                </button>
+            </div>
+            <div class="admin-field">
+                <label>照片（最多 9 张）</label>
+                <div class="pet-photo-grid" id="pet-moment-photos"></div>
+                <p class="admin-small admin-muted">文字和照片至少有一个；第一张作为列表缩略图。</p>
+            </div>
+        </div>
+        <div class="admin-modal-foot">
+            <button class="admin-btn ghost" type="button" data-pet-moment-close>取消</button>
+            <button class="admin-btn primary" id="pet-moment-publish" type="button">发布</button>
+        </div>
+    </div>
+</div>
+
 <div class="admin-modal" id="milestone-modal" aria-hidden="true">
     <div class="admin-modal-backdrop" data-milestone-close></div>
     <div class="admin-modal-card" role="dialog" aria-modal="true" aria-labelledby="milestone-form-title">
@@ -1757,7 +1973,7 @@
                     <label for="milestone-date-button">日期 <span class="field-required">必填</span></label>
                     <input type="hidden" id="milestone-date">
                     <button class="date-picker-button" id="milestone-date-button" type="button" aria-haspopup="dialog">
-                        <span class="date-picker-icon" aria-hidden="true">▦</span>
+                        <span class="date-picker-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3.5" y="5.5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3.5v4M16 3.5v4"/></svg></span>
                         <span class="date-picker-main">
                             <b id="milestone-date-label" class="is-empty">选择日期</b>
                             <small id="milestone-date-hint">决定这条回忆排在哪个年份</small>
@@ -1950,11 +2166,11 @@
 
 <div class="admin-toast" id="message" role="status" aria-live="polite"></div>
 
-<script src="js/oss-config.js?v=20261121-01"></script>
-<script src="js/crypto-utils.js?v=20261121-01"></script>
-<script src="js/oss-utils.js?v=20261121-01"></script>
-<script src="js/cycle.js?v=20261121-01"></script>
-<script src="js/store.js?v=20261121-01"></script><script>
+<script src="js/oss-config.js?v=20261123-04"></script>
+<script src="js/crypto-utils.js?v=20261123-04"></script>
+<script src="js/oss-utils.js?v=20261123-04"></script>
+<script src="js/cycle.js?v=20261123-04"></script>
+<script src="js/store.js?v=20261123-04"></script><script>
     const ORDER_LABEL = {
         pending: '待接单',
         accepted: '已接单',
@@ -2047,6 +2263,11 @@
     let calendarViewYear = 0;
     let calendarViewMonth = 0;
     let calendarSelected = '';
+    let calendarTarget = null;
+    let petMomentPhotos = [];
+    let petMomentUploading = 0;
+    let petCrop = null;
+    let petCropDrag = null;
     let couponFilter = 'available';
     let cardsSegment = 'cards';
     let menuFilter = 'all';
@@ -2074,6 +2295,10 @@
     let announcementEditingLabel = '保存草稿';
 
     const $ = id => document.getElementById(id);
+
+    function escAttr(value) {
+        return esc(value);
+    }
 
     function esc(value) {
         return String(value == null ? '' : value)
@@ -2268,6 +2493,14 @@
             closeMilestoneCalendar();
             return;
         }
+        if ($('pet-cover-modal').classList.contains('is-open')) {
+            closePetCoverModal();
+            return;
+        }
+        if ($('pet-moment-modal').classList.contains('is-open')) {
+            closePetMomentModal();
+            return;
+        }
         if ($('milestone-modal').classList.contains('is-open')) {
             closeMilestoneModal();
             return;
@@ -2278,8 +2511,8 @@
     });
 
     /* ---------- chrome / navigation ---------- */
-    const VIEW_TITLES = { home: '首页', orders: '订单', cards: '恋爱卡', system: '系统', menu: '菜单', milestones: '岁月留痕', space: '空间资料', announcements: '更新公告', notification: '通知', 'order-detail': '订单详情', cycle: '生理期' };
-    const SUB_VIEWS = ['menu', 'milestones', 'space', 'announcements', 'notification', 'order-detail', 'cycle'];
+    const VIEW_TITLES = { home: '首页', orders: '订单', cards: '恋爱卡', system: '系统', menu: '菜单', milestones: '岁月留痕', space: '空间资料', announcements: '更新公告', pet: '六一', notification: '通知', 'order-detail': '订单详情', cycle: '生理期' };
+    const SUB_VIEWS = ['menu', 'milestones', 'space', 'announcements', 'pet', 'notification', 'order-detail', 'cycle'];
     function renderChrome() {
         const name = spaceName();
         $('side-space-name').textContent = name;
@@ -2334,7 +2567,7 @@
     }
 
     function switchView(view, options = {}) {
-        if (!['home', 'orders', 'cards', 'system', 'menu', 'milestones', 'space', 'announcements', 'notification', 'order-detail', 'cycle'].includes(view)) return;
+    if (!['home', 'orders', 'cards', 'system', 'menu', 'milestones', 'space', 'announcements', 'pet', 'notification', 'order-detail', 'cycle'].includes(view)) return;
         if (view === 'cards' && options.segment) cardsSegment = options.segment;
         adminView = view;
         adminTab = ['home', 'orders', 'cards', 'system'].includes(view) ? view : 'system';
@@ -2347,6 +2580,7 @@
         if (view === 'milestones') renderMilestones();
         if (view === 'space') renderSpace();
         if (view === 'cycle') renderCycle();
+        if (view === 'pet') renderPet();
         if (view === 'announcements') {
             renderAnnouncements();
             if (adminData && !Array.isArray(adminData.announcements)) refreshAdminAnnouncements();
@@ -3827,6 +4061,9 @@
     }
 
     const CAL_WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+    // 六一动态只发近年；生日/到家日/回忆仍保留宽范围，方便回到旧日期。
+    const PET_MOMENT_YEAR_MIN = 2026;
+    const PET_MOMENT_YEAR_MAX = 2030;
 
     function syncMilestoneDate(value) {
         const text = String(value || '').slice(0, 10);
@@ -3844,14 +4081,20 @@
         hint.textContent = `${CAL_WEEKDAYS[date.getDay()]} · 会排到 ${date.getFullYear()} 年`;
     }
 
-    function openMilestoneCalendar() {
-        const current = toDate($('milestone-date').value) || new Date();
-        calendarSelected = $('milestone-date').value ? String($('milestone-date').value).slice(0, 10) : '';
+    function openCalendarFor(targetId, sync) {
+        calendarTarget = { inputId: targetId, sync };
+        const raw = $(targetId).value;
+        const current = toDate(raw) || new Date();
+        calendarSelected = raw ? String(raw).slice(0, 10) : '';
         calendarViewYear = current.getFullYear();
         calendarViewMonth = current.getMonth();
         renderMilestoneCalendar();
         $('milestone-calendar').classList.add('is-open');
         $('milestone-calendar').setAttribute('aria-hidden', 'false');
+    }
+
+    function openMilestoneCalendar() {
+        openCalendarFor('milestone-date', syncMilestoneDate);
     }
 
     function closeMilestoneCalendar() {
@@ -3862,7 +4105,11 @@
     function renderMilestoneCalendar() {
         const today = new Date();
         const years = [];
-        for (let year = today.getFullYear() + 1; year >= today.getFullYear() - 12; year--) years.push(year);
+        if (calendarTarget && calendarTarget.inputId === 'pet-moment-date') {
+            for (let year = PET_MOMENT_YEAR_MIN; year <= PET_MOMENT_YEAR_MAX; year++) years.push(year);
+        } else {
+            for (let year = today.getFullYear() + 1; year >= today.getFullYear() - 12; year--) years.push(year);
+        }
         $('calendar-years').innerHTML = years.map(year =>
             `<button type="button" class="${year === calendarViewYear ? 'is-active' : ''}" data-calendar-year="${year}">${year}</button>`).join('');
         $('calendar-month-label').textContent = `${calendarViewYear} 年 ${calendarViewMonth + 1} 月`;
@@ -3894,7 +4141,9 @@
 
     function pickMilestoneDay(key) {
         calendarSelected = key;
-        syncMilestoneDate(key);
+        const target = calendarTarget || { inputId: 'milestone-date', sync: syncMilestoneDate };
+        if (typeof target.sync === 'function') target.sync(key);
+        else $(target.inputId).value = key;
         closeMilestoneCalendar();
     }
 
@@ -4234,6 +4483,340 @@
             </div>
             <div class="announcement-admin-actions">${actions.join('')}</div>
         </article>`;
+    }
+
+    /* ---------- 六一 ---------- */
+    function petData() {
+        return (adminData && adminData.pet) || { name: '', tagline: '', birthday: '', homeDate: '', avatar: '', cover: null, moments: [] };
+    }
+
+    function renderPet() {
+        if (!adminData) return;
+        const pet = petData();
+        $('pet-name').value = pet.name || '';
+        $('pet-tagline').value = pet.tagline || '';
+        syncPetBirthday(pet.birthday || '');
+        syncPetHomeDate(pet.homeDate || '');
+        renderPetImages(pet);
+        renderPetMoments(pet);
+
+        const count = $('system-pet-count');
+        if (count) {
+            const total = (pet.moments || []).length;
+            count.textContent = pet.name ? `${pet.name} · ${total} 条动态` : `资料未填 · ${total} 条动态`;
+        }
+    }
+
+    function syncPetDateField(kind, value) {
+        const text = String(value || '').slice(0, 10);
+        const input = $('pet-' + kind);
+        const label = $('pet-' + kind + '-label');
+        const hint = $('pet-' + kind + '-hint');
+        if (input) input.value = text;
+        const date = text ? toDate(text) : null;
+        if (!label || !hint) return;
+        label.classList.toggle('is-empty', !date);
+        if (!date) {
+            label.textContent = '选择日期';
+            hint.textContent = kind === 'birthday' ? '生日和到家日是两件事' : '「到家 N 天」按这一天算';
+            return;
+        }
+        label.textContent = `${date.getFullYear()} · ${pad2(date.getMonth() + 1)} · ${pad2(date.getDate())}`;
+        hint.textContent = CAL_WEEKDAYS[date.getDay()] + (kind === 'birthday' ? ' · 会显示在资料里' : ' · 用来算到家天数');
+    }
+
+    function syncPetBirthday(value) { syncPetDateField('birthday', value); }
+    function syncPetHomeDate(value) { syncPetDateField('home-date', value); }
+
+    function renderPetImages(pet) {
+        const box = $('pet-cover-box');
+        const empty = $('pet-cover-empty');
+        const adjust = $('pet-cover-adjust');
+        if (box) {
+            if (pet.cover && pet.cover.url) {
+                box.style.backgroundImage = `url("${pet.cover.url}")`;
+                box.style.backgroundPosition = `${pet.cover.x}% ${pet.cover.y}%`;
+            } else {
+                box.style.backgroundImage = '';
+            }
+        }
+        if (empty) empty.hidden = !!(pet.cover && pet.cover.url);
+        if (adjust) adjust.hidden = !(pet.cover && pet.cover.url);
+        if (box) box.classList.toggle('has-image', !!(pet.cover && pet.cover.url));
+
+        const img = $('pet-avatar-img');
+        const avatarEmpty = $('pet-avatar-empty');
+        if (img) {
+            if (pet.avatar) {
+                img.src = pet.avatar;
+                img.hidden = false;
+            } else {
+                img.hidden = true;
+                img.removeAttribute('src');
+            }
+        }
+        if (avatarEmpty) avatarEmpty.hidden = !!pet.avatar;
+        $('pet-avatar-box').classList.toggle('has-image', !!pet.avatar);
+    }
+
+    function petMomentTimeText(stamp) {
+        const date = toDate(stamp);
+        if (!date) return '';
+        const now = new Date();
+        const clock = `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+        if (date.toDateString() === now.toDateString()) return `今天 ${clock}`;
+        const yesterday = new Date(now);
+        yesterday.setDate(now.getDate() - 1);
+        if (date.toDateString() === yesterday.toDateString()) return `昨天 ${clock}`;
+        return `${date.getFullYear()}.${pad2(date.getMonth() + 1)}.${pad2(date.getDate())} ${clock}`;
+    }
+
+    function renderPetMoments(pet) {
+        const list = $('pet-moment-list');
+        const count = $('pet-moment-count');
+        const moments = pet.moments || [];
+        if (count) count.textContent = `${moments.length} 条`;
+        if (!list) return;
+        if (!moments.length) {
+            list.innerHTML = '<div class="empty-state">还没有动态，点右上角「发一条」。</div>';
+            return;
+        }
+        list.innerHTML = moments.map(moment => `
+            <div class="pet-moment-row">
+                ${(moment.images || [])[0]
+                    ? `<span class="pet-moment-thumb"><img src="${esc(moment.images[0])}" alt="" loading="lazy"></span>`
+                    : '<span class="pet-moment-thumb is-text">文</span>'}
+                <span class="pet-moment-main">
+                    <b>${esc(moment.text || `${(moment.images || []).length} 张照片`)}</b>
+                    <small>${esc(petMomentTimeText(moment.createdAt))} · ${(moment.images || []).length} 张照片</small>
+                </span>
+                <button class="admin-btn ghost sm" type="button" data-pet-moment-delete="${esc(moment.id)}">删除</button>
+            </div>
+        `).join('');
+    }
+
+    async function refreshAdminPet() {
+        adminData.pet = await loadPet({ fresh: true });
+        renderPet();
+    }
+
+    async function handleSavePetProfile() {
+        const button = $('pet-save-profile');
+        const name = $('pet-name').value.trim();
+        const birthday = $('pet-birthday').value;
+        const homeDate = $('pet-home-date').value;
+        if (!name) { showMessage('先给六一起个名字', 'error'); return; }
+        if (!birthday) { showMessage('请选择生日', 'error'); return; }
+        if (!homeDate) { showMessage('请选择到家日', 'error'); return; }
+        if (button) { button.classList.add('is-loading'); button.textContent = '保存中…'; }
+        try {
+            await savePetProfile({ name, birthday, homeDate, tagline: $('pet-tagline').value.trim() });
+            await refreshAdminPet();
+            showMessage('六一资料已保存');
+        } catch (error) {
+            console.error(error);
+            showMessage(error.message || '保存失败', 'error');
+        } finally {
+            if (button) { button.classList.remove('is-loading'); button.textContent = '保存资料'; }
+        }
+    }
+
+    /* 背景图位置 */
+    function applyPetCrop() {
+        if (!petCrop) return;
+        const viewport = $('pet-crop-viewport');
+        if (!viewport) return;
+        viewport.style.backgroundImage = `url("${petCrop.url}")`;
+        viewport.style.backgroundPosition = `${petCrop.x}% ${petCrop.y}%`;
+    }
+
+    function openPetCoverModal(cover) {
+        if (!cover || !cover.url) return;
+        petCrop = { url: cover.url, x: Number(cover.x), y: Number(cover.y) };
+        if (!Number.isFinite(petCrop.x)) petCrop.x = 50;
+        if (!Number.isFinite(petCrop.y)) petCrop.y = 50;
+        applyPetCrop();
+        $('pet-cover-modal').classList.add('is-open');
+        $('pet-cover-modal').setAttribute('aria-hidden', 'false');
+        document.body.classList.add('admin-modal-open');
+    }
+
+    function closePetCoverModal() {
+        $('pet-cover-modal').classList.remove('is-open');
+        $('pet-cover-modal').setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('admin-modal-open');
+        petCropDrag = null;
+    }
+
+    async function savePetCoverPosition() {
+        if (!petCrop) return;
+        const button = $('pet-cover-save');
+        if (button) { button.classList.add('is-loading'); button.textContent = '保存中…'; }
+        try {
+            const doc = await savePetCover({ url: petCrop.url, x: petCrop.x, y: petCrop.y });
+            adminData.pet = doc;
+            renderPet();
+            closePetCoverModal();
+            showMessage('背景图位置已保存');
+        } catch (error) {
+            console.error(error);
+            showMessage(error.message || '保存失败', 'error');
+        } finally {
+            if (button) { button.classList.remove('is-loading'); button.textContent = '确定'; }
+        }
+    }
+
+    async function handlePetCoverFile(input) {
+        const file = input.files && input.files[0];
+        input.value = '';
+        if (!file) return;
+        try {
+            showMessage('背景图上传中…');
+            const url = await uploadPetImage(file);
+            openPetCoverModal({ url, x: 50, y: 50 });
+        } catch (error) {
+            console.error(error);
+            showMessage(error.message || '上传失败', 'error');
+        }
+    }
+
+    async function handlePetAvatarFile(input) {
+        const file = input.files && input.files[0];
+        input.value = '';
+        if (!file) return;
+        try {
+            showMessage('头像上传中…');
+            const url = await uploadPetImage(file);
+            const doc = await savePetAvatar(url);
+            adminData.pet = doc;
+            renderPet();
+            showMessage('头像已保存');
+        } catch (error) {
+            console.error(error);
+            showMessage(error.message || '上传失败', 'error');
+        }
+    }
+
+    /* 管理端补发动态 */
+    function renderPetMomentPhotos() {
+        const grid = $('pet-moment-photos');
+        if (!grid) return;
+        const tiles = petMomentPhotos.map((url, index) => `
+            <span class="pet-photo-tile">
+                <img src="${esc(url)}" alt="" data-image-preview="${esc(url)}" loading="lazy">
+                <button type="button" class="pet-photo-del" data-pet-moment-remove="${index}" aria-label="删除这张">✕</button>
+            </span>
+        `).join('');
+        const uploading = petMomentUploading > 0 ? '<span class="pet-photo-tile is-uploading">上传中…</span>' : '';
+        const add = petMomentPhotos.length + petMomentUploading >= 9
+            ? ''
+            : '<label class="pet-photo-tile is-add" for="pet-moment-file">＋ 加照片</label>';
+        grid.innerHTML = tiles + uploading + add;
+    }
+
+    function syncPetMomentDate(value) {
+        const date = normalizePetDate(value) || nowStamp().slice(0, 10);
+        $('pet-moment-date').value = date;
+        const parsed = toDate(date);
+        const label = $('pet-moment-date-label');
+        const hint = $('pet-moment-date-hint');
+        label.classList.toggle('is-empty', !parsed);
+        label.textContent = parsed
+            ? `${parsed.getFullYear()} · ${pad2(parsed.getMonth() + 1)} · ${pad2(parsed.getDate())}`
+            : '选择日期';
+        if (hint) {
+            const today = nowStamp().slice(0, 10);
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayKey = `${yesterday.getFullYear()}-${pad2(yesterday.getMonth() + 1)}-${pad2(yesterday.getDate())}`;
+            const relative = date === today ? '今天' : date === yesterdayKey ? '昨天' : '';
+            hint.textContent = parsed
+                ? `${CAL_WEEKDAYS[parsed.getDay()]}${relative ? ` · ${relative}` : ''}`
+                : '动态会排在这一天';
+        }
+    }
+
+    function openPetMomentModal() {
+        petMomentPhotos = [];
+        petMomentUploading = 0;
+        $('pet-moment-text').value = '';
+        syncPetMomentDate(nowStamp().slice(0, 10));
+        renderPetMomentPhotos();
+        $('pet-moment-modal').classList.add('is-open');
+        $('pet-moment-modal').setAttribute('aria-hidden', 'false');
+        document.body.classList.add('admin-modal-open');
+    }
+
+    function closePetMomentModal() {
+        $('pet-moment-modal').classList.remove('is-open');
+        $('pet-moment-modal').setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('admin-modal-open');
+    }
+
+    async function handlePetMomentFiles(input) {
+        const files = Array.from(input.files || []);
+        input.value = '';
+        if (!files.length) return;
+        const room = 9 - petMomentPhotos.length;
+        const accepted = files.slice(0, Math.max(0, room));
+        if (files.length > accepted.length) showMessage('一条动态最多 9 张照片', 'error');
+        if (!accepted.length) return;
+        petMomentUploading += accepted.length;
+        renderPetMomentPhotos();
+        for (const file of accepted) {
+            try {
+                const url = await uploadPetImage(file);
+                petMomentPhotos.push(url);
+            } catch (error) {
+                console.error(error);
+                showMessage(error.message || '照片上传失败', 'error');
+            } finally {
+                petMomentUploading -= 1;
+                renderPetMomentPhotos();
+            }
+        }
+    }
+
+    async function publishPetMomentFromAdmin() {
+        const text = $('pet-moment-text').value.trim();
+        const date = $('pet-moment-date').value;
+        if (!normalizePetDate(date)) { showMessage('请选择日期', 'error'); return; }
+        const button = $('pet-moment-publish');
+        if (!text && !petMomentPhotos.length) { showMessage('写一句话，或者放一张照片', 'error'); return; }
+        if (petMomentUploading > 0) { showMessage('照片还在上传，等一下', 'error'); return; }
+        if (button) { button.classList.add('is-loading'); button.textContent = '发布中…'; }
+        try {
+            await savePetMoment({ text, date, images: petMomentPhotos.slice() });
+            await refreshAdminPet();
+            closePetMomentModal();
+            showMessage('已发布');
+        } catch (error) {
+            console.error(error);
+            showMessage(error.message || '发布失败', 'error');
+        } finally {
+            if (button) { button.classList.remove('is-loading'); button.textContent = '发布'; }
+        }
+    }
+
+    async function deletePetMomentFromAdmin(id) {
+        const moment = (petData().moments || []).find(item => String(item.id) === String(id));
+        if (!moment) return;
+        const ok = await adminConfirm({
+            title: '删除这条动态',
+            message: '删除后用户端也会一起消失，确定删除吗？',
+            okText: '删除',
+            danger: true
+        });
+        if (!ok) return;
+        try {
+            const doc = await deletePetMoment(id);
+            adminData.pet = doc;
+            renderPet();
+            showMessage('已删除');
+        } catch (error) {
+            console.error(error);
+            showMessage(error.message || '删除失败', 'error');
+        }
     }
 
     function renderAnnouncements() {
@@ -5233,6 +5816,76 @@
     $('serve-confirm').addEventListener('click', confirmServe);
     document.querySelectorAll('[data-serve-close]').forEach(button => {
         button.addEventListener('click', closeServeModal);
+    });
+
+    $('pet-save-profile').addEventListener('click', handleSavePetProfile);
+    $('pet-birthday-button').addEventListener('click', () => openCalendarFor('pet-birthday', syncPetBirthday));
+    $('pet-home-date-button').addEventListener('click', () => openCalendarFor('pet-home-date', syncPetHomeDate));
+    $('pet-cover-box').addEventListener('click', () => $('pet-cover-file').click());
+    $('pet-avatar-box').addEventListener('click', () => $('pet-avatar-file').click());
+    $('pet-cover-file').addEventListener('change', event => handlePetCoverFile(event.target));
+    $('pet-avatar-file').addEventListener('change', event => handlePetAvatarFile(event.target));
+    $('pet-cover-adjust').addEventListener('click', () => {
+        const pet = petData();
+        if (pet.cover) openPetCoverModal(pet.cover);
+    });
+    $('pet-cover-save').addEventListener('click', savePetCoverPosition);
+    document.querySelectorAll('[data-pet-cover-close]').forEach(button => {
+        button.addEventListener('click', closePetCoverModal);
+    });
+
+    const cropViewport = $('pet-crop-viewport');
+    cropViewport.addEventListener('pointerdown', event => {
+        if (!petCrop) return;
+        petCropDrag = {
+            startX: event.clientX,
+            startY: event.clientY,
+            baseX: petCrop.x,
+            baseY: petCrop.y,
+            width: cropViewport.clientWidth || 1,
+            height: cropViewport.clientHeight || 1
+        };
+        try { cropViewport.setPointerCapture(event.pointerId); } catch (error) {}
+        cropViewport.style.cursor = 'grabbing';
+    });
+    cropViewport.addEventListener('pointermove', event => {
+        if (!petCropDrag || !petCrop) return;
+        const dx = (event.clientX - petCropDrag.startX) / petCropDrag.width * 100;
+        const dy = (event.clientY - petCropDrag.startY) / petCropDrag.height * 100;
+        petCrop.x = Math.max(0, Math.min(100, petCropDrag.baseX - dx));
+        petCrop.y = Math.max(0, Math.min(100, petCropDrag.baseY - dy));
+        applyPetCrop();
+    });
+    ['pointerup', 'pointercancel'].forEach(type => {
+        cropViewport.addEventListener(type, () => {
+            petCropDrag = null;
+            cropViewport.style.cursor = 'grab';
+        });
+    });
+
+    $('pet-moment-add').addEventListener('click', openPetMomentModal);
+    $('pet-moment-file').addEventListener('change', event => handlePetMomentFiles(event.target));
+    $('pet-moment-photos').addEventListener('click', event => {
+        const remove = event.target.closest('[data-pet-moment-remove]');
+        if (!remove) return;
+        petMomentPhotos.splice(Number(remove.dataset.petMomentRemove), 1);
+        renderPetMomentPhotos();
+    });
+    $('pet-moment-date-button').addEventListener('click', () => openCalendarFor('pet-moment-date', syncPetMomentDate));
+    $('pet-moment-date-quick').addEventListener('click', event => {
+        const button = event.target.closest('[data-pet-moment-quick]');
+        if (!button) return;
+        const date = new Date();
+        if (button.dataset.petMomentQuick === 'yesterday') date.setDate(date.getDate() - 1);
+        syncPetMomentDate(`${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`);
+    });
+    $('pet-moment-publish').addEventListener('click', publishPetMomentFromAdmin);
+    document.querySelectorAll('[data-pet-moment-close]').forEach(button => {
+        button.addEventListener('click', closePetMomentModal);
+    });
+    $('pet-moment-list').addEventListener('click', event => {
+        const remove = event.target.closest('[data-pet-moment-delete]');
+        if (remove) deletePetMomentFromAdmin(remove.dataset.petMomentDelete);
     });
 
     $('announcement-add').addEventListener('click', () => openAnnouncementModal(null));

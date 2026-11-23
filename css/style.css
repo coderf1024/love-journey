@@ -6,14 +6,14 @@
 
 @font-face {
     font-family: 'Ma Shan Zheng';
-    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261123-07') format('woff2');    font-weight: 400;
+    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261123-09') format('woff2');    font-weight: 400;
     font-style: normal;
     font-display: swap;
 }
 
 @font-face {
     font-family: 'Noto Serif SC';
-    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261123-07') format('woff2');    font-weight: 700;
+    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261123-09') format('woff2');    font-weight: 700;
     font-style: normal;
     font-display: swap;
 }
@@ -88,7 +88,7 @@ body::after {
 }
 
 body::before {
-    background: url('../assets/texture-noise.png?v=20261123-07') repeat;    opacity: 0.06;
+    background: url('../assets/texture-noise.png?v=20261123-09') repeat;    opacity: 0.06;
     mix-blend-mode: multiply;
 }
 
@@ -560,7 +560,7 @@ select:focus-visible {
     content: '';
     position: absolute;
     inset: 0;
-    background: url('../assets/texture-noise.png?v=20261123-07') repeat;    opacity: 0.1;
+    background: url('../assets/texture-noise.png?v=20261123-09') repeat;    opacity: 0.1;
     mix-blend-mode: soft-light;
     pointer-events: none;
 }
@@ -5068,7 +5068,9 @@ body.me-pet-page .app-main {
 .pet-calendar-grid button {
     display: grid;
     place-items: center;
-    aspect-ratio: 1 / 1;
+    /* Square cells made the dialog ~500px tall on a phone. Half-height rows
+       keep the same tap width and cut the height roughly in half. */
+    height: 25px;
     padding: 0;
     color: var(--ink-2);
     font-family: var(--font-body);
@@ -5084,14 +5086,17 @@ body.me-pet-page .app-main {
     opacity: .45;
 }
 
+/* Rows are 25px tall but a column is ~49px wide, so a filled button would read
+   as an ellipse. Draw the mark as a fixed circle behind the digits instead. */
 .pet-calendar-grid button.is-today {
     color: var(--stamp-deep);
-    box-shadow: inset 0 0 0 1px var(--stamp);
+    background: radial-gradient(circle, transparent 0 11.5px, var(--stamp) 11.5px 12.5px, transparent 12.5px);
+    box-shadow: none;
 }
 
 .pet-calendar-grid button.is-active {
     color: #fff;
-    background: var(--ink);
+    background: radial-gradient(circle, var(--ink) 0 12.5px, transparent 12.5px);
     box-shadow: none;
 }
 
@@ -5100,7 +5105,7 @@ body.me-pet-page .app-main {
 }
 
 .pet-calendar-grid button.is-active:active {
-    background: var(--ink);
+    background: radial-gradient(circle, var(--ink) 0 12.5px, transparent 12.5px);
 }
 
 .pet-composer-photo-head {

@@ -97,10 +97,14 @@ const CycleUI = (() => {
             // 90 天没有新记录时不再预测；这时候「记满 3 次」的提示是错的，
             // 她已经记过，只是太久了。
             const stale = !!prediction && prediction.reason === 'stale';
+            const count = items.length;
             return {
                 live: false,
                 ghost: false,
-                mark: '?',
+                /* 没有预测就没有天数可显示。以前这里写死一个「?」，看起来像图标
+                   没加载出来。改成「已记次数 / 3」的进度，记满之后（或数据太久）
+                   就不放数字。 */
+                mark: stale || count >= 3 ? '' : `${count}/3`,
                 markSub: '',
                 title: stale ? '该记一次了' : '开始记录吧',
                 sub: stale ? '上次记录在 90 天以前' : '记满 3 次就能预测',
@@ -178,7 +182,10 @@ const CycleUI = (() => {
         strip.dataset.cycleAction = model.action;
 
         const mark = $('cycle-strip-mark');
-        if (mark) mark.innerHTML = `${esc(model.mark)}${model.markSub ? `<small>${esc(model.markSub)}</small>` : ''}`;
+        if (mark) {
+            mark.hidden = !model.mark;
+            mark.innerHTML = `${esc(model.mark)}${model.markSub ? `<small>${esc(model.markSub)}</small>` : ''}`;
+        }
         const title = $('cycle-strip-title');
         if (title) title.textContent = model.title;
         const sub = $('cycle-strip-sub');

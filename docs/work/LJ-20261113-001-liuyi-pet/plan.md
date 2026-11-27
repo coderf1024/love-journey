@@ -18,7 +18,7 @@
 
 | 文件/模块 | 改动 |
 |---|---|
-| `docs/design/liuyi-pet-wireframe.html` | 新增原型：A 我们页两种落点、B 空间一级菜单、C 六一子页、D 管理端系统导航、E 管理端六一页、F 事件弹窗 + 日期校验态、G 1280 桌面两栏、H 320 子页、验收口径与待确认问题 |
+| `docs/design/261113-liuyi-pet.html` | 新增原型：A 我们页两种落点、B 空间一级菜单、C 六一子页、D 管理端系统导航、E 管理端六一页、F 事件弹窗 + 日期校验态、G 1280 桌面两栏、H 320 子页、验收口径与待确认问题 |
 | `docs/design/README.md` | 原型索引新增一行 |
 | `docs/work/LJ-20261113-001-liuyi-pet/{plan,STATUS,QA,notes}.md` | 任务文档 |
 | `docs/work/BOARD.md` | 任务行状态与下一步 |

@@ -4,7 +4,7 @@
 - 提出人：人
 - 日期：2026-11-12
 - 分支：work/261112-daily-job（当前 worktree 分支，不新建分支）
-- 原型：[docs/design/morning-greeting-wireframe.html](../../design/morning-greeting-wireframe.html)
+- 原型：[docs/design/261112-morning-greeting.html](../../design/261112-morning-greeting.html)
 
 ## 背景与目标
 

@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>六一体重管理 · 设计原型</title>
+<style>
+    @font-face {
+        font-family: 'Ma Shan Zheng';
+        src: url('../../assets/fonts/mashanzheng-subset.woff2') format('woff2');
+        font-weight: 400; font-style: normal; font-display: swap;
+    }
+    @font-face {
+        font-family: 'Noto Serif SC';
+        src: url('../../assets/fonts/notoserifsc-bold-subset.woff2') format('woff2');
+        font-weight: 700; font-style: normal; font-display: swap;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+        --paper: #fbf6ec;
+        --paper-soft: #fffdf8;
+        --ink: #2b2231;
+        --ink-2: #453a4b;
+        --muted: #72656f;
+        --faint: #a29a94;
+        --stamp: #df5f7e;
+        --stamp-deep: #c44766;
+        --petal: #ffd9e2;
+        --lemon: #f6d478;
+        --leaf: #3f8f7a;
+        --clay: #b5644a;
+        --line: rgba(43, 34, 49, .1);
+        --line-strong: rgba(43, 34, 49, .2);
+        --font-cute: 'Ma Shan Zheng', 'Noto Serif SC', 'Songti SC', serif;
+        --font-display: 'Noto Serif SC', 'Songti SC', serif;
+        --font-ui: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        --shadow-soft: 0 18px 40px -26px rgba(77, 48, 61, .42);
+    }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+        min-height: 100vh;
+        padding: 40px 28px 96px;
+        color: var(--ink);
+        font-family: var(--font-ui);
+        line-height: 1.6;
+        background: #e8e5e0;
+        -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 1300px; margin: 0 auto; }
+    .doc-eyebrow { color: #8a7b78; font-size: 11px; font-weight: 700; letter-spacing: .2em; }
+    .doc-title { margin-top: 6px; font-family: var(--font-display); font-size: 32px; font-weight: 700; line-height: 1.22; }
+    .doc-lead { max-width: 860px; margin-top: 10px; color: #5e555d; font-size: 14px; line-height: 1.7; }
+    .doc-lead b { color: var(--ink); }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .chip { padding: 6px 13px; background: var(--paper-soft); border: 1px solid var(--line-strong); border-radius: 999px; font-size: 12px; }
+    .chip b { color: var(--stamp-deep); }
+
+    .frames { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 40px 34px; margin-top: 34px; }
+    .frame { width: 390px; }
+    .frame.wide { width: 100%; }
+    .frame-label { margin-bottom: 10px; font-size: 13px; font-weight: 700; color: #40383f; }
+    .frame-label span { display: block; margin-top: 2px; color: #8a7b78; font-size: 11.5px; font-weight: 400; }
+    .frame-note { margin-top: 10px; color: #6f666d; font-size: 12px; line-height: 1.65; }
+    .frame-note b { color: var(--ink-2); }
+    .frame-note code { padding: 1px 5px; background: #f1ece4; border-radius: 5px; font-family: ui-monospace, Menlo, monospace; font-size: 10.5px; }
+
+    /* ---------------- 手机框 ---------------- */
+    .phone {
+        position: relative; width: 390px; height: 900px; overflow: hidden;
+        background: var(--paper); border: 1px solid rgba(0, 0, 0, .16); border-radius: 46px;
+        box-shadow: 0 30px 60px -34px rgba(30, 20, 35, .5), 0 0 0 10px #1d1a1e, 0 0 0 11px #3a343c;
+    }
+    .phone.tall { height: 1120px; }
+    .phone.small { height: 760px; }
+    .screen { position: absolute; inset: 0; display: flex; flex-direction: column; }
+    .scroll { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; }
+    .notch {
+        position: absolute; top: 9px; left: 50%; width: 112px; height: 30px; margin-left: -56px;
+        background: #1d1a1e; border-radius: 999px;
+    }
+    .statusbar {
+        position: relative; z-index: 6; display: flex; align-items: center; justify-content: space-between;
+        height: 44px; padding: 0 26px 0 30px; font-size: 13px; font-weight: 600;
+    }
+    .statusbar.over {
+        position: absolute; top: 0; left: 0; right: 0;
+        color: #fff; text-shadow: 0 1px 2px rgba(20, 12, 24, .28);
+    }
+    .statusbar .right { display: flex; align-items: center; gap: 5px; }
+    .statusbar svg { display: block; }
+
+    /* ---------------- 六一页 ---------------- */
+    .cover {
+        position: relative; aspect-ratio: 1 / 1; overflow: hidden;
+        background:
+            radial-gradient(80% 90% at 78% 12%, rgba(255, 255, 255, .5), transparent 66%),
+            linear-gradient(146deg, #cfdfd4 0%, #f0e2c6 46%, #eec3cd 100%);
+    }
+    .cover::before {
+        content: ''; position: absolute; inset: 0; z-index: 1;
+        background: linear-gradient(180deg, rgba(24, 16, 26, .22), rgba(24, 16, 26, .04) 34%, transparent 52%);
+    }
+    .cover::after {
+        content: ''; position: absolute; inset: 0; z-index: 1;
+        background: url('../../assets/texture-noise.png') repeat; opacity: .06; mix-blend-mode: multiply;
+    }
+    .cover-back {
+        position: absolute; top: 54px; left: 14px; z-index: 4;
+        display: grid; place-items: center; width: 34px; height: 34px;
+        background: rgba(255, 253, 248, .58); border: 0; border-radius: 999px;
+        color: var(--ink); font-size: 21px; line-height: 1; backdrop-filter: blur(6px);
+        box-shadow: 0 4px 12px -8px rgba(0, 0, 0, .5);
+    }
+    .cover-empty {
+        position: absolute; left: 0; right: 0; top: 54%; z-index: 2;
+        display: grid; justify-items: center; gap: 5px; transform: translateY(-50%);
+        color: rgba(64, 54, 62, .48);
+    }
+    .cover-empty svg { width: 30px; height: 30px; stroke: currentColor; fill: none; stroke-width: 1.4; }
+    .cover-empty span { padding: 2px 9px; background: rgba(255, 253, 248, .5); border-radius: 999px; font-size: 10px; }
+
+    .profile { position: relative; padding: 0 16px 16px; background: var(--paper-soft); border-bottom: 8px solid #f3ece2; }
+    .avatar {
+        position: relative; z-index: 3; width: 84px; height: 84px; margin-top: -42px; overflow: hidden;
+        background: linear-gradient(150deg, var(--petal), var(--lemon));
+        border: 3px solid var(--paper-soft); border-radius: 22px;
+        box-shadow: 0 10px 20px -14px rgba(43, 34, 49, .6);
+    }
+    .avatar img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 42%; }
+    .profile-name { display: flex; align-items: baseline; gap: 8px; margin-top: 8px; }
+    .profile-name b { font-family: var(--font-display); font-size: 22px; font-weight: 700; }
+    .profile-name small { color: var(--muted); font-size: 12px; }
+    .profile-tagline { margin-top: 2px; color: var(--muted); font-size: 13px; }
+    .profile-stats { display: flex; align-items: center; gap: 16px; margin-top: 12px; }
+    .profile-stat { display: grid; gap: 1px; }
+    .profile-stat b { font-size: 14.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .profile-stat small { color: var(--muted); font-size: 10.5px; }
+    .profile-stat + .profile-stat { padding-left: 16px; border-left: 1px solid var(--line); }
+
+    /* ---------------- 体重入口 ---------------- */
+    .weight-entry {
+        display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 13px;
+        padding: 10px 12px; background: var(--paper); border: 1px solid var(--line);
+        border-radius: 13px; font-family: inherit; text-align: left; cursor: pointer;
+    }
+    .we-ico {
+        display: grid; place-items: center; flex: 0 0 32px; width: 32px; height: 32px;
+        background: rgba(255, 217, 226, .6); border-radius: 10px; color: var(--stamp-deep);
+    }
+    .we-ico svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    .we-main { min-width: 0; }
+    .we-main b { display: block; font-size: 13.5px; font-weight: 700; }
+    .we-main small { display: block; margin-top: 1px; color: var(--muted); font-size: 10.5px; }
+    .we-value { margin-left: auto; font-size: 19px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+    .we-value small { margin-left: 2px; color: var(--muted); font-size: 10px; font-weight: 600; }
+    .we-delta {
+        padding: 2px 7px; border-radius: 999px; font-size: 10.5px; font-weight: 700; font-variant-numeric: tabular-nums;
+    }
+    .we-delta.down { background: rgba(196, 71, 102, .12); color: var(--stamp-deep); }
+    .we-delta.up { background: rgba(63, 143, 122, .12); color: var(--leaf); }
+    .we-delta.flat { background: rgba(43, 34, 49, .06); color: var(--muted); }
+    .we-chev { margin-left: 2px; color: var(--faint); font-size: 20px; line-height: 1; }
+
+    /* ---------------- 动态流 ---------------- */
+    .feed { background: var(--paper-soft); }
+    .moment { display: grid; grid-template-columns: 40px 1fr; gap: 10px; padding: 16px 16px 15px; border-bottom: 1px solid var(--line); }
+    .moment:last-child { border-bottom: 0; }
+    .m-avatar { width: 40px; height: 40px; overflow: hidden; background: linear-gradient(150deg, var(--petal), var(--lemon)); border-radius: 10px; }
+    .m-avatar img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 42%; }
+    .m-body { min-width: 0; }
+    .m-head { display: flex; align-items: center; gap: 8px; }
+    .m-name { color: var(--stamp-deep); font-size: 15px; font-weight: 600; }
+    .m-time { color: var(--faint); font-size: 11.5px; }
+    .m-more {
+        display: grid; place-items: center; width: 30px; height: 22px; margin: -4px -6px -4px auto;
+        background: transparent; border: 0; border-radius: 6px; color: var(--faint);
+        font-size: 15px; letter-spacing: 1px;
+    }
+    .m-text { margin-top: 5px; color: var(--ink-2); font-size: 15px; line-height: 1.62; word-break: break-word; }
+    .photos { display: grid; gap: 4px; margin-top: 9px; }
+    .photos.n3 { grid-template-columns: repeat(3, 1fr); }
+    .photos.n2 { grid-template-columns: repeat(2, 1fr); width: min(88%, 268px); }
+    .photos .ph {
+        position: relative; overflow: hidden; background: #f1e8df; border-radius: 5px;
+        background-size: cover; background-repeat: no-repeat; background-position: center;
+    }
+    .photos.n2 .ph, .photos.n3 .ph { aspect-ratio: 1 / 1; }
+    .ph.cat-lie { background-image: url('../../assets/media/cat/liuyi-lie.webp'); background-color: #fdf8f2; }
+    .ph.cat-sleep { background-image: url('../../assets/media/cat/liuyi-sleep.webp'); background-color: #fdf6f2; }
+    .ph.p1 { background-position: 18% 40%; background-size: 190%; }
+    .ph.p2 { background-position: 82% 34%; background-size: 210%; }
+    .ph.p3 { background-position: 50% 88%; background-size: 170%; }
+    .ph.p4 { background-position: 68% 60%; background-size: 150%; }
+
+    .fab {
+        position: absolute; right: 16px; bottom: 26px; z-index: 6;
+        display: grid; place-items: center; width: 52px; height: 52px;
+        background: var(--ink); border: 0; border-radius: 999px;
+        color: #fff; font-size: 26px; font-weight: 300; line-height: 1;
+        box-shadow: 0 0 0 3px rgba(255, 253, 248, .9), 0 16px 28px -14px rgba(43, 34, 49, .8);
+    }
+
+    /* ---------------- 遮罩与底部弹窗 ---------------- */
+    .scrim { position: absolute; inset: 0; z-index: 8; background: rgba(28, 22, 31, .38); }
+    .sheet {
+        position: absolute; left: 0; right: 0; bottom: 0; z-index: 9;
+        display: flex; flex-direction: column; overflow: hidden;
+        background: var(--paper-soft); border-radius: 22px 22px 0 0;
+        box-shadow: 0 -18px 40px -22px rgba(0, 0, 0, .45);
+    }
+    .sheet-handle { flex: 0 0 auto; padding: 8px 0 0; }
+    .sheet-handle span { display: block; width: 36px; height: 4px; margin: 0 auto; background: rgba(43, 34, 49, .16); border-radius: 999px; }
+    .sheet-head { display: flex; align-items: flex-start; gap: 8px; padding: 10px 18px 0; }
+    .sheet-head .t { min-width: 0; }
+    .sheet-head b { display: block; font-family: var(--font-display); font-size: 19px; font-weight: 700; line-height: 1.3; }
+    .sheet-head small { display: block; margin-top: 1px; color: var(--muted); font-size: 10.5px; }
+    .sheet-close {
+        display: grid; place-items: center; width: 28px; height: 28px; margin-left: auto;
+        background: rgba(43, 34, 49, .06); border: 0; border-radius: 999px;
+        color: var(--muted); font-size: 13px; line-height: 1;
+    }
+    .sheet-body { padding: 0 18px 20px; overflow-y: auto; }
+
+    /* tabs */
+    .wt-tabs { display: flex; gap: 22px; margin-top: 10px; border-bottom: 1px solid var(--line); }
+    .wt-tab {
+        position: relative; padding: 9px 1px 10px; background: none; border: 0;
+        color: var(--muted); font-family: inherit; font-size: 13.5px; cursor: pointer;
+    }
+    .wt-tab.on { color: var(--ink); font-weight: 700; }
+    .wt-tab.on::after {
+        content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+        background: var(--ink); border-radius: 2px;
+    }
+
+    /* 曲线 tab */
+    .wt-hero { display: flex; align-items: flex-end; gap: 10px; margin-top: 16px; }
+    .wt-hero .num { font-family: var(--font-display); font-size: 40px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+    .wt-hero .num small { margin-left: 3px; color: var(--muted); font-family: var(--font-ui); font-size: 13px; font-weight: 600; }
+    .wt-hero .meta { display: grid; gap: 3px; padding-bottom: 3px; }
+    .wt-hero .meta small { color: var(--faint); font-size: 10px; }
+    .wt-deltas { display: flex; gap: 6px; margin-top: 10px; }
+    .wt-delta { padding: 4px 9px; border-radius: 999px; font-size: 11px; font-variant-numeric: tabular-nums; }
+    .wt-delta.down { background: rgba(196, 71, 102, .11); color: var(--stamp-deep); }
+    .wt-delta.up { background: rgba(63, 143, 122, .11); color: var(--leaf); }
+    .wt-delta.flat { background: rgba(43, 34, 49, .06); color: var(--muted); }
+    .wt-delta small { margin-left: 2px; color: var(--faint); font-size: 9.5px; }
+
+    .wt-range { display: flex; gap: 6px; margin-top: 14px; }
+    .wt-range button {
+        padding: 5px 11px; background: #fff; border: 1px solid var(--line-strong); border-radius: 999px;
+        color: var(--muted); font-family: inherit; font-size: 11px; cursor: pointer;
+    }
+    .wt-range button.on { background: var(--ink); border-color: var(--ink); color: #fff; font-weight: 600; }
+
+    .wt-chart {
+        margin-top: 6px; padding: 8px 4px 2px; background: #fff;
+        border: 1px solid var(--line); border-radius: 14px;
+    }
+    .wt-chart svg { display: block; width: 100%; height: auto; }
+    .wt-foot { margin-top: 10px; color: var(--faint); font-size: 10.5px; line-height: 1.6; text-align: center; }
+
+    /* 列表 tab */
+    .wt-group { margin-top: 14px; }
+    .wt-group-head { display: flex; align-items: baseline; gap: 6px; padding: 0 2px 6px; color: var(--muted); font-size: 11px; font-weight: 700; }
+    .wt-group-head small { color: var(--faint); font-size: 10px; font-weight: 400; }
+    .wt-rows { overflow: hidden; background: #fff; border: 1px solid var(--line); border-radius: 13px; }
+    .wt-row { display: flex; align-items: center; gap: 10px; padding: 11px 13px; border-bottom: 1px solid var(--line); }
+    .wt-row:last-child { border-bottom: 0; }
+    .wt-date { flex: 0 0 62px; color: var(--ink-2); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+    .wt-date small { display: block; color: var(--faint); font-size: 9.5px; }
+    .wt-kg { margin-left: auto; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .wt-kg small { margin-left: 2px; color: var(--faint); font-size: 9.5px; font-weight: 500; }
+    .wt-row .wt-delta { flex: 0 0 auto; min-width: 46px; text-align: center; }
+    .wt-note { margin-top: 12px; padding: 10px 12px; background: #f4eee8; border-radius: 10px; color: var(--muted); font-size: 10.5px; line-height: 1.6; }
+
+    /* ---------------- 管理端 ---------------- */
+    .phone.admin { height: 980px; }
+    .a-top {
+        position: relative; z-index: 4; display: flex; align-items: center; gap: 8px;
+        height: 52px; padding: 0 16px; background: var(--paper-soft); border-bottom: 1px solid var(--line);
+    }
+    .a-back { display: grid; place-items: center; width: 24px; height: 24px; color: var(--ink); font-size: 22px; line-height: 1; }
+    .a-title { font-family: var(--font-display); font-size: 17px; font-weight: 700; }
+    .a-save { margin-left: auto; padding: 5px 13px; background: var(--ink); border-radius: 999px; color: #fff; font-size: 12px; }
+    .a-scroll { flex: 1; overflow-y: auto; padding: 16px 16px 30px; background: var(--paper); }
+    .a-eyebrow { color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .14em; }
+    .a-h1 { margin-top: 3px; font-family: var(--font-display); font-size: 24px; font-weight: 700; line-height: 1.2; }
+    .a-sub { margin-top: 3px; color: var(--muted); font-size: 12px; }
+    .a-section { display: flex; align-items: baseline; gap: 7px; margin: 18px 2px 7px; font-size: 12.5px; font-weight: 700; }
+    .a-section small { color: var(--faint); font-size: 10.5px; font-weight: 400; }
+    .a-group { overflow: hidden; background: var(--paper-soft); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow-soft); }
+    .a-field { padding: 11px 13px; border-bottom: 1px solid var(--line); }
+    .a-field:last-child { border-bottom: 0; }
+    .a-label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 11.5px; }
+    .a-label em { color: var(--stamp-deep); font-style: normal; }
+    .a-input {
+        display: flex; align-items: center; min-height: 42px; padding: 0 12px; background: #fff;
+        border: 1px solid var(--line-strong); border-radius: 10px; font-size: 14px;
+    }
+    .a-input .end { margin-left: auto; color: var(--faint); font-size: 12px; }
+    .a-hint { display: block; margin-top: 5px; color: var(--faint); font-size: 10.5px; line-height: 1.5; }
+    .a-add { margin-left: auto; padding: 4px 11px; background: var(--ink); border: 0; border-radius: 999px; color: #fff; font-family: inherit; font-size: 11px; }
+    .a-note { margin-top: 12px; padding: 10px 12px; background: #f4eee8; border: 1px dashed var(--line-strong); border-radius: 10px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+    .mini-btn { padding: 4px 10px; background: #fff; border: 1px solid var(--line-strong); border-radius: 999px; color: #6b6560; font-family: inherit; font-size: 11px; }
+
+    .media-row { display: grid; grid-template-columns: 1.55fr 1fr; gap: 10px; padding: 12px 13px 14px; }
+    .media-tile { display: grid; gap: 5px; }
+    .media-box {
+        position: relative; display: grid; place-items: center; overflow: hidden;
+        background: repeating-conic-gradient(#f4eee8 0 25%, #fffdf8 0 50%) 0 0 / 14px 14px;
+        border: 1px dashed var(--line-strong); border-radius: 12px;
+        color: var(--muted); font-size: 11px;
+    }
+    .media-box.cover-box { aspect-ratio: 1 / 1; }
+    .media-box.avatar-box { aspect-ratio: 1 / 1; }
+    .media-box .plus { display: grid; place-items: center; gap: 1px; }
+    .media-box .plus b { font-size: 19px; font-weight: 300; line-height: 1; color: #9c8f97; }
+    .media-tile small { color: var(--muted); font-size: 10.5px; }
+
+    .aw-summary { display: grid; grid-template-columns: minmax(0, 1fr) 118px; gap: 8px; align-items: center; padding: 12px 13px 10px; border-bottom: 1px solid var(--line); }
+    .aw-summary .big { font-family: var(--font-display); font-size: 27px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .aw-summary .big small { margin-left: 2px; color: var(--muted); font-family: var(--font-ui); font-size: 10.5px; font-weight: 600; }
+    .aw-summary .sub { margin-top: 3px; color: var(--muted); font-size: 10.5px; }
+    .aw-spark { width: 118px; height: 44px; }
+    .aw-spark svg { display: block; width: 100%; height: 100%; }
+
+    .aw-row { display: flex; align-items: center; gap: 9px; padding: 10px 13px; border-bottom: 1px solid var(--line); }
+    .aw-row:last-child { border-bottom: 0; }
+    .aw-row .wt-date { flex-basis: 74px; }
+    .aw-row .kg { margin-left: auto; font-size: 13.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .aw-row .kg small { margin-left: 2px; color: var(--faint); font-size: 9px; font-weight: 500; }
+    .aw-row .wt-delta { padding: 2px 7px; font-size: 10px; }
+    .aw-row .mini-btn { padding: 3px 8px; font-size: 10px; }
+
+    /* 录入弹窗 */
+    .wt-form { margin-top: 14px; }
+    .wt-form .row { display: flex; align-items: center; gap: 10px; padding: 12px 13px; background: #fff; border: 1px solid var(--line); border-bottom: 0; }
+    .wt-form .row:first-child { border-radius: 13px 13px 0 0; }
+    .wt-form .row:last-of-type { border-bottom: 1px solid var(--line); border-radius: 0 0 13px 13px; }
+    .wt-form .row > span:first-child { flex: 0 0 52px; color: var(--muted); font-size: 12.5px; }
+    .wt-form .val { font-size: 13.5px; font-weight: 600; }
+    .wt-form .val small { margin-left: 5px; color: var(--faint); font-size: 10px; font-weight: 400; }
+    .wt-form .end { margin-left: auto; color: var(--faint); font-size: 11.5px; }
+    .wt-stepper { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+    .wt-stepper button {
+        display: grid; place-items: center; width: 34px; height: 34px; background: var(--paper);
+        border: 1px solid var(--line-strong); border-radius: 10px; color: var(--ink-2);
+        font-family: inherit; font-size: 18px; line-height: 1;
+    }
+    .wt-stepper .num { min-width: 82px; font-family: var(--font-display); font-size: 30px; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
+    .wt-stepper .num small { margin-left: 2px; color: var(--muted); font-family: var(--font-ui); font-size: 10px; font-weight: 600; }
+    .wt-form .hint { margin-top: 8px; color: var(--faint); font-size: 10.5px; line-height: 1.6; }
+    .wt-form .actions { display: flex; gap: 8px; margin-top: 16px; }
+    .wt-form .actions button { flex: 1; padding: 11px; border-radius: 11px; font-family: inherit; font-size: 13px; }
+    .wt-form .ghost { background: #fff; border: 1px solid var(--line-strong); color: #6b6560; }
+    .wt-form .primary { background: var(--ink); border: 1px solid var(--ink); color: #fff; font-weight: 600; }
+
+    /* ---------------- 320 ---------------- */
+    .phone.small { width: 320px; height: 760px; border-radius: 38px; }
+    .phone.small .statusbar { padding: 0 20px 0 24px; font-size: 12px; }
+    .phone.small .cover-back { top: 50px; left: 12px; width: 30px; height: 30px; font-size: 19px; }
+    .phone.small .avatar { width: 72px; height: 72px; margin-top: -36px; border-radius: 20px; }
+    .phone.small .profile-name b { font-size: 20px; }
+    .phone.small .profile-stats { gap: 12px; }
+    .phone.small .profile-stat + .profile-stat { padding-left: 12px; }
+    .phone.small .profile-stat b { font-size: 12.5px; }
+    .phone.small .weight-entry { padding: 9px 10px; gap: 8px; }
+    .phone.small .we-ico { flex-basis: 28px; width: 28px; height: 28px; }
+    .phone.small .we-main small { display: none; }
+    .phone.small .we-value { font-size: 17px; }
+    .phone.small .sheet-head { padding: 9px 14px 0; }
+    .phone.small .sheet-body { padding: 0 14px 16px; }
+    .phone.small .wt-hero .num { font-size: 34px; }
+    .phone.small .wt-chart { padding: 6px 2px 0; }
+    .phone.small .fab { right: 14px; bottom: 20px; width: 48px; height: 48px; font-size: 24px; }
+
+    /* ---------------- 桌面 ---------------- */
+    .browser {
+        width: 100%; height: 820px; display: flex; overflow: hidden;
+        background: var(--paper); border: 1px solid rgba(0, 0, 0, .16); border-radius: 16px;
+        box-shadow: 0 26px 60px -36px rgba(30, 20, 35, .5);
+    }
+    .side { flex: 0 0 208px; display: flex; flex-direction: column; padding: 16px 12px 12px; background: var(--paper-soft); border-right: 1px solid var(--line); }
+    .side-brand { display: flex; align-items: center; gap: 9px; padding: 0 5px 13px; border-bottom: 1px solid var(--line); }
+    .side-brand img { width: 32px; height: 32px; border-radius: 999px; }
+    .side-brand b { display: block; font-size: 12px; }
+    .side-brand small { display: block; margin-top: 1px; color: var(--muted); font-size: 9px; }
+    .side-group { padding: 13px 8px 4px; color: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: .14em; }
+    .side-item { display: flex; align-items: center; gap: 9px; padding: 8px 9px; border-radius: 9px; color: var(--muted); font-size: 11.5px; }
+    .side-item b { width: 16px; font-size: 12px; font-weight: 400; text-align: center; }
+    .side-item.on { background: var(--ink); color: #fff; }
+    .main { flex: 1; overflow-y: auto; padding: 22px 26px 34px; }
+    .main-head { display: flex; align-items: flex-end; gap: 12px; }
+    .main-head h2 { font-family: var(--font-display); font-size: 26px; font-weight: 700; line-height: 1.2; }
+    .main-head p { margin-top: 3px; color: var(--muted); font-size: 12px; }
+    .main-head .a-save { align-self: center; margin-left: auto; padding: 7px 16px; font-size: 12.5px; }
+    .cols { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 22px; margin-top: 18px; align-items: start; }
+    .cols .a-section:first-child { margin-top: 0; }
+
+    /* ---------------- 说明 ---------------- */
+    .notes { margin-top: 52px; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+    .note { padding: 18px 20px; background: var(--paper-soft); border: 1px solid var(--line); border-radius: 16px; }
+    .note h3 { font-family: var(--font-display); font-size: 16px; font-weight: 700; }
+    .note ul { margin-top: 9px; padding-left: 17px; color: #5e555d; font-size: 12.5px; line-height: 1.8; }
+    .note li + li { margin-top: 3px; }
+    .note p { margin-top: 8px; color: #5e555d; font-size: 12.5px; line-height: 1.75; }
+    .note code { padding: 1px 5px; background: #f1ece4; border-radius: 5px; font-family: ui-monospace, Menlo, monospace; font-size: 11px; }
+    .note.warn { background: #fff6f1; border-color: rgba(196, 71, 102, .26); }
+    .note .q b { margin-right: 4px; color: var(--stamp-deep); }
+
+    @media (max-width: 820px) {
+        body { padding: 24px 14px 64px; }
+        .frames { justify-content: center; gap: 32px 20px; }
+        .frame { width: 100%; max-width: 390px; }
+        .phone, .phone.small { width: 100%; max-width: 390px; }
+        .browser { height: auto; flex-direction: column; }
+        .side { flex: 0 0 auto; }
+        .cols { grid-template-columns: 1fr; }
+    }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <p class="doc-eyebrow">原型 · 六一体重 · v1</p>
+    <h1 class="doc-title">六一的体重</h1>
+    <p class="doc-lead"><b>管理端录入，用户端只读。</b>入口放在六一页资料卡下面——一条「体重 8.4 斤」，点开后是底部弹窗，里面两个 tab：<b>曲线</b>和<b>列表</b>。曲线默认看近 3 个月，可以切近 1 个月或全部；列表按月份倒序，每条带相对上一条的增减。<b>后台没有记录时，这条入口整个不显示。</b>管理端在「系统 → 六一」新增「体重」一段：看趋势、记一笔、改错和删除。</p>
+
+    <div class="chips">
+        <span class="chip">入口：<b>资料卡下一条</b></span>
+        <span class="chip">权限：<b>管理端写，用户端只读</b></span>
+        <span class="chip">弹窗：<b>曲线 / 列表</b></span>
+        <span class="chip">频率：<b>一天一条，重复记会覆盖</b></span>
+        <span class="chip">单位：<b>斤，1 位小数</b></span>
+        <span class="chip">范围：<b>近 1 月 / 近 3 月 / 全部</b></span>
+        <span class="chip">无记录：<b>用户端不展示</b></span>
+    </div>
+
+    <div class="frames">
+
+        <!-- A · 用户端入口 -->
+        <div class="frame">
+            <p class="frame-label">A · 用户端「六一」页入口<span>资料卡下多一条体重，点开弹窗</span></p>
+            <div class="phone tall">
+                <div class="screen">
+                    <div class="scroll">
+                        <div class="cover">
+                            <div class="notch"></div>
+                            <div class="statusbar over">
+                                <span>9:41</span>
+                                <span class="right">
+                                    <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.6" width="3" height="8.4" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+                                    <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 11.2 6.1 9.1a2.7 2.7 0 0 1 3.8 0L8 11.2Zm0-3.6a5.4 5.4 0 0 0-3.8 1.6L2.8 7.8a7.4 7.4 0 0 1 10.4 0l-1.4 1.4A5.4 5.4 0 0 0 8 7.6Zm0-3.7c-2.6 0-5 .9-6.9 2.5L0 5.1a11.4 11.4 0 0 1 16 0l-1.1 1.3A9.4 9.4 0 0 0 8 3.9Z"/></svg>
+                                    <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".8" width="21" height="10.4" rx="3" stroke="currentColor" stroke-opacity=".5"/><rect x="2" y="2.3" width="15" height="7.4" rx="1.8" fill="currentColor"/><path d="M23 4.2v3.6c1-.4 1.5-1 1.5-1.8S24 4.6 23 4.2Z" fill="currentColor" fill-opacity=".55"/></svg>
+                                </span>
+                            </div>
+                            <button class="cover-back" type="button" aria-label="返回空间">‹</button>
+                            <span class="cover-empty">
+                                <svg viewBox="0 0 24 24"><rect x="3" y="6.5" width="18" height="13" rx="3"/><circle cx="12" cy="13" r="3.6"/><path d="M8.5 6.5 9.8 4h4.4l1.3 2.5"/></svg>
+                                <span>背景图会在管理端上传后显示</span>
+                            </span>
+                        </div>
+                        <div class="profile">
+                            <div class="avatar"><img src="../../assets/media/cat/liuyi-sleep.webp" alt="六一"></div>
+                            <div class="profile-name"><b>六一</b><small>到家 1240 天</small></div>
+                            <p class="profile-tagline">睡在阳光里的小家伙</p>
+                            <div class="profile-stats">
+                                <span class="profile-stat"><b>23</b><small>动态</small></span>
+                                <span class="profile-stat"><b>2023.05.20</b><small>生日</small></span>
+                                <span class="profile-stat"><b>2023.07.01</b><small>到家</small></span>
+                            </div>
+                            <button class="weight-entry" type="button">
+                                <span class="we-ico">
+                                    <svg viewBox="0 0 24 24"><path d="M4 4v15.5a.5.5 0 0 0 .5.5H20"/><path d="M7.5 15.5 11 11l3 2.5 4.5-6"/></svg>
+                                </span>
+                                <span class="we-main"><b>体重</b><small>最近记录 11.27</small></span>
+                                <span class="we-value">8.4<small>斤</small></span>
+                                <span class="we-delta down">↓ 0.2</span>
+                                <span class="we-chev">›</span>
+                            </button>
+                        </div>
+                        <div class="feed">
+                            <article class="moment">
+                                <span class="m-avatar"><img src="../../assets/media/cat/liuyi-sleep.webp" alt=""></span>
+                                <div class="m-body">
+                                    <div class="m-head">
+                                        <span class="m-name">六一</span><span class="m-time">2 小时前</span>
+                                        <button class="m-more" type="button" aria-label="更多">⋯</button>
+                                    </div>
+                                    <p class="m-text">今天阳光很好，在飘窗上睡了一整个下午，连饭都不想起来吃。</p>
+                                    <div class="photos n3">
+                                        <span class="ph cat-sleep p1"></span><span class="ph cat-lie p2"></span><span class="ph cat-sleep p3"></span>
+                                    </div>
+                                </div>
+                            </article>
+                            <article class="moment">
+                                <span class="m-avatar"><img src="../../assets/media/cat/liuyi-lie.webp" alt=""></span>
+                                <div class="m-body">
+                                    <div class="m-head">
+                                        <span class="m-name">六一</span><span class="m-time">昨天 20:14</span>
+                                        <button class="m-more" type="button" aria-label="更多">⋯</button>
+                                    </div>
+                                    <div class="photos n2"><span class="ph cat-lie p4"></span><span class="ph cat-sleep p3"></span></div>
+                                </div>
+                            </article>
+                        </div>
+                    </div>
+                    <button class="fab" type="button" aria-label="发动态">＋</button>
+                </div>
+            </div>
+            <p class="frame-note">体重是资料卡里的一行，不是独立模块，也不做成悬浮按钮；点整行打开弹窗。没有体重记录时<b>整行不显示</b>，资料卡只剩三项统计。</p>
+        </div>
+
+        <!-- B · 曲线 -->
+        <div class="frame">
+            <p class="frame-label">B · 体重弹窗 · 曲线<span>默认近 3 个月；底部弹窗，两个 tab</span></p>
+            <div class="phone">
+                <div class="screen">
+                    <div class="scroll">
+                        <div class="cover">
+                            <div class="notch"></div>
+                            <div class="statusbar over">
+                                <span>9:41</span>
+                                <span class="right">
+                                    <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.6" width="3" height="8.4" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+                                    <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 11.2 6.1 9.1a2.7 2.7 0 0 1 3.8 0L8 11.2Zm0-3.6a5.4 5.4 0 0 0-3.8 1.6L2.8 7.8a7.4 7.4 0 0 1 10.4 0l-1.4 1.4A5.4 5.4 0 0 0 8 7.6Zm0-3.7c-2.6 0-5 .9-6.9 2.5L0 5.1a11.4 11.4 0 0 1 16 0l-1.1 1.3A9.4 9.4 0 0 0 8 3.9Z"/></svg>
+                                    <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".8" width="21" height="10.4" rx="3" stroke="currentColor" stroke-opacity=".5"/><rect x="2" y="2.3" width="15" height="7.4" rx="1.8" fill="currentColor"/><path d="M23 4.2v3.6c1-.4 1.5-1 1.5-1.8S24 4.6 23 4.2Z" fill="currentColor" fill-opacity=".55"/></svg>
+                                </span>
+                            </div>
+                            <button class="cover-back" type="button" aria-label="返回空间">‹</button>
+                            <span class="cover-empty">
+                                <svg viewBox="0 0 24 24"><rect x="3" y="6.5" width="18" height="13" rx="3"/><circle cx="12" cy="13" r="3.6"/><path d="M8.5 6.5 9.8 4h4.4l1.3 2.5"/></svg>
+                                <span>背景图会在管理端上传后显示</span>
+                            </span>
+                        </div>
+                        <div class="profile">
+                            <div class="avatar"><img src="../../assets/media/cat/liuyi-sleep.webp" alt=""></div>
+                            <div class="profile-name"><b>六一</b><small>到家 1240 天</small></div>
+                            <p class="profile-tagline">睡在阳光里的小家伙</p>
+                            <div class="profile-stats">
+                                <span class="profile-stat"><b>23</b><small>动态</small></span>
+                                <span class="profile-stat"><b>2023.05.20</b><small>生日</small></span>
+                                <span class="profile-stat"><b>2023.07.01</b><small>到家</small></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="scrim"></div>
+                    <div class="sheet" style="max-height:76%">
+                        <div class="sheet-handle"><span></span></div>
+                        <div class="sheet-head">
+                            <span class="t"><b>体重</b><small>最近记录 11.27 · 共 12 次</small></span>
+                            <button class="sheet-close" type="button" aria-label="关闭">✕</button>
+                        </div>
+                        <div class="sheet-body">
+                            <div class="wt-tabs">
+                                <button class="wt-tab on" type="button">曲线</button>
+                                <button class="wt-tab" type="button">列表</button>
+                            </div>
+
+                            <div class="wt-hero">
+                                <span class="num">8.4<small>斤</small></span>
+                                <span class="meta"><small>11.27 · 今天</small></span>
+                            </div>
+                            <div class="wt-deltas">
+                                <span class="wt-delta down">↓ 0.2<small>较上次</small></span>
+                                <span class="wt-delta down">↓ 0.6<small>近 30 天</small></span>
+                            </div>
+
+                            <div class="wt-range">
+                                <button type="button">近 1 个月</button>
+                                <button class="on" type="button">近 3 个月</button>
+                                <button type="button">全部</button>
+                            </div>
+
+                            <div class="wt-chart">
+                                <svg viewBox="0 0 320 150" role="img" aria-label="体重曲线">
+                                    <defs>
+                                        <linearGradient id="wfill" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stop-color="#df5f7e" stop-opacity=".20"/>
+                                            <stop offset="100%" stop-color="#df5f7e" stop-opacity="0"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <g stroke="rgba(43,34,49,.08)" stroke-width="1">
+                                        <line x1="30" y1="12" x2="312" y2="12"/>
+                                        <line x1="30" y1="42.3" x2="312" y2="42.3"/>
+                                        <line x1="30" y1="72.6" x2="312" y2="72.6"/>
+                                        <line x1="30" y1="102.9" x2="312" y2="102.9"/>
+                                    </g>
+                                    <g fill="#a29a94" font-size="8.5" font-family="-apple-system, sans-serif">
+                                        <text x="1" y="15">9.6</text>
+                                        <text x="1" y="45.3">9.2</text>
+                                        <text x="1" y="75.6">8.8</text>
+                                        <text x="1" y="105.9">8.4</text>
+                                    </g>
+                                    <path d="M30,27.1 C38.5,27.1 47,12 55.5,12 C64,12 72.4,27.1 80.9,27.1 C89.4,27.1 97.9,42.3 106.4,42.3 C114.9,42.3 123.3,42.3 131.8,42.3 C140.3,42.3 148.8,72.6 157.3,72.6 C165.8,72.6 174.2,72.6 182.7,72.6 C191.2,72.6 199.7,57.4 208.2,57.4 C216.7,57.4 225.1,72.6 233.6,72.6 C242.1,72.6 250.6,57.4 259.1,57.4 C267.6,57.4 276,87.7 284.5,87.7 C293,87.7 301.5,102.9 310,102.9 L310,118 L30,118 Z" fill="url(#wfill)"/>
+                                    <path d="M30,27.1 C38.5,27.1 47,12 55.5,12 C64,12 72.4,27.1 80.9,27.1 C89.4,27.1 97.9,42.3 106.4,42.3 C114.9,42.3 123.3,42.3 131.8,42.3 C140.3,42.3 148.8,72.6 157.3,72.6 C165.8,72.6 174.2,72.6 182.7,72.6 C191.2,72.6 199.7,57.4 208.2,57.4 C216.7,57.4 225.1,72.6 233.6,72.6 C242.1,72.6 250.6,57.4 259.1,57.4 C267.6,57.4 276,87.7 284.5,87.7 C293,87.7 301.5,102.9 310,102.9" fill="none" stroke="#df5f7e" stroke-width="2.2" stroke-linecap="round"/>
+                                    <g fill="#df5f7e">
+                                        <circle cx="30" cy="27.1" r="2"/><circle cx="55.5" cy="12" r="2"/><circle cx="80.9" cy="27.1" r="2"/>
+                                        <circle cx="106.4" cy="42.3" r="2"/><circle cx="131.8" cy="42.3" r="2"/><circle cx="157.3" cy="72.6" r="2"/>
+                                        <circle cx="182.7" cy="72.6" r="2"/><circle cx="208.2" cy="57.4" r="2"/><circle cx="233.6" cy="72.6" r="2"/>
+                                        <circle cx="259.1" cy="57.4" r="2"/><circle cx="284.5" cy="87.7" r="2"/>
+                                    </g>
+                                    <circle cx="310" cy="102.9" r="5" fill="#fffdf8" stroke="#df5f7e" stroke-width="2.4"/>
+                                    <text x="310" y="93" text-anchor="end" fill="#c44766" font-size="11" font-weight="700" font-family="-apple-system, sans-serif">8.4</text>
+                                    <g fill="#a29a94" font-size="8.5" font-family="-apple-system, sans-serif" text-anchor="middle">
+                                        <text x="56" y="136">9 月</text>
+                                        <text x="158" y="136">10 月</text>
+                                        <text x="262" y="136">11 月</text>
+                                    </g>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="frame-note">顶部数字是<b>最新一条</b>，「较上次」对比上一条记录，「近 30 天」对比 30 天前最近的一条。曲线上的点是每次记录，最后一个点加粗并标数值；用户端不显示是谁记的。</p>
+        </div>
+
+        <!-- C · 列表 -->
+        <div class="frame">
+            <p class="frame-label">C · 体重弹窗 · 列表<span>tab 切换；按月分组，倒序</span></p>
+            <div class="phone">
+                <div class="screen">
+                    <div class="scroll">
+                        <div class="cover">
+                            <div class="notch"></div>
+                            <div class="statusbar over">
+                                <span>9:41</span>
+                                <span class="right">
+                                    <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.6" width="3" height="8.4" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+                                    <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 11.2 6.1 9.1a2.7 2.7 0 0 1 3.8 0L8 11.2Zm0-3.6a5.4 5.4 0 0 0-3.8 1.6L2.8 7.8a7.4 7.4 0 0 1 10.4 0l-1.4 1.4A5.4 5.4 0 0 0 8 7.6Zm0-3.7c-2.6 0-5 .9-6.9 2.5L0 5.1a11.4 11.4 0 0 1 16 0l-1.1 1.3A9.4 9.4 0 0 0 8 3.9Z"/></svg>
+                                    <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".8" width="21" height="10.4" rx="3" stroke="currentColor" stroke-opacity=".5"/><rect x="2" y="2.3" width="15" height="7.4" rx="1.8" fill="currentColor"/><path d="M23 4.2v3.6c1-.4 1.5-1 1.5-1.8S24 4.6 23 4.2Z" fill="currentColor" fill-opacity=".55"/></svg>
+                                </span>
+                            </div>
+                            <button class="cover-back" type="button" aria-label="返回空间">‹</button>
+                            <span class="cover-empty">
+                                <svg viewBox="0 0 24 24"><rect x="3" y="6.5" width="18" height="13" rx="3"/><circle cx="12" cy="13" r="3.6"/><path d="M8.5 6.5 9.8 4h4.4l1.3 2.5"/></svg>
+                                <span>背景图会在管理端上传后显示</span>
+                            </span>
+                        </div>
+                        <div class="profile">
+                            <div class="avatar"><img src="../../assets/media/cat/liuyi-sleep.webp" alt=""></div>
+                            <div class="profile-name"><b>六一</b><small>到家 1240 天</small></div>
+                            <p class="profile-tagline">睡在阳光里的小家伙</p>
+                            <div class="profile-stats">
+                                <span class="profile-stat"><b>23</b><small>动态</small></span>
+                                <span class="profile-stat"><b>2023.05.20</b><small>生日</small></span>
+                                <span class="profile-stat"><b>2023.07.01</b><small>到家</small></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="scrim"></div>
+                    <div class="sheet" style="max-height:88%">
+                        <div class="sheet-handle"><span></span></div>
+                        <div class="sheet-head">
+                            <span class="t"><b>体重</b><small>最近记录 11.27 · 共 12 次</small></span>
+                            <button class="sheet-close" type="button" aria-label="关闭">✕</button>
+                        </div>
+                        <div class="sheet-body">
+                            <div class="wt-tabs">
+                                <button class="wt-tab" type="button">曲线</button>
+                                <button class="wt-tab on" type="button">列表</button>
+                            </div>
+
+                            <div class="wt-group">
+                                <p class="wt-group-head">11 月 <small>4 次</small></p>
+                                <div class="wt-rows">
+                                    <div class="wt-row">
+                                        <span class="wt-date">11.27<small>今天</small></span>
+                                        <span class="wt-kg">8.4<small>斤</small></span>
+                                        <span class="wt-delta down">↓ 0.2</span>
+                                    </div>
+                                    <div class="wt-row">
+                                        <span class="wt-date">11.20</span>
+                                        <span class="wt-kg">8.6<small>斤</small></span>
+                                        <span class="wt-delta down">↓ 0.4</span>
+                                    </div>
+                                    <div class="wt-row">
+                                        <span class="wt-date">11.13</span>
+                                        <span class="wt-kg">9.0<small>斤</small></span>
+                                        <span class="wt-delta up">↑ 0.2</span>
+                                    </div>
+                                    <div class="wt-row">
+                                        <span class="wt-date">11.06</span>
+                                        <span class="wt-kg">8.8<small>斤</small></span>
+                                        <span class="wt-delta down">↓ 0.2</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="wt-group">
+                                <p class="wt-group-head">10 月 <small>5 次</small></p>
+                                <div class="wt-rows">
+                                    <div class="wt-row">
+                                        <span class="wt-date">10.30</span>
+                                        <span class="wt-kg">9.0<small>斤</small></span>
+                                        <span class="wt-delta up">↑ 0.2</span>
+                                    </div>
+                                    <div class="wt-row">
+                                        <span class="wt-date">10.23</span>
+                                        <span class="wt-kg">8.8<small>斤</small></span>
+                                        <span class="wt-delta flat">持平</span>
+                                    </div>
+                                    <div class="wt-row">
+                                        <span class="wt-date">10.16</span>
+                                        <span class="wt-kg">8.8<small>斤</small></span>
+                                        <span class="wt-delta down">↓ 0.4</span>
+                                    </div>
+                                    <div class="wt-row">
+                                        <span class="wt-date">10.09</span>
+                                        <span class="wt-kg">9.2<small>斤</small></span>
+                                        <span class="wt-delta flat">持平</span>
+                                    </div>
+                                    <div class="wt-row">
+                                        <span class="wt-date">10.02</span>
+                                        <span class="wt-kg">9.2<small>斤</small></span>
+                                        <span class="wt-delta down">↓ 0.2</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p class="wt-foot" style="margin-top:14px">继续上滑查看 9 月及更早的 3 次</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="frame-note">列表按<b>日期倒序</b>，月份分组；每条右侧箭头是相对<b>上一条较早记录</b>的变化（最早一条显示 —）。用户端没有编辑入口，也不显示记录人。</p>
+        </div>
+
+        <!-- D · 管理端 -->
+        <div class="frame">
+            <p class="frame-label">D · 管理端「系统 → 六一」<span>新增「体重」一段：趋势 + 记一笔 + 明细</span></p>
+            <div class="phone admin">
+                <div class="screen">
+                    <div class="statusbar">
+                        <span>9:41</span>
+                        <div class="notch"></div>
+                        <span class="right">
+                            <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.6" width="3" height="8.4" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+                            <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 11.2 6.1 9.1a2.7 2.7 0 0 1 3.8 0L8 11.2Zm0-3.6a5.4 5.4 0 0 0-3.8 1.6L2.8 7.8a7.4 7.4 0 0 1 10.4 0l-1.4 1.4A5.4 5.4 0 0 0 8 7.6Zm0-3.7c-2.6 0-5 .9-6.9 2.5L0 5.1a11.4 11.4 0 0 1 16 0l-1.1 1.3A9.4 9.4 0 0 0 8 3.9Z"/></svg>
+                            <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".8" width="21" height="10.4" rx="3" stroke="currentColor" stroke-opacity=".4"/><rect x="2" y="2.3" width="15" height="7.4" rx="1.8" fill="currentColor"/><path d="M23 4.2v3.6c1-.4 1.5-1 1.5-1.8S24 4.6 23 4.2Z" fill="currentColor" fill-opacity=".45"/></svg>
+                        </span>
+                    </div>
+                    <div class="a-top"><span class="a-back">‹</span><span class="a-title">六一</span><span class="a-save">保存</span></div>
+                    <div class="a-scroll">
+                        <p class="a-eyebrow">系统 · 六一</p>
+                        <h2 class="a-h1">六一</h2>
+                        <p class="a-sub">用户端只查看；体重也在这里记。</p>
+
+                        <div class="a-section">基本信息</div>
+                        <div class="a-group">
+                            <div class="a-field"><span class="a-label">名字</span><div class="a-input">六一</div></div>
+                            <div class="a-field">
+                                <span class="a-label">生日 <em>*</em></span>
+                                <div class="a-input">2023 · 05 · 20<span class="end">日历</span></div>
+                            </div>
+                            <div class="a-field">
+                                <span class="a-label">到家日 <em>*</em></span>
+                                <div class="a-input">2023 · 07 · 01<span class="end">日历</span></div>
+                            </div>
+                        </div>
+
+                        <div class="a-section">体重 <small>12 条</small><button class="a-add" type="button">＋ 记一笔</button></div>
+                        <div class="a-group">
+                            <div class="aw-summary">
+                                <div>
+                                    <div class="big">8.4<small>斤</small></div>
+                                </div>
+                                <span class="aw-spark">
+                                    <svg viewBox="0 0 118 44" role="img" aria-label="最近体重趋势">
+                                        <path d="M2,8 C12,8 18,20 28,20 C38,20 44,30 54,30 C64,30 70,24 80,24 C90,24 96,38 106,38 L116,42" fill="none" stroke="#df5f7e" stroke-width="2" stroke-linecap="round"/>
+                                        <circle cx="116" cy="42" r="3" fill="#fffdf8" stroke="#df5f7e" stroke-width="2"/>
+                                    </svg>
+                                </span>
+                            </div>
+                            <div class="aw-row">
+                                <span class="wt-date">11.27<small>今天</small></span>
+                                <span class="kg">8.4<small>斤</small></span>
+                                <span class="wt-delta down">↓ 0.2</span>
+                                <button class="mini-btn" type="button">删除</button>
+                            </div>
+                            <div class="aw-row">
+                                <span class="wt-date">11.20</span>
+                                <span class="kg">8.6<small>斤</small></span>
+                                <span class="wt-delta down">↓ 0.4</span>
+                                <button class="mini-btn" type="button">删除</button>
+                            </div>
+                            <div class="aw-row">
+                                <span class="wt-date">11.13</span>
+                                <span class="kg">9.0<small>斤</small></span>
+                                <span class="wt-delta up">↑ 0.2</span>
+                                <button class="mini-btn" type="button">删除</button>
+                            </div>
+                        </div>
+
+                        <div class="a-section">图片 <small>背景图与头像</small></div>
+                        <div class="a-group">
+                            <div class="media-row">
+                                <span class="media-tile">
+                                    <span class="media-box cover-box"><span class="plus"><b>＋</b>上传背景图</span></span>
+                                    <small>顶部 1:1，可拖动选位置</small>
+                                </span>
+                                <span class="media-tile">
+                                    <span class="media-box avatar-box" style="border-style:solid;border-color:transparent;background:linear-gradient(150deg,var(--petal),var(--lemon))"><img src="../../assets/media/cat/liuyi-sleep.webp" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 42%"></span>
+                                    <small>方形头像</small>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="frame-note">体重段放在<b>基本信息之后、图片之前</b>——这里是你每次进来最可能操作的地方。记录多时在段内滚动，不给整页加长。</p>
+        </div>
+
+        <!-- E · 320 -->
+        <div class="frame">
+            <p class="frame-label">E · 320 适配<span>入口收成一行；弹窗满宽、曲线等比缩放</span></p>
+            <div class="phone small">
+                <div class="screen">
+                    <div class="scroll">
+                        <div class="cover">
+                            <div class="notch" style="width:96px;margin-left:-48px"></div>
+                            <div class="statusbar over">
+                                <span>9:41</span>
+                                <span class="right">
+                                    <svg width="16" height="10" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.6" width="3" height="8.4" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+                                    <svg width="15" height="11" viewBox="0 0 16 12" fill="currentColor"><path d="M8 11.2 6.1 9.1a2.7 2.7 0 0 1 3.8 0L8 11.2Zm0-3.6a5.4 5.4 0 0 0-3.8 1.6L2.8 7.8a7.4 7.4 0 0 1 10.4 0l-1.4 1.4A5.4 5.4 0 0 0 8 7.6Zm0-3.7c-2.6 0-5 .9-6.9 2.5L0 5.1a11.4 11.4 0 0 1 16 0l-1.1 1.3A9.4 9.4 0 0 0 8 3.9Z"/></svg>
+                                </span>
+                            </div>
+                            <button class="cover-back" type="button" aria-label="返回空间">‹</button>
+                            <span class="cover-empty"><span style="font-size:9px">背景图 · 待上传</span></span>
+                        </div>
+                        <div class="profile">
+                            <div class="avatar"><img src="../../assets/media/cat/liuyi-sleep.webp" alt=""></div>
+                            <div class="profile-name"><b>六一</b><small>到家 1240 天</small></div>
+                            <div class="profile-stats">
+                                <span class="profile-stat"><b>23</b><small>动态</small></span>
+                                <span class="profile-stat"><b>2023.05.20</b><small>生日</small></span>
+                                <span class="profile-stat"><b>2023.07.01</b><small>到家</small></span>
+                            </div>
+                            <button class="weight-entry" type="button">
+                                <span class="we-ico">
+                                    <svg viewBox="0 0 24 24"><path d="M4 4v15.5a.5.5 0 0 0 .5.5H20"/><path d="M7.5 15.5 11 11l3 2.5 4.5-6"/></svg>
+                                </span>
+                                <span class="we-main"><b>体重</b><small>最近记录 11.27</small></span>
+                                <span class="we-value">8.4<small>斤</small></span>
+                                <span class="we-delta down">↓ 0.2</span>
+                                <span class="we-chev">›</span>
+                            </button>
+                        </div>
+                        <div class="feed">
+                            <article class="moment">
+                                <span class="m-avatar"><img src="../../assets/media/cat/liuyi-sleep.webp" alt=""></span>
+                                <div class="m-body">
+                                    <div class="m-head">
+                                        <span class="m-name" style="font-size:14px">六一</span><span class="m-time" style="font-size:11px">2 小时前</span>
+                                        <button class="m-more" type="button" aria-label="更多">⋯</button>
+                                    </div>
+                                    <p class="m-text">今天阳光很好，在飘窗上睡了一整个下午，连饭都不想起来吃。</p>
+                                    <div class="photos n3"><span class="ph cat-sleep p1"></span><span class="ph cat-lie p2"></span><span class="ph cat-sleep p3"></span></div>
+                                </div>
+                            </article>
+                        </div>
+                    </div>
+                    <button class="fab" type="button" aria-label="发动态">＋</button>
+                </div>
+            </div>
+            <p class="frame-note">320 下入口仍是一行，副标题隐藏、字号收小；点开后的弹窗满宽，曲线按容器等比缩放，不横向滚动。</p>
+        </div>
+
+        <!-- F · 无数据 -->
+        <div class="frame">
+            <p class="frame-label">F · 后台无数据<span>用户端不显示体重入口</span></p>
+            <div class="phone small">
+                <div class="screen">
+                    <div class="scroll">
+                        <div class="cover">
+                            <div class="notch" style="width:96px;margin-left:-48px"></div>
+                            <div class="statusbar over">
+                                <span>9:41</span>
+                                <span class="right">
+                                    <svg width="16" height="10" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.6" width="3" height="8.4" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+                                    <svg width="15" height="11" viewBox="0 0 16 12" fill="currentColor"><path d="M8 11.2 6.1 9.1a2.7 2.7 0 0 1 3.8 0L8 11.2Zm0-3.6a5.4 5.4 0 0 0-3.8 1.6L2.8 7.8a7.4 7.4 0 0 1 10.4 0l-1.4 1.4A5.4 5.4 0 0 0 8 7.6Zm0-3.7c-2.6 0-5 .9-6.9 2.5L0 5.1a11.4 11.4 0 0 1 16 0l-1.1 1.3A9.4 9.4 0 0 0 8 3.9Z"/></svg>
+                                </span>
+                            </div>
+                            <button class="cover-back" type="button" aria-label="返回空间">‹</button>
+                            <span class="cover-empty"><span style="font-size:9px">背景图 · 待上传</span></span>
+                        </div>
+                        <div class="profile">
+                            <div class="avatar"><img src="../../assets/media/cat/liuyi-sleep.webp" alt=""></div>
+                            <div class="profile-name"><b>六一</b><small>到家 1240 天</small></div>
+                            <div class="profile-stats">
+                                <span class="profile-stat"><b>23</b><small>动态</small></span>
+                                <span class="profile-stat"><b>2023.05.20</b><small>生日</small></span>
+                                <span class="profile-stat"><b>2023.07.01</b><small>到家</small></span>
+                            </div>
+                        </div>
+                        <div class="feed">
+                            <article class="moment">
+                                <span class="m-avatar"><img src="../../assets/media/cat/liuyi-sleep.webp" alt=""></span>
+                                <div class="m-body">
+                                    <div class="m-head">
+                                        <span class="m-name" style="font-size:14px">六一</span><span class="m-time" style="font-size:11px">2 小时前</span>
+                                        <button class="m-more" type="button" aria-label="更多">⋯</button>
+                                    </div>
+                                    <p class="m-text">今天阳光很好，在飘窗上睡了一整个下午，连饭都不想起来吃。</p>
+                                    <div class="photos n3"><span class="ph cat-sleep p1"></span><span class="ph cat-lie p2"></span><span class="ph cat-sleep p3"></span></div>
+                                </div>
+                            </article>
+                        </div>
+                    </div>
+                    <button class="fab" type="button" aria-label="发动态">＋</button>
+                </div>
+            </div>
+            <p class="frame-note">一条体重都没有时，资料卡只有<b>动态 / 生日 / 到家</b>三项统计，不出现体重卡、0 斤或空入口；管理端记下第一条后，体重卡才出现。</p>
+        </div>
+
+        <!-- G · 桌面 -->
+        <div class="frame wide">
+            <p class="frame-label">G · 管理端桌面 1280<span>左：资料与图片 ｜ 右：体重趋势与明细</span></p>
+            <div class="browser">
+                <aside class="side">
+                    <div class="side-brand">
+                        <img src="../../assets/media/space-avatar.svg" alt="">
+                        <span><b>管理端</b><small>我们的时光</small></span>
+                    </div>
+                    <div class="side-group">经营</div>
+                    <div class="side-item"><b>⌂</b>首页</div>
+                    <div class="side-item"><b>☰</b>订单</div>
+                    <div class="side-item"><b>卡</b>恋爱卡</div>
+                    <div class="side-item"><b>币</b>恋爱币</div>
+                    <div class="side-group">系统</div>
+                    <div class="side-item"><b>菜</b>菜单</div>
+                    <div class="side-item"><b>忆</b>岁月留痕</div>
+                    <div class="side-item"><b>告</b>更新公告</div>
+                    <div class="side-item"><b>铃</b>通知</div>
+                    <div class="side-item"><b>空</b>空间资料</div>
+                    <div class="side-item on"><b>六</b>六一</div>
+                </aside>
+                <div class="main">
+                    <div class="main-head">
+                        <div>
+                            <p class="a-eyebrow">系统 · 六一</p>
+                            <h2>六一</h2>
+                            <p>用户端只查看；体重也在这里记。</p>
+                        </div>
+                        <span class="a-save">保存</span>
+                    </div>
+                    <div class="cols">
+                        <div>
+                            <div class="a-section">基本信息</div>
+                            <div class="a-group">
+                                <div class="a-field"><span class="a-label">名字</span><div class="a-input">六一</div></div>
+                                <div class="a-field">
+                                    <span class="a-label">生日 <em>*</em></span>
+                                    <div class="a-input">2023 · 05 · 20<span class="end">日历</span></div>
+                                </div>
+                                <div class="a-field">
+                                    <span class="a-label">到家日 <em>*</em></span>
+                                    <div class="a-input">2023 · 07 · 01<span class="end">日历</span></div>
+                                </div>
+                            </div>
+                            <div class="a-section">图片 <small>背景图与头像</small></div>
+                            <div class="a-group">
+                                <div class="media-row">
+                                    <span class="media-tile">
+                                        <span class="media-box cover-box"><span class="plus"><b>＋</b>上传背景图</span></span>
+                                        <small>顶部 1:1，可拖动选位置</small>
+                                    </span>
+                                    <span class="media-tile">
+                                        <span class="media-box avatar-box" style="border-style:solid;border-color:transparent;background:linear-gradient(150deg,var(--petal),var(--lemon))"><img src="../../assets/media/cat/liuyi-sleep.webp" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 42%"></span>
+                                        <small>方形头像</small>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="a-section">体重 <small>12 条</small><button class="a-add" type="button">＋ 记一笔</button></div>
+                            <div class="a-group">
+                                <div class="aw-summary">
+                                    <div>
+                                        <div class="big">8.4<small>斤</small></div>
+                                    </div>
+                                    <span class="aw-spark" style="width:160px">
+                                        <svg viewBox="0 0 118 44"><path d="M2,8 C12,8 18,20 28,20 C38,20 44,30 54,30 C64,30 70,24 80,24 C90,24 96,38 106,38 L116,42" fill="none" stroke="#df5f7e" stroke-width="2" stroke-linecap="round"/><circle cx="116" cy="42" r="3" fill="#fffdf8" stroke="#df5f7e" stroke-width="2"/></svg>
+                                    </span>
+                                </div>
+                                <div class="aw-row">
+                                    <span class="wt-date">11.27<small>今天</small></span>
+                                    <span class="kg">8.4<small>斤</small></span>
+                                    <span class="wt-delta down">↓ 0.2</span>
+                                    <button class="mini-btn" type="button">删除</button>
+                                </div>
+                                <div class="aw-row">
+                                    <span class="wt-date">11.20</span>
+                                    <span class="kg">8.6<small>斤</small></span>
+                                    <span class="wt-delta down">↓ 0.4</span>
+                                    <button class="mini-btn" type="button">删除</button>
+                                </div>
+                                <div class="aw-row">
+                                    <span class="wt-date">11.13</span>
+                                    <span class="kg">9.0<small>斤</small></span>
+                                    <span class="wt-delta up">↑ 0.2</span>
+                                    <button class="mini-btn" type="button">删除</button>
+                                </div>
+                                <div class="aw-row">
+                                    <span class="wt-date">11.06</span>
+                                    <span class="kg">8.8<small>斤</small></span>
+                                    <span class="wt-delta down">↓ 0.2</span>
+                                    <button class="mini-btn" type="button">删除</button>
+                                </div>
+                                <div class="aw-row">
+                                    <span class="wt-date">10.30</span>
+                                    <span class="kg">9.0<small>斤</small></span>
+                                    <span class="wt-delta up">↑ 0.2</span>
+                                    <button class="mini-btn" type="button">删除</button>
+                                </div>
+                            </div>
+                            <div class="a-note">同一天只保留一条；点行编辑，删除二次确认。用户端只读。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notes">
+        <div class="note">
+            <h3>这一版怎么定的</h3>
+            <ul>
+                <li><b>入口放资料卡</b>：体重是资料卡下的一条，和生日、到家日放在同一块；点整行打开弹窗。</li>
+                <li><b>没有记录就整行隐藏</b>，不显示空卡片，也不做占位数字。</li>
+                <li><b>单位用斤</b>，保留 1 位小数；录入和展示都是斤，不做 kg 换算。</li>
+                <li><b>两个 tab</b>：曲线（默认近 3 个月）和列表（按月份倒序）。弹窗里不做设置、不做录入。</li>
+                <li><b>颜色按猫的语义</b>：上涨用绿色、下降用红色——六一不需要减肥，长胖是好事。</li>
+                <li><b>一天一条</b>：一周左右称一次，同一天再记就是覆盖。</li>
+                <li><b>不做目标体重</b>；<b>不显示记录人</b>，用户端只看到数字和趋势。</li>
+            </ul>
+        </div>
+        <div class="note warn">
+            <h3>已按你的确认（2026-11-27）</h3>
+            <p class="q"><b>1</b> 单位：<code>斤</code>，1 位小数。</p>
+            <p class="q"><b>2</b> 不画目标体重。</p>
+            <p class="q"><b>3</b> 一天一条；实际一周左右记一次，不需要一天多次。</p>
+            <p class="q"><b>4</b> 用户端不显示记录人。</p>
+            <p class="q"><b>5</b> 后台没有数据时，用户端不展示体重入口。</p>
+            <p class="q"><b>6</b> 颜色：上涨绿色、下降红色（猫不需要减肥）。</p>
+        </div>
+        <div class="note">
+            <h3>边界与空状态</h3>
+            <ul>
+                <li>只有 1 条记录：曲线只显示一个点，文案提示「再记一次就能看到趋势」。</li>
+                <li>所选范围不足 2 条：显示范围内的空提示，不自动跳到「全部」。</li>
+                <li>记录很少时 Y 轴按实际范围收紧，不固定 8.0–10.0 斤。</li>
+                <li>管理端无记录：体重段显示「还没有记录」+「记第一笔」按钮。</li>
+                <li>删除最后一条后，用户端体重卡消失，资料卡只剩三项统计。</li>
+            </ul>
+        </div>
+        <div class="note">
+            <h3>实现要点（供参考）</h3>
+            <ul>
+                <li>数据放 <code>content/pet.json</code> 的 <code>weights[]</code>：<code>{ id, date, weight, createdAt }</code>，<code>weight</code> 以斤为单位、1 位小数，按 <code>date</code> 升序保存；用户端页面本来就读这份文档。</li>
+                <li>写入整份文档；同一天按 <code>date</code> 覆盖，不追加。</li>
+                <li>曲线用内联 SVG 或复用 ECharts（已自托管、按需加载）；这张小图用 SVG 就够，不值得为它加载 ECharts。</li>
+                <li>「近 1 个月 / 近 3 个月 / 全部」按记录日期过滤，不按索引截断。</li>
+                <li>弹窗复用现有 sheet 的 body 锁定、Esc / 遮罩关闭逻辑；入口复用资料卡里的卡片样式。</li>
+            </ul>
+        </div>
+    </div>
+</div>
+</body>
+</html>

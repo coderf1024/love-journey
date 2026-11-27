@@ -3,8 +3,8 @@
 ## 环境
 
 - 本地服务：`cd <worktree> && python3 -m http.server 8899`
-- 原型地址：`http://localhost:8899/docs/design/liuyi-pet-wireframe.html`
-- 手机同一 WiFi：`http://172.20.10.12:8899/docs/design/liuyi-pet-wireframe.html`
+- 原型地址：`http://localhost:8899/docs/design/261113-liuyi-pet.html`
+- 手机同一 WiFi：`http://172.20.10.12:8899/docs/design/261113-liuyi-pet.html`
 - 浏览器/设备：待人工（建议 iOS Safari + 桌面 Chrome）
 - 宽度：320 / 390 / 1280（原型内已按 320 与 340 两档手机框 + 1280 桌面框展示）
 - 数据：纯静态示例数据；不读 OSS、不读 localStorage、不发 Bark

@@ -2,31 +2,34 @@
 
 这里保存历史线框和视觉方案，方便回看设计意图。原型不是实现，实际行为以页面代码和 `docs/architecture/` 为准。
 
+命名规则：`<YYMMDD>-<feature>.html`，日期用任务开始日（与分支 `work/<YYMMDD>-<slug>` 一致），`feature` 用小写短横线。例如 `261127-61-weight.html`。历史原型已统一改成这个规则，旧命名不再使用。
+
 | 文件 | 内容 |
 |---|---|
-| [me-wireframe.html](./me-wireframe.html) | 「空间」页面一级菜单 + 子页面线框（导航已更新为 我们/小灶/恋爱卡/空间） |
-| [admin-wireframe.html](./admin-wireframe.html) | 管理端 V4：首页/订单/恋爱卡/系统、出餐拍照、菜品图片集、用户端图集 |
-| [milestone-admin-wireframe.html](./milestone-admin-wireframe.html) | 管理端「岁月留痕」配置：系统入口、列表、编辑弹窗、删除确认、桌面端布局；用户端卡片/详情读取封面图，无图或加载失败回退渐变 |
-| [coupons-refresh-wireframe.html](./coupons-refresh-wireframe.html) | 恋爱卡刷新按钮位置方案 |
-| [wallet-icons.html](./wallet-icons.html) | 钱包流水图标方案（已采用方案 A） |
-| [home-map-wireframe.html](./home-map-wireframe.html) | 首页「山河共赏」地图改造：圆点 / 省份点亮 A/B 对比、同省归并、按大区配色、视野自适应、城市卡、境外足迹 |
-| [admin-ux-wireframe.html](./admin-ux-wireframe.html) | 管理端体验优化（LJ-20261109-001）v3：首页顶部「用户端」入口、需要你处理口径（已接单仅饭点当天）、系统导航化 + 通知二级页 + 处理角标、输入字号原理与三种做法、回忆编辑保留 4:3 大图 + 日历弹层、订单详情二级页、8 个菜品标签（最多选 2 个）+ 菜单标签筛选 |
-| [morning-greeting-wireframe.html](./morning-greeting-wireframe.html) | 每日早安问候（08:14 Bark 推送）：管理端「系统 → 通知」新增早安开关与收件人勾选、Cloudflare Cron → Worker → OSS 数据流、通知锁屏示例；待确认 5 个问题 |
-| [thanks-reward-announcement-wireframe.html](./thanks-reward-announcement-wireframe.html) | 谢谢大厨返 10 恋爱币 + 新功能公告：用户端订单卡 / 钱包流水 / 公告弹窗与列表；管理端公告严格状态流转（草稿 → 发布 → 下线 → 重新发布）、发布版本号按时间自动生成（精确到秒）、纯文本条目、CTA 文案 + 跳转地址、代码先上线公告后发布 |
-| [liuyi-pet-wireframe.html](./liuyi-pet-wireframe.html) | 六一宠物（LJ-20261113-001）v3：我们页只放趴姿（睡姿放空间页）+ 空间一级菜单新增「六一」+ 只读子页（到家日即生日、多图事件时间线）；管理端「系统」导航新增一行 + 二级页（资料、形象素材、事件多图列表与弹窗）；含 320 / 1280 与待确认项。一期只做真实照片抠图，不访问 OSS |
-| [liuyi-pet-moments-wireframe.html](./liuyi-pet-moments-wireframe.html) | 六一动态（2026-11-23 高保真 v3.1）：朋友圈式个人主页——六一页不显示 app 头部和返回条，<b>背景图 1:1 顶到状态栏</b>、左上角悬浮返回；上传后<b>拖动选择背景图显示位置</b>（百分比坐标，不写死居中）；头像压封面左下；全部动态归属六一；生日与到家日两个独立字段；文字可空、图片最多 9 张、原地编辑、删除确认；不做点赞/评论/标签 |
-| [chef-choice-wireframe.html](./chef-choice-wireframe.html) | 小灶「你做的我都爱吃」+ 随机选一道（LJ-20261118-001）v4：它就是菜品列表里的一道普通菜（`chefPick`、默认快手菜、上下架即开关）、大厨开始制作时填、复用 cooking 通知；随机为菜品栅格图标 + 礼盒动画弹窗（池子排除自身）；含三案按钮对比与素材清理说明 |
-| [period-tracker-wireframe.html](./period-tracker-wireframe.html) | 生理期 · 原型 v2（LJ-20261110-001）：首页细条按需出现、空间子页（预测/日历/记录三视图）、一键记录与补记、保存弹窗、日历视图、预测触发与跨度（只重算一次 / 过期不重算）、美柚导入三步、提醒与失败兜底、边界、桌面端、用户端/管理端分工（含管理端线框）、已确认清单 |
+| [261025-admin.html](./261025-admin.html) | 管理端 V4：首页/订单/恋爱卡/系统、出餐拍照、菜品图片集、用户端图集 |
+| [261025-me.html](./261025-me.html) | 「空间」页面一级菜单 + 子页面线框（导航已更新为 我们/小灶/恋爱卡/空间） |
+| [261025-coupons-refresh.html](./261025-coupons-refresh.html) | 恋爱卡刷新按钮位置方案 |
+| [261025-wallet-icons.html](./261025-wallet-icons.html) | 钱包流水图标方案（已采用方案 A） |
+| [261028-home-map.html](./261028-home-map.html) | 首页「山河共赏」地图改造：圆点 / 省份点亮 A/B 对比、同省归并、按大区配色、视野自适应、城市卡、境外足迹 |
+| [261029-milestone-admin.html](./261029-milestone-admin.html) | 管理端「岁月留痕」配置：系统入口、列表、编辑弹窗、删除确认、桌面端布局；用户端卡片/详情读取封面图，无图或加载失败回退渐变 |
+| [261102-thanks-reward-announcement.html](./261102-thanks-reward-announcement.html) | 谢谢大厨返 10 恋爱币 + 新功能公告：用户端订单卡 / 钱包流水 / 公告弹窗与列表；管理端公告严格状态流转（草稿 → 发布 → 下线 → 重新发布）、发布版本号按时间自动生成（精确到秒）、纯文本条目、CTA 文案 + 跳转地址、代码先上线公告后发布 |
+| [261109-admin-ux.html](./261109-admin-ux.html) | 管理端体验优化（LJ-20261109-001）v3：首页顶部「用户端」入口、需要你处理口径（已接单仅饭点当天）、系统导航化 + 通知二级页 + 处理角标、输入字号原理与三种做法、回忆编辑保留 4:3 大图 + 日历弹层、订单详情二级页、8 个菜品标签（最多选 2 个）+ 菜单标签筛选 |
+| [261110-period-tracker.html](./261110-period-tracker.html) | 生理期 · 原型 v2（LJ-20261110-001）：首页细条按需出现、空间子页（预测/日历/记录三视图）、一键记录与补记、保存弹窗、日历视图、预测触发与跨度（只重算一次 / 过期不重算）、美柚导入三步、提醒与失败兜底、边界、桌面端、用户端/管理端分工（含管理端线框）、已确认清单 |
+| [261112-morning-greeting.html](./261112-morning-greeting.html) | 每日早安问候（08:14 Bark 推送）：管理端「系统 → 通知」新增早安开关与收件人勾选、Cloudflare Cron → Worker → OSS 数据流、通知锁屏示例；待确认 5 个问题 |
+| [261113-liuyi-pet.html](./261113-liuyi-pet.html) | 六一宠物（LJ-20261113-001）v3：我们页只放趴姿（睡姿放空间页）+ 空间一级菜单新增「六一」+ 只读子页（到家日即生日、多图事件时间线）；管理端「系统」导航新增一行 + 二级页（资料、形象素材、事件多图列表与弹窗）；含 320 / 1280 与待确认项。一期只做真实照片抠图，不访问 OSS |
+| [261118-chef-choice.html](./261118-chef-choice.html) | 小灶「你做的我都爱吃」+ 随机选一道（LJ-20261118-001）v4：它就是菜品列表里的一道普通菜（`chefPick`、默认快手菜、上下架即开关）、大厨开始制作时填、复用 cooking 通知；随机为菜品栅格图标 + 礼盒动画弹窗（池子排除自身）；含三案按钮对比与素材清理说明 |
+| [261123-pet-moments.html](./261123-pet-moments.html) | 六一动态（2026-11-23 高保真 v3.1）：朋友圈式个人主页——六一页不显示 app 头部和返回条，<b>背景图 1:1 顶到状态栏</b>、左上角悬浮返回；上传后<b>拖动选择背景图显示位置</b>（百分比坐标，不写死居中）；头像压封面左下；全部动态归属六一；生日与到家日两个独立字段；文字可空、图片最多 9 张、原地编辑、删除确认；不做点赞/评论/标签 |
+| [261127-61-weight.html](./261127-61-weight.html) | 六一体重管理（LJ-20261127-01）：六一页资料卡下新增只读体重卡（后台无记录时不渲染），点开底部弹窗，tab 切换<b>曲线</b>（近 1 月 / 近 3 月 / 全部）与<b>列表</b>（按月倒序、带相对上一条的增减）；管理端「系统 → 六一」新增体重段（趋势 + 记一笔 + 明细），一天一条、重复记覆盖；单位斤、无目标体重、不显示记录人，用户端无任何编辑入口 |
 
 本地查看：
 
 ```bash
 python3 -m http.server 8888
-# http://localhost:8888/docs/design/admin-wireframe.html
+# http://localhost:8888/docs/design/261127-61-weight.html
 ```
 
 注意：
 
 - 原型中的文案、数据、按钮可能落后于当前实现。
 - 修改产品行为时，不要只改原型；以 `docs/architecture/flows.md` 和实际代码为准。
-- 新增原型也放在本目录，命名 `<feature>-wireframe.html`。
+- 新增原型也放在本目录，按上面的 `YYMMDD-feature.html` 命名。

@@ -9,7 +9,7 @@
 
 原型（v1 → v3，方案已确认）：
 
-- `docs/design/admin-ux-wireframe.html`，v3 含标签上限 2 个、iOS 输入字号原理。
+- `docs/design/261109-admin-ux.html`，v3 含标签上限 2 个、iOS 输入字号原理。
 
 实现（全部 8 条 + D 段方案 A）：
 
@@ -52,7 +52,7 @@
 - `js/store.js`（`DISH_TAG_OPTIONS`、`DISH_TAG_MAX`、`normalizeDishTags`、`thankChef`）
 - `js/app.js`（谢谢大厨 toast）
 - `scripts/build-fonts.sh`
-- `CHANGELOG.md`、`CLAUDE.md`、`docs/design/admin-ux-wireframe.html`
+- `CHANGELOG.md`、`CLAUDE.md`、`docs/design/261109-admin-ux.html`
 
 ## 备注
 

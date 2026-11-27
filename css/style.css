@@ -6,14 +6,14 @@
 
 @font-face {
     font-family: 'Ma Shan Zheng';
-    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261123-13') format('woff2');    font-weight: 400;
+    src: url('../assets/fonts/mashanzheng-subset.woff2?v=20261127-01') format('woff2');    font-weight: 400;
     font-style: normal;
     font-display: swap;
 }
 
 @font-face {
     font-family: 'Noto Serif SC';
-    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261123-13') format('woff2');    font-weight: 700;
+    src: url('../assets/fonts/notoserifsc-bold-subset.woff2?v=20261127-01') format('woff2');    font-weight: 700;
     font-style: normal;
     font-display: swap;
 }
@@ -27,6 +27,7 @@
     --stamp: #df5f7e;
     --stamp-deep: #c44766;
     --route: #2f9b98;
+    --leaf: #3f8f7a;
     --petal: #ffd9e2;
     --mint: #ddf1e8;
     --lemon: #f6d478;
@@ -88,7 +89,7 @@ body::after {
 }
 
 body::before {
-    background: url('../assets/texture-noise.png?v=20261123-13') repeat;    opacity: 0.06;
+    background: url('../assets/texture-noise.png?v=20261127-01') repeat;    opacity: 0.06;
     mix-blend-mode: multiply;
 }
 
@@ -560,7 +561,7 @@ select:focus-visible {
     content: '';
     position: absolute;
     inset: 0;
-    background: url('../assets/texture-noise.png?v=20261123-13') repeat;    opacity: 0.1;
+    background: url('../assets/texture-noise.png?v=20261127-01') repeat;    opacity: 0.1;
     mix-blend-mode: soft-light;
     pointer-events: none;
 }
@@ -4626,6 +4627,383 @@ body.me-pet-page .app-main {
 .pet-stat + .pet-stat {
     padding-left: 16px;
     border-left: 1px solid var(--line);
+}
+
+/* 体重入口与弹窗 */
+.pet-weight-entry {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin-top: 13px;
+    padding: 10px 12px;
+    color: inherit;
+    font-family: inherit;
+    text-align: left;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    cursor: pointer;
+}
+
+.pet-weight-entry:active {
+    background: #f7f1e7;
+}
+
+.pet-weight-entry-icon {
+    display: grid;
+    flex: 0 0 32px;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    color: var(--stamp-deep);
+    background: rgba(255, 217, 226, .6);
+    border-radius: 10px;
+}
+
+.pet-weight-entry-icon svg {
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.pet-weight-entry-main {
+    min-width: 0;
+}
+
+.pet-weight-entry-main b {
+    display: block;
+    font-size: 0.84rem;
+    font-weight: 700;
+}
+
+.pet-weight-entry-main small {
+    display: block;
+    margin-top: 1px;
+    color: var(--muted);
+    font-size: 0.66rem;
+}
+
+.pet-weight-entry-value {
+    margin-left: auto;
+    font-size: 1.18rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.01em;
+}
+
+.pet-weight-entry-value small {
+    margin-left: 2px;
+    color: var(--muted);
+    font-size: 0.62rem;
+    font-weight: 600;
+}
+
+.pet-weight-entry-chev {
+    margin-left: 2px;
+    color: var(--faint);
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.pet-weight-delta {
+    display: inline-block;
+    flex: 0 0 auto;
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-size: 0.66rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.pet-weight-delta.is-up {
+    color: var(--leaf);
+    background: rgba(63, 143, 122, .12);
+}
+
+.pet-weight-delta.is-down {
+    color: var(--stamp-deep);
+    background: rgba(196, 71, 102, .12);
+}
+
+.pet-weight-delta.is-flat {
+    color: var(--muted);
+    background: rgba(43, 34, 49, .06);
+}
+
+.sheet-panel.pet-weight-panel {
+    display: flex;
+    flex-direction: column;
+    max-height: 88vh;
+    max-height: 88dvh;
+}
+
+.pet-weight-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 16px 18px 0;
+}
+
+.pet-weight-heading {
+    min-width: 0;
+}
+
+.pet-weight-heading h2 {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.pet-weight-heading small {
+    display: block;
+    margin-top: 1px;
+    color: var(--muted);
+    font-size: 0.66rem;
+}
+
+.pet-weight-close {
+    display: grid;
+    flex: 0 0 28px;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    margin-left: auto;
+    padding: 0;
+    color: var(--muted);
+    font-size: 0.8rem;
+    line-height: 1;
+    background: rgba(43, 34, 49, .06);
+    border: 0;
+    border-radius: 999px;
+}
+
+.pet-weight-tabs {
+    display: flex;
+    gap: 22px;
+    margin: 10px 18px 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.pet-weight-tab {
+    position: relative;
+    padding: 9px 1px 10px;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 0.84rem;
+    background: none;
+    border: 0;
+    cursor: pointer;
+}
+
+.pet-weight-tab.is-active {
+    color: var(--ink);
+    font-weight: 700;
+}
+
+.pet-weight-tab.is-active::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: -1px;
+    left: 0;
+    height: 2px;
+    background: var(--ink);
+    border-radius: 2px;
+}
+
+.pet-weight-body {
+    padding: 0 18px calc(20px + var(--safe-bottom));
+}
+
+.pet-weight-summary {
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+    margin-top: 16px;
+}
+
+.pet-weight-summary b {
+    font-family: var(--font-display);
+    font-size: 2.45rem;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.02em;
+}
+
+.pet-weight-summary b small {
+    margin-left: 3px;
+    color: var(--muted);
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.pet-weight-summary > span {
+    color: var(--faint);
+    font-size: 0.68rem;
+}
+
+.pet-weight-deltas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.pet-weight-deltas .pet-weight-delta {
+    padding: 4px 9px;
+    font-size: 0.7rem;
+}
+
+.pet-weight-deltas .pet-weight-delta small {
+    margin-left: 2px;
+    color: var(--faint);
+    font-size: 0.6rem;
+    font-weight: 400;
+}
+
+.pet-weight-ranges {
+    display: flex;
+    gap: 6px;
+    margin-top: 14px;
+}
+
+.pet-weight-ranges button {
+    padding: 5px 11px;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 0.7rem;
+    background: #fff;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+.pet-weight-ranges button.is-active {
+    color: #fff;
+    font-weight: 600;
+    background: var(--ink);
+    border-color: var(--ink);
+}
+
+.pet-weight-chart {
+    margin-top: 8px;
+    padding: 8px 4px 2px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+}
+
+.pet-weight-chart svg {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.pet-weight-foot {
+    margin-top: 10px;
+    color: var(--faint);
+    font-size: 0.66rem;
+    line-height: 1.6;
+    text-align: center;
+}
+
+.pet-weight-empty {
+    padding: 28px 12px;
+    color: var(--muted);
+    font-size: 0.78rem;
+    line-height: 1.7;
+    text-align: center;
+}
+
+.pet-weight-group {
+    margin-top: 14px;
+}
+
+.pet-weight-group-head {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 0 2px 6px;
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.pet-weight-group-head small {
+    color: var(--faint);
+    font-size: 0.62rem;
+    font-weight: 400;
+}
+
+.pet-weight-rows {
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 13px;
+}
+
+.pet-weight-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 13px;
+    border-bottom: 1px solid var(--line);
+}
+
+.pet-weight-row:last-child {
+    border-bottom: 0;
+}
+
+.pet-weight-date {
+    flex: 0 0 62px;
+    color: var(--ink-2);
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.pet-weight-date small {
+    display: block;
+    color: var(--faint);
+    font-size: 0.6rem;
+}
+
+.pet-weight-kg {
+    margin-left: auto;
+    font-size: 0.94rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.pet-weight-kg small {
+    margin-left: 2px;
+    color: var(--faint);
+    font-size: 0.6rem;
+    font-weight: 500;
+}
+
+.pet-weight-row .pet-weight-delta {
+    min-width: 46px;
+    padding: 3px 7px;
+    text-align: center;
+}
+
+@media (max-width: 360px) {
+    .pet-weight-head { padding: 14px 14px 0; }
+    .pet-weight-tabs { margin-right: 14px; margin-left: 14px; }
+    .pet-weight-body { padding-right: 14px; padding-left: 14px; }
+    .pet-weight-summary b { font-size: 2.1rem; }
+    .pet-weight-entry { gap: 8px; padding: 9px 10px; }
+    .pet-weight-entry-icon { flex-basis: 28px; width: 28px; height: 28px; }
+    .pet-weight-entry-main small { display: none; }
+    .pet-weight-entry-value { font-size: 1.06rem; }
 }
 
 .pet-feed {

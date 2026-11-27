@@ -1,7 +1,7 @@
 # LJ-20261029-004 · 记录
 
 - 2026-10-29：按人要求从 `main` 新建 `feat/LJ-20261029-004-milestone-admin`；后续改动不再新建分支。
-- 原型阶段只新增 `docs/design/milestone-admin-wireframe.html` 和任务文档，不改页面代码、缓存 token、OSS 数据。
+- 原型阶段只新增 `docs/design/261029-milestone-admin.html` 和任务文档，不改页面代码、缓存 token、OSS 数据。
 - 011 把 `memoryCoverHTML` 的图片分支删掉了；管理端阶段先不恢复，2026-10-30 追加用户端展示时已恢复（见下）。
 - 现有 `milestones.json` 经迁移脚本已经带 `ms_001` 形式的 `id`；管理端列表用数组索引定位编辑，保存时保留已有 id。
 - 旧数据带 `image` 字段的回忆，在管理端列表会显示为「有封面」；用户端在 2026-10-30 后也显示图片。

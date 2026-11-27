@@ -13,12 +13,12 @@ let lastCityColumns = 0;
 
 // Self-hosted: cdn.jsdelivr.net is unreliable in WeChat / mainland mobile networks.
 const LIBS = {
-    echarts: 'assets/vendor/echarts.min.js?v=20261123-13',
-    qrcode: 'assets/vendor/qrcode.min.js?v=20261123-13'
+    echarts: 'assets/vendor/echarts.min.js?v=20261127-01',
+    qrcode: 'assets/vendor/qrcode.min.js?v=20261127-01'
 };
 
-const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261123-13';
-const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261123-13';
+const MUSIC_SRC = 'assets/media/xiaomeiman.mp3?v=20261127-01';
+const MAP_SRC = 'assets/data/china-map.simplified.json?v=20261127-01';
 // First-paint fallback only. The live story document always wins once it loads.
 const LOVE_START_FALLBACK = '2020-12-20';
 
@@ -2902,6 +2902,8 @@ let petMomentMenuId = null;
 let petCalendarSelected = '';
 let petCalendarYear = 0;
 let petCalendarMonth = 0;
+let petWeightTab = 'chart';
+let petWeightRange = '90';
 
 const PET_DEFAULT_AVATAR = 'assets/media/cat/liuyi-sleep.webp';
 const PET_WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
@@ -3052,6 +3054,242 @@ function petMomentHTML(pet, moment) {
     `;
 }
 
+/* ---------- 六一体重 ---------- */
+
+function petWeights(pet) {
+    return pet && Array.isArray(pet.weights) ? pet.weights : [];
+}
+
+function petWeightMmdd(date) {
+    return String(date || '').slice(5).replace('-', '.');
+}
+
+function petWeightShiftDate(date, days) {
+    const parsed = parseDate(date);
+    if (!parsed) return '';
+    parsed.setDate(parsed.getDate() + Number(days || 0));
+    return `${parsed.getFullYear()}-${pad2(parsed.getMonth() + 1)}-${pad2(parsed.getDate())}`;
+}
+
+function petWeightDeltaClass(delta) {
+    if (delta > 0) return 'is-up';
+    if (delta < 0) return 'is-down';
+    return 'is-flat';
+}
+
+function petWeightDeltaText(delta) {
+    if (delta == null) return '';
+    if (delta > 0) return `↑ ${delta.toFixed(1)}`;
+    if (delta < 0) return `↓ ${Math.abs(delta).toFixed(1)}`;
+    return '持平';
+}
+
+function petWeightDeltaPill(delta, label) {
+    if (delta == null) return '';
+    return `<span class="pet-weight-delta ${petWeightDeltaClass(delta)}">${petWeightDeltaText(delta)}` +
+        `${label ? `<small>${label}</small>` : ''}</span>`;
+}
+
+function petWeightChange(latest, previous) {
+    if (!latest || !previous) return null;
+    return Math.round((latest.weight - previous.weight) * 10) / 10;
+}
+
+function petWeightRangeEntries(entries, range) {
+    if (range === 'all' || !entries.length) return entries;
+    const latest = entries[entries.length - 1];
+    const cutoff = petWeightShiftDate(latest.date, -Number(range));
+    return cutoff ? entries.filter(item => item.date >= cutoff) : entries;
+}
+
+function petWeightSmoothPath(points) {
+    if (!points.length) return '';
+    let path = `M${points[0].x.toFixed(1)},${points[0].y.toFixed(1)}`;
+    for (let index = 1; index < points.length; index++) {
+        const previous = points[index - 1];
+        const current = points[index];
+        const dx = (current.x - previous.x) / 3;
+        path += ` C${(previous.x + dx).toFixed(1)},${previous.y.toFixed(1)}` +
+            ` ${(current.x - dx).toFixed(1)},${current.y.toFixed(1)}` +
+            ` ${current.x.toFixed(1)},${current.y.toFixed(1)}`;
+    }
+    return path;
+}
+
+function petWeightChartMarkup(entries) {
+    if (!entries.length) {
+        return '<div class="pet-weight-empty">这个范围还没有记录。</div>';
+    }
+    const values = entries.map(item => item.weight);
+    let min = Math.min.apply(null, values);
+    let max = Math.max.apply(null, values);
+    if (max - min < 0.2) {
+        min -= 0.2;
+        max += 0.2;
+    }
+    const rawStep = (max - min) / 3;
+    const step = [0.1, 0.2, 0.5, 1].find(size => size >= rawStep - 1e-9) || 1;
+    min = Math.floor(min / step) * step;
+    max = Math.ceil(max / step) * step;
+    if (max - min < step * 3) max = min + step * 3;
+    const left = 30;
+    const right = 310;
+    const top = 12;
+    const bottom = 118;
+    const points = entries.map((item, index) => ({
+        x: entries.length === 1 ? (left + right) / 2 : left + index * (right - left) / (entries.length - 1),
+        y: bottom - (item.weight - min) / (max - min) * (bottom - top)
+    }));
+    const line = petWeightSmoothPath(points);
+    const first = points[0];
+    const last = points[points.length - 1];
+    const area = entries.length > 1
+        ? `${line} L${last.x.toFixed(1)},${bottom} L${first.x.toFixed(1)},${bottom} Z`
+        : '';
+    const levels = [0, 1, 2, 3].map(index => {
+        const value = max - index * (max - min) / 3;
+        return {
+            value,
+            y: bottom - (value - min) / (max - min) * (bottom - top)
+        };
+    });
+    const gridLines = levels.map(level =>
+        `<line x1="${left}" y1="${level.y.toFixed(1)}" x2="312" y2="${level.y.toFixed(1)}"/>`).join('');
+    const yLabels = levels.map(level =>
+        `<text x="1" y="${(level.y + 3).toFixed(1)}">${level.value.toFixed(1)}</text>`).join('');
+    const dots = points.slice(0, -1).map(point =>
+        `<circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="2"/>`).join('');
+    const labelIndexes = Array.from(new Set([0, Math.floor((entries.length - 1) / 2), entries.length - 1]));
+    const xLabels = labelIndexes.map(index => {
+        const point = points[index];
+        const x = Math.max(34, Math.min(286, point.x));
+        return `<text x="${x.toFixed(1)}" y="136">${petWeightMmdd(entries[index].date)}</text>`;
+    }).join('');
+    const lastLabelY = Math.max(11, last.y - 8);
+    return `<svg viewBox="0 0 320 150" role="img" aria-label="体重曲线">
+        <defs>
+            <linearGradient id="pet-weight-fill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#df5f7e" stop-opacity=".20"/>
+                <stop offset="100%" stop-color="#df5f7e" stop-opacity="0"/>
+            </linearGradient>
+        </defs>
+        <g stroke="rgba(43,34,49,.08)" stroke-width="1">${gridLines}</g>
+        <g fill="#a29a94" font-size="8.5" font-family="-apple-system, sans-serif">${yLabels}</g>
+        ${area ? `<path d="${area}" fill="url(#pet-weight-fill)"/>` : ''}
+        <path d="${line}" fill="none" stroke="#df5f7e" stroke-width="2.2" stroke-linecap="round"/>
+        <g fill="#df5f7e">${dots}</g>
+        <circle cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="5" fill="#fffdf8" stroke="#df5f7e" stroke-width="2.4"/>
+        <text x="${last.x.toFixed(1)}" y="${lastLabelY.toFixed(1)}" text-anchor="${last.x > 280 ? 'end' : 'middle'}" fill="#c44766" font-size="11" font-weight="700" font-family="-apple-system, sans-serif">${entries[entries.length - 1].weight.toFixed(1)}</text>
+        <g fill="#a29a94" font-size="8.5" font-family="-apple-system, sans-serif" text-anchor="middle">${xLabels}</g>
+    </svg>`;
+}
+
+function petWeightListMarkup(entries) {
+    if (!entries.length) return '<div class="pet-weight-empty">还没有体重记录。</div>';
+    const todayKey = nowStamp().slice(0, 10);
+    const deltas = new Map();
+    let previous = null;
+    entries.forEach(entry => {
+        deltas.set(entry.id, previous ? petWeightChange(entry, previous) : null);
+        previous = entry;
+    });
+    const groups = [];
+    const byMonth = new Map();
+    entries.slice().reverse().forEach(entry => {
+        const key = entry.date.slice(0, 7);
+        if (!byMonth.has(key)) {
+            const group = { key, items: [] };
+            byMonth.set(key, group);
+            groups.push(group);
+        }
+        byMonth.get(key).items.push(entry);
+    });
+    return groups.map(group => `
+        <div class="pet-weight-group">
+            <p class="pet-weight-group-head">${Number(group.key.slice(5))} 月 <small>${group.items.length} 次</small></p>
+            <div class="pet-weight-rows">
+                ${group.items.map(entry => {
+                    const delta = deltas.get(entry.id);
+                    return `<div class="pet-weight-row">
+                        <span class="pet-weight-date">${petWeightMmdd(entry.date)}${entry.date === todayKey ? '<small>今天</small>' : ''}</span>
+                        <span class="pet-weight-kg">${entry.weight.toFixed(1)}<small>斤</small></span>
+                        ${delta == null
+                            ? '<span class="pet-weight-delta is-flat">—</span>'
+                            : petWeightDeltaPill(delta)}
+                    </div>`;
+                }).join('')}
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderPetWeightSheet() {
+    const entries = petWeights(state.pet);
+    const latest = entries.length ? entries[entries.length - 1] : null;
+    const before = entries.length > 1 ? entries[entries.length - 2] : null;
+    const todayKey = nowStamp().slice(0, 10);
+
+    const sub = $('pet-weight-sub');
+    if (sub) {
+        sub.textContent = latest
+            ? `最近记录 ${petWeightMmdd(latest.date)} · 共 ${entries.length} 次`
+            : '还没有记录';
+    }
+
+    document.querySelectorAll('[data-pet-weight-tab]').forEach(button => {
+        const active = button.dataset.petWeightTab === petWeightTab;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    const chartPanel = $('pet-weight-chart-panel');
+    const listPanel = $('pet-weight-list-panel');
+    if (chartPanel) chartPanel.hidden = petWeightTab !== 'chart';
+    if (listPanel) listPanel.hidden = petWeightTab !== 'list';
+
+    const latestEl = $('pet-weight-latest');
+    if (latestEl) {
+        latestEl.innerHTML = latest ? `${latest.weight.toFixed(1)}<small>斤</small>` : '—';
+    }
+    const latestDate = $('pet-weight-latest-date');
+    if (latestDate) {
+        latestDate.textContent = latest
+            ? `${petWeightMmdd(latest.date)} · ${latest.date === todayKey ? '今天' : '最近一次'}`
+            : '';
+    }
+    const deltas = $('pet-weight-deltas');
+    if (deltas) {
+        const previousDelta = petWeightChange(latest, before);
+        const monthCutoff = latest ? petWeightShiftDate(latest.date, -30) : '';
+        const monthBase = monthCutoff
+            ? entries.filter(item => item.date <= monthCutoff).slice(-1)[0]
+            : null;
+        const monthDelta = petWeightChange(latest, monthBase);
+        const pills = [];
+        if (previousDelta != null) pills.push(petWeightDeltaPill(previousDelta, '较上次'));
+        if (monthDelta != null) pills.push(petWeightDeltaPill(monthDelta, '近 30 天'));
+        deltas.innerHTML = pills.join('');
+    }
+
+    document.querySelectorAll('[data-pet-weight-range]').forEach(button => {
+        button.classList.toggle('is-active', button.dataset.petWeightRange === petWeightRange);
+    });
+    const chart = $('pet-weight-chart');
+    if (chart) {
+        const visible = petWeightRangeEntries(entries, petWeightRange);
+        chart.innerHTML = petWeightChartMarkup(visible);
+    }
+    const list = $('pet-weight-list');
+    if (list) list.innerHTML = petWeightListMarkup(entries);
+}
+
+function openPetWeightSheet() {
+    if (!petWeights(state.pet).length) return;
+    petWeightTab = 'chart';
+    petWeightRange = '90';
+    renderPetWeightSheet();
+    openSheet('pet-weight');
+}
+
 function renderMePet() {
     const body = $('me-sub-body');
     if (!body) return;
@@ -3086,6 +3324,20 @@ function renderMePet() {
         ? moments.map(moment => petMomentHTML(pet, moment)).join('')
         : '<div class="pet-empty">还没有动态，点右下角的 ＋ 发一条。</div>';
 
+    const weights = petWeights(pet);
+    const latestWeight = weights.length ? weights[weights.length - 1] : null;
+    const weightDelta = weights.length > 1 ? petWeightChange(latestWeight, weights[weights.length - 2]) : null;
+    const weightEntry = latestWeight ? `
+        <button class="pet-weight-entry" type="button" data-pet-weight-open>
+            <span class="pet-weight-entry-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M4 4v15.5a.5.5 0 0 0 .5.5H20"/><path d="M7.5 15.5 11 11l3 2.5 4.5-6"/></svg>
+            </span>
+            <span class="pet-weight-entry-main"><b>体重</b><small>最近记录 ${petWeightMmdd(latestWeight.date)}</small></span>
+            <span class="pet-weight-entry-value">${latestWeight.weight.toFixed(1)}<small>斤</small></span>
+            ${weightDelta == null ? '' : `<span class="pet-weight-delta ${petWeightDeltaClass(weightDelta)}">${petWeightDeltaText(weightDelta)}</span>`}
+            <span class="pet-weight-entry-chev" aria-hidden="true">›</span>
+        </button>` : '';
+
     body.innerHTML = `
         <div class="pet-page">
             <div class="pet-cover${coverUrl ? ' has-image' : ''}"${coverStyle}>
@@ -3108,6 +3360,7 @@ function renderMePet() {
                     ${pet.birthday ? `<span class="pet-stat"><b>${formatDate(pet.birthday)}</b><small>生日</small></span>` : ''}
                     ${pet.homeDate ? `<span class="pet-stat"><b>${formatDate(pet.homeDate)}</b><small>到家</small></span>` : ''}
                 </div>
+                ${weightEntry}
             </div>
             <div class="pet-feed">${feed}</div>
             <button class="pet-fab" type="button" data-pet-compose aria-label="发动态">＋</button>
@@ -3268,6 +3521,10 @@ function initPetMoments() {
                 openPetComposer(null);
                 return;
             }
+            if (event.target.closest('[data-pet-weight-open]')) {
+                openPetWeightSheet();
+                return;
+            }
             const menu = event.target.closest('[data-pet-moment-menu]');
             if (menu) {
                 openPetMomentMenu(menu.dataset.petMomentMenu);
@@ -3330,6 +3587,23 @@ function initPetMoments() {
     }
     const publish = $('pet-composer-publish');
     if (publish) publish.addEventListener('click', publishPetMoment);
+
+    const weightSheet = $('pet-weight');
+    if (weightSheet) {
+        weightSheet.addEventListener('click', event => {
+            const tab = event.target.closest('[data-pet-weight-tab]');
+            if (tab) {
+                petWeightTab = tab.dataset.petWeightTab === 'list' ? 'list' : 'chart';
+                renderPetWeightSheet();
+                return;
+            }
+            const range = event.target.closest('[data-pet-weight-range]');
+            if (range) {
+                petWeightRange = range.dataset.petWeightRange || '90';
+                renderPetWeightSheet();
+            }
+        });
+    }
 
     const edit = $('pet-moment-edit');
     if (edit) {

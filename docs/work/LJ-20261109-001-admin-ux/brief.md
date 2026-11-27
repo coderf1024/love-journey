@@ -4,7 +4,7 @@
 - 提出人：人
 - 日期：2026-11-09
 - 分支：`feat/LJ-20261109-001-admin-ux`
-- 原型：`docs/design/admin-ux-wireframe.html`（v3）
+- 原型：`docs/design/261109-admin-ux.html`（v3）
 
 ## 背景与目标
 

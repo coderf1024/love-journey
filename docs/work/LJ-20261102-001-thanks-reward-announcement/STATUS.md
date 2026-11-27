@@ -56,7 +56,7 @@
 - `index.html` / `css/style.css` — 公告入口 / 弹窗 / 列表
 - `admin.html` — 公告管理
 - `docs/architecture/data-model.md` / `flows.md`
-- `docs/design/thanks-reward-announcement-wireframe.html`
+- `docs/design/261102-thanks-reward-announcement.html`
 - `docs/work/LJ-20261102-001-thanks-reward-announcement/QA.md`
 
 ## 备注

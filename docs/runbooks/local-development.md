@@ -41,7 +41,7 @@ node --check js/crypto-utils.js
 - `css/style.css`（字体、纹理）
 - `js/app.js` 的 `MUSIC_SRC`
 - `CLAUDE.md` 的版本说明
-- `docs/design/wallet-icons.html`（原型可选同步）
+- `docs/design/261025-wallet-icons.html`（原型可选同步）
 
 发布前按 [发布手册](./release.md) 的清单检查。
 

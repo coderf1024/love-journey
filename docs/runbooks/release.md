@@ -31,7 +31,7 @@
 - `css/style.css`（字体/纹理 URL）
 - `js/app.js` 的 `MUSIC_SRC`
 - `CLAUDE.md` 的缓存说明
-- `docs/design/wallet-icons.html`（可选）
+- `docs/design/261025-wallet-icons.html`（可选）
 - `prototype` 已迁移到 `docs/design/`
 
 建议用一次文本替换完成，然后全仓搜索旧 token 确认无残留：

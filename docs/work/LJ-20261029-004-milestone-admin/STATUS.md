@@ -94,7 +94,7 @@
 - `index.html` / `use.html` / `admin.html` / `css/style.css` / `js/app.js`（缓存 token）
 - `docs/architecture/data-model.md`、`CHANGELOG.md`、`CLAUDE.md`
 - `docs/work/LJ-20261029-004-milestone-admin/`
-- `docs/design/milestone-admin-wireframe.html`
+- `docs/design/261029-milestone-admin.html`
 
 ## 备注
 

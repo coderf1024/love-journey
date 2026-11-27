@@ -15,9 +15,9 @@
     <link rel="apple-touch-icon" href="assets/icon-180.png">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="preconnect" href="https://love-config.oss-cn-beijing.aliyuncs.com" crossorigin>
-    <link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261123-13" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261123-13" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/style.css?v=20261123-13">
+    <link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261127-01" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261127-01" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="css/style.css?v=20261127-01">
 </head>
 <body>
     <header class="app-header" id="app-header">
@@ -62,7 +62,7 @@
                         <div class="timer-unit"><span id="minutes">0</span><small>分</small></div>
                         <div class="timer-unit"><span id="seconds">0</span><small>秒</small></div>
                     </div>
-                    <img class="timer-pet" src="assets/media/cat/liuyi-lie.webp?v=20261123-13"
+                    <img class="timer-pet" src="assets/media/cat/liuyi-lie.webp?v=20261127-01"
                          alt="六一趴在计时卡上" width="760" height="523" decoding="async">
                 </div>
             </div>
@@ -249,7 +249,7 @@
                         <b id="me-space-title">恋爱空间</b>
                         <small id="me-space-sub">一起吃饭，一起过日子</small>
                     </div>
-                    <img class="me-pet" src="assets/media/cat/liuyi-sleep.webp?v=20261123-13"
+                    <img class="me-pet" src="assets/media/cat/liuyi-sleep.webp?v=20261127-01"
                          alt="六一的睡姿" width="760" height="397" decoding="async">
                 </div>
 
@@ -418,6 +418,41 @@
             <button class="pet-menu-action" id="pet-moment-edit" type="button">编辑动态</button>
             <button class="pet-menu-action is-danger" id="pet-moment-delete" type="button">删除动态</button>
             <button class="pet-menu-action is-muted" type="button" data-close>取消</button>
+        </div>
+    </div>
+
+    <div class="sheet" id="pet-weight" aria-hidden="true">
+        <div class="sheet-backdrop" data-close></div>
+        <div class="sheet-panel pet-weight-panel" role="dialog" aria-modal="true" aria-labelledby="pet-weight-title">
+            <header class="pet-weight-head">
+                <span class="pet-weight-heading">
+                    <h2 id="pet-weight-title">体重</h2>
+                    <small id="pet-weight-sub">最近记录 · 共 0 次</small>
+                </span>
+                <button class="pet-weight-close" type="button" data-close aria-label="关闭">✕</button>
+            </header>
+            <div class="pet-weight-tabs" role="tablist" aria-label="体重视图">
+                <button class="pet-weight-tab is-active" type="button" role="tab" aria-selected="true" data-pet-weight-tab="chart">曲线</button>
+                <button class="pet-weight-tab" type="button" role="tab" aria-selected="false" data-pet-weight-tab="list">列表</button>
+            </div>
+            <div class="sheet-scroll pet-weight-body">
+                <div id="pet-weight-chart-panel">
+                    <div class="pet-weight-summary">
+                        <b id="pet-weight-latest">—</b>
+                        <span id="pet-weight-latest-date"></span>
+                    </div>
+                    <div class="pet-weight-deltas" id="pet-weight-deltas"></div>
+                    <div class="pet-weight-ranges" id="pet-weight-ranges">
+                        <button type="button" data-pet-weight-range="30">近 1 个月</button>
+                        <button type="button" class="is-active" data-pet-weight-range="90">近 3 个月</button>
+                        <button type="button" data-pet-weight-range="all">全部</button>
+                    </div>
+                    <div class="pet-weight-chart" id="pet-weight-chart"></div>
+                </div>
+                <div id="pet-weight-list-panel" hidden>
+                    <div id="pet-weight-list"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -694,12 +729,12 @@
 
     <audio id="bg-music" loop playsinline preload="none"></audio>
 
-    <script src="js/oss-config.js?v=20261123-13"></script>
-    <script src="js/crypto-utils.js?v=20261123-13"></script>
-    <script src="js/oss-utils.js?v=20261123-13"></script>
-    <script src="js/cycle.js?v=20261123-13"></script>
-    <script src="js/store.js?v=20261123-13"></script>
-    <script src="js/app.js?v=20261123-13"></script>
-    <script src="js/cycle-ui.js?v=20261123-13"></script>
+    <script src="js/oss-config.js?v=20261127-01"></script>
+    <script src="js/crypto-utils.js?v=20261127-01"></script>
+    <script src="js/oss-utils.js?v=20261127-01"></script>
+    <script src="js/cycle.js?v=20261127-01"></script>
+    <script src="js/store.js?v=20261127-01"></script>
+    <script src="js/app.js?v=20261127-01"></script>
+    <script src="js/cycle-ui.js?v=20261127-01"></script>
 </body>
 </html>

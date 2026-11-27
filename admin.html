@@ -9,18 +9,18 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="管理端">
 <title>管理端 · 恋爱空间</title>
-<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261123-13" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261123-13" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/mashanzheng-subset.woff2?v=20261127-01" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/notoserifsc-bold-subset.woff2?v=20261127-01" as="font" type="font/woff2" crossorigin>
 <style>
     @font-face {
         font-family: 'Ma Shan Zheng';
-        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261123-13') format('woff2');        font-weight: 400;
+        src: url('assets/fonts/mashanzheng-subset.woff2?v=20261127-01') format('woff2');        font-weight: 400;
         font-style: normal;
         font-display: swap;
     }
     @font-face {
         font-family: 'Noto Serif SC';
-        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261123-13') format('woff2');        font-weight: 700;
+        src: url('assets/fonts/notoserifsc-bold-subset.woff2?v=20261127-01') format('woff2');        font-weight: 700;
         font-style: normal;
         font-display: swap;
     }
@@ -86,7 +86,7 @@
         pointer-events: none;
     }
     body.admin-body::before {
-        background: url('assets/texture-noise.png?v=20261123-13') repeat;        opacity: .06;
+        background: url('assets/texture-noise.png?v=20261127-01') repeat;        opacity: .06;
         mix-blend-mode: multiply;
     }
     body.admin-body::after {
@@ -738,6 +738,93 @@
     .pet-moment-main b { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
     .pet-moment-main small { color: var(--admin-muted); font-size: 9px; }
     .pet-moment-row .admin-btn { align-self: center; flex: 0 0 auto; }
+    .pet-weight-summary {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 13px;
+        border-bottom: 1px solid var(--line);
+    }
+    .pet-weight-summary .big {
+        font-family: var(--font-display);
+        font-size: 27px;
+        font-weight: 700;
+        line-height: 1.1;
+        font-variant-numeric: tabular-nums;
+    }
+    .pet-weight-summary .big small {
+        margin-left: 2px;
+        color: var(--admin-muted);
+        font-family: var(--font-ui);
+        font-size: 10.5px;
+        font-weight: 600;
+    }
+    .pet-weight-spark {
+        flex: 0 0 118px;
+        width: 118px;
+        height: 44px;
+        margin-left: auto;
+    }
+    .pet-weight-spark svg { display: block; width: 100%; height: 100%; }
+    .pet-weight-row {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 10px 13px;
+        border-bottom: 1px solid var(--line);
+        cursor: pointer;
+    }
+    .pet-weight-row:last-child { border-bottom: 0; }
+    .pet-weight-row:hover { background: rgba(255, 243, 234, .55); }
+    .pet-weight-row .date {
+        flex: 0 0 74px;
+        font-size: 11.5px;
+        font-variant-numeric: tabular-nums;
+    }
+    .pet-weight-row .date small {
+        display: block;
+        color: var(--admin-muted);
+        font-size: 9px;
+    }
+    .pet-weight-row .kg {
+        margin-left: auto;
+        font-size: 13.5px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+    }
+    .pet-weight-row .kg small {
+        margin-left: 2px;
+        color: var(--admin-muted);
+        font-size: 9px;
+        font-weight: 500;
+    }
+    .pw-delta {
+        flex: 0 0 auto;
+        min-width: 46px;
+        padding: 2px 7px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 700;
+        text-align: center;
+        font-variant-numeric: tabular-nums;
+    }
+    .pw-delta.up { color: #3f8f7a; background: rgba(63, 143, 122, .12); }
+    .pw-delta.down { color: var(--admin-stamp); background: rgba(196, 71, 102, .12); }
+    .pw-delta.flat { color: var(--admin-muted); background: rgba(43, 34, 49, .06); }
+    .pet-weight-row .admin-btn { flex: 0 0 auto; }
+    .pet-weight-form {
+        display: grid;
+        gap: 10px;
+        padding: 12px 13px;
+        background: #faf6ef;
+        border-bottom: 1px solid var(--line);
+    }
+    .pet-weight-form[hidden] { display: none; }
+    .pet-weight-form .admin-field { padding: 0; }
+    .pet-weight-input-row { display: flex; align-items: center; gap: 8px; }
+    .pet-weight-input-row .admin-input { flex: 1; min-width: 0; }
+    .pet-weight-unit { color: var(--admin-muted); font-size: 12px; }
+    .pet-weight-form-actions { display: flex; justify-content: flex-end; gap: 8px; }
     .pet-photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
     .pet-photo-tile { position: relative; display: grid; place-items: center; aspect-ratio: 1 / 1; overflow: hidden; background: #f4eee8; border: 1px solid var(--line-strong); border-radius: 9px; }
     .pet-photo-tile img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; }
@@ -1720,7 +1807,7 @@
                 <div>
                     <p class="eyebrow">系统 · 六一</p>
                     <h1>六一</h1>
-                    <p>用户端只查看；名字、两张图、两个日期都在这里改。</p>
+                    <p>用户端只查看；名字、图片、日期和体重都在这里改。</p>
                 </div>
                 <div class="head-actions"><button class="admin-btn primary sm" id="pet-save-profile" type="button">保存资料</button></div>
             </div>
@@ -1789,6 +1876,42 @@
                 </div>
 
                 <div class="pet-admin-col">
+                    <div class="section-title">
+                        <h2>体重</h2>
+                        <span id="pet-weight-count">0 条</span>
+                        <button class="admin-btn primary sm" id="pet-weight-add" type="button" style="margin-left:auto">＋ 记一笔</button>
+                    </div>
+                    <div class="admin-card">
+                        <div class="pet-weight-form" id="pet-weight-form" hidden>
+                            <input type="hidden" id="pet-weight-id">
+                            <input type="hidden" id="pet-weight-date">
+                            <div class="admin-field">
+                                <label for="pet-weight-date-button">日期</label>
+                                <button class="date-picker-button" id="pet-weight-date-button" type="button" aria-haspopup="dialog">
+                                    <span class="date-picker-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3.5" y="5.5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3.5v4M16 3.5v4"/></svg></span>
+                                    <span class="date-picker-main">
+                                        <b id="pet-weight-date-label" class="is-empty">选择日期</b>
+                                        <small id="pet-weight-date-hint">默认今天</small>
+                                    </span>
+                                    <span class="date-picker-chev" aria-hidden="true">›</span>
+                                </button>
+                            </div>
+                            <div class="admin-field">
+                                <label for="pet-weight-value">体重（斤）</label>
+                                <div class="pet-weight-input-row">
+                                    <input class="admin-input" id="pet-weight-value" type="number" inputmode="decimal" step="0.1" min="0.1" max="60">
+                                    <span class="pet-weight-unit">斤</span>
+                                </div>
+                            </div>
+                            <div class="pet-weight-form-actions">
+                                <button class="admin-btn ghost sm" id="pet-weight-cancel" type="button">取消</button>
+                                <button class="admin-btn primary sm" id="pet-weight-save" type="button">保存</button>
+                            </div>
+                        </div>
+                        <div id="pet-weight-summary"></div>
+                        <div id="pet-weight-list"></div>
+                    </div>
+
                     <div class="section-title">
                         <h2>动态</h2>
                         <span id="pet-moment-count">0 条</span>
@@ -2166,11 +2289,11 @@
 
 <div class="admin-toast" id="message" role="status" aria-live="polite"></div>
 
-<script src="js/oss-config.js?v=20261123-13"></script>
-<script src="js/crypto-utils.js?v=20261123-13"></script>
-<script src="js/oss-utils.js?v=20261123-13"></script>
-<script src="js/cycle.js?v=20261123-13"></script>
-<script src="js/store.js?v=20261123-13"></script><script>
+<script src="js/oss-config.js?v=20261127-01"></script>
+<script src="js/crypto-utils.js?v=20261127-01"></script>
+<script src="js/oss-utils.js?v=20261127-01"></script>
+<script src="js/cycle.js?v=20261127-01"></script>
+<script src="js/store.js?v=20261127-01"></script><script>
     const ORDER_LABEL = {
         pending: '待接单',
         accepted: '已接单',
@@ -2268,6 +2391,7 @@
     let petMomentUploading = 0;
     let petCrop = null;
     let petCropDrag = null;
+    let petWeightEditingId = '';
     let couponFilter = 'available';
     let cardsSegment = 'cards';
     let menuFilter = 'all';
@@ -4487,7 +4611,7 @@
 
     /* ---------- 六一 ---------- */
     function petData() {
-        return (adminData && adminData.pet) || { name: '', tagline: '', birthday: '', homeDate: '', avatar: '', cover: null, moments: [] };
+        return (adminData && adminData.pet) || { name: '', tagline: '', birthday: '', homeDate: '', avatar: '', cover: null, moments: [], weights: [] };
     }
 
     function renderPet() {
@@ -4498,6 +4622,7 @@
         syncPetBirthday(pet.birthday || '');
         syncPetHomeDate(pet.homeDate || '');
         renderPetImages(pet);
+        renderPetWeights(pet);
         renderPetMoments(pet);
 
         const count = $('system-pet-count');
@@ -4593,6 +4718,184 @@
                 <button class="admin-btn ghost sm" type="button" data-pet-moment-delete="${esc(moment.id)}">删除</button>
             </div>
         `).join('');
+    }
+
+    /* 体重 */
+    function petWeightTodayKey() {
+        const now = new Date();
+        return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+    }
+
+    function petWeightMmdd(date) {
+        return String(date || '').slice(5).replace('-', '.');
+    }
+
+    function petWeightDeltaValue(latest, previous) {
+        if (!latest || !previous) return null;
+        return Math.round((latest.weight - previous.weight) * 10) / 10;
+    }
+
+    function petWeightDeltaMarkup(delta) {
+        if (delta == null) return '<span class="pw-delta flat">—</span>';
+        if (delta > 0) return `<span class="pw-delta up">↑ ${delta.toFixed(1)}</span>`;
+        if (delta < 0) return `<span class="pw-delta down">↓ ${Math.abs(delta).toFixed(1)}</span>`;
+        return '<span class="pw-delta flat">持平</span>';
+    }
+
+    function petWeightSparkline(entries) {
+        const list = entries.slice(-10);
+        if (!list.length) return '';
+        const width = 118;
+        const height = 44;
+        const pad = 3;
+        const values = list.map(item => item.weight);
+        let min = Math.min.apply(null, values);
+        let max = Math.max.apply(null, values);
+        if (max - min < 0.4) {
+            const middle = (max + min) / 2;
+            min = middle - 0.2;
+            max = middle + 0.2;
+        }
+        const points = list.map((item, index) => ({
+            x: list.length === 1 ? width / 2 : pad + index * (width - pad * 2) / (list.length - 1),
+            y: height - pad - (item.weight - min) / (max - min) * (height - pad * 2)
+        }));
+        const path = points.map((point, index) =>
+            `${index ? 'L' : 'M'}${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(' ');
+        const last = points[points.length - 1];
+        return `<span class="pet-weight-spark" aria-hidden="true">
+            <svg viewBox="0 0 118 44">
+                <path d="${path}" fill="none" stroke="#df5f7e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="3" fill="#fffdf8" stroke="#df5f7e" stroke-width="2"/>
+            </svg>
+        </span>`;
+    }
+
+    function renderPetWeights(pet) {
+        const entries = Array.isArray(pet.weights) ? pet.weights : [];
+        const count = $('pet-weight-count');
+        if (count) count.textContent = `${entries.length} 条`;
+        const list = $('pet-weight-list');
+        const summary = $('pet-weight-summary');
+        if (!list || !summary) return;
+        if (!entries.length) {
+            summary.innerHTML = '';
+            list.innerHTML = '<div class="empty-state">还没有记录，点右上角「记一笔」。</div>';
+            return;
+        }
+        const latest = entries[entries.length - 1];
+        summary.innerHTML = `
+            <div class="pet-weight-summary">
+                <div class="big">${latest.weight.toFixed(1)}<small>斤</small></div>
+                ${petWeightSparkline(entries)}
+            </div>
+        `;
+        const todayKey = petWeightTodayKey();
+        const deltas = new Map();
+        let previous = null;
+        entries.forEach(entry => {
+            deltas.set(entry.id, petWeightDeltaValue(entry, previous));
+            previous = entry;
+        });
+        list.innerHTML = entries.slice().reverse().map(entry => `
+            <div class="pet-weight-row" data-pet-weight-edit="${esc(entry.id)}">
+                <span class="date">${petWeightMmdd(entry.date)}${entry.date === todayKey ? '<small>今天</small>' : ''}</span>
+                <span class="kg">${entry.weight.toFixed(1)}<small>斤</small></span>
+                ${petWeightDeltaMarkup(deltas.get(entry.id))}
+                <button class="admin-btn ghost sm" type="button" data-pet-weight-delete="${esc(entry.id)}">删除</button>
+            </div>
+        `).join('');
+    }
+
+    function syncPetWeightDate(value) {
+        const text = String(value || '').slice(0, 10);
+        const input = $('pet-weight-date');
+        if (input) input.value = text;
+        const date = toDate(text);
+        const label = $('pet-weight-date-label');
+        const hint = $('pet-weight-date-hint');
+        if (!label || !hint) return;
+        label.classList.toggle('is-empty', !date);
+        if (!date) {
+            label.textContent = '选择日期';
+            hint.textContent = '默认今天';
+            return;
+        }
+        label.textContent = `${date.getFullYear()} · ${pad2(date.getMonth() + 1)} · ${pad2(date.getDate())}`;
+        hint.textContent = `${CAL_WEEKDAYS[date.getDay()]}${text === petWeightTodayKey() ? ' · 今天' : ''}`;
+    }
+
+    function openPetWeightForm(entry) {
+        petWeightEditingId = entry ? String(entry.id) : '';
+        const form = $('pet-weight-form');
+        if (!form) return;
+        form.hidden = false;
+        $('pet-weight-id').value = petWeightEditingId;
+        syncPetWeightDate(entry ? entry.date : petWeightTodayKey());
+        $('pet-weight-value').value = entry ? entry.weight.toFixed(1) : '';
+        $('pet-weight-save').textContent = entry ? '保存修改' : '保存';
+        form.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        setTimeout(() => { if (!entry) $('pet-weight-value').focus({ preventScroll: true }); }, 200);
+    }
+
+    function closePetWeightForm() {
+        petWeightEditingId = '';
+        const form = $('pet-weight-form');
+        if (form) form.hidden = true;
+        $('pet-weight-id').value = '';
+        $('pet-weight-value').value = '';
+        $('pet-weight-save').textContent = '保存';
+    }
+
+    async function savePetWeightFromAdmin() {
+        const date = $('pet-weight-date').value;
+        const value = $('pet-weight-value').value.trim();
+        if (!toDate(date)) { showMessage('请选择有效日期', 'error'); return; }
+        const weight = Number(value);
+        if (!Number.isFinite(weight) || weight < 0.1 || weight > 60) {
+            showMessage('体重需要在 0.1–60.0 斤之间', 'error');
+            return;
+        }
+        const button = $('pet-weight-save');
+        if (button) { button.classList.add('is-loading'); button.textContent = '保存中…'; }
+        try {
+            const result = await savePetWeight({
+                id: petWeightEditingId || undefined,
+                date,
+                weight: Math.round(weight * 10) / 10
+            });
+            adminData.pet = result.doc;
+            renderPet();
+            closePetWeightForm();
+            showMessage('体重已记录');
+        } catch (error) {
+            console.error(error);
+            showMessage(error.message || '保存失败', 'error');
+        } finally {
+            if (button) {
+                button.classList.remove('is-loading');
+                button.textContent = petWeightEditingId ? '保存修改' : '保存';
+            }
+        }
+    }
+
+    async function deletePetWeightFromAdmin(id) {
+        const ok = await adminConfirm({
+            title: '删除体重记录',
+            message: '删除后用户端的曲线和列表也会同步更新。',
+            okText: '删除',
+            danger: true
+        });
+        if (!ok) return;
+        try {
+            adminData.pet = await deletePetWeight(id);
+            renderPet();
+            closePetWeightForm();
+            showMessage('已删除');
+        } catch (error) {
+            console.error(error);
+            showMessage(error.message || '删除失败', 'error');
+        }
     }
 
     async function refreshAdminPet() {
@@ -5886,6 +6189,22 @@
     $('pet-moment-list').addEventListener('click', event => {
         const remove = event.target.closest('[data-pet-moment-delete]');
         if (remove) deletePetMomentFromAdmin(remove.dataset.petMomentDelete);
+    });
+
+    $('pet-weight-add').addEventListener('click', () => openPetWeightForm(null));
+    $('pet-weight-date-button').addEventListener('click', () => openCalendarFor('pet-weight-date', syncPetWeightDate));
+    $('pet-weight-cancel').addEventListener('click', closePetWeightForm);
+    $('pet-weight-save').addEventListener('click', savePetWeightFromAdmin);
+    $('pet-weight-list').addEventListener('click', event => {
+        const remove = event.target.closest('[data-pet-weight-delete]');
+        if (remove) {
+            deletePetWeightFromAdmin(remove.dataset.petWeightDelete);
+            return;
+        }
+        const row = event.target.closest('[data-pet-weight-edit]');
+        if (!row) return;
+        const entry = (petData().weights || []).find(item => String(item.id) === row.dataset.petWeightEdit);
+        if (entry) openPetWeightForm(entry);
     });
 
     $('announcement-add').addEventListener('click', () => openAnnouncementModal(null));

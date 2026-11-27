@@ -2291,6 +2291,8 @@ async function updateSpaceSettings(patch) {
    ------------------------------------------------------------------ */
 const PET_MOMENT_IMAGE_LIMIT = 9;
 const PET_MOMENT_TEXT_LIMIT = 200;
+const PET_WEIGHT_MIN = 0.1;
+const PET_WEIGHT_MAX = 60;
 
 function emptyPetDoc() {
     return {
@@ -2301,6 +2303,7 @@ function emptyPetDoc() {
         avatar: '',
         cover: null,
         moments: [],
+        weights: [],
         updatedAt: ''
     };
 }
@@ -2370,6 +2373,31 @@ function legacyEventsToMoments(events) {
         .filter(item => item.text || item.images.length);
 }
 
+function normalizePetWeightValue(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return 0;
+    return Math.round(number * 10) / 10;
+}
+
+/** One record per day, ascending by date; bad or legacy rows are dropped. */
+function normalizePetWeights(items) {
+    const byDate = new Map();
+    (Array.isArray(items) ? items : []).forEach(item => {
+        if (!item || typeof item !== 'object') return;
+        const date = normalizePetDate(item.date);
+        const weight = normalizePetWeightValue(item.weight);
+        if (!date || weight < PET_WEIGHT_MIN || weight > PET_WEIGHT_MAX) return;
+        byDate.set(date, {
+            id: String(item.id || `pw_${date.replace(/-/g, '')}`),
+            date,
+            weight,
+            createdAt: item.createdAt || '',
+            updatedAt: item.updatedAt || item.createdAt || ''
+        });
+    });
+    return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
+}
+
 function normalizePetDoc(doc) {
     const base = emptyPetDoc();
     if (!doc || typeof doc !== 'object') return base;
@@ -2379,6 +2407,7 @@ function normalizePetDoc(doc) {
     base.homeDate = normalizePetDate(doc.homeDate);
     base.avatar = String(doc.avatar || '').trim();
     base.cover = normalizePetCover(doc.cover);
+    base.weights = normalizePetWeights(doc.weights);
     const moments = Array.isArray(doc.moments) ? doc.moments : legacyEventsToMoments(doc.events);
     base.moments = moments
         .filter(item => item && item.id)
@@ -2458,6 +2487,46 @@ async function deletePetMoment(id) {
     const before = doc.moments.length;
     doc.moments = doc.moments.filter(item => String(item.id) !== String(id));
     if (doc.moments.length === before) throw makeError('PET_MOMENT_MISSING', '这条动态已经不在了');
+    doc.updatedAt = nowStamp();
+    await dbPut(PET_PATH, doc);
+    return doc;
+}
+
+async function savePetWeight(input) {
+    const doc = await loadPet({ fresh: true });
+    const date = normalizePetDate(input && input.date);
+    if (!date) throw makeError('PET_WEIGHT_DATE', '请选择有效日期');
+    const weight = normalizePetWeightValue(input && input.weight);
+    if (!(weight >= PET_WEIGHT_MIN && weight <= PET_WEIGHT_MAX)) {
+        throw makeError('PET_WEIGHT_VALUE', `体重需要在 ${PET_WEIGHT_MIN}–${PET_WEIGHT_MAX} 斤之间`);
+    }
+    const now = nowStamp();
+    const id = String((input && input.id) || '');
+    const existing = id
+        ? doc.weights.find(item => String(item.id) === id)
+        : doc.weights.find(item => item.date === date);
+    if (id && !existing) throw makeError('PET_WEIGHT_MISSING', '这条体重记录已经不在了');
+    const entry = {
+        id: (existing && existing.id) || `pw_${now.replace(/[-: ]/g, '')}_${Math.random().toString(36).slice(2, 6)}`,
+        date,
+        weight,
+        createdAt: (existing && existing.createdAt) || now,
+        updatedAt: now
+    };
+    // One record per date: editing onto an existing date replaces that day too.
+    doc.weights = normalizePetWeights(doc.weights
+        .filter(item => String(item.id) !== String(entry.id) && item.date !== date)
+        .concat(entry));
+    doc.updatedAt = now;
+    await dbPut(PET_PATH, doc);
+    return { doc, entry };
+}
+
+async function deletePetWeight(id) {
+    const doc = await loadPet({ fresh: true });
+    const before = doc.weights.length;
+    doc.weights = doc.weights.filter(item => String(item.id) !== String(id));
+    if (doc.weights.length === before) throw makeError('PET_WEIGHT_MISSING', '这条体重记录已经不在了');
     doc.updatedAt = nowStamp();
     await dbPut(PET_PATH, doc);
     return doc;

@@ -9,7 +9,7 @@
 
 - 2026-11-13 口径确认：统一事件 + 自由标签 / 完整日期必填 / 我们页角落 + 空间子页 /
   我们页只放趴姿、睡姿放空间页 / 到家日即生日 / 事件照片至少 1 张可多张。
-- 2026-11-13 原型 `docs/design/liuyi-pet-wireframe.html`（v3）。
+- 2026-11-13 原型 `docs/design/261113-liuyi-pet.html`（v3）。
 - 2026-11-13 形象上线：我们页计时卡趴姿、空间页资料卡睡姿（`20261113-02` / `-03`）。
 - 2026-11-21 一期功能实现并发布（缓存 token `20261121-01`）：
   - 存储：`content/pet.json` 单文档（资料 + 两张形象 + 内嵌事件数组），
@@ -73,7 +73,7 @@
 - `index.html`（菜单行 + 子页容器）、`css/style.css`（六一子页样式）
 - `admin.html`（`data-panel="pet"`、事件弹窗、复用日历、`SUB_VIEWS`）
 - `scripts/build-fonts.sh`、`scripts/font-cute-chars.txt`
-- `docs/design/liuyi-pet-wireframe.html`
+- `docs/design/261113-liuyi-pet.html`
 
 ## 备注
 

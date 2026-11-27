@@ -10,7 +10,7 @@
 - 2026-11-17 人确认：名称「你做的我都爱吃」、固定 20 币、列表置顶、只在开始制作时填、设置放菜单页顶部、点 + 不弹说明、不额外推送、不做摇一摇。
 - 2026-11-18 人确认：置顶卡就是**普通菜卡**（海报只指缩略图风格）、随机按钮用方案 A 但**只有图标**、随机结果走**弹窗 + 礼盒动画**、池子是**全部在售菜**。
 - 置顶卡海报已生成并上传 OSS（1024×1024，215KB），临时文件已清理。
-- 原型 v4：`docs/design/chef-choice-wireframe.html`（普通置顶卡、图标按钮、礼盒抽奖 demo、管理端填菜/设置、素材清理说明）。
+- 原型 v4：`docs/design/261118-chef-choice.html`（普通置顶卡、图标按钮、礼盒抽奖 demo、管理端填菜/设置、素材清理说明）。
 - 清理本地 mock 图：`assets/media/dishes/` 14 张已删，种子脚本 image 字段清空，三份历史原型改引用 OSS 图，credits 文档删除。
 
 ### 2026-11-18 开发完成
@@ -43,7 +43,7 @@
 
 ## 关键文件
 
-- `docs/design/chef-choice-wireframe.html`
+- `docs/design/261118-chef-choice.html`
 - `js/store.js`（`placeOrder` 938、`setOrderStatus` 1051、`serveOrder` 1099）
 - `js/app.js`（`renderMenu` 2128、订单卡 2070、订单详情 3148）
 - `admin.html`（订单卡 2440、`NEXT_STATUS` 1778、出餐弹层 1720）

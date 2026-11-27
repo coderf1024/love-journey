@@ -446,5 +446,5 @@
 - 2026-11-10：**结束记录不自动结束**。超过 10 天只提示一次（补结束日 / 拆开 / 删除三选一），系统不改数据。
 - 2026-11-10：**定时方案定为 Cloudflare Workers Cron**（人已确认）。Worker 只读 OSS + POST Bark，不写 OSS；`wrangler.toml` 与 Worker 源码放 `workers/cycle-reminder/`。
 - 2026-11-10：**美柚导出文件稍后提供**，导入解析的真实表头待补；在此之前导入器按「两种形态都兼容」设计。
-- 2026-11-10：原型 v1 已交付 `docs/design/period-tracker-wireframe.html`，等人工评审后再写 `plan.md`、开分支。
+- 2026-11-10：原型 v1 已交付 `docs/design/261110-period-tracker.html`，等人工评审后再写 `plan.md`、开分支。
 - 2026-11-10：范围收窄。核心=记录+预测，不能输；照顾闭环/厨房联动/一键求助/回顾 → 二期；社区不做；隐私按明文 OSS（人判断不敏感）；GitHub Action 定时不可用，改 Cloudflare Workers。
